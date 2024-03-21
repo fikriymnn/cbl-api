@@ -1,22 +1,26 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-export const Auth = async (req, res, next) => {
-  if (!req.cookies.access_token)
-    return res.status(401).json({ msg: "Pliss Login" });
+const authMiddlewares = {
+  Auth: async (req, res, next) => {
+    if (!req.cookies.access_token)
+      return res.status(401).json({ msg: "Pliss Login" });
 
-  jwt.verify(
-    req.cookies.access_token,
-    process.env.JWT_ACC_SECRET,
-    (err, payload) => {
-      if (err) {
-        res.status(403).json({
-          status_code: 403,
-          message: "Access token invalid.",
-        });
-        res.end();
+    jwt.verify(
+      req.cookies.access_token,
+      process.env.JWT_ACC_SECRET,
+      (err, payload) => {
+        if (err) {
+          res.status(403).json({
+            status_code: 403,
+            message: "Access token invalid.",
+          });
+          res.end();
+        }
+        req.user = payload;
+        next();
       }
-      req.user = payload;
-      next();
-    }
-  );
+    );
+  },
 };
+
+module.exports = authMiddlewares;

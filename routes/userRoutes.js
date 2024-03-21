@@ -1,19 +1,17 @@
-import Express from "express";
-import {
+const router = require("express").Router();
+const {
   getUsers,
   getUsersById,
   createUsers,
   updateUsers,
   deleteUsers,
-} from "../controller/userController.js";
-import { Auth } from "../middlewares/authMiddlewares.js";
-
-const router = Express.Router();
+} = require("../controller/userController");
+const { Auth } = require("../middlewares/authMiddlewares");
 
 router.get("/users", Auth, getUsers);
 router.get("/users/:id", Auth, getUsersById);
 router.post("/users", Auth, createUsers);
-router.patch("/users/:id", Auth, updateUsers);
+router.put("/users/:id", Auth, updateUsers);
 router.delete("/users/:id", Auth, deleteUsers);
 
-export default router;
+module.exports = router;

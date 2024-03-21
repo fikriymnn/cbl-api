@@ -1,63 +1,71 @@
-import Users from "../model/userModel.js";
-import argon2 from "argon2";
-import { generate_access_token } from "../utils/jwt.js";
+const Users = require("../model/userModel");
+const { generate_access_token } = require("../utils/jwt");
+const authMiddlewares = require("../middlewares/authMiddlewares");
+const bcrypt = require("bcryptjs");
 
-export const Login = async (req, res) => {
-  const users = await Users.findOne({
-    where: {
-      email: req.body.email,
-    },
-  });
-  if (!users) return res.status(404).json({ msg: "User Not Found" });
+const authController = {
+  Login: async (req, res) => {
+    if (!req.body.email && !req.body.password)
+      return res.status(400).json({ msg: "Incomplete input data!" });
 
-  const mach = await argon2.verify(users.password, req.body.password);
-  if (!mach) return res.status(400).json({ msg: "Wrong Password" });
+    const users = await Users.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+    if (!users) return res.status(404).json({ msg: "User Not Found" });
 
-  const uuid = users.uuid;
-  const name = users.name;
-  const email = users.email;
-  const role = users.role;
-  const no = users.no;
+    const mach = await bcrypt.compare(req.body.password, users.password);
+    if (!mach) return res.status(400).json({ msg: "Wrong Password" });
 
-  const access_token = generate_access_token({
-    uuid: uuid,
-    name: name,
-    email: email,
-    no: no,
-    role: role,
-  });
+    const uuid = users.uuid;
+    const name = users.name;
+    const email = users.email;
+    const role = users.role;
+    const no = users.no;
 
-  res.cookie("access_token", access_token, {
-    sameSite: "None",
-    // secure: true,
-    httpOnly: true,
-    path: "/",
-  });
-
-  res.status(200).json({ uuid, name, email, role, no });
-};
-
-export const Me = async (req, res, next) => {
-  if (!req.cookies.access_token)
-    return res.status(401).json({ msg: "Pliss Login" });
-
-  const uuid = req.user.uuid;
-
-  const users = await Users.findOne({
-    attributes: ["uuid", "name", "email", "role", "no"],
-    where: {
+    const access_token = generate_access_token({
       uuid: uuid,
-    },
-  });
-  if (!users) return res.status(404).json({ msg: "User Not Found" });
-  res.status(200).json(users);
+      name: name,
+      email: email,
+      no: no,
+      role: role,
+    });
+
+    res.cookie("access_token", access_token, {
+      sameSite: "None",
+      // secure: true,
+      httpOnly: true,
+      path: "/",
+    });
+
+    res.status(200).json({ uuid, name, email, role, no });
+  },
+
+  Me: async (req, res, next) => {
+    if (!req.cookies.access_token)
+      return res.status(401).json({ msg: "Pliss Login" });
+
+    const uuid = req.user.uuid;
+
+    const users = await Users.findOne({
+      attributes: ["uuid", "name", "email", "role", "no"],
+      where: {
+        uuid: uuid,
+      },
+    });
+    if (!users) return res.status(404).json({ msg: "User Not Found" });
+    res.status(200).json(users);
+  },
+
+  Logout: async (req, res) => {
+    if (!req.cookies.access_token)
+      return res.status(403).json({ msg: "Pliss Login" });
+
+    const clear = res.clearCookie("access_token");
+    if (!clear) return res.status(400).json({ msg: "Cannot Logout" });
+    res.status(200).json({ msg: "Logout Succsess" });
+  },
 };
 
-export const Logout = async (req, res) => {
-  if (!req.cookies.access_token)
-    return res.status(403).json({ msg: "Pliss Login" });
-
-  const clear = res.clearCookie("access_token");
-  if (!clear) return res.status(400).json({ msg: "Cannot Logout" });
-  res.status(200).json({ msg: "Logout Succsess" });
-};
+module.exports = authController;
