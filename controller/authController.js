@@ -18,6 +18,7 @@ const authController = {
     const mach = await bcrypt.compare(req.body.password, users.password);
     if (!mach) return res.status(400).json({ msg: "Wrong Password" });
 
+    const id = users.id
     const uuid = users.uuid;
     const name = users.name;
     const email = users.email;
@@ -25,6 +26,7 @@ const authController = {
     const no = users.no;
 
     const access_token = generate_access_token({
+      id : id,
       uuid: uuid,
       name: name,
       email: email,

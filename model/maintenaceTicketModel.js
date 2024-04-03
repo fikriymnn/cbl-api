@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const db = require("../config/database");
+const Users = require("./userModel")
 
 const { DataTypes } = Sequelize;
 
@@ -125,6 +126,18 @@ const Ticket = db.define(
             notEmpty:true
         }
       },
+      bagianTiket: {
+        type: DataTypes.STRING,
+        allowNull:false,
+        defaultValue:"incoming",
+        validate:{
+            notEmpty:true,
+        }
+      },
+      typeMtc: {
+        type: DataTypes.STRING,
+        allowNull:true,            
+      },
       statusTiket: {
         type: DataTypes.STRING,
         allowNull:false,
@@ -160,11 +173,13 @@ const Ticket = db.define(
       },
       idMtc: {
         type: DataTypes.INTEGER,
-        allowNull:true       
+        allowNull:true,
+              
       },
       idQc: {
         type: DataTypes.INTEGER,
-        allowNull:true        
+        allowNull:true,
+             
       },
 
     },
@@ -173,5 +188,6 @@ const Ticket = db.define(
       freezeTableName: true,
     }
   );
+
   
   module.exports = Ticket;

@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const db = require("../config/database");
+const maintenaceTicketModel = require("./maintenaceTicketModel")
 
 const { DataTypes } = Sequelize;
 
@@ -56,5 +57,7 @@ const Users = db.define(
     freezeTableName: true,
   }
 );
+
+
 
 module.exports = Users;
