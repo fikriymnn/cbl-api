@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
+const tc = require("./model/maintenaceTicketModel")
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -11,9 +12,9 @@ dotenv.config();
 
 const app = express();
 
-// (async () => {
-//   await Users.sync();
-// })();
+(async () => {
+  await tc.sync();
+})();
 
 app.use(
   cors({
