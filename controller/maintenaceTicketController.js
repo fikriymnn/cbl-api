@@ -4,8 +4,27 @@ const Users = require("../model/userModel")
 const userController = {
     getTicket: async (req, res) => {
       try {
-        const response = await Ticket.findAll();
-        res.status(200).json(response);
+        const {statusTiket,typeMtc,jenisKendala,namaCustomer,statusJadwal,bagianTiket,mesin,tanggal} = req.query
+        if(statusTiket||typeMtc||jenisKendala||namaCustomer||statusJadwal||bagianTiket||mesin||tanggal){
+           let obj = {}
+           if(statusTiket)obj.statusTiket=statusTiket;
+           if(typeMtc)obj.typeMtc=typeMtc;
+           if(jenisKendala)obj.jenisKendala=jenisKendala;
+           if(namaCustomer)obj.namaCustomer=namaCustomer;
+           if(statusJadwal)obj.statusJadwal=statusJadwal;
+           if(bagianTiket)obj.bagianTiket=bagianTiket;
+           if(mesin)obj.mesin=mesin;
+           if(tanggal)obj.tanggal=tanggal
+           
+           const response = await Ticket.findAll({
+             where: obj
+           })
+           res.status(200).json(response);
+        }else{
+          const response = await Ticket.findAll();
+          res.status(200).json(response);
+        }
+        
       } catch (error) {
         res.status(500).json({ msg: error.message });
       }
