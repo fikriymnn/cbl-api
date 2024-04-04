@@ -37,6 +37,18 @@ const userController = {
           where: {
             id: req.params.id,
           },
+
+         include:[{
+          model: Users,
+          as: "userMtc",
+          attributes: ["id","uuid", "name", "email", "role", "no"],
+        },
+        {
+          model: Users,
+          as: "userQc",
+          attributes: ["id","uuid", "name", "email", "role", "no"],
+        }
+      ]
         });
         res.status(200).json(response);
       } catch (error) {
@@ -78,33 +90,15 @@ const userController = {
       const { bagianTiket, statusTiket, statusJadwal,jadwalFrom,jadwalTo,responseTime,doneTime,idMtc,idQc } = req.body;
 
       let obj = {}
-      if(bagianTiket){
-        obj.bagianTiket =bagianTiket
-      }
-      if(statusTiket){
-        obj.statusTiket =statusTiket
-      }
-      if(statusJadwal){
-        obj.statusJadwal =statusJadwal
-      }
-      if(jadwalFrom){
-        obj.jadwalFrom =jadwalFrom
-      }
-      if(jadwalTo){
-        obj.jadwalTo =jadwalTo
-      }
-      if(responseTime){
-        obj.responseTime =responseTime
-      }
-      if(doneTime){
-        obj.doneTime =doneTime
-      }
-      if(idMtc){
-        obj.idMtc =idMtc
-      }
-      if(idQc){
-        obj.idQc =idQc
-      }
+      if(bagianTiket)obj.bagianTiket =bagianTiket;     
+      if(statusTiket)obj.statusTiket =statusTiket;
+      if(statusJadwal)obj.statusJadwal =statusJadwal;
+      if(jadwalFrom)obj.jadwalFrom =jadwalFrom;
+      if(jadwalTo)obj.jadwalTo =jadwalTo;
+      if(responseTime)obj.responseTime =responseTime;
+      if(doneTime)obj.doneTime =doneTime
+      if(idMtc)obj.idMtc =idMtc;
+      if(idQc)obj.idQc =idQc;
       
 
       try {
@@ -122,13 +116,29 @@ const userController = {
       if(typeMtc){
         obj.typeMtc = typeMtc
         obj.responseTime = new Date()
-        obj.idMtc = req.user.id
         obj.bagianTiket = "os2"
       }
-      console.log(obj)
+      
       try {
          await Ticket.update(obj,{where: {id:_id}}),
           res.status(201).json({ msg: "Ticket update Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
+    beginTiket: async (req, res) => {
+      const _id = req.params.id;
+      
+      let obj = {
+        idMtc: req.user.id,
+        statusTiket: "on progress",
+        statusJadwal: "scheduled"
+      }
+      
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Ticket maintenance begin Successfuly" });
       } catch (error) {
         res.status(400).json({ msg: error.message });
       }
@@ -140,11 +150,12 @@ const userController = {
       let obj = { 
         doneTime : new Date(),
         idQc : req.user.id,
-        statusTiket: "done"
+        statusTiket: "done",
+        statusJadwal : "done"
         
       }
      
-      console.log(obj)
+      
       try {
          await Ticket.update(obj,{where: {id:_id}}),
           res.status(201).json({ msg: "Ticket approved Successfuly" });

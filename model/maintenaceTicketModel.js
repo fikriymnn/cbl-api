@@ -174,12 +174,23 @@ const Ticket = db.define(
       idMtc: {
         type: DataTypes.INTEGER,
         allowNull:true,
-              
+        references: {
+          model: Users,
+          key: "id"
+        }             
       },
       idQc: {
         type: DataTypes.INTEGER,
         allowNull:true,
-             
+        references: {
+          model: Users,
+          key: "id"
+        }             
+      },
+      scoreMtc: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:0             
       },
 
     },
@@ -188,6 +199,12 @@ const Ticket = db.define(
       freezeTableName: true,
     }
   );
+
+  Users.hasMany(Ticket,{foreignKey : "idMtc"})
+  Users.hasMany(Ticket,{foreignKey : "idQc"})
+
+  Ticket.belongsTo(Users, {foreignKey : "idMtc", as:"userMtc"})
+  Ticket.belongsTo(Users, {foreignKey : "idQc",as:"userQc"})
 
   
   module.exports = Ticket;

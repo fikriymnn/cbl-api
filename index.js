@@ -3,7 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
 const tc = require("./model/maintenaceTicketModel")
-const user = require("./model/userModel")
+const user = require("./model/userModel");
+const master = require("./model/masterData/masterMesinModel")
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -13,12 +14,12 @@ dotenv.config();
 
 const app = express();
 
-// tiket sync to table
+// database sync to table
 // (async () => {
-//   await tc.sync({ alter: true });
+//   await db.sync({ alter: true });
 // })();
 
-// user sync to table
+// model sync to table (pancingan)
 // (async () => {
 //   await user.sync({ alter: true });
 // })();
