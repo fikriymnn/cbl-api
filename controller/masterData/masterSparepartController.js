@@ -19,12 +19,12 @@ const masterSparepartController = {
     },
 
     createMasterSparepart: async (req, res)=>{
-        const {id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti} = req.body;
-        if(!id_mesin ||!nama_sparepart||!status_sparepart||!umur_sparepart||!tgl_ganti)return res.status(404).json({msg:"incomplete data!!"})
+        const {id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti,vendor} = req.body;
+        if(!id_mesin ||!nama_sparepart||!status_sparepart||!umur_sparepart||!tgl_ganti||!vendor)return res.status(404).json({msg:"incomplete data!!"})
 
         try {
             const response = await masterSparepart.create({
-                id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti
+                id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti,vendor
             })
             res.status(200).json(response);
         } catch (error) {
@@ -34,7 +34,7 @@ const masterSparepartController = {
 
     updateMasterSparepart: async (req, res)=>{
         const _id = req.params.id;
-        const {id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti} = req.body;
+        const {id_mesin ,nama_sparepart,status_sparepart,umur_sparepart,tgl_ganti,vendor} = req.body;
 
         let obj = {}
         if(id_mesin)obj.id_mesin = id_mesin;
@@ -42,6 +42,9 @@ const masterSparepartController = {
         if(status_sparepart)obj.status_sparepart = status_sparepart;
         if(umur_sparepart)obj.umur_sparepart = umur_sparepart;
         if(tgl_ganti)obj.tgl_ganti = tgl_ganti;
+        if(vendor)obj.vendor = vendor;
+
+        
 
         try {
             await masterSparepart.update(obj,{where: {id:_id}}),

@@ -1,4 +1,5 @@
 const masterMesin = require("../../model/masterData/masterMesinModel")
+const masterSparepart = require("../../model/masterData/masterSparepart")
 
 const masterMesinController = {
     getMasterMesin: async (req, res) => {
@@ -11,7 +12,13 @@ const masterMesinController = {
     },
     getMasterMesinById: async (req, res) => {
         try {
-            const response = await masterMesin.findByPk(req.params.id);
+            const response = await masterMesin.findByPk(req.params.id,
+                {
+                    include:[{
+                        model: masterSparepart,                     
+                    }]
+                }
+            );
             res.status(200).json(response);
         } catch (error) {
             res.status(500).json({ msg: error.message });

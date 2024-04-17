@@ -161,6 +161,36 @@ const userController = {
       }
     },
 
+    approveDate: async (req, res) => {
+      const _id = req.params.id;
+     
+      let obj = {       
+        status_tiket: "date approved" 
+      }
+          
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Date Approved" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
+    tolakDate: async (req, res) => {
+      const _id = req.params.id;
+     
+      let obj = {       
+        status_tiket: "date declined", 
+      }
+          
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Date Declined" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
     beginTiket: async (req, res) => {
       const _id = req.params.id;
       
