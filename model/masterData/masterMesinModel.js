@@ -8,7 +8,7 @@ const MasterMesin = db.define(
   "ms_mesin",
   {
     
-    serial_umber: {
+    serial_number: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
