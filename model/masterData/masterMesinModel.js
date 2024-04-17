@@ -1,21 +1,14 @@
 const { Sequelize } = require("sequelize");
-const db = require("../config/database");
-const maintenaceTicketModel = require("./maintenaceTicketModel")
+const db = require("../../config/database");
+
 
 const { DataTypes } = Sequelize;
 
-const Users = db.define(
-  "users",
+const MasterMesin = db.define(
+  "ms_mesin",
   {
-    uuid: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-    },
-    nama: {
+    
+    serial_umber: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
@@ -23,43 +16,34 @@ const Users = db.define(
         len: [3, 100],
       },
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-        isEmail: true,
-      },
-    },
-    no: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-    },
-    password: {
+    nama_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    role: {
+    bagian_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    status: {
+    lokasi_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue:"aktif",
       validate: {
         notEmpty: true,
       },
     },
+    kode_mesin: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    }
   },
   {
     freezeTableName: true,
@@ -68,4 +52,5 @@ const Users = db.define(
 
 
 
-module.exports = Users;
+
+module.exports = MasterMesin;
