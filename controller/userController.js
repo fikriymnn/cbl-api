@@ -5,7 +5,7 @@ const userController = {
   getUsers: async (req, res) => {
     try {
       const response = await Users.findAll({
-        attributes: ["id","uuid", "name", "email", "role", "no","status"],
+        attributes: ["id","uuid", "nama", "email", "role", "no","status"],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -16,7 +16,7 @@ const userController = {
   getUsersById: async (req, res) => {
     try {
       const response = await Users.findOne({
-        attributes: ["id","uuid", "name", "email", "role", "no","status"],
+        attributes: ["id","uuid", "nama", "email", "role", "no","status"],
         where: {
           uuid: req.params.id,
         },
