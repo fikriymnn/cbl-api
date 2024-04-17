@@ -145,6 +145,22 @@ const userController = {
       }
     },
 
+    requestedDate: async (req, res) => {
+      const _id = req.params.id;
+      const {tgl_mtc} = req.body;
+      let obj = {
+        tgl_mtc:tgl_mtc,
+        status_tiket: "requested date" 
+      }
+          
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Respon Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
     beginTiket: async (req, res) => {
       const _id = req.params.id;
       
