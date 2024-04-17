@@ -19,15 +19,12 @@ const masterMesinController = {
     },
 
     createMasterMesin: async (req, res)=>{
-        const {serialNumber, machineName, machineType,machineLocation} = req.body;
-        if(!serialNumber|| !machineName|| !machineType||!machineLocation)return res.status(404).json({msg:"incomplete data!!"})
+        const {  serial_number,nama_mesin,bagian_mesin,lokasi_mesin,kode_mesin} = req.body;
+        if(!serial_number||!nama_mesin||!bagian_mesin||!lokasi_mesin||!kode_mesin)return res.status(404).json({msg:"incomplete data!!"})
 
         try {
             const response = await masterMesin.create({
-                serialNumber:serialNumber,
-                machineName:machineName,
-                machineType:machineType,
-                machineLocation:machineLocation
+                serial_number,nama_mesin,bagian_mesin,lokasi_mesin,kode_mesin
             })
             res.status(200).json(response);
         } catch (error) {
@@ -37,13 +34,14 @@ const masterMesinController = {
 
     updateMasterMesin: async (req, res)=>{
         const _id = req.params.id;
-        const {serialNumber, machineName, machineType,machineLocation} = req.body;
+        const {serial_number,nama_mesin,bagian_mesin,lokasi_mesin,kode_mesin} = req.body;
 
         let obj = {}
-        if(serialNumber)obj.serialNumber = serialNumber;
-        if(machineName)obj.machineName = machineName;
-        if(machineType)obj.machineType = machineType;
-        if(machineLocation)obj.machineLocation = machineLocation;
+        if(serial_number)obj.serial_number = serial_number;
+        if(nama_mesin)obj.nama_mesin = nama_mesin;
+        if(bagian_mesin)obj.bagian_mesin = bagian_mesin;
+        if(lokasi_mesin)obj.lokasi_mesin = lokasi_mesin;
+        if(kode_mesin)obj.kode_mesin = kode_mesin;
 
         try {
             await masterMesin.update(obj,{where: {id:_id}}),
