@@ -4,17 +4,16 @@ const Users = require("../model/userModel")
 const userController = {
     getTicket: async (req, res) => {
       try {
-        const {statusTiket,typeMtc,jenisKendala,namaCustomer,statusJadwal,bagianTiket,mesin,tanggal} = req.query
-        if(statusTiket||typeMtc||jenisKendala||namaCustomer||statusJadwal||bagianTiket||mesin||tanggal){
+        const {status_tiket,type_mtc,jenis_kendala,nama_customer,bagian_tiket,mesin,tgl} = req.query
+        if(status_tiket||type_mtc||jenis_kendala||nama_customer||bagian_tiket||mesin||tgl){
            let obj = {}
-           if(statusTiket)obj.statusTiket=statusTiket;
-           if(typeMtc)obj.typeMtc=typeMtc;
-           if(jenisKendala)obj.jenisKendala=jenisKendala;
-           if(namaCustomer)obj.namaCustomer=namaCustomer;
-           if(statusJadwal)obj.statusJadwal=statusJadwal;
-           if(bagianTiket)obj.bagianTiket=bagianTiket;
+           if(status_tiket)obj.status_tiket=status_tiket;
+           if(type_mtc)obj.type_mtc=type_mtc;
+           if(jenis_kendala)obj.jenis_kendala=jenis_kendala;
+           if(nama_customer)obj.nama_customer=nama_customer;
+           if(bagian_tiket)obj.bagian_tiket=bagian_tiket;
            if(mesin)obj.mesin=mesin;
-           if(tanggal)obj.tanggal=tanggal
+           if(tgl)obj.tgl=tgl
            
            const response = await Ticket.findAll({
              where: obj
@@ -38,15 +37,21 @@ const userController = {
             id: req.params.id,
           },
 
-         include:[{
+         include:[
+          {
+            model: Users,
+            as: "user_respon_mtc",
+            attributes: ["id","uuid", "nama", "email", "role", "no","status"],
+          },
+          {
           model: Users,
-          as: "userMtc",
-          attributes: ["id","uuid", "name", "email", "role", "no"],
+          as: "user_mtc",
+          attributes: ["id","uuid", "nama", "email", "role", "no","status"],
         },
         {
           model: Users,
-          as: "userQc",
-          attributes: ["id","uuid", "name", "email", "role", "no"],
+          as: "user_qc",
+          attributes: ["id","uuid", "nama", "email", "role", "no","status"],
         }
       ]
         });
@@ -57,27 +62,27 @@ const userController = {
     },
   
     createTiket: async (req, res) => {
-      const { idJo, noJo, namaProduk, noIo, noSo, namaCustomer,qty,qtyDruk,spek,proses,mesin,bagian,operator,tanggal,jenisKendala,idKendala,namaKendala } = req.body;
+      const { id_jo, no_jo, nama_produk, no_io, no_so, nama_customer,qty,qty_druk,spek,proses,mesin,bagian,operator,tgl,jenis_kendala,id_kendala,nama_kendala } = req.body;
 
       try {
         await Ticket.create({
-            idJo:idJo , 
-            noJo:noJo , 
-            namaProduk:namaProduk , 
-            noIo: noIo, 
-            noSo: noSo, 
-            namaCustomer: namaCustomer,
+            id_jo:id_jo , 
+            no_jo:no_jo , 
+            nama_produk:nama_produk , 
+            no_io: no_io, 
+            no_so: no_so, 
+            nama_customer: nama_customer,
             qty: qty,
-            qtyDruk: qtyDruk,
+            qty_druk: qty_druk,
             spek: spek,
             proses: proses,
             mesin:mesin ,
             bagian: bagian,
             operator: operator,
-            tanggal: tanggal,
-            jenisKendala: jenisKendala,
-            idKendala: idKendala,
-            namaKendala: namaKendala,
+            tgl: tgl,
+            jenis_kendala: jenis_kendala,
+            id_kendala: id_kendala,
+            nama_kendala: nama_kendala,
         }),
           res.status(201).json({ msg: "Ticket create Successfuly" });
       } catch (error) {
@@ -87,18 +92,17 @@ const userController = {
 
     updateTiket: async (req, res) => {
       const _id = req.params.id;
-      const { bagianTiket, statusTiket, statusJadwal,jadwalFrom,jadwalTo,responseTime,doneTime,idMtc,idQc } = req.body;
+      const { bagian_tiket, status_tiket, waktu_respon,waktu_selesai_mtc,waktu_selesai,tipe_mtc,id_mtc,id_qc } = req.body;
 
       let obj = {}
-      if(bagianTiket)obj.bagianTiket =bagianTiket;     
-      if(statusTiket)obj.statusTiket =statusTiket;
-      if(statusJadwal)obj.statusJadwal =statusJadwal;
-      if(jadwalFrom)obj.jadwalFrom =jadwalFrom;
-      if(jadwalTo)obj.jadwalTo =jadwalTo;
-      if(responseTime)obj.responseTime =responseTime;
-      if(doneTime)obj.doneTime =doneTime
-      if(idMtc)obj.idMtc =idMtc;
-      if(idQc)obj.idQc =idQc;
+      if(bagian_tiket)obj.bagian_tiket =bagian_tiket;     
+      if(status_tiket)obj.status_tiket =status_tiket;
+      if(waktu_respon)obj.waktu_respon =waktu_respon;
+      if(waktu_selesai_mtc)obj.waktu_selesai_mtc =waktu_selesai_mtc;
+      if(waktu_selesai)obj.waktu_selesai =waktu_selesai;
+      if(tipe_mtc)obj.tipe_mtc =tipe_mtc;
+      if(id_mtc)obj.id_mtc =id_mtc;
+      if(id_qc)obj.id_qc =id_qc;
       
 
       try {
@@ -111,12 +115,11 @@ const userController = {
 
     updateTiketTypeMtc: async (req, res) => {
       const _id = req.params.id;
-      const { typeMtc } = req.body;
+      const { tipe_mtc } = req.body;
       let obj = {}
-      if(typeMtc){
-        obj.typeMtc = typeMtc
-        obj.responseTime = new Date()
-        obj.bagianTiket = "os2"
+      if(tipe_mtc){
+        obj.tipe_mtc = tipe_mtc
+        obj.bagian_tiket = "os2"
       }
       
       try {
@@ -127,15 +130,27 @@ const userController = {
       }
     },
 
+    responseMtc: async (req, res) => {
+      const _id = req.params.id;
+      let obj = {
+        id_respon_mtc:req.user.id,
+        waktu_respon: new Date() 
+      }
+          
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Respon Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
     beginTiket: async (req, res) => {
       const _id = req.params.id;
       
       let obj = {
-        idMtc: req.user.id,
-        statusTiket: "on progress",
-        statusJadwal: "scheduled"
-      }
-      
+        status_tiket: "on progress",
+      }     
       try {
          await Ticket.update(obj,{where: {id:_id}}),
           res.status(201).json({ msg: "Ticket maintenance begin Successfuly" });
@@ -144,21 +159,49 @@ const userController = {
       }
     },
 
-    approveTiket: async (req, res) => {
+    finishMtc: async (req, res) => {
       const _id = req.params.id;
-      
-      let obj = { 
-        doneTime : new Date(),
-        idQc : req.user.id,
-        statusTiket: "done",
-        statusJadwal : "done"
-        
+      const { skor_mtc } = req.body;
+      let obj = {
+        status_tiket: "mtc selesai",
+        waktu_selesai_mtc: new Date(),
+        skor_mtc: skor_mtc,
+      }     
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
       }
-     
-      
+    },
+
+    approveTiket: async (req, res) => {
+      const _id = req.params.id;     
+      let obj = { 
+        waktu_selesai : new Date(),
+        id_qc : req.user.id,
+        status_tiket: "Qc Approve",       
+      }
+           
       try {
          await Ticket.update(obj,{where: {id:_id}}),
           res.status(201).json({ msg: "Ticket approved Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
+    tolakTiket: async (req, res) => {
+      const _id = req.params.id;     
+      let obj = { 
+        waktu_selesai : new Date(),
+        id_qc : req.user.id,
+        status_tiket: "Qc Tolak",       
+      }
+           
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Ticket Tolak Successfuly" });
       } catch (error) {
         res.status(400).json({ msg: error.message });
       }

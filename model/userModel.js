@@ -8,14 +8,14 @@ const Users = db.define(
   "users",
   {
     uuid: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    name: {
+    nama: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
@@ -48,6 +48,14 @@ const Users = db.define(
     role: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue:"aktif",
       validate: {
         notEmpty: true,
       },

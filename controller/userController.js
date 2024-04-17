@@ -5,7 +5,7 @@ const userController = {
   getUsers: async (req, res) => {
     try {
       const response = await Users.findAll({
-        attributes: ["id","uuid", "name", "email", "role", "no"],
+        attributes: ["id","uuid", "name", "email", "role", "no","status"],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -16,7 +16,7 @@ const userController = {
   getUsersById: async (req, res) => {
     try {
       const response = await Users.findOne({
-        attributes: ["id","uuid", "name", "email", "role", "no"],
+        attributes: ["id","uuid", "name", "email", "role", "no","status"],
         where: {
           uuid: req.params.id,
         },
@@ -28,7 +28,7 @@ const userController = {
   },
 
   createUsers: async (req, res) => {
-    const { name, email, password, no, confPassword, role } = req.body;
+    const { nama, email, password, no, confPassword, role } = req.body;
 
     if (password !== confPassword)
       return res
@@ -45,7 +45,7 @@ const userController = {
 
     try {
       await Users.create({
-        name: name,
+        nama: nama,
         email: email,
         password: hasPassword,
         role: role,
@@ -65,7 +65,7 @@ const userController = {
     });
     if (!users) return res.status(404).json({ msg: "User Not Found" });
 
-    const { name, email, password, confPassword, role, no } = req.body;
+    const { nama, email, password, confPassword, role, no,status } = req.body;
     let hashPassword;
     if (password === "" || password === null) {
       hashPassword = users.password;
@@ -81,11 +81,12 @@ const userController = {
     try {
       await Users.update(
         {
-          name: name,
+          nama: nama,
           email: email,
           password: hashPassword,
           role: role,
           no: no,
+          status: status
         },
         {
           where: {

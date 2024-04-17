@@ -5,10 +5,10 @@ const db = require("../../config/database");
 const { DataTypes } = Sequelize;
 
 const MasterMesin = db.define(
-  "ms_machine",
+  "ms_mesin",
   {
     
-    serialNumber: {
+    serial_umber: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
@@ -16,21 +16,28 @@ const MasterMesin = db.define(
         len: [3, 100],
       },
     },
-    machineName: {
+    nama_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    machineType: {
+    bagian_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    machineLocation: {
+    lokasi_mesin: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    kode_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {

@@ -20,7 +20,7 @@ const authController = {
 
     const id = users.id
     const uuid = users.uuid;
-    const name = users.name;
+    const name = users.nama;
     const email = users.email;
     const role = users.role;
     const no = users.no;

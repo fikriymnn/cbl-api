@@ -7,42 +7,73 @@ const { DataTypes } = Sequelize;
 const Ticket = db.define(
     "ticket",
     {
-      idJo: {
+      id_jo: {
         type: DataTypes.INTEGER,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      noJo: {
+      id_kendala: {
+        type: DataTypes.INTEGER,
+        allowNull:false,
+        validate:{
+            notEmpty:true
+        }
+      },
+      id_respon_mtc: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        references:{
+            model: Users,
+            key: "id"
+        }
+      },
+      id_mtc: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        references:{
+            model: Users,
+            key: "id"
+        }
+      },
+      id_qc: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        references:{
+            model: Users,
+            key: "id"
+        }
+      },
+      no_jo: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      namaProduk: {
+      nama_produk: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      noIo: {
+      no_io: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      noSo: {
+      no_so: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      namaCustomer: {
+      nama_customer: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
@@ -56,7 +87,7 @@ const Ticket = db.define(
             notEmpty:true
         }
       },
-      qtyDruk: {
+      qty_druk: {
         type: DataTypes.INTEGER,
         allowNull:false,
         validate:{
@@ -98,35 +129,29 @@ const Ticket = db.define(
             notEmpty:true
         }
       },
-      tanggal: {
+      tgl: {
         type: DataTypes.DATE,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      jenisKendala: {
+      jenis_kendala: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      idKendala: {
-        type: DataTypes.INTEGER,
-        allowNull:false,
-        validate:{
-            notEmpty:true
-        }
-      },
-      namaKendala: {
+      
+      nama_kendala: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
             notEmpty:true
         }
       },
-      bagianTiket: {
+      bagian_tiket: {
         type: DataTypes.STRING,
         allowNull:false,
         defaultValue:"incoming",
@@ -134,11 +159,11 @@ const Ticket = db.define(
             notEmpty:true,
         }
       },
-      typeMtc: {
+      tipe_mtc: {
         type: DataTypes.STRING,
         allowNull:true,            
       },
-      statusTiket: {
+      status_tiket: {
         type: DataTypes.STRING,
         allowNull:false,
         defaultValue:"pending",
@@ -146,53 +171,25 @@ const Ticket = db.define(
             notEmpty:true,
         }
       },
-      statusJadwal: {
-        type: DataTypes.STRING,
-        allowNull:false,
-        defaultValue:"unscheduled",
-        validate:{
-            notEmpty:true
-        }
-      },
-      jadwalFrom: {
-        type: DataTypes.DATE,
-        allowNull:true,
-        
-      },
-      jadwalTo: {
+      
+      waktu_respon: {
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      responseTime: {
+      waktu_selesai_mtc: {
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      doneTime: {
+      waktu_selesai: {
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      idMtc: {
-        type: DataTypes.INTEGER,
-        allowNull:true,
-        references: {
-          model: Users,
-          key: "id"
-        }             
-      },
-      idQc: {
-        type: DataTypes.INTEGER,
-        allowNull:true,
-        references: {
-          model: Users,
-          key: "id"
-        }             
-      },
-      scoreMtc: {
+      
+      skor_mtc: {
         type: DataTypes.INTEGER,
         allowNull:true,
         defaultValue:0             
       },
-
     },
     
     {
@@ -200,11 +197,13 @@ const Ticket = db.define(
     }
   );
 
-  Users.hasMany(Ticket,{foreignKey : "idMtc"})
-  Users.hasMany(Ticket,{foreignKey : "idQc"})
+  Users.hasMany(Ticket,{foreignKey : "id_respon_mtc"})
+  Users.hasMany(Ticket,{foreignKey : "id_mtc"})
+  Users.hasMany(Ticket,{foreignKey : "id_qc"})
 
-  Ticket.belongsTo(Users, {foreignKey : "idMtc", as:"userMtc"})
-  Ticket.belongsTo(Users, {foreignKey : "idQc",as:"userQc"})
+  Ticket.belongsTo(Users, {foreignKey : "id_respon_mtc", as:"user_respon_mtc"})
+  Ticket.belongsTo(Users, {foreignKey : "id_mtc", as:"user_mtc"})
+  Ticket.belongsTo(Users, {foreignKey : "id_qc",as:"user_qc"})
 
   
   module.exports = Ticket;

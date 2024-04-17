@@ -5,6 +5,8 @@ const db = require("./config/database");
 const tc = require("./model/maintenaceTicketModel")
 const user = require("./model/userModel");
 const master = require("./model/masterData/masterMesinModel")
+const master2 = require("./model/masterData/masterSparepart")
+const mtc = require("./model/mtc/sparepartProblem")
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -21,7 +23,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await mtc.sync({ alter: true });
 // })();
 
 app.use(
