@@ -23,7 +23,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await mtc.sync({ alter: true });
+//   await tc.sync({ alter: true });
 // })();
 
 app.use(

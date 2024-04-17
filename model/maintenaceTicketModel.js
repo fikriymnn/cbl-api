@@ -184,6 +184,10 @@ const Ticket = db.define(
         type: DataTypes.DATE,
         allowNull:true,       
       },
+      tgl_mtc: {
+        type: DataTypes.DATE,
+        allowNull:true,       
+      },
       
       skor_mtc: {
         type: DataTypes.INTEGER,
