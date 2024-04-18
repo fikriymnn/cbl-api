@@ -1,12 +1,14 @@
 const router = require("express").Router();
-const {createTiket, getTicket, getTiketById, updateTiket, updateTiketTypeMtc, approveTiket, beginTiket, responseMtc, finishMtc, tolakTiket, requestedDate, approveDate, tolakDate} = require("../controller/maintenaceTicketController");
+const {createTiket, getTicket, getTiketById, updateTiket, updateTiketTypeMtc, approveTiket, beginTiket, responseMtc, finishMtc, tolakTiket, requestedDate, approveDate, tolakDate, selectMtc, getTiketUser} = require("../controller/maintenaceTicketController");
 const { Auth } = require("../middlewares/authMiddlewares");
 
 router.get("/ticket/:id", getTiketById);
 router.get("/ticket", getTicket);
+router.get("/ticketUsers",Auth, getTiketUser);
 router.post("/ticket", createTiket);
 router.put("/ticket/:id",Auth, updateTiket);
 router.put("/ticket/respon/:id",Auth, responseMtc);
+router.put("/ticket/selectMtc/:id",Auth, selectMtc);
 router.put("/ticket/typeMtc/:id",Auth, updateTiketTypeMtc);
 router.put("/ticket/requestedDate/:id",Auth, requestedDate);
 router.put("/ticket/approveDate/:id",Auth, approveDate);
