@@ -46,11 +46,36 @@ const UsersActionMtc = db.define(
 );
 
 
-UsersActionMtc.hasMany(Ticket,{foreignKey : "id_tiket"})
-Users.hasMany(UsersActionMtc, {foreignKey : "id_mtc", })
+// Relasi UsersActionMtc dengan Ticket
+UsersActionMtc.belongsTo(Ticket, {
+  foreignKey: "id_tiket", // Gunakan foreign key unik untuk relasi ini
+  as: "tiket" // Alias opsional untuk asosiasi
+});
 
-UsersActionMtc.belongsTo(Users,{foreignKey : "id_mtc",as:"user_mtc"})
-Ticket.hasMany(UsersActionMtc, {foreignKey : "id_tiket", as:"user_ticket"})
+// Relasi UsersActionMtc dengan Users
+UsersActionMtc.belongsTo(Users, {
+  foreignKey: "id_mtc", // Gunakan foreign key unik untuk relasi ini
+  as: "user_mtc" // Alias opsional untuk asosiasi
+});
+
+// Relasi Users dengan UsersActionMtc
+Users.hasMany(UsersActionMtc, {
+  foreignKey: "id_mtc", // Sesuaikan dengan foreign key dari tabel UsersActionMtc
+   // Alias opsional untuk asosiasi
+});
+
+// Relasi Ticket dengan UsersActionMtc
+Ticket.hasMany(UsersActionMtc, {
+  foreignKey: "id_tiket", // Sesuaikan dengan foreign key dari tabel UsersActionMtc
+  as: "user_tiket" // Alias opsional untuk asosiasi
+});
+
+
+// UsersActionMtc.hasMany(Ticket,{foreignKey : "id_tiket"})
+// UsersActionMtc.belongsTo(Users,{foreignKey : "id_mtc",as:"user_mtc"})
+
+// Users.hasMany(UsersActionMtc, {foreignKey : "id_mtc", })
+// Ticket.hasMany(UsersActionMtc, {foreignKey : "id_tiket", as:"user_ticket"})
 
 
 

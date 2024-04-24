@@ -55,7 +55,7 @@ const userController = {
         include: [
           {
             model: userActionMtc,
-            as: "user_ticket",
+            as: "user_tiket",
             include: [
               {
                 model: Users,
