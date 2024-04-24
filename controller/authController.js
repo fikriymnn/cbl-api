@@ -36,7 +36,7 @@ const authController = {
 
     res.cookie("access_token", access_token, {
       sameSite: "None",
-      // secure: true,
+      secure: true,
       httpOnly: true,
       path: "/",
     });
@@ -64,7 +64,12 @@ const authController = {
     if (!req.cookies.access_token)
       return res.status(403).json({ msg: "Pliss Login" });
 
-    const clear = res.clearCookie("access_token");
+    const clear = res.clearCookie("access_token",{
+      sameSite: "None",
+      secure: true,
+      httpOnly: true,
+      path: "/",
+    });
     if (!clear) return res.status(400).json({ msg: "Cannot Logout" });
     res.status(200).json({ msg: "Logout Succsess" });
   },

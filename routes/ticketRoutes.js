@@ -15,6 +15,7 @@ const {
   selectMtc,
   getTiketUser,
   reworkMtc,
+  analisisMtc
 } = require("../controller/maintenaceTicketController");
 const { Auth } = require("../middlewares/authMiddlewares");
 
@@ -24,6 +25,7 @@ router.get("/ticketUsers", Auth, getTiketUser);
 router.post("/ticket", createTiket);
 router.put("/ticket/:id", Auth, updateTiket);
 router.put("/ticket/respon/:id", Auth, responseMtc);
+router.put("/ticket/analisis/:id", Auth, analisisMtc);
 router.put("/ticket/selectMtc/:id", Auth, selectMtc);
 // router.put("/ticket/typeMtc/:id",Auth, updateTiketTypeMtc);
 router.put("/ticket/requestedDate/:id", Auth, requestedDate);

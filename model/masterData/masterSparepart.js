@@ -24,7 +24,7 @@ const MasterSparepart = db.define(
         notEmpty: true,
       },
     },
-    status_sparepart: {
+    jenis_part: {
         type: DataTypes.STRING,
         allowNull: true,
       },

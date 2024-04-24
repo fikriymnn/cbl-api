@@ -8,6 +8,7 @@ const master = require("./model/masterData/masterMesinModel")
 const master2 = require("./model/masterData/masterSparepart")
 const mtc = require("./model/mtc/sparepartProblem")
 const mtcAction = require("./model/mtc/userActionMtc")
+const stok =  require("./model/mtc/stokSparepart")
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -24,7 +25,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mtcAction.sync({ alter: true });
+//   await mtc.sync({ alter: true });
 // })();
 
 app.use(

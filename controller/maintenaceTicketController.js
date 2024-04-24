@@ -1,6 +1,10 @@
 const Ticket = require("../model/maintenaceTicketModel");
 const Users = require("../model/userModel");
 const userActionMtc = require("../model/mtc/userActionMtc");
+const { createMasalahSparepart } = require("./mtc/sparepartProblem");
+const MasalahSparepart = require("../model/mtc/sparepartProblem");
+const StokSparepart = require("../model/mtc/stokSparepart");
+const MasterSparepart = require("../model/masterData/masterSparepart");
 
 const userController = {
   getTicket: async (req, res) => {
@@ -254,7 +258,38 @@ const userController = {
     }
   },
 
+  analisisMtc: async (req, res) => {
+    const _id = req.params.id;
 
+    const { kode_analisis_mtc, note_analisis, masalah_sparepart } = req.body;
+
+    if (!kode_analisis_mtc)
+      return res.status(404).json({ msg: "kode analisis required" });
+
+    let obj = {
+      status_tiket: "on progress",
+    };
+
+    if (kode_analisis_mtc) obj.kode_analisis_mtc = kode_analisis_mtc;
+    if (note_analisis) obj.note_analisis = note_analisis;
+
+    if (!masalah_sparepart || masalah_sparepart == []) {
+      try {
+        await Ticket.update(obj, { where: { id: _id } }),
+          res.status(201).json({ msg: "Update Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    } else {
+      try {
+        await Ticket.update(obj, { where: { id: _id } }),
+          await MasalahSparepart.bulkCreate(masalah_sparepart);
+        res.status(201).json({ msg: "Update Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    }
+  },
 
   selectMtc: async (req, res) => {
     const _id = req.params.id;
@@ -320,8 +355,6 @@ const userController = {
     }
   },
 
-
-
   requestedDate: async (req, res) => {
     const _id = req.params.id;
     const { tgl_mtc } = req.body;
@@ -338,8 +371,6 @@ const userController = {
     }
   },
 
-
-
   approveDate: async (req, res) => {
     const _id = req.params.id;
 
@@ -354,8 +385,6 @@ const userController = {
       res.status(400).json({ msg: error.message });
     }
   },
-
-
 
   tolakDate: async (req, res) => {
     const _id = req.params.id;
@@ -372,8 +401,6 @@ const userController = {
     }
   },
 
-
-
   beginTiket: async (req, res) => {
     const _id = req.params.id;
 
@@ -387,9 +414,6 @@ const userController = {
       res.status(400).json({ msg: error.message });
     }
   },
-
-
-
 
   finishMtc: async (req, res) => {
     const _id = req.params.id;
@@ -417,6 +441,41 @@ const userController = {
               },
             }
           );
+
+        const masalah = await MasalahSparepart.findAll({
+          where: { id_tiket: _id, status: "on progress" },
+        });
+
+        if (!masalah || masalah == []) {
+          for (let i = 0; i < masalah.length; i++) {
+            StokSparepart.findOne({
+              where: { id: masalah[i].id_stok_sparepart },
+            }).then((stokSparepart) => {
+              const stok = stokSparepart.stok - 1;
+              MasterSparepart.update(
+                {
+                  nama_sparepart: stokSparepart.nama_sparepart,
+                  jenis_part: stokSparepart.jenis_part,
+                  umur_sparepart: stokSparepart.umur_sparepart,
+                  tgl_ganti: new Date(),
+                  vendor: stokSparepart.vendor,
+                },
+                { where: { id: masalah[i].id_ms_sparepart } }
+              );
+              StokSparepart.update(
+                { stok: stok },
+                { where: { id: stokSparepart.id } }
+              );
+              MasalahSparepart.update(
+                { status: "done" },
+                { where: { id: masalah[i].id } }
+              );
+            });
+          }
+        } else {
+          console.log("tidak ada masalah");
+        }
+
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       } catch (error) {
         res.status(400).json({ msg: error.message });
@@ -441,6 +500,41 @@ const userController = {
               },
             }
           );
+
+        const masalah = await MasalahSparepart.findAll({
+          where: { id_tiket: _id, status: "on progress" },
+        });
+
+        if (!masalah || masalah == []) {
+          for (let i = 0; i < masalah.length; i++) {
+            StokSparepart.findOne({
+              where: { id: masalah[i].id_stok_sparepart },
+            }).then((stokSparepart) => {
+              const stok = stokSparepart.stok - 1;
+              MasterSparepart.update(
+                {
+                  nama_sparepart: stokSparepart.nama_sparepart,
+                  jenis_part: stokSparepart.jenis_part,
+                  umur_sparepart: stokSparepart.umur_sparepart,
+                  tgl_ganti: new Date(),
+                  vendor: stokSparepart.vendor,
+                },
+                { where: { id: masalah[i].id_ms_sparepart } }
+              );
+              StokSparepart.update(
+                { stok: stok },
+                { where: { id: stokSparepart.id } }
+              );
+              MasalahSparepart.update(
+                { status: "done" },
+                { where: { id: masalah[i].id } }
+              );
+            });
+          }
+        } else {
+          console.log("tidak ada masalah");
+        }
+
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       } catch (error) {
         res.status(400).json({ msg: error.message });
@@ -487,7 +581,6 @@ const userController = {
       return res.status(401).json({ msg: "eksekutor required" });
 
     let obj = {
-      
       status_tiket: "pending",
       skor_mtc: null,
       cara_perbaikan: null,
