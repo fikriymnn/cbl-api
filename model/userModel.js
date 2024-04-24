@@ -45,6 +45,13 @@ const Users = db.define(
         notEmpty: true,
       },
     },
+    bagian: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
     role: {
       type: DataTypes.STRING,
       allowNull: false,

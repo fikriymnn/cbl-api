@@ -29,7 +29,15 @@ const Ticket = db.define(
             key: "id"
         }
       },
-      id_mtc: {
+      id_eksekutor: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        references:{
+            model: Users,
+            key: "id"
+        }
+      },
+      id_eksekutor_rework: {
         type: DataTypes.INTEGER,
         allowNull:true,
         references:{
@@ -170,8 +178,7 @@ const Ticket = db.define(
         validate:{
             notEmpty:true,
         }
-      },
-      
+      },     
       waktu_respon: {
         type: DataTypes.DATE,
         allowNull:true,       
@@ -184,16 +191,50 @@ const Ticket = db.define(
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      tgl_mtc: {
+      waktu_mulai_mtc_rework: {
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      
+      waktu_selesai_mtc_rework: {
+        type: DataTypes.DATE,
+        allowNull:true,       
+      },
+      waktu_selesai_rework: {
+        type: DataTypes.DATE,
+        allowNull:true,       
+      },
+      tgl_mtc: {
+        type: DataTypes.DATE,
+        allowNull:true,       
+      },     
       skor_mtc: {
         type: DataTypes.INTEGER,
         allowNull:true,
         defaultValue:0             
       },
+      skor_mtc: {
+        type: DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:0             
+      },
+      cara_perbaikan: {
+        type: DataTypes.STRING,
+        allowNull:true,            
+      },
+      kode_analisis_mtc: {
+        type: DataTypes.STRING,
+        allowNull:true,            
+      },
+      
+      note_analisis: {
+        type: DataTypes.STRING,
+        allowNull:true,            
+      },
+      note_mtc: {
+        type: DataTypes.STRING,
+        allowNull:true,            
+      }
+      
     },
     
     {
@@ -202,11 +243,13 @@ const Ticket = db.define(
   );
 
   Users.hasMany(Ticket,{foreignKey : "id_respon_mtc"})
-  Users.hasMany(Ticket,{foreignKey : "id_mtc"})
+  Users.hasMany(Ticket,{foreignKey : "id_eksekutor"})
+  Users.hasMany(Ticket,{foreignKey : "id_eksekutor_rework"})
   Users.hasMany(Ticket,{foreignKey : "id_qc"})
 
   Ticket.belongsTo(Users, {foreignKey : "id_respon_mtc", as:"user_respon_mtc"})
-  Ticket.belongsTo(Users, {foreignKey : "id_mtc", as:"user_mtc"})
+  Ticket.belongsTo(Users, {foreignKey : "id_eksekutor", as:"user_eksekutor"})
+  Ticket.belongsTo(Users, {foreignKey : "id_eksekutor_rework", as:"user_eksekutor_rework"})
   Ticket.belongsTo(Users, {foreignKey : "id_qc",as:"user_qc"})
 
   
