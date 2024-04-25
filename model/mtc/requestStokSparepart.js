@@ -1,13 +1,17 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 
-const masalahSparepart = require("../mtc/sparepartProblem");
+const StokSparepart = require("../mtc/stokSparepart");
 
 const { DataTypes } = Sequelize;
 
-const StokSparepart = db.define(
-  "stok_sparepart",
+const RequestStokSparepart = db.define(
+  "request_stok_sparepart",
   {
+    id_sparepart: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -60,10 +64,21 @@ const StokSparepart = db.define(
       allowNull: true,
       defaultValue: "requested",
     },
+    note: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    req_sparepart_baru: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,
   }
 );
 
-module.exports = StokSparepart;
+// StokSparepart.hasMany(RequestStokSparepart, { foreignKey: "id_sparepart" }),
+//   RequestStokSparepart.belongsTo(StokSparepart, { foreignKey: "id_sparepart" });
+
+module.exports = RequestStokSparepart;
