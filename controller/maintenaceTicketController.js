@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const Ticket = require("../model/maintenaceTicketModel");
 const Users = require("../model/userModel");
 const userActionMtc = require("../model/mtc/userActionMtc");
@@ -10,6 +11,8 @@ const userController = {
   getTicket: async (req, res) => {
     try {
       const {
+        id_eksekutor,
+        id_eksekutor_rework,
         status_tiket,
         type_mtc,
         jenis_kendala,
@@ -17,33 +20,41 @@ const userController = {
         bagian_tiket,
         mesin,
         tgl,
+        start_date,
+        end_date,
       } = req.query;
-      if (
-        status_tiket ||
-        type_mtc ||
-        jenis_kendala ||
-        nama_customer ||
-        bagian_tiket ||
-        mesin ||
-        tgl
-      ) {
-        let obj = {};
-        if (status_tiket) obj.status_tiket = status_tiket;
-        if (type_mtc) obj.type_mtc = type_mtc;
-        if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
-        if (nama_customer) obj.nama_customer = nama_customer;
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-        if (mesin) obj.mesin = mesin;
-        if (tgl) obj.tgl = tgl;
 
-        const response = await Ticket.findAll({
-          where: obj,
-        });
-        res.status(200).json(response);
-      } else {
-        const response = await Ticket.findAll();
-        res.status(200).json(response);
+      let obj = {};
+      if (id_eksekutor) obj.id_eksekutor = id_eksekutor;
+      if (id_eksekutor_rework) obj.id_eksekutor_rework = id_eksekutor_rework;
+      if (status_tiket) obj.status_tiket = status_tiket;
+      if (type_mtc) obj.type_mtc = type_mtc;
+      if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
+      if (nama_customer) obj.nama_customer = nama_customer;
+      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+      if (mesin) obj.mesin = mesin;
+      if (tgl) obj.tgl = tgl;
+      if (start_date && end_date) {
+        obj.tgl = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
       }
+
+      const response = await Ticket.findAll({
+        where: obj,
+      });
+      res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -587,6 +598,7 @@ const userController = {
       note_mtc: null,
       id_eksekutor_rework: id_eksekutor_rework,
       waktu_mulai_mtc_rework: new Date(),
+      rework: true,
     };
     try {
       await Ticket.update(obj, { where: { id: _id } }),

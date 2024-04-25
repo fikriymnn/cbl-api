@@ -2,13 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
-const tc = require("./model/maintenaceTicketModel")
+const tc = require("./model/maintenaceTicketModel");
 const user = require("./model/userModel");
-const master = require("./model/masterData/masterMesinModel")
-const master2 = require("./model/masterData/masterSparepart")
-const mtc = require("./model/mtc/sparepartProblem")
-const mtcAction = require("./model/mtc/userActionMtc")
-const stok =  require("./model/mtc/stokSparepart")
+const master = require("./model/masterData/masterMesinModel");
+const master2 = require("./model/masterData/masterSparepart");
+const mtc = require("./model/mtc/sparepartProblem");
+const mtcAction = require("./model/mtc/userActionMtc");
+const stok = require("./model/mtc/stokSparepart");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -25,7 +25,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mtc.sync({ alter: true });
+//   await master2.sync({ alter: true });
 // })();
 
 app.use(

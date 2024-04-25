@@ -3,8 +3,14 @@ const StokSparepart = require("../../model/mtc/stokSparepart");
 
 const StokSparepartController = {
   getStokSparepart: async (req, res) => {
+    const { nama_mesin, jenis_part, vendor } = req.query;
+
+    let obj = {};
+    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (jenis_part) obj.jenis_part = jenis_part;
+    if (vendor) obj.vendor = vendor;
     try {
-      const response = await StokSparepart.findAll();
+      const response = await StokSparepart.findAll({ where: obj });
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
