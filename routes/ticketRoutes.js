@@ -5,9 +5,9 @@ const {
   getTiketById,
   updateTiket,
   approveTiket,
-  beginTiket,
+  //beginTiket,
   responseMtc,
-  finishMtc,
+  //finishMtc,
   tolakTiket,
   requestedDate,
   approveDate,
@@ -15,7 +15,7 @@ const {
   selectMtc,
   getTiketUser,
   reworkMtc,
-  analisisMtc
+  analisisMtc,
 } = require("../controller/maintenaceTicketController");
 const { Auth } = require("../middlewares/authMiddlewares");
 
@@ -31,8 +31,8 @@ router.put("/ticket/selectMtc/:id", Auth, selectMtc);
 router.put("/ticket/requestedDate/:id", Auth, requestedDate);
 router.put("/ticket/approveDate/:id", Auth, approveDate);
 router.put("/ticket/tolakDate/:id", Auth, tolakDate);
-router.put("/ticket/begin/:id", Auth, beginTiket);
-router.put("/ticket/finish/:id", Auth, finishMtc);
+// router.put("/ticket/begin/:id", Auth, beginTiket);
+// router.put("/ticket/finish/:id", Auth, finishMtc);
 router.put("/ticket/approve/:id", Auth, approveTiket);
 router.put("/ticket/tolak/:id", Auth, tolakTiket);
 router.put("/ticket/rework/:id", Auth, reworkMtc);

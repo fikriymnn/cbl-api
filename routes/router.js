@@ -7,5 +7,6 @@ router.use("/", require("./masterdata/masterMesinRoute"));
 router.use("/", require("./masterdata/masterSparepartRoute"));
 router.use("/", require("./mtc/stokSparepartRoutes"));
 router.use("/", require("./mtc/problemSparepartRoutes"));
+router.use("/", require("./mtc/prosessMtcRoutes"));
 
 module.exports = router;

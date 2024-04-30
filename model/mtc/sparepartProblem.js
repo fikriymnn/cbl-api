@@ -2,7 +2,8 @@ const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 const Ticket = require("../maintenaceTicketModel");
 const MasterSparepart = require("../masterData/masterSparepart");
-const StokSparepart =require("../mtc/stokSparepart")
+const StokSparepart = require("../mtc/stokSparepart");
+const ProsesMtc = require("../mtc/prosesMtc");
 
 const { DataTypes } = Sequelize;
 
@@ -17,6 +18,14 @@ const SparepartProblem = db.define(
         key: "id",
       },
     },
+    id_proses: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: ProsesMtc,
+        key: "id",
+      },
+    },
     id_ms_sparepart: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -28,10 +37,10 @@ const SparepartProblem = db.define(
     id_stok_sparepart: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references:{
+      references: {
         model: StokSparepart,
-        key: "id"
-      }
+        key: "id",
+      },
     },
     nama_sparepart_sebelumnya: {
       type: DataTypes.STRING,
@@ -67,7 +76,7 @@ const SparepartProblem = db.define(
     },
     status: {
       type: DataTypes.STRING,
-      defaultValue:"on progress",
+      defaultValue: "on progress",
       allowNull: true,
     },
   },
@@ -77,10 +86,9 @@ const SparepartProblem = db.define(
 );
 
 Ticket.hasMany(SparepartProblem, { foreignKey: "id_tiket" }),
-
-MasterSparepart.hasMany(SparepartProblem, { foreignKey: "id_ms_sparepart" }),
-
-SparepartProblem.belongsTo(Ticket, {
+  ProsesMtc.hasMany(SparepartProblem, { foreignKey: "id_tiket" }),
+  MasterSparepart.hasMany(SparepartProblem, { foreignKey: "id_ms_sparepart" }),
+  SparepartProblem.belongsTo(Ticket, {
     foreignKey: "id_tiket",
     as: "problem_sparepart",
   });
@@ -90,7 +98,14 @@ SparepartProblem.belongsTo(MasterSparepart, {
   as: "master_sparepart",
 });
 
-StokSparepart.hasMany(SparepartProblem,{foreignKey : "id_stok_sparepart"}),
-SparepartProblem.belongsTo(StokSparepart, {foreignKey : "id_stok_sparepart", as:"stok_sparepart"})
+StokSparepart.hasMany(SparepartProblem, { foreignKey: "id_stok_sparepart" }),
+  SparepartProblem.belongsTo(StokSparepart, {
+    foreignKey: "id_stok_sparepart",
+    as: "stok_sparepart",
+  });
+SparepartProblem.belongsTo(ProsesMtc, {
+  foreignKey: "id_proses",
+  as: "proses_mtc",
+});
 
 module.exports = SparepartProblem;

@@ -10,6 +10,7 @@ const mtc = require("./model/mtc/sparepartProblem");
 const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const reqStok = require("./model/mtc/requestStokSparepart");
+const proses = require("./model/mtc/prosesMtc");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -26,7 +27,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await reqStok.sync({ alter: true });
+//   await tc.sync({ alter: true });
 // })();
 
 app.use(
