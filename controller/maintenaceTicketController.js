@@ -51,6 +51,11 @@ const ticketController = {
 
       const response = await Ticket.findAll({
         where: obj,
+        include: [
+          {
+            model: ProsesMtc,
+          },
+        ],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -90,6 +95,11 @@ const ticketController = {
             as: "user_respon_mtc",
             attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
           },
+
+          {
+            model: ProsesMtc,
+          },
+
           // {
           //   model: Users,
           //   as: "user_eksekutor",
