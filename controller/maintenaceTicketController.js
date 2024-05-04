@@ -60,6 +60,41 @@ const userController = {
         res.status(500).json({ msg: error.message });
       }
     },
+
+    getTiketUser: async (req, res) => {
+     
+      
+      try {
+        
+        const response = await Ticket.findAll({
+          
+          where: {
+            id_mtc: req.user.id,
+          },
+
+         include:[
+          {
+            model: Users,
+            as: "user_respon_mtc",
+            attributes: ["id","uuid", "nama", "email", "role", "no","status"],
+          },
+          {
+          model: Users,
+          as: "user_mtc",
+          attributes: ["id","uuid", "nama", "email", "role", "no","status"],
+        },
+        {
+          model: Users,
+          as: "user_qc",
+          attributes: ["id","uuid", "nama", "email", "role", "no","status"],
+        }
+      ]
+        });
+         res.status(200).json(response);
+      } catch (error) {
+        res.status(500).json({ msg: error.message });
+      }
+    },
   
     createTiket: async (req, res) => {
       const { id_jo, no_jo, nama_produk, no_io, no_so, nama_customer,qty,qty_druk,spek,proses,mesin,bagian,operator,tgl,jenis_kendala,id_kendala,nama_kendala } = req.body;
@@ -140,6 +175,22 @@ const userController = {
       try {
          await Ticket.update(obj,{where: {id:_id}}),
           res.status(201).json({ msg: "Respon Successfuly" });
+      } catch (error) {
+        res.status(400).json({ msg: error.message });
+      }
+    },
+
+    selectMtc: async (req, res) => {
+      const _id = req.params.id;
+      const {id_mtc} = req.body;
+      if(!id_mtc) return res.status(404).json({msg:"id mtc required"})
+      let obj = {
+        id_mtc: id_mtc 
+      }
+          
+      try {
+         await Ticket.update(obj,{where: {id:_id}}),
+          res.status(201).json({ msg: "Successfuly" });
       } catch (error) {
         res.status(400).json({ msg: error.message });
       }

@@ -28,18 +28,18 @@ const MasterSparepart = db.define(
         type: DataTypes.STRING,
         allowNull: true,
       },
-      umur_sparepart: {
+    umur_sparepart: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
           notEmpty: true,
         },
       },
-      tgl_ganti: {
+    tgl_ganti: {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      vendor: {
+    vendor: {
         type: DataTypes.STRING,
         allowNull: true,
       },
