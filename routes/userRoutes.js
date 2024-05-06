@@ -8,6 +8,7 @@ const {
 } = require("../controller/userController");
 const { Auth } = require("../middlewares/authMiddlewares");
 
+
 router.get("/users", Auth, getUsers);
 router.get("/users/:id", Auth, getUsersById);
 router.post("/users", Auth, createUsers);
