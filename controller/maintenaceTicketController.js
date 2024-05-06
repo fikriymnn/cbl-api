@@ -151,6 +151,7 @@ const ticketController = {
 
   createTiket: async (req, res) => {
     const {
+      kode_lkh,
       id_jo,
       no_jo,
       nama_produk,
@@ -177,6 +178,7 @@ const ticketController = {
         nama_produk: nama_produk,
         no_io: no_io,
         no_so: no_so,
+        kode_lkh: kode_lkh,
         nama_customer: nama_customer,
         qty: qty,
         qty_druk: qty_druk,
