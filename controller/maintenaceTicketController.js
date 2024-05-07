@@ -54,6 +54,12 @@ const ticketController = {
         include: [
           {
             model: ProsesMtc,
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+            ],
           },
         ],
       });
@@ -289,6 +295,7 @@ const ticketController = {
     const {
       id_proses,
       kode_analisis_mtc,
+      nama_analisis_mtc,
       note_analisis,
       masalah_sparepart,
       skor_mtc,
@@ -300,6 +307,7 @@ const ticketController = {
     if (
       !id_proses ||
       !kode_analisis_mtc ||
+      !nama_analisis_mtc ||
       !skor_mtc ||
       !cara_perbaikan ||
       !nama_mesin
@@ -307,15 +315,19 @@ const ticketController = {
       return res.status(401).json({ msg: "incomplite data" });
 
     let obj = {
-      status_tiket: "mtc selesai",
+      //status_tiket: "mtc selesai",
+
       kode_analisis_mtc: kode_analisis_mtc,
+      nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
       skor_mtc: skor_mtc,
       cara_perbaikan: cara_perbaikan,
     };
 
     let obj_proses = {
-      status_proses: "mtc selesai",
+      //status_proses: "mtc selesai",
+      status_qc: "done",
+      kode_analisis_mtc: kode_analisis_mtc,
       kode_analisis_mtc: kode_analisis_mtc,
       waktu_selesai_mtc: new Date(),
       skor_mtc: skor_mtc,
@@ -343,10 +355,7 @@ const ticketController = {
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
-        await Ticket.update(
-          { status_tiket: "mtc selesai" },
-          { where: { id: _id } }
-        ),
+        await Ticket.update(obj, { where: { id: _id } }),
           await ProsesMtc.update(obj_proses, { where: { id: id_proses } }),
           await userActionMtc.update(
             { status: "done" },
@@ -743,6 +752,7 @@ const ticketController = {
       id_tiket: _id,
       id_eksekutor: id_eksekutor,
       status_proses: "open",
+      status_qc: "open",
       waktu_mulai_mtc: new Date(),
     };
     try {

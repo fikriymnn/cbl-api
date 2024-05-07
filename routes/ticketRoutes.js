@@ -20,11 +20,11 @@ const {
 const { Auth } = require("../middlewares/authMiddlewares");
 
 router.get("/ticket/:id", getTiketById);
-router.get("/ticket", getTicket);
+router.get("/ticket", Auth, getTicket);
 router.get("/ticketUsers", Auth, getTiketUser);
 router.post("/ticket", createTiket);
 router.put("/ticket/:id", Auth, updateTiket);
-router.put("/ticket/respon/:id", Auth, responseMtc);
+router.get("/ticket/respon/:id", Auth, responseMtc);
 router.put("/ticket/analisis/:id", Auth, analisisMtc);
 router.put("/ticket/selectMtc/:id", Auth, selectMtc);
 // router.put("/ticket/typeMtc/:id",Auth, updateTiketTypeMtc);

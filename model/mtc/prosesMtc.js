@@ -36,7 +36,16 @@ const ProsesMtc = db.define(
     status_proses: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "pending",
+      defaultValue: "open",
+      validate: {
+        notEmpty: true,
+      },
+    },
+
+    status_qc: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "open",
       validate: {
         notEmpty: true,
       },
@@ -74,7 +83,10 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    nama_analisis_mtc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     note_analisis: {
       type: DataTypes.STRING,
       allowNull: true,

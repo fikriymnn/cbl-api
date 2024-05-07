@@ -11,6 +11,7 @@ const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const reqStok = require("./model/mtc/requestStokSparepart");
 const proses = require("./model/mtc/prosesMtc");
+const kode = require("./model/masterData/masterKodeAnalisisModel");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -27,20 +28,19 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await proses.sync({ alter: true });
+//   await kode.sync({ alter: true });
 // })();
 
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
     origin: true,
   })
 );
-
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
 app.use("/", require("./routes/router"));
 
 app.listen(process.env.APP_PORT, async () => {

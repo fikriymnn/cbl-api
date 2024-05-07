@@ -192,6 +192,10 @@ const Ticket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    nama_analisis_mtc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
 
   {
