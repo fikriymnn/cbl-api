@@ -24,17 +24,5 @@ router.get("/ticket", Auth, getTicket);
 router.get("/ticketUsers", Auth, getTiketUser);
 router.post("/ticket", createTiket);
 router.put("/ticket/:id", Auth, updateTiket);
-router.get("/ticket/respon/:id", Auth, responseMtc);
-router.put("/ticket/analisis/:id", Auth, analisisMtc);
-router.put("/ticket/selectMtc/:id", Auth, selectMtc);
-// router.put("/ticket/typeMtc/:id",Auth, updateTiketTypeMtc);
-router.put("/ticket/requestedDate/:id", Auth, requestedDate);
-router.put("/ticket/approveDate/:id", Auth, approveDate);
-router.put("/ticket/tolakDate/:id", Auth, tolakDate);
-// router.put("/ticket/begin/:id", Auth, beginTiket);
-// router.put("/ticket/finish/:id", Auth, finishMtc);
-router.put("/ticket/approve/:id", Auth, approveTiket);
-router.put("/ticket/tolak/:id", Auth, tolakTiket);
-router.put("/ticket/rework/:id", Auth, reworkMtc);
 
 module.exports = router;

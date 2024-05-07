@@ -12,6 +12,7 @@ const stok = require("./model/mtc/stokSparepart");
 const reqStok = require("./model/mtc/requestStokSparepart");
 const proses = require("./model/mtc/prosesMtc");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
+const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -28,7 +29,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await kode.sync({ alter: true });
+//   await msMonitor.sync({ alter: true });
 // })();
 
 app.use(express.json());
