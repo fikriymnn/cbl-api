@@ -20,7 +20,7 @@ const {
 const { Auth } = require("../middlewares/authMiddlewares");
 
 router.get("/ticket/:id", getTiketById);
-router.get("/ticket", Auth, getTicket);
+router.get("/ticket", getTicket);
 router.get("/ticketUsers", Auth, getTiketUser);
 router.post("/ticket", createTiket);
 router.put("/ticket/:id", Auth, updateTiket);

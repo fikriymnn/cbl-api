@@ -29,7 +29,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await msMonitor.sync({ alter: true });
+//   await tc.sync({ alter: true });
 // })();
 
 app.use(express.json());

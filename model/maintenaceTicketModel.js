@@ -138,10 +138,7 @@ const Ticket = db.define(
     },
     kode_lkh: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     bagian_tiket: {
       type: DataTypes.STRING,
