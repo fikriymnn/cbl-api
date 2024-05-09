@@ -6,6 +6,8 @@ router.use("/", require("./ticketRoutes"));
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
 router.use("/", require("./masterdata/mtc/masterSparepartRoute"));
 router.use("/", require("./masterdata/mtc/masterTimeMonitoringRoute"));
+router.use("/", require("./masterdata/mtc/masterKodeAnalisisRoute"));
+router.use("/", require("./masterdata/mtc/masterSkorPerbaikanRoute"));
 router.use("/", require("./mtc/stokSparepartRoutes"));
 router.use("/", require("./mtc/problemSparepartRoutes"));
 router.use("/", require("./mtc/prosessMtcRoutes"));

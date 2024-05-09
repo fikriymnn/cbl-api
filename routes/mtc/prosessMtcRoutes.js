@@ -4,6 +4,7 @@ const {
   getProsesMtcById,
   responseMtc,
   analisisMtc,
+  pendingProses,
   requestedDate,
   approveDate,
   tolakDate,
@@ -17,6 +18,7 @@ router.get("/prosessMtcById/:id", getProsesMtcById);
 router.get("/prosessMtcByIdTicket/:id", getProsesMtcByTicket);
 router.get("/ticket/respon/:id", Auth, responseMtc);
 router.put("/ticket/analisis/:id", Auth, analisisMtc);
+router.put("/ticket/pending/:id", Auth, pendingProses);
 //router.put("/ticket/selectMtc/:id", Auth, selectMtc);
 router.put("/ticket/requestedDate/:id", Auth, requestedDate);
 router.put("/ticket/approveDate/:id", Auth, approveDate);

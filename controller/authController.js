@@ -51,7 +51,7 @@ const authController = {
     const uuid = req.user.uuid;
 
     const users = await Users.findOne({
-      attributes: ["uuid", "nama", "email", "role", "no", "status"],
+      attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
       where: {
         uuid: uuid,
       },

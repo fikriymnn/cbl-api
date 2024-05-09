@@ -134,8 +134,15 @@ const ProsessMtc = {
     )
       return res.status(401).json({ msg: "incomplite data" });
 
+    let status = "";
+    if (skor_mtc < 40) {
+      status = "temporary";
+    } else if (skor_mtc >= 40) {
+      status = "monitoring";
+    }
+
     let obj = {
-      //status_tiket: "mtc selesai",
+      status_tiket: status,
 
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
@@ -145,7 +152,7 @@ const ProsessMtc = {
     };
 
     let obj_proses = {
-      //status_proses: "mtc selesai",
+      status_proses: status,
       status_qc: "done",
       kode_analisis_mtc: kode_analisis_mtc,
       kode_analisis_mtc: kode_analisis_mtc,
@@ -243,6 +250,30 @@ const ProsessMtc = {
 
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       }
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  pendingProses: async (req, res) => {
+    const _id = req.params.id;
+    const { id_proses, note_mtc } = req.body;
+
+    if (!id_proses) return res.status(404).json({ msg: "incomplite data" });
+
+    let obj = {
+      status_tiket: "pending",
+    };
+
+    let objProses = {
+      status_tiket: "pending",
+      note_mtc: note_mtc,
+    };
+
+    try {
+      await Ticket.update(obj, { where: { id: _id } });
+      await ProsesMtc.update(objProses, { where: { id: id_proses } }),
+        res.status(201).json({ msg: "Pending Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -387,7 +418,7 @@ const ProsessMtc = {
         action: "eksekutor",
         status: "on progress",
       });
-      res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
+      res.status(201).json({ msg: "Ticket maintenance rework Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
