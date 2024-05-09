@@ -6,15 +6,10 @@ const inspectionPoint = require("./inspectionPoint");
 const inspectionResult = db.define(
     "inspection_task"
     ,{
-        id_inspectionPoint: {
+        file: {
             type: DataTypes.STRING,
-            allowNull:false,
-            references : {
-                model: inspectionPoint,
-                key: "id"
-            }
-        },
-        
+            allowNull:true,
+        }
 })
 
 

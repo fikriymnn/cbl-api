@@ -8,7 +8,7 @@ const { DataTypes } = Sequelize;
 const TicketOs3 = db.define(
     "ticket_os3",
     {
-      id_mesin: {
+      nama_mesin: {
         type: DataTypes.STRING,
         allowNull:false,
         validate:{
@@ -34,7 +34,7 @@ const TicketOs3 = db.define(
         // }
       },
       supervisor: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull:true
         // ,
         // references:{
@@ -42,13 +42,13 @@ const TicketOs3 = db.define(
         //     key: "id"
         // }
       },
-      id_kabag_mtc: {
-        type: DataTypes.INTEGER,
+      kabag_mtc: {
+        type: DataTypes.STRING,
         allowNull:false,
-        references:{
-            model: Users,
-            key:"id"
-        }
+        // references:{
+        //     model: Users,
+        //     key:"id"
+        // }
       },
       tgl: {
         type: DataTypes.DATE,
@@ -69,10 +69,6 @@ const TicketOs3 = db.define(
             notEmpty:true,
         }
       },
-      tipe_mtc: {
-        type: DataTypes.STRING,
-        allowNull:true,            
-      },
       status_tiket: {
         type: DataTypes.STRING,
         allowNull:false,
@@ -85,34 +81,12 @@ const TicketOs3 = db.define(
         type: DataTypes.DATE,
         allowNull:true,       
       },
-      waktu_selesai_mtc: {
-        type: DataTypes.DATE,
-        allowNull:true,       
-      },
-      waktu_selesai: {
-        type: DataTypes.DATE,
-        allowNull:true,       
-      },
-      tgl_mtc: {
-        type: DataTypes.DATE,
-        allowNull:true,       
-      },
-      skor_mtc: {
-        type: DataTypes.INTEGER,
-        allowNull:true,
-        defaultValue:0             
-      },
     },
     
     {
       freezeTableName: true,
     }
   );
-
-  Users.hasMany(TicketOs3,{foreignKey : "id_kabag_mtc"})
-
-  TicketOs3.belongsTo(Users, {foreignKey : "id_kabag_mtc", as:"user_kabag_mtc"})
-
 
   
   module.exports = TicketOs3;
