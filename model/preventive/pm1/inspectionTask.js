@@ -1,18 +1,24 @@
 const {Sequelize} = require("sequelize")
-const db = require("../../config/database");
+const db = require("../../../config/database");
 const {DataTypes} = Sequelize
 const inspectionPoint = require("./inspectionPoint");
+const TicketOs3 = require("./maintenanceTicketPM1Model");
+const MasterMesin = require("../../masterData/masterMesinModel");
 
 const inspectionTask = db.define(
     "inspection_task"
     ,{
-        id_inspectionPoint: {
+        id_mesin: {
+            type: DataTypes.INTEGER,
+            allowNull:false,
+            references:{
+              model: Mesin,
+              key: "id"
+          }
+        },
+        inspection_point: {
             type: DataTypes.STRING,
             allowNull:false,
-            references : {
-                model: inspectionPoint,
-                key: "id"
-            }
         },
         task: {
             type: DataTypes.STRING,
@@ -29,13 +35,14 @@ const inspectionTask = db.define(
         tools: {
             type: DataTypes.STRING,
             allowNull:false
-        }  
+        },
+        
     }
 )
 
 
-inspectionPoint.hasMany(inspectionTask,{foreignKey:"id_inspectionPoint"})
+MasterMesin.hasMany(inspectionTask,{foreignKey:"id_mesin"})
 
-inspectionTask.belongsTo(inspectionPoint,{foreignKey:"id_inspectionPoint",as:"inspectionPoint"})
+inspectionTask.belongsTo(MasterMesin,{foreignKey:"id_mesin",as:"mesin"})
 
 module.exports = inspectionTask
