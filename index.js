@@ -2,8 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
-const tc = require("./model/maintenaceTicketModel")
-const user = require("./model/userModel")
+const tc = require("./model/maintenaceTicketModel");
+const user = require("./model/userModel");
+const master = require("./model/masterData/masterMesinModel");
+const master2 = require("./model/masterData/masterSparepart");
+const mtc = require("./model/mtc/sparepartProblem");
+const mtcAction = require("./model/mtc/userActionMtc");
+const stok = require("./model/mtc/stokSparepart");
+const reqStok = require("./model/mtc/requestStokSparepart");
+const proses = require("./model/mtc/prosesMtc");
+const kode = require("./model/masterData/masterKodeAnalisisModel");
+const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
+const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -13,27 +23,26 @@ dotenv.config();
 
 const app = express();
 
-// tiket sync to table
+// database sync to table
 // (async () => {
-//   await tc.sync({ alter: true });
+//   await db.sync({ alter: true });
 // })();
 
-// user sync to table
+//model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await msSkor.sync({ alter: true });
 // })();
 
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
     origin: true,
   })
 );
-
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
 app.use("/", require("./routes/router"));
 
 app.listen(process.env.APP_PORT, async () => {
