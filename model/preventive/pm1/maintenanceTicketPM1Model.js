@@ -8,45 +8,25 @@ const { DataTypes } = Sequelize;
 const TicketOs3 = db.define(
     "ticket_os3",
     {
-      id_mesin: {
-        type: DataTypes.INTEGER,
+      nama_mesin: {
+        type: DataTypes.STRING,
         allowNull:false,
-        references:{
-          model: Mesin,
-          key: "id"
-      }
       },
-      id_inspector: {
-        type: DataTypes.INTEGER,
+      inspector: {
+        type: DataTypes.STRING,
         allowNull:true,
-        references:{
-            model: Users,
-            key: "id"
-        }
       },
-      id_leader: {
-        type: DataTypes.INTEGER,
+      leader: {
+        type: DataTypes.STRING,
         allowNull:true,
-        references:{
-            model: Users,
-            key: "id"
-        }
       },
-      id_supervisor: {
-        type: DataTypes.INTEGER,
+      supervisor: {
+        type: DataTypes.STRING,
         allowNull:true,
-        references:{
-            model: Users,
-            key: "id"
-        }
       },
-      id_kabag_mtc: {
-        type: DataTypes.INTEGER,
+      kabag_mtc: {
+        type: DataTypes.STRING,
         allowNull:false,
-        references:{
-            model: Users,
-            key:"id"
-        }
       },
       tanggal: {
         type: DataTypes.DATE,
@@ -62,9 +42,9 @@ const TicketOs3 = db.define(
       status_tiket: {
         type: DataTypes.STRING,
         allowNull:false,
-        defaultValue:"history",
-        validate:{
-            notEmpty:true,
+        defaultValue:"pending",
+        validate: {
+          notEmpty:true,
         }
       },
     },
@@ -74,17 +54,15 @@ const TicketOs3 = db.define(
     }
   );
 
-Users.hasMany(TicketOs3,{foreignKey : "id_inspector"})
-Users.hasMany(TicketOs3,{foreignKey : "id_supervisor"})
-Users.hasMany(TicketOs3,{foreignKey : "id_leader"})
-Users.hasMany(TicketOs3,{foreignKey : "id_kabag_mtc"})
-Users.hasMany(TicketOs3,{foreignKey : "id_kabag_mtc"})
-Mesin.hasMany(TicketOs3,{foreignKey : "id_mesin"})
+// Users.hasMany(TicketOs3,{foreignKey : "id_inspector"})
+// Users.hasMany(TicketOs3,{foreignKey : "id_supervisor"})
+// Users.hasMany(TicketOs3,{foreignKey : "id_leader"})
+// Users.hasMany(TicketOs3,{foreignKey : "id_kabag_mtc"})
+// Users.hasMany(TicketOs3,{foreignKey : "id_kabag_mtc"})
 
-TicketOs3.belongsTo(Users, {foreignKey : "id_inspector", as:"inspector"})
-TicketOs3.belongsTo(Users, {foreignKey : "id_supervisor", as:"supervisor"})
-TicketOs3.belongsTo(Users, {foreignKey : "id_leader", as:"leader"})
-TicketOs3.belongsTo(Users, {foreignKey : "id_kabag_mtc", as:"kabag_mtc"})
-TicketOs3.belongsTo(Mesin, {foreignKey : "id_mesin", as:"mesin"})
+// TicketOs3.belongsTo(Users, {foreignKey : "id_inspector", as:"inspector"})
+// TicketOs3.belongsTo(Users, {foreignKey : "id_supervisor", as:"supervisor"})
+// TicketOs3.belongsTo(Users, {foreignKey : "id_leader", as:"leader"})
+// TicketOs3.belongsTo(Users, {foreignKey : "id_kabag_mtc", as:"kabag_mtc"})
   
-  module.exports = TicketOs3;
+module.exports = TicketOs3;
