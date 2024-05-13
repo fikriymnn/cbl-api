@@ -99,6 +99,10 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    alasan_pending: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
 
   {

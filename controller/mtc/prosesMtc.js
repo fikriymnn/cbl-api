@@ -155,7 +155,7 @@ const ProsessMtc = {
       status_proses: status,
       status_qc: "done",
       kode_analisis_mtc: kode_analisis_mtc,
-      kode_analisis_mtc: kode_analisis_mtc,
+      nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
       skor_mtc: skor_mtc,
       cara_perbaikan: cara_perbaikan,
@@ -221,21 +221,25 @@ const ProsessMtc = {
             vendor_sparepart_baru: sparepartStok.vendor,
             jenis_part_baru: sparepartStok.jenis_part,
             status: "done",
+            use_qty: masalah_sparepart[i].use_qty,
           });
         }
 
-        await MasalahSparepart.bulkCreate(sparepart_masalah_data);
+        //await MasalahSparepart.bulkCreate(sparepart_masalah_data);
 
         for (let i = 0; i < sparepart_masalah_data.length; i++) {
           StokSparepart.findOne({
             where: { id: sparepart_masalah_data[i].id_stok_sparepart },
           }).then(async (stokSparepart) => {
-            const stok = stokSparepart.stok - 1;
+            const stok = stokSparepart.stok - sparepart_masalah_data[i].use_qty;
+            const percentage = stokSparepart.persen / 100;
+            const umur = stokSparepart.umur_sparepart * percentage;
+
             await MasterSparepart.update(
               {
                 nama_sparepart: stokSparepart.nama_sparepart,
                 jenis_part: stokSparepart.jenis_part,
-                umur_sparepart: stokSparepart.umur_sparepart,
+                umur_sparepart: umur,
                 tgl_ganti: new Date(),
                 vendor: stokSparepart.vendor,
               },
@@ -257,17 +261,19 @@ const ProsessMtc = {
 
   pendingProses: async (req, res) => {
     const _id = req.params.id;
-    const { id_proses, note_mtc } = req.body;
+    const { id_proses, note_mtc, alasan_pending } = req.body;
 
-    if (!id_proses) return res.status(404).json({ msg: "incomplite data" });
+    if (!id_proses || !alasan_pending)
+      return res.status(404).json({ msg: "incomplite data" });
 
     let obj = {
       status_tiket: "pending",
     };
 
     let objProses = {
-      status_tiket: "pending",
+      status_proses: "pending",
       note_mtc: note_mtc,
+      alasan_pending: alasan_pending,
     };
 
     try {

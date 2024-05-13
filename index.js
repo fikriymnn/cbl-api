@@ -30,7 +30,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await msSkor.sync({ alter: true });
+//   await mtc.sync({ alter: true });
 // })();
 
 app.use(express.json());
