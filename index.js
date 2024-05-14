@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
 const tc = require("./model/maintenaceTicketModel");
+const tcos3 = require("./model/maintenanceTicketOs3Model");
 const user = require("./model/userModel");
 const master = require("./model/masterData/masterMesinModel");
 const master2 = require("./model/masterData/masterSparepart");
@@ -30,7 +31,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mtc.sync({ alter: true });
+//   await tcos3.sync({ alter: true });
 // })();
 
 app.use(express.json());

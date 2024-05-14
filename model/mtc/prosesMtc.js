@@ -103,6 +103,10 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    img_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
 
   {
