@@ -2,7 +2,7 @@ const {Sequelize} = require("sequelize")
 const db = require("../../../config/database");
 const {DataTypes} = Sequelize
 const inspectionPoint = require("./inspectionPoint");
-const TicketOs3 = require("./maintenanceTicketPM1Model");
+const TicketOs3 = require("../../maintenanceTicketOs3Model");
 const MasterMesin = require("../../masterData/masterMesinModel");
 
 const inspectionTask = db.define(

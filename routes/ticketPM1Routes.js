@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const {getTicketOs3,getTicketOs3ById,createTicket,updateTicketOs3,deleteTicketOs3} = require("../../../controller/preventive/pm1/maintenaceTicketPM1Controller")
-const { Auth } = require("../../../middlewares/authMiddlewares");
+const {getTicketOs3,getTicketOs3ById,createTicket,updateTicketOs3,deleteTicketOs3} = require("../controller/maintenaceTicketOs3Controller")
+const { Auth } = require("../middlewares/authMiddlewares");
 
 router.get("/ticketPM1", getTicketOs3);
 router.get("/ticketPM1/:id", getTicketOs3ById);
