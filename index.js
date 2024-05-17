@@ -15,7 +15,12 @@ const proses = require("./model/mtc/prosesMtc");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
 const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
+const mstaskm1 = require("./model/masterData/preventive/inspectionTaskPm1Model");
+const mspointm1 = require("./model/masterData/preventive/inspenctionPoinPm1Model");
 
+const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
+const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
+const taskpm1 = require("./model/mtc/preventive/pm1/taskPm1");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -32,7 +37,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await pm1.sync({ alter: true });
+//   await tcos3.sync({ alter: true });
 // })();
 
 app.use(express.json());
