@@ -25,7 +25,7 @@ const upload = multer({
 
 router.post("/images",upload.single("file"),(req,res)=>{
    res.json({
-      data:req.file.filename
+      filename:req.file.filename
    })
 })
 
@@ -36,7 +36,7 @@ router.delete("/images/:file",(req,res)=>{
       })
     console.log(req.params.file)
     res.json({
-       data:"success"
+       data:"Delete image successfully!"
     })
  })
 
