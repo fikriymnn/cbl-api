@@ -1,8 +1,8 @@
 const { Sequelize, where } = require("sequelize");
 const { Op } = require("sequelize");
 const MasterMesin = require("../../../model/masterData/masterMesinModel");
-const MasterPointPm1 = require("../../../model/masterData/preventive/inspenctionPoinPm1Model");
-const MasterTaskPm1 = require("../../../model/masterData/preventive/inspectionTaskPm1Model");
+const MasterPointPm1 = require("../../../model/masterData/mtc/preventive/inspenctionPoinPm1Model");
+const MasterTaskPm1 = require("../../../model/masterData/mtc/preventive/inspectionTaskPm1Model");
 const TicketPm1 = require("../../../model/mtc/preventive/pm1/ticketPm1");
 const PointPm1 = require("../../../model/mtc/preventive/pm1/pointPm1");
 const TaskPm1 = require("../../../model/mtc/preventive/pm1/taskPm1");

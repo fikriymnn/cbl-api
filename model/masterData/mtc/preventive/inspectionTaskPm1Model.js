@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../../config/database");
+const db = require("../../../../config/database");
 const { DataTypes } = Sequelize;
-const masterInspectionPoint = require("../preventive/inspenctionPoinPm1Model");
+const masterInspectionPoint = require("./inspenctionPoinPm1Model");
 
 const inspectionTaskPm1Master = db.define("ms_inspection_task_pm1", {
   id_inspection_poin: {

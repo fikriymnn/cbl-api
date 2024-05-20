@@ -1,5 +1,5 @@
-const masterTaskPm1 = require("../../../../model/masterData/preventive/inspectionTaskPm1Model");
-const masterPointPm1 = require("../../../../model/masterData/preventive/inspenctionPoinPm1Model");
+const masterTaskPm1 = require("../../../../model/masterData/mtc/preventive/inspectionTaskPm1Model");
+const masterPointPm1 = require("../../../../model/masterData/mtc/preventive/inspenctionPoinPm1Model");
 
 const { Sequelize } = require("sequelize");
 
@@ -35,25 +35,37 @@ const masterTaskPm1Controller = {
   },
 
   createMasterPointPm1: async (req, res) => {
-    const { id_mesin, nama_mesin, inspection_point, sub_inspection } = req.body;
-    if (!id_mesin || !nama_mesin || !inspection_point || sub_inspection == [])
+    const { id_mesin, nama_mesin, inspection_point } = req.body;
+    if (
+      !nama_mesin ||
+      !id_mesin ||
+      !inspection_point ||
+      inspection_point.sub_inspection == []
+    )
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
-      const point = await masterPointPm1.create({
-        id_mesin,
-        nama_mesin,
-        inspection_point,
-      });
-
-      for (let i = 0; i < sub_inspection.length; i++) {
-        const response = await masterTaskPm1.create({
-          id_inspection_poin: point.id,
-          task: sub_inspection[i].task,
-          acceptance_criteria: sub_inspection[i].acceptance_criteria,
-          method: sub_inspection[i].method,
-          tools: sub_inspection[i].tools,
+      for (let index = 0; index < inspection_point.length; index++) {
+        const point = await masterPointPm1.create({
+          id_mesin: id_mesin,
+          nama_mesin: nama_mesin,
+          inspection_point: inspection_point[index].inspection_point,
         });
+
+        for (
+          let i = 0;
+          i < inspection_point[index].sub_inspection.length;
+          i++
+        ) {
+          const response = await masterTaskPm1.create({
+            id_inspection_poin: point.id,
+            task: inspection_point[i].sub_inspection[i].task,
+            acceptance_criteria:
+              inspection_point[i].sub_inspection[i].acceptance_criteria,
+            method: inspection_point[i].sub_inspection[i].method,
+            tools: inspection_point[i].sub_inspection[i].tools,
+          });
+        }
       }
 
       res.status(200).json({ msg: "success" });
@@ -61,6 +73,34 @@ const masterTaskPm1Controller = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  // createMasterPointPm1: async (req, res) => {
+  //   const { id_mesin, nama_mesin, inspection_point, sub_inspection } = req.body;
+  //   if (!id_mesin || !nama_mesin || !inspection_point || sub_inspection == [])
+  //     return res.status(404).json({ msg: "incomplete data!!" });
+
+  //   try {
+  //     const point = await masterPointPm1.create({
+  //       id_mesin,
+  //       nama_mesin,
+  //       inspection_point,
+  //     });
+
+  //     for (let i = 0; i < sub_inspection.length; i++) {
+  //       const response = await masterTaskPm1.create({
+  //         id_inspection_poin: point.id,
+  //         task: sub_inspection[i].task,
+  //         acceptance_criteria: sub_inspection[i].acceptance_criteria,
+  //         method: sub_inspection[i].method,
+  //         tools: sub_inspection[i].tools,
+  //       });
+  //     }
+
+  //     res.status(200).json({ msg: "success" });
+  //   } catch (error) {
+  //     res.status(500).json({ msg: error.message });
+  //   }
+  // },
 
   createMasterTaskPm1: async (req, res) => {
     const { id_inspection_poin, task, acceptance_criteria, method, tools } =

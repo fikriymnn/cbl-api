@@ -2,11 +2,12 @@ const router = require("express").Router();
 const {
   getMasterPointPm1,
   getMasterPointPm1ById,
-  createMasterPointPm1,
+  // createMasterPointPm1,
   createMasterTaskPm1,
   updateMasterPointPm1,
   deleteMasterPointPm1,
   deleteMasterTaskPm1,
+  createMasterPointPm1,
 } = require("../../../../controller/masterData/mtc/preventive/masterPm1Controller");
 const { Auth } = require("../../../../middlewares/authMiddlewares");
 
