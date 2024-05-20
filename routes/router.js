@@ -19,4 +19,6 @@ router.use("/", require("./mtc/stokSparepartRoutes"));
 router.use("/", require("./mtc/problemSparepartRoutes"));
 router.use("/", require("./mtc/prosessMtcRoutes"));
 
+router.use("/", require("./uploadRoutes"));
+
 module.exports = router;

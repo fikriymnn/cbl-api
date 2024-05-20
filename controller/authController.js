@@ -24,7 +24,7 @@ const authController = {
     const email = users.email;
     const role = users.role;
     const no = users.no;
-
+    
     const access_token = generate_access_token({
       id: id,
       uuid: uuid,
