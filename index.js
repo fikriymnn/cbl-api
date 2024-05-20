@@ -58,6 +58,41 @@ app.listen(process.env.APP_PORT, async () => {
   console.log("server up and running on port " + process.env.APP_PORT);
 });
 
+
+// const ip100 = 75
+// const ip50from = 74
+// const ip50to = 60
+// const ip0 = 59
+// const actual = 43
+// const reverse = true
+// var nilai
+
+// if(reverse){
+//   if(actual<=ip100){
+//     nilai= 100
+//   }else if(actual>=ip50from&&actual<=ip50to){
+//     nilai= 50
+//   }else if(actual>=ip0){
+//     nilai = 0
+//   }
+//   console.log(nilai)
+// }else{
+//   if(actual>=ip100){
+//     nilai= 100
+//   }else if(actual<=ip50from&&actual>=ip50to){
+//     nilai= 50
+//   }else if(actual<=ip0){
+//     nilai = 0
+//   }
+//   console.log(nilai)
+// }
+
+
+
+
+
+
+
 app.get("/", (req, res) => {
   db.authenticate()
     .then(() => {

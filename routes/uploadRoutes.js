@@ -34,7 +34,6 @@ router.delete("/images/:file",(req,res)=>{
         if (err) throw err;
         console.log('path/file.txt was deleted');
       })
-    console.log(req.params.file)
     res.json({
        data:"Delete image successfully!"
     })
