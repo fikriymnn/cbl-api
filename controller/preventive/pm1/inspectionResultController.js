@@ -1,28 +1,37 @@
 const MasterMesin = require("../../../model/masterData/masterMesinModel");
 const InspectionResult = require("../../../model/preventive/pm1/inspectionResult");
-const TicketOs3 = require("../../../model/preventive/pm1/maintenanceTicketPM1Model");
+const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 const Users = require("../../../model/userModel");
 
 const InspectionResultController = {
     getInspectionResult: async (req, res) => {
         try {
-            const { id_mesin } = req.query
+            const { nama_mesin} = req.query
 
-            if (id_mesin) {
+            if (nama_mesin) {
                 const response = await InspectionResult.findAll({
-                    where: { id_mesin },
+                    where: { nama_mesin },
                     include: [
                         {
                             model: TicketOs3,
                             as: "ticket",
-                            attributes: ['id_mesin',
-                              'id_inspector',
-                              'id_leader',
-                              'id_supervisor',
-                              'id_kabag_mtc',
-                              'tanggal',
-                              'catatan',
-                              'status_tiket'],
+                            attributes: ['nama_mesin',
+                            "id_inspector",
+                            "id_leader",
+                            "id_supervisor",
+                            "id_kabag_mtc",
+                            "tanggal",
+                            "catatan",
+                            "bagian_tiket",
+                            "status_tiket",
+                            "waktu_respon",
+                            "waktu_selesai_mtc",
+                            "waktu_selesai",
+                            "tgl_mtc",
+                            "skor_mtc",
+                            "cara_perbaikan",
+                            "kode_analisis_mtc",
+                            "nama_analisis_mtc"],
                             include: [
                                 {
                                     model: Users,
@@ -43,16 +52,12 @@ const InspectionResultController = {
                                     model: Users,
                                     as: "kabag_mtc",
                                     attributes: ['id', 'uuid', 'nama', 'email', 'role', 'status'],
-                                },
-                                {
-                                    model: MasterMesin,
-                                    as: "mesin",
-                                    attributes: ['id', 'nama_mesin', 'kode_mesin'],
                                 }
                             ]
-                        }
+                        },
                     ]
-                });
+                }
+            );
                 res.status(200).json(response);
             } else {
                 const response = await InspectionResult.findAll({
@@ -60,14 +65,23 @@ const InspectionResultController = {
                         {
                             model: TicketOs3,
                             as: "ticket",
-                            attributes: ['id_mesin',
-                              'id_inspector',
-                              'id_leader',
-                              'id_supervisor',
-                              'id_kabag_mtc',
-                              'tanggal',
-                              'catatan',
-                              'status_tiket'],
+                            attributes: ['nama_mesin',
+                            "id_inspector",
+                            "id_leader",
+                            "id_supervisor",
+                            "id_kabag_mtc",
+                            "tanggal",
+                            "catatan",
+                            "bagian_tiket",
+                            "status_tiket",
+                            "waktu_respon",
+                            "waktu_selesai_mtc",
+                            "waktu_selesai",
+                            "tgl_mtc",
+                            "skor_mtc",
+                            "cara_perbaikan",
+                            "kode_analisis_mtc",
+                            "nama_analisis_mtc"],
                             include: [
                                 {
                                     model: Users,
@@ -88,29 +102,23 @@ const InspectionResultController = {
                                     model: Users,
                                     as: "kabag_mtc",
                                     attributes: ['id', 'uuid', 'nama', 'email', 'role', 'status'],
-                                },
-                                {
-                                    model: MasterMesin,
-                                    as: "mesin",
-                                    attributes: ['id', 'nama_mesin', 'kode_mesin'],
                                 }
                             ]
-                        }
+                        },
                     ]
                 });
                 res.status(200).json(response);
             }
-
         } catch (error) {
             res.status(500).json({ msg: error.message });
         }
     },
     createInspectionResult: async (req, res) => {
         try {
-            const { id_ticket,tanggal,inspection_point,hasil,file,catatan} = req.body;
+            const { id_ticket,nama_mesin,id_mesin,tanggal,inspection_point,hasil,file,catatan,task, acceptance_criteria, method, tools} = req.body;
 
             const response = await InspectionResult.create({
-                id_ticket,tanggal,inspection_point,hasil,file,catatan
+                id_ticket,nama_mesin,id_mesin,tanggal,inspection_point,hasil,file,catatan,task, acceptance_criteria, method, tools
             })
             res.status(200).json(response);
         } catch (error) {
@@ -119,14 +127,15 @@ const InspectionResultController = {
     },
     updateInspectionResult: async (req, res) => {
         const _id = req.params.id;
-        const { id_ticket,inspection_point,hasil,file,catatan } = req.body;
+        const { nama_mesin,inspection_point,hasil,file,catatan} = req.body;
 
         let obj = {}
-        if (id_ticket) obj.id_ticket = id_ticket;
+        if (nama_mesin) obj.nama_mesin = nama_mesin;
         if (inspection_point) obj.inspection_point = inspection_point;
         if (hasil) obj.hasil = hasil;
         if (file) obj.file = file;
         if (catatan) obj.catatan = catatan;
+
 
         try {
             await InspectionResult.update(obj, { where: { id: _id } }),

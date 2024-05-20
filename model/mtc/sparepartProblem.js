@@ -79,6 +79,11 @@ const SparepartProblem = db.define(
       defaultValue: "on progress",
       allowNull: true,
     },
+    use_qty: {
+      type: DataTypes.INTEGER,
+
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

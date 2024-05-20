@@ -24,12 +24,14 @@ const ticketController = {
       } = req.query;
 
       let obj = {};
+      let des = [];
 
       if (status_tiket) obj.status_tiket = status_tiket;
       if (type_mtc) obj.type_mtc = type_mtc;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+
       if (mesin) obj.mesin = mesin;
       if (tgl) obj.tgl = tgl;
       if (start_date && end_date) {
@@ -49,8 +51,15 @@ const ticketController = {
         };
       }
 
+      if (bagian_tiket == "os2") {
+        des.push("waktu_respon", "DESC");
+      } else {
+        des.push("createdAt", "DESC");
+      }
+
       const response = await Ticket.findAll({
         where: obj,
+        order: [des],
         include: [
           {
             model: ProsesMtc,
