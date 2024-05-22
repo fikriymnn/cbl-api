@@ -36,12 +36,7 @@ const masterTaskPm1Controller = {
 
   createMasterPointPm1: async (req, res) => {
     const { id_mesin, nama_mesin, inspection_point } = req.body;
-    if (
-      !nama_mesin ||
-      !id_mesin ||
-      !inspection_point ||
-      inspection_point.sub_inspection == []
-    )
+    if (!nama_mesin || !id_mesin || !inspection_point)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
@@ -52,19 +47,21 @@ const masterTaskPm1Controller = {
           inspection_point: inspection_point[index].inspection_point,
         });
 
-        for (
-          let i = 0;
-          i < inspection_point[index].sub_inspection.length;
-          i++
-        ) {
-          const response = await masterTaskPm1.create({
-            id_inspection_poin: point.id,
-            task: inspection_point[i].sub_inspection[i].task,
-            acceptance_criteria:
-              inspection_point[i].sub_inspection[i].acceptance_criteria,
-            method: inspection_point[i].sub_inspection[i].method,
-            tools: inspection_point[i].sub_inspection[i].tools,
-          });
+        if (inspection_point[index].sub_inspection != []) {
+          for (
+            let i = 0;
+            i < inspection_point[index].sub_inspection.length;
+            i++
+          ) {
+            const response = await masterTaskPm1.create({
+              id_inspection_poin: point.id,
+              task: inspection_point[index].sub_inspection[i].task,
+              acceptance_criteria:
+                inspection_point[index].sub_inspection[i].acceptance_criteria,
+              method: inspection_point[index].sub_inspection[i].method,
+              tools: inspection_point[index].sub_inspection[i].tools,
+            });
+          }
         }
       }
 
@@ -160,8 +157,18 @@ const masterTaskPm1Controller = {
   deleteMasterPointPm1: async (req, res) => {
     const _id = req.params.id;
     try {
-      await masterPointPm1.destroy({ where: { id: _id } }),
-        res.status(201).json({ msg: " delete Success" });
+      const point = await masterPointPm1.findByPk(_id, {
+        include: [{ model: masterTaskPm1 }],
+      });
+
+      for (let i = 0; i < point.ms_inspection_task_pm1s.length; i++) {
+        await masterTaskPm1.destroy({
+          where: { id: point.ms_inspection_task_pm1s[i].id },
+        });
+      }
+      await masterPointPm1.destroy({ where: { id: _id } });
+
+      res.status(201).json({ msg: " delete Success" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

@@ -27,7 +27,7 @@ const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
-const path = require("path")
+const path = require("path");
 
 const app = express();
 
@@ -51,13 +51,12 @@ app.use(
     origin: true,
   })
 );
-app.use("/images",express.static(path.join(__dirname,"./file")))
+app.use("/images", express.static(path.join(__dirname, "./file")));
 app.use("/", require("./routes/router"));
 
 app.listen(process.env.APP_PORT, async () => {
   console.log("server up and running on port " + process.env.APP_PORT);
 });
-
 
 // const ip100 = 75
 // const ip50from = 74
@@ -86,12 +85,6 @@ app.listen(process.env.APP_PORT, async () => {
 //   }
 //   console.log(nilai)
 // }
-
-
-
-
-
-
 
 app.get("/", (req, res) => {
   db.authenticate()

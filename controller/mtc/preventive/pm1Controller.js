@@ -11,12 +11,19 @@ const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 
 const Pm1Controller = {
   getPm1: async (req, res) => {
-    const { nama_mesin, id_inspector, start_date, end_date } = req.query;
+    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
 
     let obj = {};
     let des = [];
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
+    if (tgl)
+      obj.tgl = {
+        [Op.between]: [
+          new Date(tgl).setHours(0, 0, 0, 0),
+          new Date(tgl).setHours(23, 59, 59, 999),
+        ],
+      };
     if (start_date && end_date) {
       obj.tgl = {
         [Op.between]: [
@@ -43,6 +50,22 @@ const Pm1Controller = {
             model: Users,
             as: "inspector",
           },
+          {
+            model: Users,
+            as: "leader",
+          },
+          {
+            model: Users,
+            as: "supervisor",
+          },
+          {
+            model: Users,
+            as: "ka_bag",
+          },
+          {
+            model: MasterMesin,
+            as: "mesin",
+          },
         ],
       });
       res.status(200).json(response);
@@ -60,6 +83,7 @@ const Pm1Controller = {
             model: PointPm1,
             attributes: [
               "id",
+              "inspection_point",
               "id_ticket",
               "tgl",
               "hasil",
@@ -73,6 +97,27 @@ const Pm1Controller = {
                 model: TaskPm1,
               },
             ],
+          },
+
+          {
+            model: Users,
+            as: "inspector",
+          },
+          {
+            model: Users,
+            as: "leader",
+          },
+          {
+            model: Users,
+            as: "supervisor",
+          },
+          {
+            model: Users,
+            as: "ka_bag",
+          },
+          {
+            model: MasterMesin,
+            as: "mesin",
           },
         ],
       });
@@ -126,6 +171,35 @@ const Pm1Controller = {
             });
           }
         }
+      }
+
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  createPointPm1: async (req, res) => {
+    const { id_ticket, inspection_point } = req.body;
+    if (!id_ticket || !inspection_point)
+      return res.status(404).json({ msg: "incomplete data!!" });
+
+    try {
+      const point = await PointPm1.create({
+        id_ticket: id_ticket,
+        inspection_point: inspection_point.inspection_point,
+        tgl: new Date(),
+      });
+
+      for (let i = 0; i < inspection_point.sub_inspection.length; i++) {
+        const task = await TaskPm1.create({
+          id_inspection_poin: point.id,
+          task: inspection_point.sub_inspection[i].task,
+          acceptance_criteria:
+            inspection_point.sub_inspection[i].acceptance_criteria,
+          method: inspection_point.sub_inspection[i].method,
+          tools: inspection_point.sub_inspection[i].tools,
+        });
       }
 
       res.status(200).json({ msg: "success" });
