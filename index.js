@@ -41,23 +41,6 @@ const app = express();
 //   await mstaskm1.sync({ alter: true });
 // })();
 
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
-app.use(
-  cors({
-    credentials: true,
-    origin: true,
-  })
-);
-app.use("/images", express.static(path.join(__dirname, "./file")));
-app.use("/", require("./routes/router"));
-
-app.listen(process.env.APP_PORT, async () => {
-  console.log("server up and running on port " + process.env.APP_PORT);
-});
-
 // const ip100 = 75
 // const ip50from = 74
 // const ip50to = 60
@@ -86,12 +69,42 @@ app.listen(process.env.APP_PORT, async () => {
 //   console.log(nilai)
 // }
 
-app.get("/", (req, res) => {
-  db.authenticate()
-    .then(() => {
-      res.json({ msg: "Connection has been established successfully." });
+async function start() {
+  app.use(express.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(
+    cors({
+      credentials: true,
+      origin: true,
     })
-    .catch((error) => {
-      res.json({ msg: error });
+  );
+  app.use(cookieParser());
+  app.get("/", (req, res) => {
+    db.authenticate()
+      .then(() => {
+        res.json({ msg: "Connection has been established successfully." });
+      })
+      .catch((error) => {
+        res.json({ msg: error });
+      });
+  });
+
+  app.use("/", require("./routes/router"));
+  app.use("/", (req, res) => {
+    res.send("success");
+  });
+
+  app.use("/images", express.static(path.join(__dirname, "./file")));
+
+  try {
+    app.listen(process.env.APP_PORT, async () => {
+      console.log("server up and running on port " + process.env.APP_PORT);
     });
-});
+  } catch (err) {
+    console.log(err.message);
+  }
+}
+
+start();
+module.exports = app;
