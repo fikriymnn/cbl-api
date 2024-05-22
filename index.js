@@ -69,16 +69,6 @@ const app = express();
 //   console.log(nilai)
 // }
 
-app.get("/", (req, res) => {
-  db.authenticate()
-    .then(() => {
-      res.json({ msg: "Connection has been established successfully." });
-    })
-    .catch((error) => {
-      res.json({ msg: error });
-    });
-});
-
 async function start() {
   app.use(express.json());
   app.use(bodyParser.urlencoded({ extended: true }));
@@ -90,12 +80,22 @@ async function start() {
     })
   );
   app.use(cookieParser());
+  app.get("/", (req, res) => {
+    db.authenticate()
+      .then(() => {
+        res.json({ msg: "Connection has been established successfully." });
+      })
+      .catch((error) => {
+        res.json({ msg: error });
+      });
+  });
+
+  app.use("/", require("./routes/router"));
   app.use("/", (req, res) => {
     res.send("success");
   });
 
   app.use("/images", express.static(path.join(__dirname, "./file")));
-  app.use("/", require("./routes/router"));
 
   try {
     app.listen(process.env.APP_PORT, async () => {
