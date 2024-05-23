@@ -69,42 +69,34 @@ const app = express();
 //   console.log(nilai)
 // }
 
-async function start() {
-  app.use(express.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
-  app.use(
-    cors({
-      credentials: true,
-      origin: true,
+app.use(
+  cors({
+    credentials: true,
+    origin: true,
+  })
+);
+
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(cookieParser());
+app.get("/", (req, res) => {
+  db.authenticate()
+    .then(() => {
+      res.json({ msg: "Connection has been established successfully." });
     })
-  );
-  app.use(cookieParser());
-  app.get("/", (req, res) => {
-    db.authenticate()
-      .then(() => {
-        res.json({ msg: "Connection has been established successfully." });
-      })
-      .catch((error) => {
-        res.json({ msg: error });
-      });
-  });
-
-  app.use("/", require("./routes/router"));
-  app.use("/", (req, res) => {
-    res.send("success");
-  });
-
-  app.use("/images", express.static(path.join(__dirname, "./file")));
-
-  try {
-    app.listen(process.env.APP_PORT, async () => {
-      console.log("server up and running on port " + process.env.APP_PORT);
+    .catch((error) => {
+      res.json({ msg: error });
     });
-  } catch (err) {
-    console.log(err.message);
-  }
-}
+});
 
-start();
+app.use("/", require("./routes/router"));
+
+app.use("/images", express.static(path.join(__dirname, "./file")));
+
+app.listen(process.env.APP_PORT, async () => {
+  console.log("server up and running on port " + process.env.APP_PORT);
+});
+
 module.exports = app;
