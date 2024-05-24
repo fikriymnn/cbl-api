@@ -7,6 +7,7 @@ const StokSparepart = require("../../model/mtc/stokSparepart");
 const MasterSparepart = require("../../model/masterData/masterSparepart");
 const ProsesMtc = require("../../model/mtc/prosesMtc");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
+const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const moment = require("moment");
 
 const ProsessMtc = {
@@ -122,6 +123,7 @@ const ProsessMtc = {
       cara_perbaikan,
       note_mtc,
       nama_mesin,
+      image_url,
     } = req.body;
 
     if (
@@ -134,10 +136,12 @@ const ProsessMtc = {
     )
       return res.status(401).json({ msg: "incomplite data" });
 
+    const monitoring = await MasterMonitoring.findByPk(1);
+
     let status = "";
-    if (skor_mtc < 40) {
+    if (skor_mtc <= monitoring.minimal_skor) {
       status = "temporary";
-    } else if (skor_mtc >= 40) {
+    } else if (skor_mtc > monitoring.minimal_skor) {
       status = "monitoring";
     }
 
@@ -161,6 +165,7 @@ const ProsessMtc = {
       cara_perbaikan: cara_perbaikan,
       note_mtc: note_mtc,
       note_analisis: note_analisis,
+      //image_url: image_url,
     };
 
     try {
@@ -287,19 +292,22 @@ const ProsessMtc = {
 
   requestedDate: async (req, res) => {
     const _id = req.params.id;
-    const { tgl_mtc, id_proses } = req.body;
+    const { tgl_mtc, id_proses, note_request_jadwal, estimasi_pengerjaan } =
+      req.body;
 
     if (!tgl_mtc || !id_proses)
       return res.status(404).json({ msg: "incomplite data" });
 
     let obj = {
-      waktu_mulai_mtc: tgl_mtc,
+      //waktu_mulai_mtc: tgl_mtc,
       status_tiket: "pending",
     };
 
     let objProses = {
-      waktu_mulai_mtc: tgl_mtc,
+      //waktu_mulai_mtc: tgl_mtc,
       tgl_mtc: tgl_mtc,
+      note_request_jadwal: note_request_jadwal,
+      estimasi_pengerjaan: estimasi_pengerjaan,
       status_tiket: "pending",
     };
 

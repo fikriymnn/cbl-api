@@ -69,6 +69,10 @@ const ProsesMtc = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    estimasi_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     skor_mtc: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -96,6 +100,10 @@ const ProsesMtc = db.define(
       allowNull: true,
     },
     note_qc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    note_request_jadwal: {
       type: DataTypes.STRING,
       allowNull: true,
     },
