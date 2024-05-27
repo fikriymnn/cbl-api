@@ -6,12 +6,12 @@ const {
   updateSkorPerbaikan,
   deleteSkorPerbaikan,
 } = require("../../../controller/masterData/mtc/skorPerbaikan.Controller");
-const { Auth } = require("../../../middlewares/authMiddlewares");
+const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get("/master/skorMtc", getMasterSkorPerbaikan);
 router.get("/master/skorMtc/:id", getMasterSkorPerbaikanId);
-router.post("/master/skorMtc", Auth, createSkorPerbaikan);
-router.put("/master/skorMtc/:id", Auth, updateSkorPerbaikan);
-router.delete("/master/skorMtc/:id", Auth, deleteSkorPerbaikan);
+router.post("/master/skorMtc", auth, createSkorPerbaikan);
+router.put("/master/skorMtc/:id", auth, updateSkorPerbaikan);
+router.delete("/master/skorMtc/:id", auth, deleteSkorPerbaikan);
 
 module.exports = router;

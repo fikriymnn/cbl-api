@@ -12,19 +12,19 @@ const {
   tolakTiket,
   reworkMtc,
 } = require("../../controller/mtc/prosesMtc");
-const { Auth } = require("../../middlewares/authMiddlewares");
+const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/prosessMtcById/:id", getProsesMtcById);
 router.get("/prosessMtcByIdTicket/:id", getProsesMtcByTicket);
-router.get("/ticket/respon/:id", Auth, responseMtc);
-router.put("/ticket/analisis/:id", Auth, analisisMtc);
-router.put("/ticket/pending/:id", Auth, pendingProses);
-//router.put("/ticket/selectMtc/:id", Auth, selectMtc);
-router.put("/ticket/requestedDate/:id", Auth, requestedDate);
-router.put("/ticket/approveDate/:id", Auth, approveDate);
-router.put("/ticket/tolakDate/:id", Auth, tolakDate);
-router.put("/ticket/approve/:id", Auth, approveTiket);
-router.put("/ticket/tolak/:id", Auth, tolakTiket);
-router.put("/ticket/rework/:id", Auth, reworkMtc);
+router.get("/ticket/respon/:id", auth, responseMtc);
+router.put("/ticket/analisis/:id", auth, analisisMtc);
+router.put("/ticket/pending/:id", auth, pendingProses);
+//router.put("/ticket/selectMtc/:id", auth, selectMtc);
+router.put("/ticket/requestedDate/:id", auth, requestedDate);
+router.put("/ticket/approveDate/:id", auth, approveDate);
+router.put("/ticket/tolakDate/:id", auth, tolakDate);
+router.put("/ticket/approve/:id", auth, approveTiket);
+router.put("/ticket/tolak/:id", auth, tolakTiket);
+router.put("/ticket/rework/:id", auth, reworkMtc);
 
 module.exports = router;

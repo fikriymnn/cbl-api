@@ -1,6 +1,7 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 const Ticket = require("../maintenaceTicketModel");
+const TicketOs3 = require("../maintenanceTicketOs3Model");
 const MasterSparepart = require("../masterData/masterSparepart");
 const StokSparepart = require("../mtc/stokSparepart");
 const ProsesMtc = require("../mtc/prosesMtc");
@@ -12,12 +13,13 @@ const SparepartProblem = db.define(
   {
     id_tiket: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Ticket,
         key: "id",
       },
     },
+
     id_proses: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -46,32 +48,29 @@ const SparepartProblem = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jenis_part_sebelumnya: {
+    lokasi_sparepart_sebelumnya: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    umur_sparepart_sebelumnya: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    vendor_sparepart_sebelumnya: {
+    grade_sparepart_sebelumnya: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     nama_sparepart_baru: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    umur_sparepart_baru: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    jenis_part_baru: {
+    lokasi_sparepart_baru: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    vendor_sparepart_baru: {
+    grade_sparepart_baru: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tgl_ganti: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
     status: {
@@ -81,7 +80,6 @@ const SparepartProblem = db.define(
     },
     use_qty: {
       type: DataTypes.INTEGER,
-
       allowNull: true,
     },
   },

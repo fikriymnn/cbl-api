@@ -47,6 +47,7 @@ const ticketPm1 = db.define("ticket_pm1", {
       key: "id",
     },
   },
+
   id_ka_bag: {
     type: DataTypes.INTEGER,
     allowNull: true,
@@ -54,6 +55,21 @@ const ticketPm1 = db.define("ticket_pm1", {
       model: Users,
       key: "id",
     },
+  },
+
+  status: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "incoming",
+  },
+
+  waktu_mulai: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  waktu_selesai: {
+    type: DataTypes.DATE,
+    allowNull: true,
   },
 });
 

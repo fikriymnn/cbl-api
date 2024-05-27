@@ -238,14 +238,20 @@ const Pm1Controller = {
     }
   },
 
-  doneTaskPm1: async (req, res) => {
+  stopTaskPm1: async (req, res) => {
     const _id = req.params.id;
-    const { waktu_selesai, lama_pengerjaan } = req.body;
-    if (!lama_pengerjaan)
+    const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
+    if (!lama_pengerjaan || !waktu_selesai || !hasil)
       return res.status(401).json({ msg: "incomplite data" });
     try {
       const response = await PointPm1.update(
-        { waktu_selesai: new Date(), lama_pengerjaan: lama_pengerjaan },
+        {
+          waktu_selesai: waktu_selesai,
+          lama_pengerjaan: lama_pengerjaan,
+          hasil,
+          catatan,
+          file,
+        },
         { where: { id: _id } }
       );
       const dataPoint = await PointPm1.findOne({
@@ -264,6 +270,36 @@ const Pm1Controller = {
           status_tiket: "open",
         });
       }
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  responseTicketPm1: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const response = await TicketPm1.update(
+        {
+          waktu_mulai: new Date(),
+          status: "on progres",
+          id_inspector: req.user.id,
+        },
+        { where: { id: _id } }
+      );
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  doneTicketPm1: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const response = await TicketPm1.update(
+        { waktu_selesai: new Date(), status: "done" },
+        { where: { id: _id } }
+      );
       res.status(200).json({ msg: "success" });
     } catch (error) {
       res.status(500).json({ msg: error.message });

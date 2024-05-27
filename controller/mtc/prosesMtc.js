@@ -200,17 +200,16 @@ const ProsessMtc = {
             }
           );
 
+        const ticketMtc = await Ticket.findByPk(_id);
+
         for (let i = 0; i < masalah_sparepart.length; i++) {
           const sparepartStok = await StokSparepart.findByPk(
-            masalah_sparepart[i].id
+            masalah_sparepart[i].id_stok
           );
 
-          const masterSparepart = await MasterSparepart.findOne({
-            where: {
-              nama_sparepart: sparepartStok.nama_sparepart,
-              nama_mesin: nama_mesin,
-            },
-          });
+          const masterSparepart = await MasterSparepart.findByPk(
+            masalah_sparepart[i].id_ms_sparepart
+          );
 
           sparepart_masalah_data.push({
             id_tiket: _id,
@@ -218,35 +217,55 @@ const ProsessMtc = {
             id_ms_sparepart: masterSparepart.id,
             id_stok_sparepart: sparepartStok.id,
             nama_sparepart_sebelumnya: masterSparepart.nama_sparepart,
-            umur_sparepart_sebelumnya: masterSparepart.umur_sparepart,
-            vendor_sparepart_sebelumnya: masterSparepart.vendor,
-            jenis_part_sebelumnya: masterSparepart.jenis_part,
+            lokasi_sparepart_sebelumnya: masterSparepart.posisi_part,
+            grade_sparepart_sebelumnya: masterSparepart.grade_2,
             nama_sparepart_baru: sparepartStok.nama_sparepart,
-            umur_sparepart_baru: sparepartStok.umur_sparepart,
-            vendor_sparepart_baru: sparepartStok.vendor,
-            jenis_part_baru: sparepartStok.jenis_part,
+            lokasi_sparepart_baru: sparepartStok.lokasi,
+            grade_sparepart_baru: sparepartStok.grade,
+            tgl_ganti: new Date(),
             status: "done",
-            use_qty: masalah_sparepart[i].use_qty,
+            use_qty: 1,
           });
         }
 
-        //await MasalahSparepart.bulkCreate(sparepart_masalah_data);
+        await MasalahSparepart.bulkCreate(sparepart_masalah_data);
 
         for (let i = 0; i < sparepart_masalah_data.length; i++) {
           StokSparepart.findOne({
             where: { id: sparepart_masalah_data[i].id_stok_sparepart },
           }).then(async (stokSparepart) => {
             const stok = stokSparepart.stok - sparepart_masalah_data[i].use_qty;
-            const percentage = stokSparepart.persen / 100;
+            let percentage = 1;
+            let umurGrade = 100;
+            if (stokSparepart.grade == "A") {
+              percentage = 1;
+              umurGrade = 100;
+            } else if (stokSparepart.grade == "B") {
+              percentage = 0.8;
+              umurGrade = 80;
+            } else if (stokSparepart.grade == "C") {
+              percentage = 0.6;
+              umurGrade = 60;
+            } else if (stokSparepart.grade == "D") {
+              percentage = 0.4;
+              umurGrade = 40;
+            } else if (stokSparepart.grade == "E") {
+              percentage = 0.2;
+              umurGrade = 20;
+            }
+
             const umur = stokSparepart.umur_sparepart * percentage;
 
             await MasterSparepart.update(
               {
                 nama_sparepart: stokSparepart.nama_sparepart,
-                jenis_part: stokSparepart.jenis_part,
-                umur_sparepart: umur,
-                tgl_ganti: new Date(),
-                vendor: stokSparepart.vendor,
+                umur_a: stokSparepart.umur_sparepart,
+                umur_grade: umurGrade,
+                grade_2: stokSparepart.grade,
+                actual_umur: umur,
+                sisa_umur: umur,
+                tgl_pasang: new Date(),
+                tgl_rusak: ticketMtc.createdAt,
               },
               { where: { id: sparepart_masalah_data[i].id_ms_sparepart } }
             );

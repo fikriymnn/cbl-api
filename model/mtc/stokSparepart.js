@@ -12,6 +12,11 @@ const StokSparepart = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    part_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     nama_sparepart: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -23,23 +28,7 @@ const StokSparepart = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jenis_part: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    persen: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    kebutuhan_bulanan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    stok: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    keterangan: {
+    lokasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -50,15 +39,36 @@ const StokSparepart = db.define(
         notEmpty: true,
       },
     },
+    grade: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    stok: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    type_part: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
 
-    vendor: {
+    limit_stok: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    foto: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "requested",
+      defaultValue: "active",
     },
   },
   {

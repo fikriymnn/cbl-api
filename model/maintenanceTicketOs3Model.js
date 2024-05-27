@@ -82,7 +82,7 @@ const TicketOs3 = db.define(
   }
 );
 
-TicketOs3.hasMany(PointPm1, { foreignKey: "id_point_pm" });
-PointPm1.belongsTo(TicketOs3, { foreignKey: "id_inspector", as: "inspector" });
+PointPm1.hasOne(TicketOs3, { foreignKey: "id_point_pm" });
+TicketOs3.belongsTo(PointPm1, { foreignKey: "id_point_pm", as: "point_pm" });
 
 module.exports = TicketOs3;
