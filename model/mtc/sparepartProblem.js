@@ -5,6 +5,7 @@ const TicketOs3 = require("../maintenanceTicketOs3Model");
 const MasterSparepart = require("../masterData/masterSparepart");
 const StokSparepart = require("../mtc/stokSparepart");
 const ProsesMtc = require("../mtc/prosesMtc");
+const ProsesMtcOs3 = require("../mtc/prosesMtcOs3");
 
 const { DataTypes } = Sequelize;
 
@@ -20,11 +21,28 @@ const SparepartProblem = db.define(
       },
     },
 
+    id_tiket_os3: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: TicketOs3,
+        key: "id",
+      },
+    },
+
     id_proses: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: ProsesMtc,
+        key: "id",
+      },
+    },
+    id_proses_os3: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: ProsesMtcOs3,
         key: "id",
       },
     },
@@ -89,12 +107,18 @@ const SparepartProblem = db.define(
 );
 
 Ticket.hasMany(SparepartProblem, { foreignKey: "id_tiket" }),
-  ProsesMtc.hasMany(SparepartProblem, { foreignKey: "id_tiket" }),
+  TicketOs3.hasMany(SparepartProblem, { foreignKey: "id_tiket_os3" }),
+  ProsesMtc.hasMany(SparepartProblem, { foreignKey: "id_proses" }),
+  ProsesMtcOs3.hasMany(SparepartProblem, { foreignKey: "id_proses_os3" }),
   MasterSparepart.hasMany(SparepartProblem, { foreignKey: "id_ms_sparepart" }),
   SparepartProblem.belongsTo(Ticket, {
     foreignKey: "id_tiket",
     as: "problem_sparepart",
   });
+SparepartProblem.belongsTo(TicketOs3, {
+  foreignKey: "id_tiket_os3",
+  as: "problem_sparepart_os3",
+});
 
 SparepartProblem.belongsTo(MasterSparepart, {
   foreignKey: "id_ms_sparepart",
@@ -109,6 +133,11 @@ StokSparepart.hasMany(SparepartProblem, { foreignKey: "id_stok_sparepart" }),
 SparepartProblem.belongsTo(ProsesMtc, {
   foreignKey: "id_proses",
   as: "proses_mtc",
+});
+
+SparepartProblem.belongsTo(ProsesMtcOs3, {
+  foreignKey: "id_proses_os3",
+  as: "proses_mtc_os3",
 });
 
 module.exports = SparepartProblem;

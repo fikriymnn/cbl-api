@@ -30,6 +30,11 @@ const Ticket = db.define(
       },
     },
 
+    kode_ticket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     no_jo: {
       type: DataTypes.STRING,
       allowNull: false,

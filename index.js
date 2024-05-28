@@ -12,6 +12,7 @@ const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const reqStok = require("./model/mtc/requestStokSparepart");
 const proses = require("./model/mtc/prosesMtc");
+const prosesOs3 = require("./model/mtc/prosesMtcOs3");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
 const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
@@ -38,7 +39,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await tcpm1.sync({ alter: true });
+//   await tc.sync({ alter: true });
 // })();
 
 // const ip100 = 75

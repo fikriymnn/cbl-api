@@ -265,7 +265,7 @@ const Pm1Controller = {
           where: { id: dataPoint.id_ticket },
         });
         const ticketOs3 = await TicketOs3.create({
-          id_point_pm: dataPoint.id,
+          id_point_pm1: dataPoint.id,
           nama_mesin: ticketPm1.nama_mesin,
           sumber: "pm1",
           status_tiket: "open",
@@ -304,6 +304,7 @@ const Pm1Controller = {
         {
           waktu_selesai: new Date(),
           status: "done",
+          catatan,
           id_leader,
           id_supervisor,
           id_ka_bag,
