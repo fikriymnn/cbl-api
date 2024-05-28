@@ -83,6 +83,7 @@ const Pm1Controller = {
             model: PointPm1,
             attributes: [
               "id",
+              "lama_pengerjaan",
               "inspection_point",
               "id_ticket",
               "tgl",
@@ -259,7 +260,7 @@ const Pm1Controller = {
         attributes: ["id", "id_ticket", "hasil"],
       });
 
-      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak ada") {
+      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
         const ticketPm1 = await TicketPm1.findOne({
           where: { id: dataPoint.id_ticket },
         });
@@ -295,9 +296,18 @@ const Pm1Controller = {
 
   doneTicketPm1: async (req, res) => {
     const _id = req.params.id;
+    const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
+    if (!id_leader || !id_supervisor || !id_ka_bag || !catatan)
+      return res.status(401).json({ msg: "incomplite data" });
     try {
       const response = await TicketPm1.update(
-        { waktu_selesai: new Date(), status: "done" },
+        {
+          waktu_selesai: new Date(),
+          status: "done",
+          id_leader,
+          id_supervisor,
+          id_ka_bag,
+        },
         { where: { id: _id } }
       );
       res.status(200).json({ msg: "success" });

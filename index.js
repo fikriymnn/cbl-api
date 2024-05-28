@@ -38,7 +38,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mtc.sync({ alter: true });
+//   await tcpm1.sync({ alter: true });
 // })();
 
 // const ip100 = 75

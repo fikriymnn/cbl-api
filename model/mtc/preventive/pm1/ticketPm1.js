@@ -62,6 +62,10 @@ const ticketPm1 = db.define("ticket_pm1", {
     allowNull: true,
     defaultValue: "incoming",
   },
+  catatan: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 
   waktu_mulai: {
     type: DataTypes.DATE,

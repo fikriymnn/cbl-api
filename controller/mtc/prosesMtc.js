@@ -425,13 +425,14 @@ const ProsessMtc = {
     if (!id_eksekutor)
       return res.status(401).json({ msg: "eksekutor required" });
 
+    const ticket = await Ticket.findByPk(_id);
+
     let obj = {
       status_tiket: "open",
       kode_analisis_mtc: null,
       waktu_mulai_mtc: new Date(),
       waktu_selesai_mtc: null,
       waktu_selesai: null,
-      skor_mtc: 0,
       cara_perbaikan: null,
     };
 
@@ -439,6 +440,7 @@ const ProsessMtc = {
       id_tiket: _id,
       id_eksekutor: id_eksekutor,
       status_proses: "open",
+      skor_mtc: ticket.skor_mtc,
       status_qc: "open",
       waktu_mulai_mtc: new Date(),
     };

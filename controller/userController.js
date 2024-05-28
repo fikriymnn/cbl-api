@@ -1,14 +1,32 @@
 const Users = require("../model/userModel");
 const bcrypt = require("bcryptjs");
-const userActionMtc = require("../model/mtc/userActionMtc")
-const Ticket = require("../model/maintenaceTicketModel")
+const userActionMtc = require("../model/mtc/userActionMtc");
+const Ticket = require("../model/maintenaceTicketModel");
 
 const userController = {
   getUsers: async (req, res) => {
+    const { bagian, role } = req.query;
+
+    let obj = {};
+    if (role) obj.role = role;
+    if (bagian) obj.bagian = bagian;
+
     try {
-      const response = await Users.findAll({
-        attributes: ["id","uuid", "nama", "email", "role", "no","status"],
-      });
+      const response = await Users.findAll(
+        { where: obj },
+        {
+          attributes: [
+            "id",
+            "uuid",
+            "nama",
+            "bagian",
+            "email",
+            "role",
+            "no",
+            "status",
+          ],
+        }
+      );
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -18,8 +36,8 @@ const userController = {
   getUsersById: async (req, res) => {
     try {
       const response = await Users.findOne({
-        attributes: ["id","uuid", "nama", "email", "role", "no","status"],
-        include:[
+        attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+        include: [
           {
             model: userActionMtc,
             // include:[
@@ -28,7 +46,7 @@ const userController = {
             //     as:"tiket"
             //   }
             // ]
-          }
+          },
         ],
         where: {
           uuid: req.params.id,
@@ -41,12 +59,18 @@ const userController = {
   },
 
   createUsers: async (req, res) => {
-    const { nama, email, password, no, confPassword, role,bagian } = req.body;
+    const { nama, email, password, no, confPassword, role, bagian } = req.body;
 
-    if (!nama ||!email|| !password|| !no|| !confPassword|| !role||!bagian)
-      return res
-        .status(400)
-        .json({ msg: "incomplite data" });
+    if (
+      !nama ||
+      !email ||
+      !password ||
+      !no ||
+      !confPassword ||
+      !role ||
+      !bagian
+    )
+      return res.status(400).json({ msg: "incomplite data" });
 
     if (password !== confPassword)
       return res
@@ -68,7 +92,7 @@ const userController = {
         password: hasPassword,
         role: role,
         no: no,
-        bagian: bagian
+        bagian: bagian,
       }),
         res.status(201).json({ msg: "Register Successfuly" });
     } catch (error) {
@@ -84,7 +108,8 @@ const userController = {
     });
     if (!users) return res.status(404).json({ msg: "User Not Found" });
 
-    const { nama, email, password, confPassword, role, no,status,bagian } = req.body;
+    const { nama, email, password, confPassword, role, no, status, bagian } =
+      req.body;
     let hashPassword;
     if (password === "" || password === null) {
       hashPassword = users.password;
@@ -106,7 +131,7 @@ const userController = {
           role: role,
           no: no,
           status: status,
-          bagian:bagian
+          bagian: bagian,
         },
         {
           where: {
