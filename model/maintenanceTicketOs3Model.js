@@ -3,13 +3,14 @@ const db = require("../config/database");
 const Users = require("./userModel");
 const Mesin = require("./masterData/masterMesinModel");
 const PointPm1 = require("./mtc/preventive/pm1/pointPm1");
+const TicketPm1 = require("./mtc/preventive/pm1/ticketPm1");
 
 const { DataTypes } = Sequelize;
 
 const TicketOs3 = db.define(
   "ticket_os3",
   {
-    id_point_pm: {
+    id_point_pm1: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -17,9 +18,14 @@ const TicketOs3 = db.define(
         key: "id",
       },
     },
+
     nama_mesin: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    kode_ticket: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
 
     sumber: {
@@ -44,6 +50,10 @@ const TicketOs3 = db.define(
       },
     },
     waktu_respon: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_mulai_mtc: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -82,7 +92,7 @@ const TicketOs3 = db.define(
   }
 );
 
-TicketOs3.hasMany(PointPm1, { foreignKey: "id_point_pm" });
-PointPm1.belongsTo(TicketOs3, { foreignKey: "id_inspector", as: "inspector" });
+PointPm1.hasOne(TicketOs3, { foreignKey: "id_point_pm1" });
+TicketOs3.belongsTo(PointPm1, { foreignKey: "id_point_pm1", as: "point_pm1" });
 
 module.exports = TicketOs3;

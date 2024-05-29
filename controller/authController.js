@@ -24,7 +24,7 @@ const authController = {
     const email = users.email;
     const role = users.role;
     const no = users.no;
-    
+
     const access_token = generate_access_token({
       id: id,
       uuid: uuid,
@@ -47,6 +47,7 @@ const authController = {
   Me: async (req, res, next) => {
     if (!req.cookies.access_token)
       return res.status(401).json({ msg: "Pliss Login" });
+    console.log(req.cookies.access_token);
 
     const uuid = req.user.uuid;
 

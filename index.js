@@ -12,6 +12,7 @@ const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const reqStok = require("./model/mtc/requestStokSparepart");
 const proses = require("./model/mtc/prosesMtc");
+const prosesOs3 = require("./model/mtc/prosesMtcOs3");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
 const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
@@ -38,7 +39,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mstaskm1.sync({ alter: true });
+//   await tc.sync({ alter: true });
 // })();
 
 // const ip100 = 75
@@ -69,42 +70,34 @@ const app = express();
 //   console.log(nilai)
 // }
 
-async function start() {
-  app.use(express.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
-  app.use(
-    cors({
-      credentials: true,
-      origin: true,
+app.use(
+  cors({
+    credentials: true,
+    origin: true,
+  })
+);
+
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(cookieParser());
+app.get("/", (req, res) => {
+  db.authenticate()
+    .then(() => {
+      res.json({ msg: "Connection has been established successfully." });
     })
-  );
-  app.use(cookieParser());
-  app.get("/", (req, res) => {
-    db.authenticate()
-      .then(() => {
-        res.json({ msg: "Connection has been established successfully." });
-      })
-      .catch((error) => {
-        res.json({ msg: error });
-      });
-  });
-
-  app.use("/", require("./routes/router"));
-  app.use("/", (req, res) => {
-    res.send("success");
-  });
-
-  app.use("/images", express.static(path.join(__dirname, "./file")));
-
-  try {
-    app.listen(process.env.APP_PORT, async () => {
-      console.log("server up and running on port " + process.env.APP_PORT);
+    .catch((error) => {
+      res.json({ msg: error });
     });
-  } catch (err) {
-    console.log(err.message);
-  }
-}
+});
 
-start();
+app.use("/", require("./routes/router"));
+
+app.use("/images", express.static(path.join(__dirname, "./file")));
+
+app.listen(process.env.APP_PORT, async () => {
+  console.log("server up and running on port " + process.env.APP_PORT);
+});
+
 module.exports = app;

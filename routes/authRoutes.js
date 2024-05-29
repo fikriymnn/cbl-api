@@ -1,8 +1,8 @@
 const router = require("express").Router();
 const { Login, Logout, Me } = require("../controller/authController");
-const { Auth } = require("../middlewares/authMiddlewares");
+const { auth } = require("../middlewares/authMiddlewares");
 
-router.get("/me", Auth, Me);
+router.get("/me", auth, Me);
 router.post("/login", Login);
 router.delete("/logout", Logout);
 

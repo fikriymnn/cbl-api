@@ -1,20 +1,20 @@
 const { Op } = require("sequelize");
-const Ticket = require("../../model/maintenaceTicketModel");
+const TicketOs3 = require("../../model/maintenanceTicketOs3Model");
 const Users = require("../../model/userModel");
 const userActionMtc = require("../../model/mtc/userActionMtc");
 const MasalahSparepart = require("../../model/mtc/sparepartProblem");
 const StokSparepart = require("../../model/mtc/stokSparepart");
 const MasterSparepart = require("../../model/masterData/masterSparepart");
-const ProsesMtc = require("../../model/mtc/prosesMtc");
+const ProsesMtcOs3 = require("../../model/mtc/prosesMtcOs3");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const moment = require("moment");
 
 const ProsessMtc = {
-  getProsesMtcById: async (req, res) => {
+  getProsesMtcOs3ById: async (req, res) => {
     const _id = req.params.id;
     try {
-      const response = await ProsesMtc.findOne({
+      const response = await ProsesMtcOs3.findOne({
         where: {
           id: _id,
         },
@@ -30,7 +30,7 @@ const ProsessMtc = {
             attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
           },
           {
-            model: Ticket,
+            model: TicketOs3,
             as: "tiket",
           },
         ],
@@ -41,10 +41,10 @@ const ProsessMtc = {
     }
   },
 
-  getProsesMtcByTicket: async (req, res) => {
+  getProsesMtcOs3ByTicket: async (req, res) => {
     const _id = req.params.id;
     try {
-      const response = await ProsesMtc.findAll({
+      const response = await ProsesMtcOs3.findAll({
         where: {
           id_tiket: _id,
         },
@@ -68,11 +68,11 @@ const ProsessMtc = {
     }
   },
 
-  responseMtc: async (req, res) => {
+  responseMtcOs3: async (req, res) => {
     const _id = req.params.id;
     let obj = {
       id_respon_mtc: req.user.id,
-      bagian_tiket: "os2",
+      bagian_tiket: "os3",
       status_tiket: "open",
       waktu_respon: new Date(),
       waktu_mulai_mtc: new Date(),
@@ -81,13 +81,13 @@ const ProsessMtc = {
     const action = [
       {
         id_mtc: req.user.id,
-        id_tiket: _id,
+        id_tiket_os3: _id,
         action: "respon",
         status: "done",
       },
       {
         id_mtc: req.user.id,
-        id_tiket: _id,
+        id_tiket_os3: _id,
         action: "eksekutor",
         status: "on progress",
       },
@@ -101,8 +101,8 @@ const ProsessMtc = {
     };
 
     try {
-      await Ticket.update(obj, { where: { id: _id } }),
-        await ProsesMtc.create(prosesMtc);
+      await TicketOs3.update(obj, { where: { id: _id } }),
+        await ProsesMtcOs3.create(prosesMtc);
       await userActionMtc.bulkCreate(action);
       res.status(201).json({ msg: "Respon Successfuly" });
     } catch (error) {
@@ -110,7 +110,7 @@ const ProsessMtc = {
     }
   },
 
-  analisisMtc: async (req, res) => {
+  analisisMtcOs3: async (req, res) => {
     const _id = req.params.id;
 
     const {
@@ -147,7 +147,6 @@ const ProsessMtc = {
 
     let obj = {
       status_tiket: status,
-
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
@@ -170,10 +169,10 @@ const ProsessMtc = {
 
     try {
       if (!masalah_sparepart || masalah_sparepart == []) {
-        await Ticket.update(obj, { where: { id: _id } }),
+        await TicketOs3.update(obj, { where: { id: _id } }),
           // await MasalahSparepart.bulkCreate(masalah_sparepart);
 
-          await ProsesMtc.update(obj_proses, { where: { id: id_proses } }),
+          await ProsesMtcOs3.update(obj_proses, { where: { id: id_proses } }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -187,8 +186,8 @@ const ProsessMtc = {
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
-        await Ticket.update(obj, { where: { id: _id } }),
-          await ProsesMtc.update(obj_proses, { where: { id: id_proses } }),
+        await TicketOs3.update(obj, { where: { id: _id } }),
+          await ProsesMtcOs3.update(obj_proses, { where: { id: id_proses } }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -200,7 +199,7 @@ const ProsessMtc = {
             }
           );
 
-        const ticketMtc = await Ticket.findByPk(_id);
+        const ticketMtc = await TicketOs3.findByPk(_id);
 
         for (let i = 0; i < masalah_sparepart.length; i++) {
           const sparepartStok = await StokSparepart.findByPk(
@@ -212,8 +211,8 @@ const ProsessMtc = {
           );
 
           sparepart_masalah_data.push({
-            id_tiket: _id,
-            id_proses: id_proses,
+            id_tiket_os3: _id,
+            id_proses_os3: id_proses,
             id_ms_sparepart: masterSparepart.id,
             id_stok_sparepart: sparepartStok.id,
             nama_sparepart_sebelumnya: masterSparepart.nama_sparepart,
@@ -283,7 +282,7 @@ const ProsessMtc = {
     }
   },
 
-  pendingProses: async (req, res) => {
+  pendingProsesOs3: async (req, res) => {
     const _id = req.params.id;
     const { id_proses, note_mtc, alasan_pending } = req.body;
 
@@ -301,15 +300,15 @@ const ProsessMtc = {
     };
 
     try {
-      await Ticket.update(obj, { where: { id: _id } });
-      await ProsesMtc.update(objProses, { where: { id: id_proses } }),
+      await TicketOs3.update(obj, { where: { id: _id } });
+      await ProsesMtcOs3.update(objProses, { where: { id: id_proses } }),
         res.status(201).json({ msg: "Pending Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  requestedDate: async (req, res) => {
+  requestedDateOs3: async (req, res) => {
     const _id = req.params.id;
     const { tgl_mtc, id_proses, note_request_jadwal, estimasi_pengerjaan } =
       req.body;
@@ -331,15 +330,15 @@ const ProsessMtc = {
     };
 
     try {
-      await Ticket.update(obj, { where: { id: _id } });
-      await ProsesMtc.update(objProses, { where: { id: id_proses } }),
+      await TicketOs3.update(obj, { where: { id: _id } });
+      await ProsesMtcOs3.update(objProses, { where: { id: id_proses } }),
         res.status(201).json({ msg: "Respon Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  approveDate: async (req, res) => {
+  approveDateOs3: async (req, res) => {
     const _id = req.params.id;
 
     let obj = {
@@ -351,14 +350,14 @@ const ProsessMtc = {
     };
 
     try {
-      await ProsesMtc.update(objProses, { where: { id: _id } }),
+      await ProsesMtcOs3.update(objProses, { where: { id: _id } }),
         res.status(201).json({ msg: "Date Approved" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  tolakDate: async (req, res) => {
+  tolakDateOs3: async (req, res) => {
     const _id = req.params.id;
 
     let obj = {
@@ -366,14 +365,14 @@ const ProsessMtc = {
     };
 
     try {
-      await ProsesMtc.update(obj, { where: { id: _id } }),
+      await ProsesMtcOs3.update(obj, { where: { id: _id } }),
         res.status(201).json({ msg: "Date Declined" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  approveTiket: async (req, res) => {
+  approveTiketOs3: async (req, res) => {
     const _id = req.params.id;
     const { id_proses, note } = req.body;
     if (!id_proses) return res.status(404).json({ msg: "id proses required" });
@@ -385,18 +384,18 @@ const ProsessMtc = {
     };
 
     try {
-      Ticket.update(
+      TicketOs3.update(
         { status_tiket: "monitoring", waktu_selesai: new Date() },
         { where: { id: _id } }
       );
-      await ProsesMtc.update(obj, { where: { id: id_proses } }),
+      await ProsesMtcOs3.update(obj, { where: { id: id_proses } }),
         res.status(201).json({ msg: "Ticket approved Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  tolakTiket: async (req, res) => {
+  tolakTiketOs3: async (req, res) => {
     const _id = req.params.id;
     const { id_proses, note } = req.body;
     if (!id_proses) return res.status(404).json({ msg: "id proses required" });
@@ -408,24 +407,24 @@ const ProsessMtc = {
     };
 
     try {
-      Ticket.update(
+      TicketOs3.update(
         { status_tiket: "qc rejected", waktu_selesai: new Date() },
         { where: { id: _id } }
       );
-      await ProsesMtc.update(obj, { where: { id: id_proses } }),
+      await ProsesMtcOs3.update(obj, { where: { id: id_proses } }),
         res.status(201).json({ msg: "Ticket Tolak Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  reworkMtc: async (req, res) => {
+  reworkMtcOs3: async (req, res) => {
     const _id = req.params.id;
     const { id_eksekutor } = req.body;
     if (!id_eksekutor)
       return res.status(401).json({ msg: "eksekutor required" });
 
-    const ticket = await Ticket.findByPk(_id);
+    const ticket = await TicketOs3.findByPk(_id);
 
     let obj = {
       status_tiket: "open",
@@ -445,11 +444,11 @@ const ProsessMtc = {
       waktu_mulai_mtc: new Date(),
     };
     try {
-      await Ticket.update(obj, { where: { id: _id } }),
-        await ProsesMtc.create(prosesMtc);
+      await TicketOs3.update(obj, { where: { id: _id } }),
+        await ProsesMtcOs3.create(prosesMtc);
       await userActionMtc.create({
         id_mtc: id_eksekutor,
-        id_tiket: _id,
+        id_tiket_os3: _id,
         action: "eksekutor",
         status: "on progress",
       });
@@ -460,7 +459,7 @@ const ProsessMtc = {
   },
 
   //ini fungsi untuk nanti cron job
-  cekMonitoring: async (req, res) => {
+  cekMonitoringOs3: async (req, res) => {
     const proses = await ProsesMtc.findAll({
       where: { status_proses: "monitoring" },
     });
@@ -476,11 +475,11 @@ const ProsessMtc = {
       const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
 
       if (dateDiff === waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
-        await Ticket.update(
+        await TicketOs3.update(
           { status_tiket: "closed" },
           { where: { id: proses[i].id_tiket } }
         );
-        await ProsesMtc.update(
+        await ProsesMtcOs3.update(
           { status_proses: "closed" },
           { where: { id: proses[i].id } }
         );

@@ -8,69 +8,26 @@ const { DataTypes } = Sequelize;
 const RequestStokSparepart = db.define(
   "request_stok_sparepart",
   {
-    id_sparepart: {
+    id_stok_sparepart: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    kode: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    nama_sparepart: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
+      references: {
+        model: StokSparepart,
+        key: "id",
       },
     },
-    nama_mesin: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    jenis_part: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    persen: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    kebutuhan_bulanan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    stok: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    keterangan: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    umur_sparepart: {
+    qty: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
     },
-
-    vendor: {
+    note: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "requested",
-    },
-    note: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    req_sparepart_baru: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
+      defaultValue: "request mtc",
     },
   },
   {
@@ -78,7 +35,11 @@ const RequestStokSparepart = db.define(
   }
 );
 
-// StokSparepart.hasMany(RequestStokSparepart, { foreignKey: "id_sparepart" }),
-//   RequestStokSparepart.belongsTo(StokSparepart, { foreignKey: "id_sparepart" });
+StokSparepart.hasMany(RequestStokSparepart, {
+  foreignKey: "id_stok_sparepart",
+}),
+  RequestStokSparepart.belongsTo(StokSparepart, {
+    foreignKey: "id_stok_sparepart",
+  });
 
 module.exports = RequestStokSparepart;

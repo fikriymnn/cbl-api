@@ -9,7 +9,7 @@ const {
   approveRequestStokSparepart,
   tolakRequestStokSparepart,
 } = require("../../controller/mtc/stokSparepart");
-const { Auth } = require("../../middlewares/authMiddlewares");
+const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/stokSparepart", getStokSparepart);
 router.get("/stokSparepart/:id", getStokSparepartById);

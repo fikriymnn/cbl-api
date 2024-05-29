@@ -3,7 +3,7 @@ const router = require("express").Router();
 router.use("/", require("./authRoutes"));
 router.use("/", require("./userRoutes"));
 router.use("/", require("./ticketRoutes"));
-router.use("/", require("./ticketPM1Routes"));
+router.use("/", require("./ticketOs3Routes"));
 
 router.use("/", require("./mtc/pm1/inspectionPm1Routes"));
 
@@ -18,6 +18,7 @@ router.use("/", require("./masterdata/mtc/preventive/masterTaskPm1Route"));
 router.use("/", require("./mtc/stokSparepartRoutes"));
 router.use("/", require("./mtc/problemSparepartRoutes"));
 router.use("/", require("./mtc/prosessMtcRoutes"));
+router.use("/", require("./mtc/prosesMtcOs3Routes"));
 
 router.use("/", require("./uploadRoutes"));
 

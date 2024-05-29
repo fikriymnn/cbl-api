@@ -23,6 +23,14 @@ const MasterSparepart = db.define(
       },
     },
 
+    kode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
+
     nama_sparepart: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -30,23 +38,49 @@ const MasterSparepart = db.define(
         notEmpty: true,
       },
     },
-    jenis_part: {
+
+    posisi_part: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    umur_sparepart: {
-      type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
     },
-    tgl_ganti: {
+
+    tgl_pasang: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    vendor: {
+    tgl_rusak: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+    umur_a: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    umur_grade: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    grade_2: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    actual_umur: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    sisa_umur: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    keterangan: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },

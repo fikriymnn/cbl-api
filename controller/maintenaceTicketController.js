@@ -7,7 +7,7 @@ const MasalahSparepart = require("../model/mtc/sparepartProblem");
 const StokSparepart = require("../model/mtc/stokSparepart");
 const MasterSparepart = require("../model/masterData/masterSparepart");
 const ProsesMtc = require("../model/mtc/prosesMtc");
-
+const Sequelize = require("sequelize");
 const ticketController = {
   getTicket: async (req, res) => {
     try {
@@ -94,6 +94,11 @@ const ticketController = {
 
           {
             model: ProsesMtc,
+            include: [
+              {
+                model: MasalahSparepart,
+              },
+            ],
           },
         ],
       });
@@ -157,6 +162,49 @@ const ticketController = {
     } = req.body;
 
     try {
+      const monthNames = [
+        "JANUARI",
+        "FEBRUARY",
+        "MARET",
+        "APRIL",
+        "MEI",
+        "JUNI",
+        "JULI",
+        "AGUSTUS",
+        "SEPTEMBER",
+        "OKTOBER",
+        "NOVEMBER",
+        "DESEMBER",
+      ];
+      const now = new Date();
+      const month = now.getMonth() + 1; // Add 1 to get 1-based month value
+      const year = now.getFullYear();
+      const monthName = monthNames[month - 1];
+
+      const ticket = await Ticket.findAll({
+        where: {
+          [Op.and]: [
+            Sequelize.where(
+              Sequelize.fn("YEAR", Sequelize.col("createdAt")),
+              year
+            ),
+            Sequelize.where(
+              Sequelize.fn("MONTH", Sequelize.col("createdAt")),
+              month
+            ),
+          ],
+        },
+      });
+
+      ticketLength = ticket.length + 1;
+
+      const strNumber = ticketLength.toString();
+
+      // Pad the beginning with leading zeros
+      const paddedNumber = strNumber.padStart(4, "0");
+      const kodeTicket =
+        paddedNumber + "/" + "MR" + "/" + monthName + "/" + year;
+
       await Ticket.create({
         id_jo: id_jo,
         no_jo: no_jo,
@@ -176,6 +224,7 @@ const ticketController = {
         jenis_kendala: jenis_kendala,
         id_kendala: id_kendala,
         nama_kendala: nama_kendala,
+        kode_ticket: kodeTicket,
       }),
         res.status(201).json({ msg: "Ticket create Successfuly" });
     } catch (error) {

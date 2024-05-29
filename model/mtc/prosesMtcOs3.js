@@ -1,18 +1,18 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 const Users = require("../userModel");
-const TicketMtc = require("../maintenaceTicketModel");
+const TicketMtcOs3 = require("../maintenanceTicketOs3Model");
 
 const { DataTypes } = Sequelize;
 
 const ProsesMtc = db.define(
-  "proses_mtc",
+  "proses_mtc_os3",
   {
     id_tiket: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: TicketMtc,
+        model: TicketMtcOs3,
         key: "id",
       },
     },
@@ -124,14 +124,14 @@ const ProsesMtc = db.define(
 
 Users.hasMany(ProsesMtc, { foreignKey: "id_eksekutor" });
 Users.hasMany(ProsesMtc, { foreignKey: "id_qc" });
-TicketMtc.hasMany(ProsesMtc, { foreignKey: "id_tiket" });
+TicketMtcOs3.hasMany(ProsesMtc, { foreignKey: "id_tiket" });
 
 ProsesMtc.belongsTo(Users, {
   foreignKey: "id_eksekutor",
   as: "user_eksekutor",
 });
 ProsesMtc.belongsTo(Users, { foreignKey: "id_qc", as: "user_qc" });
-ProsesMtc.belongsTo(TicketMtc, {
+ProsesMtc.belongsTo(TicketMtcOs3, {
   foreignKey: "id_tiket",
   as: "tiket",
 });

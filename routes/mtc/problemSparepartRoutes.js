@@ -3,9 +3,9 @@ const {
   getMasalahSparepart,
   getMasalahSparepartById,
   createMasalahSparepart,
-  getMasalahSparepartByTicket
+  getMasalahSparepartByTicket,
 } = require("../../controller/mtc/sparepartProblem");
-const { Auth } = require("../../middlewares/authMiddlewares");
+const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/masalahSparepart", getMasalahSparepart);
 router.get("/masalahSparepart/:id", getMasalahSparepartById);

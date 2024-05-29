@@ -4,13 +4,26 @@ const RequestStokSparepart = require("../../model/mtc/requestStokSparepart");
 
 const StokSparepartController = {
   getStokSparepart: async (req, res) => {
-    const { nama_mesin, jenis_part, vendor, status } = req.query;
+    const {
+      nama_mesin,
+      kode,
+      nama_sparepart,
+      stok,
+      part_number,
+      lokasi,
+      grade,
+      type_part,
+    } = req.query;
 
     let obj = {};
     if (nama_mesin) obj.nama_mesin = nama_mesin;
-    if (jenis_part) obj.jenis_part = jenis_part;
-    if (vendor) obj.vendor = vendor;
-    if (status) obj.status = status;
+    if (kode) obj.kode = kode;
+    if (nama_sparepart) obj.nama_sparepart = nama_sparepart;
+    if (stok) obj.stok = stok;
+    if (part_number) obj.part_number = part_number;
+    if (lokasi) obj.lokasi = lokasi;
+    if (grade) obj.grade = grade;
+    if (type_part) obj.type_part = type_part;
     try {
       const response = await StokSparepart.findAll({ where: obj });
       res.status(200).json(response);
@@ -33,22 +46,17 @@ const StokSparepartController = {
       kode,
       nama_sparepart,
       nama_mesin,
-      jenis_part,
-      persen,
-      kebutuhan_bulanan,
       stok,
+      part_number,
+      lokasi,
+      limit_stok,
+      grade,
+      type_part,
+      foto,
       keterangan,
       umur_sparepart,
-      vendor,
     } = req.body;
-    if (
-      !nama_sparepart ||
-      !nama_mesin ||
-      !jenis_part ||
-      !persen ||
-      !umur_sparepart ||
-      !stok
-    )
+    if (!nama_sparepart || !nama_mesin || !umur_sparepart)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
@@ -56,28 +64,30 @@ const StokSparepartController = {
         kode,
         nama_sparepart,
         nama_mesin,
-        jenis_part,
-        persen,
-        kebutuhan_bulanan,
         stok: 0,
+        part_number,
+        lokasi,
+        limit_stok,
+        grade,
+        type_part,
+        foto,
         keterangan,
         umur_sparepart,
-        vendor,
       });
-      await RequestStokSparepart.create({
-        id_sparepart: response.id,
-        stok: stok,
-        kode,
-        nama_sparepart,
-        nama_mesin,
-        jenis_part,
-        persen,
-        kebutuhan_bulanan,
-        keterangan,
-        umur_sparepart,
-        vendor,
-        req_sparepart_baru: true,
-      });
+      // await RequestStokSparepart.create({
+      //   id_sparepart: response.id,
+      //   stok: stok,
+      //   kode,
+      //   nama_sparepart,
+      //   nama_mesin,
+      //   jenis_part,
+      //   persen,
+      //   kebutuhan_bulanan,
+      //   keterangan,
+      //   umur_sparepart,
+      //   vendor,
+      //   req_sparepart_baru: true,
+      // });
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -141,10 +151,10 @@ const StokSparepartController = {
       );
 
       const sparepart = await StokSparepart.findByPk(request.id_sparepart);
-      const stok_sparepart = sparepart.stok + request.stok;
+      const stok_sparepart = sparepart.stok + request.qty;
 
       await StokSparepart.update(
-        { status: "ready", stok: stok_sparepart },
+        { stok: stok_sparepart },
         { where: { id: request.id_sparepart } }
       ),
         res.status(201).json({ msg: "Request Stok Sparepart Approved" });
@@ -184,18 +194,8 @@ const StokSparepartController = {
       const sparepart = await StokSparepart.findByPk(_id);
 
       await RequestStokSparepart.create({
-        id_sparepart: sparepart.id,
-        stok: new_stok,
-        kode: sparepart.kode,
-        nama_sparepart: sparepart.nama_sparepart,
-        nama_mesin: sparepart.nama_mesin,
-        jenis_part: sparepart.jenis_part,
-        persen: sparepart.persen,
-        kebutuhan_bulanan: sparepart.kebutuhan_bulanan,
-        keterangan: sparepart.keterangan,
-        umur_sparepart: sparepart.umur_sparepart,
-        vendor: sparepart.vendor,
-        req_sparepart_baru: false,
+        id_stok_sparepart: sparepart.id,
+        qty: new_stok,
       });
       res.status(201).json({ msg: "Sparepart Requested Successfuly" });
     } catch (error) {
