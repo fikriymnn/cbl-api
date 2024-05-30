@@ -20,6 +20,7 @@ router.use("/", require("./mtc/stokSparepartRoutes"));
 router.use("/", require("./mtc/problemSparepartRoutes"));
 router.use("/", require("./mtc/prosessMtcRoutes"));
 router.use("/", require("./mtc/prosesMtcOs3Routes"));
+router.use("/", require("./mtc/kpi/kpiActualRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

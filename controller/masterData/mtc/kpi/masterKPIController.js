@@ -44,7 +44,6 @@ const masterKPIController = {
             reverse } = req.body
 
         try {
-            console.log(req.body)
             if (!role || !cascade || !job_function || !target || !bobot_nilai || !ip_100 || !ip_0) {
                 return res.status(404).json({ msg: "incomplete data!!" });
             }
