@@ -21,45 +21,11 @@ const ticketController = {
         tgl,
         start_date,
         end_date,
+        limit,
+        page
       } = req.query;
-
-      let obj = {};
-      let des = [];
-
-      if (status_tiket) obj.status_tiket = status_tiket;
-      if (type_mtc) obj.type_mtc = type_mtc;
-      if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
-      if (nama_customer) obj.nama_customer = nama_customer;
-      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-
-      if (mesin) obj.mesin = mesin;
-      if (tgl) obj.tgl = tgl;
-      if (start_date && end_date) {
-        obj.tgl = {
-          [Op.between]: [
-            new Date(start_date).setHours(0, 0, 0, 0),
-            new Date(end_date).setHours(23, 59, 59, 999),
-          ],
-        };
-      } else if (start_date) {
-        obj.tgl = {
-          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
-        };
-      } else if (end_date) {
-        obj.tgl = {
-          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
-        };
-      }
-
-      if (bagian_tiket == "os2") {
-        des.push("waktu_respon", "DESC");
-      } else {
-        des.push("createdAt", "DESC");
-      }
-
-      const response = await Ticket.findAll({
-        where: obj,
-        order: [des],
+      
+      let options = {
         include: [
           {
             model: ProsesMtc,
@@ -71,8 +37,54 @@ const ticketController = {
             ],
           },
         ],
-      });
-      res.status(200).json(response);
+      }
+      let obj = {};
+      let des = [];
+      const offset = ((page-1)*limit);
+    
+
+        if (status_tiket) obj.status_tiket = status_tiket;
+        if (type_mtc) obj.type_mtc = type_mtc;
+        if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
+        if (nama_customer) obj.nama_customer = nama_customer;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+        if (mesin) obj.mesin = mesin;
+        if (tgl) obj.tgl = tgl;
+        if (start_date && end_date) {
+          obj.tgl = {
+            [Op.between]: [
+              new Date(start_date).setHours(0, 0, 0, 0),
+              new Date(end_date).setHours(23, 59, 59, 999),
+            ],
+          };
+        } else if (start_date) {
+          obj.tgl = {
+            [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+          };
+        } else if (end_date) {
+          obj.tgl = {
+            [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+          };
+        }
+
+        if (bagian_tiket == "os2") {
+          des.push("waktu_respon", "DESC");
+        } else {
+          des.push("createdAt", "DESC");
+        }
+        options.where = obj;
+        options.order = [des]
+      if(page&&limit){
+        options.limit = parseInt(limit);
+        options.offset = parseInt(offset);  
+      }
+      const data = await Ticket.findAll();
+      const response = await Ticket.findAll(options);
+      res.status(200).json(
+        {
+         total_page : Math.ceil(data.length/limit),
+         data   : response
+        });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

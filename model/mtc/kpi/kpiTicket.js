@@ -3,8 +3,8 @@ const db = require("../../../config/database");
 const { DataTypes } = Sequelize;
 const Users = require("../../userModel")
 
-const KpiActual = db.define(
-    "kpi_actual",
+const KpiTicket = db.define(
+    "kpi_ticket",
     {
         id_user: {
             type: DataTypes.INTEGER,
@@ -14,50 +14,34 @@ const KpiActual = db.define(
                 key: "id",
             },
         },
+        role : {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         tanggal: {
             type: DataTypes.DATE,
             allowNull: false
         },
-        actual: {
+        total_point: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        point: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        role: {
+        penilaian: {
             type: DataTypes.STRING,
-            allowNull: false,
-        },
-        bobot:{
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        ip_100: {
-            type: DataTypes.INTEGER,
             allowNull: true,
         },
-        ip_0: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        reverse: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        }
     },
     {
         freezeTableName: true,
     }
 );
 
-Users.hasMany(KpiActual, {
+Users.hasMany(KpiTicket, {
     foreignKey: "id_user",
 }),
 
-KpiActual.belongsTo(Users, {
+KpiTicket.belongsTo(Users, {
         foreignKey: "id_user", as: "user"
-    });
+});
 
-module.exports = KpiActual;
+module.exports = KpiTicket;
