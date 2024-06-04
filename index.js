@@ -18,9 +18,9 @@ const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
 const mstaskm1 = require("./model/masterData/mtc/preventive/inspectionTaskPm1Model");
 const mspointm1 = require("./model/masterData/mtc/preventive/inspenctionPoinPm1Model");
-const mskpi = require("./model/masterData/mtc/kpi/masterKpiModel")
-const kpiActual = require("./model/mtc/kpi/kpiActual")
-const kpiTicket = require("./model/mtc/kpi/kpiTicket")
+const mskpi = require("./model/masterData/mtc/kpi/masterKpiModel");
+const kpiActual = require("./model/mtc/kpi/kpiActual");
+const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
