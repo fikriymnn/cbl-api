@@ -1,6 +1,6 @@
 const { Sequelize, where } = require("sequelize");
 const StokSparepart = require("../../model/mtc/stokSparepart");
-const RequestStokSparepart = require("../../model/mtc/requestStokSparepart");
+const RequestStokSparepart = require("../../model/mtc/spbStokSparepart");
 
 const StokSparepartController = {
   getStokSparepart: async (req, res) => {

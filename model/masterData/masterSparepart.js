@@ -79,6 +79,17 @@ const MasterSparepart = db.define(
       allowNull: true,
     },
 
+    jenis_part: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "ganti",
+    },
+
+    umur_service: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
     keterangan: {
       type: DataTypes.INTEGER,
       allowNull: true,
