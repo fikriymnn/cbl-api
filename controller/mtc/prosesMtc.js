@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const Ticket = require("../../model/maintenaceTicketModel");
 const Users = require("../../model/userModel");
 const userActionMtc = require("../../model/mtc/userActionMtc");
@@ -283,6 +283,28 @@ const ProsessMtc = {
     }
   },
 
+  deleteProses: async (req, res) => {
+    const _id = req.params.id;
+    const { id_proses } = req.body;
+
+    if (!id_proses) return res.status(401).json({ msg: "incomplite data" });
+
+    try {
+      await Ticket.update(
+        { status_tiket: "temporary" },
+        { where: { id: _id } }
+      );
+      await ProsesMtc.destroy({
+        where: {
+          id: id_proses,
+        },
+      }),
+        res.status(201).json({ msg: "delete Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   pendingProses: async (req, res) => {
     const _id = req.params.id;
     const { id_proses, note_mtc, alasan_pending } = req.body;
@@ -459,34 +481,81 @@ const ProsessMtc = {
     }
   },
 
-  //ini fungsi untuk nanti cron job
   cekMonitoring: async (req, res) => {
-    const proses = await ProsesMtc.findAll({
-      where: { status_proses: "monitoring" },
-    });
-    const timeMonitoring = await waktuMonitoring.findAll();
-    const waktuMonitor = timeMonitoring[0].waktu;
-    const jenisMonitor = timeMonitoring[0].jenis;
-    const minimalSkor = timeMonitoring[0].minimal_skor;
+    try {
+      const proses = await ProsesMtc.findAll({
+        where: { status_proses: "monitoring" },
+      });
+      const timeMonitoring = await waktuMonitoring.findAll();
+      const waktuMonitor = timeMonitoring[0].waktu;
+      const jenisMonitor = timeMonitoring[0].jenis;
+      const minimalSkor = timeMonitoring[0].minimal_skor;
 
-    for (let i = 0; i < proses.length; i++) {
-      const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
-      const currentDate = moment();
+      for (let i = 0; i < proses.length; i++) {
+        const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
+        const currentDate = moment();
 
-      const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
+        const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
 
-      if (dateDiff === waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
-        await Ticket.update(
-          { status_tiket: "closed" },
-          { where: { id: proses[i].id_tiket } }
-        );
-        await ProsesMtc.update(
-          { status_proses: "closed" },
-          { where: { id: proses[i].id } }
-        );
+        if (dateDiff >= waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
+          await Ticket.update(
+            { status_tiket: "closed", bagian_tiket: "histori os2" },
+            { where: { id: proses[i].id_tiket } }
+          );
+          await ProsesMtc.update(
+            { status_proses: "closed" },
+            { where: { id: proses[i].id } }
+          );
+        } else {
+        }
       }
+      res.status(201).json({ msg: "berhasil" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
     }
   },
+
+  // requestService: async (req, res) => {
+  //   const _id = req.params.id;
+  //   const { id_eksekutor } = req.body;
+  //   if (!id_eksekutor)
+  //     return res.status(401).json({ msg: "eksekutor required" });
+
+  //   const ticket = await Ticket.findByPk(_id);
+
+  //   let obj = {
+  //     status_tiket: "open",
+  //     kode_analisis_mtc: null,
+  //     waktu_mulai_mtc: new Date(),
+  //     waktu_selesai_mtc: null,
+  //     waktu_selesai: null,
+  //     cara_perbaikan: null,
+  //   };
+
+  //   let prosesMtc = {
+  //     id_tiket: _id,
+  //     id_eksekutor: id_eksekutor,
+  //     status_proses: "open",
+  //     skor_mtc: ticket.skor_mtc,
+  //     status_qc: "open",
+  //     waktu_mulai_mtc: new Date(),
+  //   };
+  //   try {
+  //     await Ticket.update(obj, { where: { id: _id } }),
+  //       await ProsesMtc.create(prosesMtc);
+  //     await userActionMtc.create({
+  //       id_mtc: id_eksekutor,
+  //       id_tiket: _id,
+  //       action: "eksekutor",
+  //       status: "on progress",
+  //     });
+  //     res.status(201).json({ msg: "Ticket maintenance rework Successfuly" });
+  //   } catch (error) {
+  //     res.status(400).json({ msg: error.message });
+  //   }
+  // },
+
+  //ini fungsi untuk nanti cron job
 };
 
 module.exports = ProsessMtc;
