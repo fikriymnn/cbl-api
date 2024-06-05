@@ -481,6 +481,40 @@ const ProsessMtc = {
     }
   },
 
+  cekMonitoring: async (req, res) => {
+    try {
+      const proses = await ProsesMtc.findAll({
+        where: { status_proses: "monitoring" },
+      });
+      const timeMonitoring = await waktuMonitoring.findAll();
+      const waktuMonitor = timeMonitoring[0].waktu;
+      const jenisMonitor = timeMonitoring[0].jenis;
+      const minimalSkor = timeMonitoring[0].minimal_skor;
+
+      for (let i = 0; i < proses.length; i++) {
+        const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
+        const currentDate = moment();
+
+        const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
+
+        if (dateDiff >= waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
+          await Ticket.update(
+            { status_tiket: "closed", bagian_tiket: "histori os2" },
+            { where: { id: proses[i].id_tiket } }
+          );
+          await ProsesMtc.update(
+            { status_proses: "closed" },
+            { where: { id: proses[i].id } }
+          );
+        } else {
+        }
+      }
+      res.status(201).json({ msg: "berhasil" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   // requestService: async (req, res) => {
   //   const _id = req.params.id;
   //   const { id_eksekutor } = req.body;
@@ -522,33 +556,6 @@ const ProsessMtc = {
   // },
 
   //ini fungsi untuk nanti cron job
-  cekMonitoring: async (req, res) => {
-    const proses = await ProsesMtc.findAll({
-      where: { status_proses: "monitoring" },
-    });
-    const timeMonitoring = await waktuMonitoring.findAll();
-    const waktuMonitor = timeMonitoring[0].waktu;
-    const jenisMonitor = timeMonitoring[0].jenis;
-    const minimalSkor = timeMonitoring[0].minimal_skor;
-
-    for (let i = 0; i < proses.length; i++) {
-      const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
-      const currentDate = moment();
-
-      const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
-
-      if (dateDiff === waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
-        await Ticket.update(
-          { status_tiket: "closed" },
-          { where: { id: proses[i].id_tiket } }
-        );
-        await ProsesMtc.update(
-          { status_proses: "closed" },
-          { where: { id: proses[i].id } }
-        );
-      }
-    }
-  },
 };
 
 module.exports = ProsessMtc;
