@@ -80,8 +80,7 @@ const ticketController = {
       }
       const data = await Ticket.count({ where: obj });
       const response = await Ticket.findAll(options);
-      console.log(data);
-      console.log(Math.ceil(data / limit));
+
       res.status(200).json({
         total_page: Math.ceil(data / limit),
         data: response,
@@ -218,28 +217,43 @@ const ticketController = {
       const kodeTicket =
         paddedNumber + "/" + "MR" + "/" + monthName + "/" + year;
 
-      await Ticket.create({
-        id_jo: id_jo,
-        no_jo: no_jo,
-        nama_produk: nama_produk,
-        no_io: no_io,
-        no_so: no_so,
-        kode_lkh: kode_lkh,
-        nama_customer: nama_customer,
-        qty: qty,
-        qty_druk: qty_druk,
-        spek: spek,
-        proses: proses,
-        mesin: mesin,
-        bagian: bagian,
-        operator: operator,
-        tgl: tgl,
-        jenis_kendala: jenis_kendala,
-        id_kendala: id_kendala,
-        nama_kendala: nama_kendala,
-        kode_ticket: kodeTicket,
-      }),
+      const ticketValidate = await Ticket.findAll({
+        where: {
+          mesin: mesin,
+          nama_kendala: nama_kendala,
+          status_tiket: {
+            [Sequelize.Op.in]: ["pending", "open"],
+          },
+        },
+      });
+      console.log(ticketValidate);
+
+      if (ticketValidate.length == 0) {
+        await Ticket.create({
+          id_jo: id_jo,
+          no_jo: no_jo,
+          nama_produk: nama_produk,
+          no_io: no_io,
+          no_so: no_so,
+          kode_lkh: kode_lkh,
+          nama_customer: nama_customer,
+          qty: qty,
+          qty_druk: qty_druk,
+          spek: spek,
+          proses: proses,
+          mesin: mesin,
+          bagian: bagian,
+          operator: operator,
+          tgl: tgl,
+          jenis_kendala: jenis_kendala,
+          id_kendala: id_kendala,
+          nama_kendala: nama_kendala,
+          kode_ticket: kodeTicket,
+        });
         res.status(201).json({ msg: "Ticket create Successfuly" });
+      } else {
+        res.status(400).json({ msg: "Ticket Already Exists" });
+      }
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
