@@ -9,6 +9,7 @@ const masterSparepartController = {
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (posisi_part) obj.posisi_part = posisi_part;
     if (kode) obj.kode = kode;
+    console.log(obj);
 
     try {
       const response = await masterSparepart.findAll({
