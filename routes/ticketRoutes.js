@@ -4,7 +4,6 @@ const {
   getTicket,
   getTiketById,
   updateTiket,
-
   selectMtc,
   getTiketUser,
 } = require("../controller/maintenaceTicketController");

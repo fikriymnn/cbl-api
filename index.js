@@ -11,6 +11,7 @@ const mtc = require("./model/mtc/sparepartProblem");
 const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const spbStok = require("./model/mtc/spbStokSparepart");
+const spbService = require("./model/mtc/spbServiceSparepart");
 const proses = require("./model/mtc/prosesMtc");
 const prosesOs3 = require("./model/mtc/prosesMtcOs3");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
@@ -73,10 +74,16 @@ const app = express();
 //   console.log(nilai)
 // }
 
+const allowedOrigins = [
+  "https://erp.cbloffset.com",
+  "http://localhost:5173",
+  "https://dtc.my.id",
+];
+
 app.use(
   cors({
     credentials: true,
-    origin: true,
+    origin: allowedOrigins,
   })
 );
 

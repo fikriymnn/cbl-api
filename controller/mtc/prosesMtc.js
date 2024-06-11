@@ -158,6 +158,7 @@ const ProsessMtc = {
     let obj_proses = {
       status_proses: status,
       status_qc: "done",
+      bagian: "os2",
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
@@ -266,6 +267,7 @@ const ProsessMtc = {
                 sisa_umur: umur,
                 tgl_pasang: new Date(),
                 tgl_rusak: ticketMtc.createdAt,
+                jenis_part: "ganti",
               },
               { where: { id: sparepart_masalah_data[i].id_ms_sparepart } }
             );

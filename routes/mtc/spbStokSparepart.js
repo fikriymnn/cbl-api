@@ -3,7 +3,9 @@ const {
   getSpbStokSparepart,
   getSpbStokSparepartById,
   createSpbStokSparepart,
+  createManySpbStokSparepart,
   updateSpbStokSparepart,
+  updateMonitoringSpbStokSparepart,
   approveSpbStokSparepart,
   tolakSpbStokSparepart,
 } = require("../../controller/mtc/spbStokSparepart");
@@ -12,7 +14,9 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get("/spbStokSparepart", getSpbStokSparepart);
 router.get("/spbStokSparepart/:id", getSpbStokSparepartById);
 router.post("/spbStokSparepart", createSpbStokSparepart);
+router.post("/spbStokSparepartMany", createManySpbStokSparepart);
 router.put("/spbStokSparepart/:id", updateSpbStokSparepart);
+router.put("/spbStokSparepartMonitoring/:id", updateMonitoringSpbStokSparepart);
 router.put("/approveSpbStok/:id", approveSpbStokSparepart);
 router.put("/tolakSpbStok/:id", tolakSpbStokSparepart);
 // router.delete("/spbStokSparepart/:id", deletespbStokSparepart);
