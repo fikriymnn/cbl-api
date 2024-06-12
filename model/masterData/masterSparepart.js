@@ -17,10 +17,7 @@ const MasterSparepart = db.define(
     },
     nama_mesin: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
 
     kode: {
@@ -91,7 +88,7 @@ const MasterSparepart = db.define(
     },
 
     keterangan: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },
@@ -103,7 +100,7 @@ const MasterSparepart = db.define(
 MasterMesin.hasMany(MasterSparepart, { foreignKey: "id_mesin" }),
   MasterSparepart.belongsTo(MasterMesin, {
     foreignKey: "id_mesin",
-    as: "sparepart",
+    as: "mesin",
   });
 
 module.exports = MasterSparepart;

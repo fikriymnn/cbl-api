@@ -1,18 +1,27 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 
-const StokSparepart = require("./stokSparepart");
+const prosesMtc = require("./prosesMtc");
+const MasterSparepart = require("./../masterData/masterSparepart");
 
 const { DataTypes } = Sequelize;
 
-const RequestStokSparepart = db.define(
-  "spb_stok_sparepart",
+const RequestServiceSparepart = db.define(
+  "spb_service_sparepart",
   {
-    id_stok_sparepart: {
+    id_proses_os2: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: prosesMtc,
+        key: "id",
+      },
+    },
+    id_master_sparepart: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: StokSparepart,
+        model: MasterSparepart,
         key: "id",
       },
     },
@@ -36,16 +45,16 @@ const RequestStokSparepart = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
-    incoming_sparepart: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     kode_estimasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     sumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    incoming_sparepart: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -89,11 +98,19 @@ const RequestStokSparepart = db.define(
   }
 );
 
-StokSparepart.hasMany(RequestStokSparepart, {
-  foreignKey: "id_stok_sparepart",
+MasterSparepart.hasMany(RequestServiceSparepart, {
+  foreignKey: "id_master_sparepart",
 }),
-  RequestStokSparepart.belongsTo(StokSparepart, {
-    foreignKey: "id_stok_sparepart",
+  RequestServiceSparepart.belongsTo(MasterSparepart, {
+    foreignKey: "id_master_sparepart",
+    as: "master_part",
   });
 
-module.exports = RequestStokSparepart;
+prosesMtc.hasMany(RequestServiceSparepart, {
+  foreignKey: "id_proses_os2",
+}),
+  RequestServiceSparepart.belongsTo(prosesMtc, {
+    foreignKey: "id_proses_os2",
+  });
+
+module.exports = RequestServiceSparepart;

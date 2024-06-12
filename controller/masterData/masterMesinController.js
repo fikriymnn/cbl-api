@@ -4,9 +4,33 @@ const masterSparepart = require("../../model/masterData/masterSparepart");
 const masterMesinController = {
   getMasterMesin: async (req, res) => {
     // const {}
+    const {
+      serial_number,
+      nama_mesin,
+      bagian_mesin,
+      lokasi_mesin,
+      kode_mesin,page,limit
+    } = req.query;
+
+    let obj = {};
+    let offset = (page-1)*limit
+
+    if (serial_number) obj.serial_number = serial_number;
+    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (bagian_mesin) obj.bagian_mesin = bagian_mesin;
+    if (lokasi_mesin) obj.lokasi_mesin = lokasi_mesin;
+    if (kode_mesin) obj.kode_mesin = kode_mesin;
+
     try {
-      const response = await masterMesin.findAll();
-      res.status(200).json(response);
+      if(page&limit){
+        const length_data = await masterMesin.count({where:obj})
+        const response = await masterMesin.findAll({where:obj,limit:parseInt(limit),offset:parseInt(offset)});
+        res.status(200).json({data:response,total_page:Math.ceil(length_data/limit)});
+      }else{
+        const response = await masterMesin.findAll({where:obj});
+        res.status(200).json(response);
+      }
+     
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

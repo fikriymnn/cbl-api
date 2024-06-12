@@ -1,11 +1,12 @@
 const { Sequelize, where } = require("sequelize");
 const StokSparepart = require("../../model/mtc/stokSparepart");
 const RequestStokSparepart = require("../../model/mtc/spbStokSparepart");
+const MasterMesin = require("../../model/masterData/masterMesinModel");
 
 const StokSparepartController = {
   getStokSparepart: async (req, res) => {
     const {
-      nama_mesin,
+      id_mesin,
       kode,
       nama_sparepart,
       stok,
@@ -13,10 +14,13 @@ const StokSparepartController = {
       lokasi,
       grade,
       type_part,
+      limit,
+      page,
     } = req.query;
 
+    let offset = (page - 1) * limit;
     let obj = {};
-    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (id_mesin) obj.id_mesin = id_mesin;
     if (kode) obj.kode = kode;
     if (nama_sparepart) obj.nama_sparepart = nama_sparepart;
     if (stok) obj.stok = stok;
@@ -25,8 +29,34 @@ const StokSparepartController = {
     if (grade) obj.grade = grade;
     if (type_part) obj.type_part = type_part;
     try {
-      const response = await StokSparepart.findAll({ where: obj });
-      res.status(200).json(response);
+      if (page && limit) {
+        const length_data = await StokSparepart.count({ where: obj });
+        const response = await StokSparepart.findAll({
+          where: obj,
+          include: [
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+        res
+          .status(200)
+          .json({ data: response, total_page: Math.ceil(length_data / limit) });
+      } else {
+        const response = await StokSparepart.findAll({
+          where: obj,
+          include: [
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -45,7 +75,7 @@ const StokSparepartController = {
     const {
       kode,
       nama_sparepart,
-      nama_mesin,
+      id_mesin,
       stok,
       part_number,
       lokasi,
@@ -56,14 +86,15 @@ const StokSparepartController = {
       keterangan,
       umur_sparepart,
     } = req.body;
-    if (!nama_sparepart || !nama_mesin || !umur_sparepart)
+    console.log(nama_sparepart, id_mesin, umur_sparepart);
+    if (!nama_sparepart || !id_mesin || !umur_sparepart)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
       const response = await StokSparepart.create({
         kode,
         nama_sparepart,
-        nama_mesin,
+        id_mesin,
         stok: 0,
         part_number,
         lokasi,
@@ -99,7 +130,7 @@ const StokSparepartController = {
     const {
       kode,
       nama_sparepart,
-      nama_mesin,
+      id_mesin,
       jenis_part,
       persen,
       kebutuhan_bulanan,
@@ -112,7 +143,7 @@ const StokSparepartController = {
     let obj = {};
     if (kode) obj.kode = kode;
     if (nama_sparepart) obj.nama_sparepart = nama_sparepart;
-    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (id_mesin) obj.id_mesin = id_mesin;
     if (umur_sparepart) obj.umur_sparepart = umur_sparepart;
     if (jenis_part) obj.jenis_part = jenis_part;
     if (persen) obj.persen = persen;

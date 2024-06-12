@@ -2,12 +2,21 @@ const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 
 const masalahSparepart = require("../mtc/sparepartProblem");
+const MasterMesin = require("../masterData/masterMesinModel");
 
 const { DataTypes } = Sequelize;
 
 const StokSparepart = db.define(
   "stok_sparepart",
   {
+    id_mesin: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterMesin,
+        key: "id",
+      },
+    },
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -75,5 +84,9 @@ const StokSparepart = db.define(
     freezeTableName: true,
   }
 );
+
+MasterMesin.hasMany(StokSparepart, { foreignKey: "id_mesin" });
+
+StokSparepart.belongsTo(MasterMesin, { foreignKey: "id_mesin", as: "mesin" });
 
 module.exports = StokSparepart;

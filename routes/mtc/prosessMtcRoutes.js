@@ -12,7 +12,7 @@ const {
   approveTiket,
   tolakTiket,
   reworkMtc,
-  cekMonitoring,
+  cekMonitoring,getProsesMtc
 } = require("../../controller/mtc/prosesMtc");
 const { auth } = require("../../middlewares/authMiddlewares");
 
@@ -30,5 +30,6 @@ router.put("/ticket/approve/:id", auth, approveTiket);
 router.put("/ticket/tolak/:id", auth, tolakTiket);
 router.put("/ticket/rework/:id", auth, reworkMtc);
 router.get("/cekMonitoringOs2", cekMonitoring);
+router.get("/prosessMtc", getProsesMtc);
 
 module.exports = router;
