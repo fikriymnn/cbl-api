@@ -43,7 +43,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await spbStok.sync({ alter: true });
+//   await master2.sync({ alter: true });
 // })();
 
 // const ip100 = 75
@@ -83,7 +83,7 @@ const allowedOrigins = [
 app.use(
   cors({
     credentials: true,
-    origin: allowedOrigins,
+    origin: true,
   })
 );
 

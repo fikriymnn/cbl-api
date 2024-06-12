@@ -40,7 +40,7 @@ const ProsessMtc = {
       res.status(500).json({ msg: error.message });
     }
   },
-  getProsesMtc: async (req,res)=>{
+  getProsesMtc: async (req, res) => {
     const {
       id_tiket,
       id_eksekutor,
@@ -57,11 +57,12 @@ const ProsessMtc = {
       kode_analisis_mtc,
       nama_analisis_mtc,
       alasan_pending,
-      limit,page
-    } = req.query
-    
+      limit,
+      page,
+    } = req.query;
+
     let obj = {};
-    let offset = (page-1)*limit
+    let offset = (page - 1) * limit;
     if (id_tiket) obj.id_tiket = id_tiket;
     if (id_eksekutor) obj.id_eksekutor = id_eksekutor;
     if (id_qc) obj.id_qc = id_qc;
@@ -78,10 +79,10 @@ const ProsessMtc = {
     if (nama_analisis_mtc) obj.nama_analisis_mtc = nama_analisis_mtc;
     if (alasan_pending) obj.alasan_pending = alasan_pending;
 
-    if(page&&limit){
-      const length_data = await ProsesMtc.count({where:obj})
+    if (page && limit) {
+      const length_data = await ProsesMtc.count({ where: obj });
       const response = await ProsesMtc.findAll({
-        limit:parseInt(limit),
+        limit: parseInt(limit),
         offset: parseInt(offset),
         where: obj,
         include: [
@@ -98,8 +99,10 @@ const ProsessMtc = {
         ],
       });
 
-    res.status(200).json({data:response,total_page:Math.ceil(length_data/limit)});
-    }else{
+      res
+        .status(200)
+        .json({ data: response, total_page: Math.ceil(length_data / limit) });
+    } else {
       const response = await ProsesMtc.findAll({
         where: obj,
         include: [
@@ -118,14 +121,13 @@ const ProsessMtc = {
 
       res.status(200).json(response);
     }
-
   },
   getProsesMtcByTicket: async (req, res) => {
     const _id = req.params.id;
     try {
       let obj = {
         id_tiket: _id,
-      }
+      };
 
       const response = await ProsesMtc.findAll({
         where: obj,

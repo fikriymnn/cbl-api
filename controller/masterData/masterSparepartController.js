@@ -1,19 +1,23 @@
 const masterSparepart = require("../../model/masterData/masterSparepart");
+const masterMesin = require("../../model/masterData/masterMesinModel");
 const SparepartProblem = require("../../model/mtc/sparepartProblem");
 
 const masterSparepartController = {
   getMasterSparepart: async (req, res) => {
-    const { nama_mesin, posisi_part, kode } = req.query;
+    const { nama_mesin, posisi_part, kode, jenis_part } = req.query;
 
     let obj = {};
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (posisi_part) obj.posisi_part = posisi_part;
     if (kode) obj.kode = kode;
+    if (jenis_part) obj.jenis_part = jenis_part;
+
     console.log(obj);
 
     try {
       const response = await masterSparepart.findAll({
         where: obj,
+        include: [{ model: masterMesin, as: "mesin" }],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -53,7 +57,6 @@ const masterSparepartController = {
     } = req.body;
     if (
       !id_mesin ||
-      !nama_mesin ||
       !nama_sparepart ||
       !kode ||
       !posisi_part ||

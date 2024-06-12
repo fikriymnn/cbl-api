@@ -15,10 +15,10 @@ const StokSparepartController = {
       grade,
       type_part,
       limit,
-      page
+      page,
     } = req.query;
-    
-    let offset = (page-1)*limit;
+
+    let offset = (page - 1) * limit;
     let obj = {};
     if (id_mesin) obj.id_mesin = id_mesin;
     if (kode) obj.kode = kode;
@@ -29,9 +29,8 @@ const StokSparepartController = {
     if (grade) obj.grade = grade;
     if (type_part) obj.type_part = type_part;
     try {
-
-      if(page&&limit){
-        const length_data = await StokSparepart.count({where:obj})
+      if (page && limit) {
+        const length_data = await StokSparepart.count({ where: obj });
         const response = await StokSparepart.findAll({
           where: obj,
           include: [
@@ -41,10 +40,12 @@ const StokSparepartController = {
             },
           ],
           limit: parseInt(limit),
-          offset: parseInt(offset)
+          offset: parseInt(offset),
         });
-        res.status(200).json({data:response,total_page:Math.ceil(length_data/limit)});
-      }else{
+        res
+          .status(200)
+          .json({ data: response, total_page: Math.ceil(length_data / limit) });
+      } else {
         const response = await StokSparepart.findAll({
           where: obj,
           include: [
@@ -56,7 +57,6 @@ const StokSparepartController = {
         });
         res.status(200).json(response);
       }
-     
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
