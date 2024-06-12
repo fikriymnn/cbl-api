@@ -40,14 +40,95 @@ const ProsessMtc = {
       res.status(500).json({ msg: error.message });
     }
   },
+  getProsesMtc: async (req,res)=>{
+    const {
+      id_tiket,
+      id_eksekutor,
+      id_qc,
+      status_proses,
+      status_qc,
+      waktu_mulai_mtc,
+      waktu_selesai_mtc,
+      waktu_selesai,
+      tgl_mtc,
+      estimasi_pengerjaan,
+      skor_mtc,
+      cara_perbaikan,
+      kode_analisis_mtc,
+      nama_analisis_mtc,
+      alasan_pending,
+      limit,page
+    } = req.query
+    
+    let obj = {};
+    let offset = (page-1)*limit
+    if (id_tiket) obj.id_tiket = id_tiket;
+    if (id_eksekutor) obj.id_eksekutor = id_eksekutor;
+    if (id_qc) obj.id_qc = id_qc;
+    if (status_proses) obj.status_proses = status_proses;
+    if (status_qc) obj.status_qc = status_qc;
+    if (waktu_mulai_mtc) obj.waktu_mulai_mtc = waktu_mulai_mtc;
+    if (waktu_selesai_mtc) obj.waktu_selesai_mtc = waktu_selesai_mtc;
+    if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
+    if (tgl_mtc) obj.tgl_mtc = tgl_mtc;
+    if (estimasi_pengerjaan) obj.estimasi_pengerjaan = estimasi_pengerjaan;
+    if (skor_mtc) obj.skor_mtc = skor_mtc;
+    if (cara_perbaikan) obj.cara_perbaikan = cara_perbaikan;
+    if (kode_analisis_mtc) obj.kode_analisis_mtc = kode_analisis_mtc;
+    if (nama_analisis_mtc) obj.nama_analisis_mtc = nama_analisis_mtc;
+    if (alasan_pending) obj.alasan_pending = alasan_pending;
 
+    if(page&&limit){
+      const length_data = await ProsesMtc.count({where:obj})
+      const response = await ProsesMtc.findAll({
+        limit:parseInt(limit),
+        offset: parseInt(offset),
+        where: obj,
+        include: [
+          {
+            model: Users,
+            as: "user_eksekutor",
+            attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+          },
+          {
+            model: Users,
+            as: "user_qc",
+            attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+          },
+        ],
+      });
+
+    res.status(200).json({data:response,total_page:Math.ceil(length_data/limit)});
+    }else{
+      const response = await ProsesMtc.findAll({
+        where: obj,
+        include: [
+          {
+            model: Users,
+            as: "user_eksekutor",
+            attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+          },
+          {
+            model: Users,
+            as: "user_qc",
+            attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+          },
+        ],
+      });
+
+      res.status(200).json(response);
+    }
+
+  },
   getProsesMtcByTicket: async (req, res) => {
     const _id = req.params.id;
     try {
+      let obj = {
+        id_tiket: _id,
+      }
+
       const response = await ProsesMtc.findAll({
-        where: {
-          id_tiket: _id,
-        },
+        where: obj,
         include: [
           {
             model: Users,
