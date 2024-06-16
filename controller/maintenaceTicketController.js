@@ -8,6 +8,7 @@ const StokSparepart = require("../model/mtc/stokSparepart");
 const MasterSparepart = require("../model/masterData/masterSparepart");
 const ProsesMtc = require("../model/mtc/prosesMtc");
 const Sequelize = require("sequelize");
+const { createNotification } = require("./notificationController");
 const ticketController = {
   getTicket: async (req, res) => {
     try {
@@ -239,7 +240,13 @@ const ticketController = {
         nama_kendala: nama_kendala,
         kode_ticket: kodeTicket,
       }),
-        res.status(201).json({ msg: "Ticket create Successfuly" });
+        createNotification(
+          "maintenance",
+          "os2",
+          "Tiket Os2 Baru",
+          `tiket os2 baru dengan kendala ${nama_kendala} di mesin ${mesin}`
+        );
+      res.status(201).json({ msg: "Ticket create Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

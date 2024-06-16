@@ -26,6 +26,8 @@ const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
 const taskpm1 = require("./model/mtc/preventive/pm1/taskPm1");
+const notif = require("./model/notificationModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -43,7 +45,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await master2.sync({ alter: true });
+//   await notif.sync({ alter: true });
 // })();
 
 // const ip100 = 75
