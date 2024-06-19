@@ -241,7 +241,6 @@ const ProsessMtc = {
     let obj_proses = {
       status_proses: status,
       status_qc: "done",
-      bagian: "os2",
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
