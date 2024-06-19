@@ -2,6 +2,7 @@ const Users = require("../model/userModel");
 const { generate_access_token } = require("../utils/jwt");
 const authMiddlewares = require("../middlewares/authMiddlewares");
 const bcrypt = require("bcryptjs");
+const Notification = require("../model/notificationModel");
 
 const authController = {
   Login: async (req, res) => {
@@ -56,6 +57,11 @@ const authController = {
       where: {
         uuid: uuid,
       },
+      include: [
+        {
+          model: Notification,
+        },
+      ],
     });
     if (!users) return res.status(404).json({ msg: "User Not Found" });
     res.status(200).json(users);
