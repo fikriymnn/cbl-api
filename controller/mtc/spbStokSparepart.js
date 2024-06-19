@@ -110,7 +110,7 @@ const SpbStokSparepartController = {
   },
 
   createManySpbStokSparepart: async (req, res) => {
-    const { sparepartRequest } = req.body;
+    const { sparepartRequest, note } = req.body;
 
     if (!sparepartRequest || sparepartRequest == [])
       return res.status(404).json({ msg: "incomplite data" });
@@ -129,7 +129,7 @@ const SpbStokSparepartController = {
           no_spb: "",
           tgl_permintaan_kedatangan:
             sparepartRequest[i].tgl_permintaan_kedatangan,
-          note: sparepartRequest[i].note,
+          note: note,
           kriteria: sparepartRequest[i].kriteria,
           kode_estimasi: sparepartRequest[i].kode_estimasi,
           sumber: sparepartRequest[i].sumber,

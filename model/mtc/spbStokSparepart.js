@@ -73,6 +73,7 @@ const RequestStokSparepart = db.define(
     status_pengajuan: {
       type: DataTypes.STRING,
       allowNull: true,
+      defaultValue: "request to mtc",
     },
     tgl_aktual: {
       type: DataTypes.DATE,
