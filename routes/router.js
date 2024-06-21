@@ -6,7 +6,9 @@ router.use("/", require("./userRoutes"));
 router.use("/", require("./ticketRoutes"));
 router.use("/", require("./ticketOs3Routes"));
 
-router.use("/", require("./mtc/pm1/inspectionPm1Routes"));
+//pm
+router.use("/", require("./mtc/preventive/inspectionPm1Routes"));
+router.use("/", require("./mtc/preventive/inspentionPm2Routes"));
 
 //master data
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
@@ -15,6 +17,7 @@ router.use("/", require("./masterdata/mtc/masterTimeMonitoringRoute"));
 router.use("/", require("./masterdata/mtc/masterKodeAnalisisRoute"));
 router.use("/", require("./masterdata/mtc/masterSkorPerbaikanRoute"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm1Route"));
+router.use("/", require("./masterdata/mtc/preventive/masterTaskPm2Route"));
 router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
 
 router.use("/", require("./mtc/spbStokSparepart"));

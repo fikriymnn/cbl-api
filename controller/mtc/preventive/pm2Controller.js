@@ -1,29 +1,42 @@
 const { Sequelize, where } = require("sequelize");
 const { Op } = require("sequelize");
 const MasterMesin = require("../../../model/masterData/masterMesinModel");
-const MasterPointPm1 = require("../../../model/masterData/mtc/preventive/pm1/inspenctionPoinPm1Model");
-const MasterTaskPm1 = require("../../../model/masterData/mtc/preventive/pm1/inspectionTaskPm1Model");
-const TicketPm1 = require("../../../model/mtc/preventive/pm1/ticketPm1");
-const PointPm1 = require("../../../model/mtc/preventive/pm1/pointPm1");
-const TaskPm1 = require("../../../model/mtc/preventive/pm1/taskPm1");
+const MasterPointPm2 = require("../../../model/masterData/mtc/preventive/pm2/inspenctionPoinPm2Model");
+const MasterTaskPm2 = require("../../../model/masterData/mtc/preventive/pm2/inspectionTaskPm2Model");
+const TicketPm2 = require("../../../model/mtc/preventive/pm2/ticketPm2");
+const PointPm2 = require("../../../model/mtc/preventive/pm2/pointPm2");
+const TaskPm2 = require("../../../model/mtc/preventive/pm2/taskPm2");
 const Users = require("../../../model/userModel");
 const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 
-const Pm1Controller = {
-  getPm1: async (req, res) => {
+const Pm2Controller = {
+  getPm2: async (req, res) => {
     const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
 
     let obj = {};
     let des = [];
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
-    if (tgl)
+    if (tgl) {
+      const currentDate = new Date();
+
+      const startOfWeek = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        currentDate.getDate() - (currentDate.getDay() - 2)
+      );
+      console.log(startOfWeek);
+      const endOfWeek = new Date(
+        startOfWeek.getFullYear(),
+        startOfWeek.getMonth(),
+        startOfWeek.getDate() + 6
+      );
+      console.log(endOfWeek);
       obj.tgl = {
-        [Op.between]: [
-          new Date(tgl).setHours(0, 0, 0, 0),
-          new Date(tgl).setHours(23, 59, 59, 999),
-        ],
+        [Op.between]: [startOfWeek, endOfWeek],
       };
+    }
+
     if (start_date && end_date) {
       obj.tgl = {
         [Op.between]: [
@@ -42,7 +55,7 @@ const Pm1Controller = {
     }
 
     try {
-      const response = await TicketPm1.findAll({
+      const response = await TicketPm2.findAll({
         where: obj,
         order: des,
         include: [
@@ -74,13 +87,13 @@ const Pm1Controller = {
     }
   },
 
-  getPm1ById: async (req, res) => {
+  getPm2ById: async (req, res) => {
     try {
-      const response = await TicketPm1.findOne({
+      const response = await TicketPm2.findOne({
         where: { id: req.params.id },
         include: [
           {
-            model: PointPm1,
+            model: PointPm2,
             attributes: [
               "id",
               "lama_pengerjaan",
@@ -95,7 +108,7 @@ const Pm1Controller = {
             ],
             include: [
               {
-                model: TaskPm1,
+                model: TaskPm2,
               },
             ],
           },
@@ -128,29 +141,29 @@ const Pm1Controller = {
     }
   },
 
-  createTicketPm1: async (req, res) => {
+  createTicketPm2: async (req, res) => {
     try {
       const masterMesin = await MasterMesin.findAll();
 
       for (let i = 0; i < masterMesin.length; i++) {
         const idMesin = masterMesin[i].id;
         const namaMesin = masterMesin[i].nama_mesin;
-        const ticket = await TicketPm1.create({
+        const ticket = await TicketPm2.create({
           id_mesin: idMesin,
           nama_mesin: namaMesin,
           tgl: new Date(),
         });
-        const masterPoint = await MasterPointPm1.findAll({
+        const masterPoint = await MasterPointPm2.findAll({
           where: { id_mesin: idMesin },
           include: [
             {
-              model: MasterTaskPm1,
+              model: MasterTaskPm2,
             },
           ],
         });
 
         for (let ii = 0; ii < masterPoint.length; ii++) {
-          const point = await PointPm1.create({
+          const point = await PointPm2.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
             tgl: new Date(),
@@ -161,7 +174,7 @@ const Pm1Controller = {
             iii < masterPoint[ii].ms_inspection_task_pm1s.length;
             iii++
           ) {
-            const task = await TaskPm1.create({
+            const task = await TaskPm2.create({
               id_inspection_poin: point.id,
               task: masterPoint[ii].ms_inspection_task_pm1s[iii].task,
               acceptance_criteria:
@@ -180,20 +193,20 @@ const Pm1Controller = {
     }
   },
 
-  createPointPm1: async (req, res) => {
+  createPointPm2: async (req, res) => {
     const { id_ticket, inspection_point } = req.body;
     if (!id_ticket || !inspection_point)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
-      const point = await PointPm1.create({
+      const point = await PointPm2.create({
         id_ticket: id_ticket,
         inspection_point: inspection_point.inspection_point,
         tgl: new Date(),
       });
 
       for (let i = 0; i < inspection_point.sub_inspection.length; i++) {
-        const task = await TaskPm1.create({
+        const task = await TaskPm2.create({
           id_inspection_poin: point.id,
           task: inspection_point.sub_inspection[i].task,
           acceptance_criteria:
@@ -209,7 +222,7 @@ const Pm1Controller = {
     }
   },
 
-  updateTaskPm1: async (req, res) => {
+  updateTaskPm2: async (req, res) => {
     const _id = req.params.id;
     const { hasil, file, catatan } = req.body;
 
@@ -219,17 +232,17 @@ const Pm1Controller = {
     if (catatan) obj.catatan = catatan;
 
     try {
-      const response = await PointPm1.update(obj, { where: { id: _id } });
+      const response = await PointPm2.update(obj, { where: { id: _id } });
       res.status(200).json({ msg: "success" });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
   },
 
-  startTaskPm1: async (req, res) => {
+  startTaskPm2: async (req, res) => {
     const _id = req.params.id;
     try {
-      const response = await PointPm1.update(
+      const response = await PointPm2.update(
         { waktu_mulai: new Date() },
         { where: { id: _id } }
       );
@@ -239,13 +252,13 @@ const Pm1Controller = {
     }
   },
 
-  stopTaskPm1: async (req, res) => {
+  stopTaskPm2: async (req, res) => {
     const _id = req.params.id;
     const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
     if (!lama_pengerjaan || !waktu_selesai || !hasil)
       return res.status(401).json({ msg: "incomplite data" });
     try {
-      const response = await PointPm1.update(
+      const response = await PointPm2.update(
         {
           waktu_selesai: waktu_selesai,
           lama_pengerjaan: lama_pengerjaan,
@@ -255,19 +268,19 @@ const Pm1Controller = {
         },
         { where: { id: _id } }
       );
-      const dataPoint = await PointPm1.findOne({
+      const dataPoint = await PointPm2.findOne({
         where: { id: _id },
         attributes: ["id", "id_ticket", "hasil"],
       });
 
       if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
-        const ticketPm1 = await TicketPm1.findOne({
+        const ticketPm2 = await TicketPm2.findOne({
           where: { id: dataPoint.id_ticket },
         });
         const ticketOs3 = await TicketOs3.create({
-          id_point_pm1: dataPoint.id,
-          nama_mesin: ticketPm1.nama_mesin,
-          sumber: "pm1",
+          id_point_pm2: dataPoint.id,
+          nama_mesin: ticketPm2.nama_mesin,
+          sumber: "pm2",
           status_tiket: "open",
         });
       }
@@ -277,10 +290,10 @@ const Pm1Controller = {
     }
   },
 
-  responseTicketPm1: async (req, res) => {
+  responseTicketPm2: async (req, res) => {
     const _id = req.params.id;
     try {
-      const response = await TicketPm1.update(
+      const response = await TicketPm2.update(
         {
           waktu_mulai: new Date(),
           status: "on progres",
@@ -294,12 +307,12 @@ const Pm1Controller = {
     }
   },
 
-  doneTicketPm1: async (req, res) => {
+  doneTicketPm2: async (req, res) => {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
 
     try {
-      const response = await TicketPm1.update(
+      const response = await TicketPm2.update(
         {
           waktu_selesai: new Date(),
           status: "done",
@@ -317,4 +330,4 @@ const Pm1Controller = {
   },
 };
 
-module.exports = Pm1Controller;
+module.exports = Pm2Controller;
