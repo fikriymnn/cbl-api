@@ -106,7 +106,7 @@ const SpbServiceSparepartController = {
 
           const proses = await ProsesMtc.findByPk(serviceRequest[i].id_proses);
           const ticket = await Ticket.update(
-            { bagian_tiket: "service", status: "requested" },
+            { bagian_tiket: "service", status_tiket: "requested" },
             { where: { id: proses.id_tiket } }
           );
 
