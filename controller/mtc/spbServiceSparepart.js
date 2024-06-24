@@ -88,25 +88,28 @@ const SpbServiceSparepartController = {
   },
 
   createManySpbServiceSparepart: async (req, res) => {
-    const { serviceRequest, sparepartRequest } = req.body;
+    const { serviceRequest, sparepartRequest, note } = req.body;
 
-    if (!serviceRequest || serviceRequest == [] && !sparepartRequest||sparepartRequest==[])
+    if (
+      !serviceRequest ||
+      (serviceRequest == [] && !sparepartRequest) ||
+      sparepartRequest == []
+    )
       return res.status(404).json({ msg: "incomplite data" });
 
     try {
-      
-      if(serviceRequest != [] || serviceRequest != null){
+      if (serviceRequest != [] || serviceRequest != null) {
         for (let i = 0; i < serviceRequest.length; i++) {
           const sparepart = await MasterSparepart.findByPk(
             serviceRequest[i].id_master_sparepart
           );
-  
+
           const proses = await ProsesMtc.findByPk(serviceRequest[i].id_proses);
           const ticket = await Ticket.update(
             { bagian_tiket: "service", status: "requested" },
             { where: { id: proses.id_tiket } }
           );
-  
+
           await SpbServiceSparepart.create({
             id_master_sparepart: sparepart.id,
             id_proses_os2: serviceRequest[i].id_proses,
@@ -115,7 +118,7 @@ const SpbServiceSparepartController = {
             no_spb: "",
             tgl_permintaan_kedatangan:
               serviceRequest[i].tgl_permintaan_kedatangan,
-            note: serviceRequest[i].note,
+            note: note,
             kriteria: serviceRequest[i].kriteria,
             kode_estimasi: serviceRequest[i].kode_estimasi,
             sumber: serviceRequest[i].sumber,
@@ -123,14 +126,13 @@ const SpbServiceSparepartController = {
           });
         }
       }
-      
 
-      if(sparepartRequest != [] || sparepartRequest != null){
+      if (sparepartRequest != [] || sparepartRequest != null) {
         for (let i = 0; i < sparepartRequest.length; i++) {
           const sparepart = await StokSparepart.findByPk(
             sparepartRequest[i].id_stok_sparepart
           );
-  
+
           await SpbStokSparepart.create({
             id_stok_sparepart: sparepart.id,
             qty: sparepartRequest[i].qty,
@@ -138,15 +140,13 @@ const SpbServiceSparepartController = {
             no_spb: "",
             tgl_permintaan_kedatangan:
               sparepartRequest[i].tgl_permintaan_kedatangan,
-            note: sparepartRequest[i].note,
+            note: note,
             kriteria: sparepartRequest[i].kriteria,
             kode_estimasi: sparepartRequest[i].kode_estimasi,
             sumber: sparepartRequest[i].sumber,
           });
         }
       }
-
-      
 
       res.status(201).json({ msg: "Sparepart Requested Successfuly" });
     } catch (error) {
