@@ -3,10 +3,14 @@ const jwt = require("jsonwebtoken");
 const authMiddlewares = {
   auth: async (req, res, next) => {
     try {
-      if (!req.cookies.access_token)
-        return res.status(500).json({ msg: "pliss login" });
+      const {authorization} = req.headers
+      if (!authorization && !authorization.includes("Bearer")) return res.status(500).json({ msg: "pliss login" });
+      
+      const split = authorization.split(' ')
+      const access_token = split[1]
+
       jwt.verify(
-        req.cookies.access_token,
+        access_token,
         process.env.JWT_ACC_SECRET,
         (err, payload) => {
           if (err) {
