@@ -21,6 +21,7 @@ const SpbServiceSparepartController = {
     try {
       const response = await SpbServiceSparepart.findAll({
         where: obj,
+        order: [['id', 'DESC']],
         include: [
           {
             model: MasterSparepart,

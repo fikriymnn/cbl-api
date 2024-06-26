@@ -39,6 +39,7 @@ const SpbStokSparepartController = {
       if (page && limit) {
         const length_data = await SpbStokSparepart.count({ where: obj });
         const response = await SpbStokSparepart.findAll({
+          order: [['id', 'DESC']],
           where: obj,
           include: [
             {
