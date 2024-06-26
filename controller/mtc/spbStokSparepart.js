@@ -1,6 +1,8 @@
 const { Sequelize, where } = require("sequelize");
 const StokSparepart = require("../../model/mtc/stokSparepart");
 const SpbStokSparepart = require("../../model/mtc/spbStokSparepart");
+const Users = require("../../model/userModel");
+const MasterMesin = require("../../model/masterData/masterMesinModel");
 
 const SpbStokSparepartController = {
   getSpbStokSparepart: async (req, res) => {
@@ -38,7 +40,13 @@ const SpbStokSparepartController = {
         const length_data = await SpbStokSparepart.count({ where: obj });
         const response = await SpbStokSparepart.findAll({
           where: obj,
-          include: [{ model: StokSparepart }],
+          include: [
+            {
+              model: StokSparepart,
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
           limit: parseInt(limit),
           offset: parseInt(offset),
         });
@@ -48,7 +56,13 @@ const SpbStokSparepartController = {
       } else {
         const response = await SpbStokSparepart.findAll({
           where: obj,
-          include: [{ model: StokSparepart }],
+          include: [
+            {
+              model: StokSparepart,
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
         });
         res.status(200).json(response);
       }
@@ -60,7 +74,13 @@ const SpbStokSparepartController = {
   getSpbStokSparepartById: async (req, res) => {
     try {
       const response = await SpbStokSparepart.findByPk(req.params.id, {
-        include: [{ model: StokSparepart }],
+        include: [
+          {
+            model: StokSparepart,
+            include: [{ model: MasterMesin, as: "mesin" }],
+          },
+          { model: Users, as: "pelapor" },
+        ],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -102,6 +122,7 @@ const SpbStokSparepartController = {
         kode_estimasi: kode_estimasi,
         sumber: sumber,
         status_pengajuan: "request to mtc",
+        id_user: req.user.id,
       });
       res.status(201).json({ msg: "Sparepart Requested Successfuly" });
     } catch (error) {
@@ -110,7 +131,7 @@ const SpbStokSparepartController = {
   },
 
   createManySpbStokSparepart: async (req, res) => {
-    const { sparepartRequest } = req.body;
+    const { sparepartRequest, note } = req.body;
 
     if (!sparepartRequest || sparepartRequest == [])
       return res.status(404).json({ msg: "incomplite data" });
@@ -129,10 +150,11 @@ const SpbStokSparepartController = {
           no_spb: "",
           tgl_permintaan_kedatangan:
             sparepartRequest[i].tgl_permintaan_kedatangan,
-          note: sparepartRequest[i].note,
+          note: note,
           kriteria: sparepartRequest[i].kriteria,
           kode_estimasi: sparepartRequest[i].kode_estimasi,
           sumber: sparepartRequest[i].sumber,
+          id_user: req.user.id,
         });
       }
 

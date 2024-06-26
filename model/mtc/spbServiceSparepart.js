@@ -3,6 +3,7 @@ const db = require("../../config/database");
 
 const prosesMtc = require("./prosesMtc");
 const MasterSparepart = require("./../masterData/masterSparepart");
+const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
 
@@ -22,6 +23,14 @@ const RequestServiceSparepart = db.define(
       allowNull: false,
       references: {
         model: MasterSparepart,
+        key: "id",
+      },
+    },
+    id_user: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
         key: "id",
       },
     },
@@ -111,6 +120,14 @@ prosesMtc.hasMany(RequestServiceSparepart, {
 }),
   RequestServiceSparepart.belongsTo(prosesMtc, {
     foreignKey: "id_proses_os2",
+  });
+
+Users.hasMany(RequestServiceSparepart, {
+  foreignKey: "id_user",
+}),
+  RequestServiceSparepart.belongsTo(Users, {
+    foreignKey: "id_user",
+    as: "pelapor",
   });
 
 module.exports = RequestServiceSparepart;

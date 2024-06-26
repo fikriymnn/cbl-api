@@ -13,8 +13,8 @@ const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/spbServiceSparepart", getSpbServiceSparepart);
 router.get("/spbServiceSparepart/:id", getSpbServiceSparepartById);
-router.post("/spbServiceSparepart", createSpbServiceSparepart);
-router.post("/spbServiceSparepartMany", createManySpbServiceSparepart);
+router.post("/spbServiceSparepart", auth, createSpbServiceSparepart);
+router.post("/spbServiceSparepartMany", auth, createManySpbServiceSparepart);
 router.put("/spbServiceSparepart/:id", updateSpbServiceSparepart);
 router.put(
   "/spbServiceSparepartMonitoring/:id",

@@ -17,8 +17,8 @@ const prosesOs3 = require("./model/mtc/prosesMtcOs3");
 const kode = require("./model/masterData/masterKodeAnalisisModel");
 const msMonitor = require("./model/masterData/mtc/timeMonitoringModel");
 const msSkor = require("./model/masterData/mtc/masterSkorJenisPerbaikanModel");
-const mstaskm1 = require("./model/masterData/mtc/preventive/inspectionTaskPm1Model");
-const mspointm1 = require("./model/masterData/mtc/preventive/inspenctionPoinPm1Model");
+const mstaskm1 = require("./model/masterData/mtc/preventive/pm1/inspectionTaskPm1Model");
+const mspointm1 = require("./model/masterData/mtc/preventive/pm1/inspenctionPoinPm1Model");
 const mskpi = require("./model/masterData/mtc/kpi/masterKpiModel");
 const kpiActual = require("./model/mtc/kpi/kpiActual");
 const kpiTicket = require("./model/mtc/kpi/kpiTicket");
@@ -27,6 +27,16 @@ const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
 const taskpm1 = require("./model/mtc/preventive/pm1/taskPm1");
+
+const msPointPm2 = require("./model/masterData/mtc/preventive/pm2/inspenctionPoinPm2Model");
+const msTaskPm2 = require("./model/masterData/mtc/preventive/pm2/inspectionTaskPm2Model");
+
+const tcpm2 = require("./model/mtc/preventive/pm2/ticketPm2");
+const pointpm2 = require("./model/mtc/preventive/pm2/pointPm2");
+const taskpm2 = require("./model/mtc/preventive/pm2/taskPm2");
+
+const notif = require("./model/notificationModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -44,7 +54,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await master2.sync({ alter: true });
+//   await spbStok.sync({ alter: true });
 // })();
 
 // const ip100 = 75

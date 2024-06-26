@@ -1,9 +1,9 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../../../config/database");
+const db = require("../../../../../config/database");
 const { DataTypes } = Sequelize;
-const masterMesin = require("../../masterMesinModel");
+const masterMesin = require("../../../masterMesinModel");
 
-const inspectionPointPm1Master = db.define("ms_inspection_point_pm1", {
+const inspectionPointPm2Master = db.define("ms_inspection_point_pm2", {
   id_mesin: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -22,10 +22,10 @@ const inspectionPointPm1Master = db.define("ms_inspection_point_pm1", {
   },
 });
 
-masterMesin.hasMany(inspectionPointPm1Master, { foreignKey: "id_mesin" });
-inspectionPointPm1Master.belongsTo(masterMesin, {
+masterMesin.hasMany(inspectionPointPm2Master, { foreignKey: "id_mesin" });
+inspectionPointPm2Master.belongsTo(masterMesin, {
   foreignKey: "id_mesin",
   as: "mesin",
 });
 
-module.exports = inspectionPointPm1Master;
+module.exports = inspectionPointPm2Master;

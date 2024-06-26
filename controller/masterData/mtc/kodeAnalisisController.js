@@ -2,24 +2,15 @@ const masterKodeAnalisis = require("../../../model/masterData/masterKodeAnalisis
 
 const masterKodeAnalisisController = {
   getMasterKode: async (req, res) => {
-    const { bagian_analisis, kode_analisis, nama_analisis, page, limit } =
-      req.query;
+    const { bagian_analisis, kode_analisis, nama_analisis } = req.query;
     let obj = {};
-
     if (bagian_analisis) obj.bagian_analisis = bagian_analisis;
     if (kode_analisis) obj.kode_analisis = kode_analisis;
     if (nama_analisis) obj.nama_analisis = nama_analisis;
 
     try {
-      if (page & limit) {
-        const response = await masterKodeAnalisis.findAll({ where: obj });
-        res
-          .status(200)
-          .json({ data: response, total_page: Math.ceil(length_data / limit) });
-      } else {
-        const response = await masterKodeAnalisis.findAll({ where: obj });
-        res.status(200).json(response);
-      }
+      const response = await masterKodeAnalisis.findAll({ where: obj });
+      res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
