@@ -53,7 +53,7 @@ const app = express();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await taskpm2.sync({ alter: true });
+//   await spbStok.sync({ alter: true });
 // })();
 
 // const ip100 = 75

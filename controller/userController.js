@@ -114,7 +114,7 @@ const userController = {
     if (password === "" || password === null) {
       hashPassword = users.password;
     } else {
-      hashPassword = await await bcrypt.hash(password, 10);
+      hashPassword = await bcrypt.hash(password, 10);
     }
 
     if (password !== confPassword)

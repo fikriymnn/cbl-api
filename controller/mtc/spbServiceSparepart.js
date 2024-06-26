@@ -5,6 +5,8 @@ const ProsesMtc = require("../../model/mtc/prosesMtc");
 const Ticket = require("../../model/maintenaceTicketModel");
 const StokSparepart = require("../../model/mtc/stokSparepart");
 const SpbStokSparepart = require("../../model/mtc/spbStokSparepart");
+const Users = require("../../model/userModel");
+const MasterMesin = require("../../model/masterData/masterMesinModel");
 
 const SpbServiceSparepartController = {
   getSpbServiceSparepart: async (req, res) => {
@@ -19,7 +21,14 @@ const SpbServiceSparepartController = {
     try {
       const response = await SpbServiceSparepart.findAll({
         where: obj,
-        include: [{ model: MasterSparepart, as: "master_part" }],
+        include: [
+          {
+            model: MasterSparepart,
+            as: "master_part",
+            include: [{ model: MasterMesin, as: "mesin" }],
+          },
+          { model: Users, as: "pelapor" },
+        ],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -30,7 +39,14 @@ const SpbServiceSparepartController = {
   getSpbServiceSparepartById: async (req, res) => {
     try {
       const response = await SpbServiceSparepart.findByPk(req.params.id, {
-        include: [{ model: MasterSparepart, as: "master_part" }],
+        include: [
+          {
+            model: MasterSparepart,
+            as: "master_part",
+            include: [{ model: MasterMesin, as: "mesin" }],
+          },
+          { model: Users, as: "pelapor" },
+        ],
       });
       res.status(200).json(response);
     } catch (error) {
@@ -80,6 +96,7 @@ const SpbServiceSparepartController = {
         kode_estimasi: kode_estimasi,
         sumber: sumber,
         status_pengajuan: "request to mtc",
+        id_user: req.user.id,
       });
       res.status(201).json({ msg: "Sparepart Requested Successfuly" });
     } catch (error) {
@@ -123,6 +140,7 @@ const SpbServiceSparepartController = {
             kode_estimasi: serviceRequest[i].kode_estimasi,
             sumber: serviceRequest[i].sumber,
             status_pengajuan: "request to mtc",
+            id_user: req.user.id,
           });
         }
       }
@@ -144,6 +162,7 @@ const SpbServiceSparepartController = {
             kriteria: sparepartRequest[i].kriteria,
             kode_estimasi: sparepartRequest[i].kode_estimasi,
             sumber: sparepartRequest[i].sumber,
+            id_user: req.user.id,
           });
         }
       }

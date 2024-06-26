@@ -13,8 +13,8 @@ const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/spbStokSparepart", getSpbStokSparepart);
 router.get("/spbStokSparepart/:id", getSpbStokSparepartById);
-router.post("/spbStokSparepart", createSpbStokSparepart);
-router.post("/spbStokSparepartMany", createManySpbStokSparepart);
+router.post("/spbStokSparepart", auth, createSpbStokSparepart);
+router.post("/spbStokSparepartMany", auth, createManySpbStokSparepart);
 router.put("/spbStokSparepart/:id", updateSpbStokSparepart);
 router.put("/spbStokSparepartMonitoring/:id", updateMonitoringSpbStokSparepart);
 router.put("/approveSpbStok/:id", approveSpbStokSparepart);

@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
 
 const StokSparepart = require("./stokSparepart");
+const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
 
@@ -12,7 +13,15 @@ const RequestStokSparepart = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: StokSparepart,
+        model: Users,
+        key: "id",
+      },
+    },
+    id_user: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
         key: "id",
       },
     },
@@ -95,6 +104,14 @@ StokSparepart.hasMany(RequestStokSparepart, {
 }),
   RequestStokSparepart.belongsTo(StokSparepart, {
     foreignKey: "id_stok_sparepart",
+  });
+
+Users.hasMany(RequestStokSparepart, {
+  foreignKey: "id_user",
+}),
+  RequestStokSparepart.belongsTo(Users, {
+    foreignKey: "id_user",
+    as: "pelapor",
   });
 
 module.exports = RequestStokSparepart;
