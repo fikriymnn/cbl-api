@@ -121,7 +121,7 @@ const SpbStokSparepartController = {
         kriteria: kriteria,
         kode_estimasi: kode_estimasi,
         sumber: sumber,
-        status_pengajuan: "request to mtc",
+        status_pengajuan: "section head approval",
         id_user: req.user.id,
       });
       res.status(201).json({ msg: "Sparepart Requested Successfuly" });
@@ -154,6 +154,7 @@ const SpbStokSparepartController = {
           kriteria: sparepartRequest[i].kriteria,
           kode_estimasi: sparepartRequest[i].kode_estimasi,
           sumber: sparepartRequest[i].sumber,
+          status_pengajuan: "section head approval",
           id_user: req.user.id,
         });
       }

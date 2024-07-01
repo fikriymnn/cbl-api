@@ -534,7 +534,7 @@ const ProsessMtc = {
     const ticket = await Ticket.findByPk(_id);
 
     let obj = {
-      status_tiket: "open",
+      //status_tiket: "open",
       kode_analisis_mtc: null,
       waktu_mulai_mtc: new Date(),
       waktu_selesai_mtc: null,

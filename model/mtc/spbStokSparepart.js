@@ -93,6 +93,11 @@ const RequestStokSparepart = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    note_verifikasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
