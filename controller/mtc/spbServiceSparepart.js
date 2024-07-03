@@ -7,12 +7,31 @@ const StokSparepart = require("../../model/mtc/stokSparepart");
 const SpbStokSparepart = require("../../model/mtc/spbStokSparepart");
 const Users = require("../../model/userModel");
 const MasterMesin = require("../../model/masterData/masterMesinModel");
+const { Op } = require("sequelize");
 
 const SpbServiceSparepartController = {
   getSpbServiceSparepart: async (req, res) => {
     const { no_spb, tgl_spb, tgl_permintaan_kedatangan } = req.query;
 
-    let obj = {};
+    let obj = {
+      [Op.and]: [
+        {
+          status_pengajuan: {
+            [Op.ne]: "done",
+          },
+        },
+        {
+          status_pengajuan: {
+            [Op.ne]: "spb rejected",
+          },
+        },
+        // {
+        //   incoming_sparepart: {
+        //     [Op.ne]: "oke",
+        //   },
+        // },
+      ],
+    };
     if (no_spb) obj.no_spb = no_spb;
     if (tgl_spb) obj.tgl_spb = tgl_spb;
     if (tgl_permintaan_kedatangan)
@@ -21,7 +40,64 @@ const SpbServiceSparepartController = {
     try {
       const response = await SpbServiceSparepart.findAll({
         where: obj,
-        order: [['id', 'DESC']],
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: MasterSparepart,
+            as: "master_part",
+            include: [{ model: MasterMesin, as: "mesin" }],
+          },
+          { model: Users, as: "pelapor" },
+        ],
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getHistoryRejectedSpbServiceSparepart: async (req, res) => {
+    const { no_spb, tgl_spb, tgl_permintaan_kedatangan } = req.query;
+
+    let obj = { status_pengajuan: "spb rejected", incoming_sparepart: null };
+    if (no_spb) obj.no_spb = no_spb;
+    if (tgl_spb) obj.tgl_spb = tgl_spb;
+    if (tgl_permintaan_kedatangan)
+      obj.tgl_permintaan_kedatangan = tgl_permintaan_kedatangan;
+
+    try {
+      const response = await SpbServiceSparepart.findAll({
+        where: obj,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: MasterSparepart,
+            as: "master_part",
+            include: [{ model: MasterMesin, as: "mesin" }],
+          },
+          { model: Users, as: "pelapor" },
+        ],
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getHistorySpbServiceSparepart: async (req, res) => {
+    const { no_spb, tgl_spb, tgl_permintaan_kedatangan } = req.query;
+
+    let obj = { status_pengajuan: "done", incoming_sparepart: "ok" };
+
+    if (no_spb) obj.no_spb = no_spb;
+    if (tgl_spb) obj.tgl_spb = tgl_spb;
+    if (tgl_permintaan_kedatangan)
+      obj.tgl_permintaan_kedatangan = tgl_permintaan_kedatangan;
+
+    try {
+      const response = await SpbServiceSparepart.findAll({
+        where: obj,
+        order: [["id", "DESC"]],
         include: [
           {
             model: MasterSparepart,
@@ -116,7 +192,11 @@ const SpbServiceSparepartController = {
       return res.status(404).json({ msg: "incomplite data" });
 
     try {
-      if (serviceRequest != [] || serviceRequest != null) {
+      if (
+        serviceRequest != [] ||
+        serviceRequest != null ||
+        serviceRequest.length != 0
+      ) {
         for (let i = 0; i < serviceRequest.length; i++) {
           const sparepart = await MasterSparepart.findByPk(
             serviceRequest[i].id_master_sparepart
@@ -146,7 +226,11 @@ const SpbServiceSparepartController = {
         }
       }
 
-      if (sparepartRequest != [] || sparepartRequest != null) {
+      if (
+        sparepartRequest != [] ||
+        sparepartRequest != null ||
+        sparepartRequest.length != 0
+      ) {
         for (let i = 0; i < sparepartRequest.length; i++) {
           const sparepart = await StokSparepart.findByPk(
             sparepartRequest[i].id_stok_sparepart
@@ -184,6 +268,9 @@ const SpbServiceSparepartController = {
       kriteria,
       note,
       kode_estimasi,
+      note_verifikasi,
+      note_validasi,
+      status_pengajuan,
     } = req.body;
 
     let obj = {};
@@ -194,6 +281,9 @@ const SpbServiceSparepartController = {
     if (kriteria) obj.kriteria = kriteria;
     if (note) obj.note = note;
     if (kode_estimasi) obj.kode_estimasi = kode_estimasi;
+    if (note_verifikasi) obj.note_verifikasi = note_verifikasi;
+    if (note_validasi) obj.note_validasi = note_validasi;
+    if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
 
     try {
       await SpbServiceSparepart.update(obj, { where: { id: _id } }),
@@ -234,12 +324,16 @@ const SpbServiceSparepartController = {
 
   approveSpbServiceSparepart: async (req, res) => {
     const _id = req.params.id;
-    const { note } = req.body;
+    const { note_verifikasi } = req.body;
 
     try {
       const request = await SpbServiceSparepart.findByPk(_id);
       await SpbServiceSparepart.update(
-        { incoming_sparepart: "ok" },
+        {
+          incoming_sparepart: "ok",
+          status_pengajuan: "done",
+          note_verifikasi: note_verifikasi,
+        },
         { where: { id: _id } }
       );
 
@@ -249,11 +343,11 @@ const SpbServiceSparepartController = {
         { where: { id: proses.id_tiket } }
       );
 
-      await MasterSparepart.update(
-        { jenis_part: "service", umur_service: 360 },
-        { where: { id: request.id_master_sparepart } }
-      ),
-        res.status(201).json({ msg: "Spb Stok Sparepart Done" });
+      // await MasterSparepart.update(
+      //   { jenis_part: "service", umur_service: 360 },
+      //   { where: { id: request.id_master_sparepart } }
+      // ),
+      res.status(201).json({ msg: "Spb Stok Sparepart Done" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -261,16 +355,82 @@ const SpbServiceSparepartController = {
 
   tolakSpbStokSparepart: async (req, res) => {
     const _id = req.params.id;
-    const { note } = req.body;
+    const { note_verifikasi } = req.body;
 
     try {
       const request = await SpbServiceSparepart.findByPk(_id);
       await SpbServiceSparepart.update(
-        { status: "nok" },
+        {
+          status: "nok",
+          status_pengajuan: "section head rejected",
+          note_verifikasi: note_verifikasi,
+        },
         { where: { id: _id } }
       );
 
       res.status(201).json({ msg: "Request Stok Sparepart di Tolak" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  doneSpbServiceSparepartPurchase: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const request = await SpbServiceSparepart.findByPk(_id);
+
+      if (request.sumber == "Os2" && request.status_spb == "progres") {
+        const requestAll = await SpbServiceSparepart.findAll({
+          where: {
+            id_proses_os2: request.id_proses_os2,
+            [Op.and]: [
+              {
+                status_pengajuan: {
+                  [Op.ne]: "done",
+                },
+              },
+              {
+                status_pengajuan: {
+                  [Op.ne]: "spb rejected",
+                },
+              },
+            ],
+          },
+        });
+
+        const requestAllDone = await SpbServiceSparepart.findAll({
+          where: {
+            id_proses_os2: request.id_proses_os2,
+            status_pengajuan: "section head verifikasi",
+          },
+        });
+
+        function checkLengthDifference(array1, array2) {
+          const lengthDifference = Math.abs(array1.length - array2.length);
+          return lengthDifference === 1;
+        }
+
+        const cekArray = checkLengthDifference(requestAll, requestAllDone);
+        console.log(cekArray);
+
+        if (cekArray == true) {
+          const proses = await ProsesMtc.findByPk(request.id_proses_os2);
+          const ticket = await Ticket.update(
+            { bagian_tiket: "service", status_tiket: "active" },
+            { where: { id: proses.id_tiket } }
+          );
+        }
+      }
+      await SpbServiceSparepart.update(
+        {
+          status_pengajuan: "section head verifikasi",
+          status_spb: "done",
+        },
+        { where: { id: _id } }
+      );
+
+      res.status(201).json({ msg: "Spb Stok Sparepart Done" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

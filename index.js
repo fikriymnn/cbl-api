@@ -48,12 +48,12 @@ const app = express();
 
 // database sync to table
 // (async () => {
-//   await db.sync({ alter: true });
+//   await spbStok.sync({ alter: true });
 // })();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await spbService.sync({ alter: true });
+//   await spbStok.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -8,6 +8,7 @@ const MasterSparepart = require("../../model/masterData/masterSparepart");
 const ProsesMtc = require("../../model/mtc/prosesMtc");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
+const SpbService = require("../../model/mtc/spbServiceSparepart");
 const moment = require("moment");
 
 const ProsessMtc = {
@@ -252,7 +253,11 @@ const ProsessMtc = {
     };
 
     try {
-      if (!masalah_sparepart || masalah_sparepart == []) {
+      if (
+        !masalah_sparepart ||
+        masalah_sparepart == [] ||
+        masalah_sparepart.length == 0
+      ) {
         await Ticket.update(obj, { where: { id: _id } }),
           // await MasalahSparepart.bulkCreate(masalah_sparepart);
 
@@ -267,6 +272,38 @@ const ProsessMtc = {
               },
             }
           );
+
+        const requestSpbService = await SpbService.findAll({
+          where: {
+            id_proses_os2: id_proses,
+            status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
+          },
+        });
+
+        for (
+          let indexService = 0;
+          indexService < requestSpbService.length;
+          indexService++
+        ) {
+          if (
+            requestSpbService != [] ||
+            requestSpbService != null ||
+            requestSpbService.length != 0
+          ) {
+            //console.log(requestSpbService[0].id_master_sparepart);
+            if (requestSpbService) {
+              await MasterSparepart.update(
+                { jenis_part: "service", umur_service: 360 },
+                {
+                  where: {
+                    id: requestSpbService[indexService].id_master_sparepart,
+                  },
+                }
+              );
+            }
+          }
+        }
+
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
@@ -358,6 +395,36 @@ const ProsessMtc = {
               { where: { id: stokSparepart.id } }
             );
           });
+        }
+        const requestSpbService = await SpbService.findAll({
+          where: {
+            id_proses_os2: id_proses,
+            status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
+          },
+        });
+
+        for (
+          let indexService = 0;
+          indexService < requestSpbService.length;
+          indexService++
+        ) {
+          if (
+            requestSpbService != [] ||
+            requestSpbService != null ||
+            requestSpbService.length != 0
+          ) {
+            //console.log(requestSpbService[0].id_master_sparepart);
+            if (requestSpbService) {
+              await MasterSparepart.update(
+                { jenis_part: "service", umur_service: 360 },
+                {
+                  where: {
+                    id: requestSpbService[indexService].id_master_sparepart,
+                  },
+                }
+              );
+            }
+          }
         }
 
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });

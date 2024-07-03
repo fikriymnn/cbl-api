@@ -122,7 +122,7 @@ const masterTaskPm2Controller = {
 
   updateMasterPointPm2: async (req, res) => {
     const _id = req.params.id;
-    const { id_mesin, nama_mesin, inspection_point, ms_inspection_task_pm1s } =
+    const { id_mesin, nama_mesin, inspection_point, ms_inspection_task_pm2s } =
       req.body;
 
     let obj = {};
@@ -133,17 +133,17 @@ const masterTaskPm2Controller = {
     try {
       const point = await masterPointPm2.update(obj, { where: { id: _id } });
 
-      if (ms_inspection_task_pm1s != [] || !ms_inspection_task_pm1s) {
-        for (let i = 0; i < ms_inspection_task_pm1s.length; i++) {
+      if (ms_inspection_task_pm2s != [] || !ms_inspection_task_pm2s) {
+        for (let i = 0; i < ms_inspection_task_pm2s.length; i++) {
           const response = await masterTaskPm2.update(
             {
-              task: ms_inspection_task_pm1s[i].task,
+              task: ms_inspection_task_pm2s[i].task,
               acceptance_criteria:
-                ms_inspection_task_pm1s[i].acceptance_criteria,
-              method: ms_inspection_task_pm1s[i].method,
-              tools: ms_inspection_task_pm1s[i].tools,
+                ms_inspection_task_pm2s[i].acceptance_criteria,
+              method: ms_inspection_task_pm2s[i].method,
+              tools: ms_inspection_task_pm2s[i].tools,
             },
-            { where: { id: ms_inspection_task_pm1s[i].id } }
+            { where: { id: ms_inspection_task_pm2s[i].id } }
           );
         }
       }
@@ -161,9 +161,9 @@ const masterTaskPm2Controller = {
         include: [{ model: masterTaskPm2 }],
       });
 
-      for (let i = 0; i < point.ms_inspection_task_pm1s.length; i++) {
+      for (let i = 0; i < point.ms_inspection_task_pm2s.length; i++) {
         await masterTaskPm2.destroy({
-          where: { id: point.ms_inspection_task_pm1s[i].id },
+          where: { id: point.ms_inspection_task_pm2s[i].id },
         });
       }
       await masterPointPm2.destroy({ where: { id: _id } });

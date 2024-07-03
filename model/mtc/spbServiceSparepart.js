@@ -97,12 +97,22 @@ const RequestServiceSparepart = db.define(
       allowNull: true,
     },
 
+    status_spb: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "progres",
+    },
+
     note: {
       type: DataTypes.STRING,
       allowNull: true,
     },
 
     note_verifikasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    note_validasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },

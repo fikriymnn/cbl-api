@@ -88,6 +88,11 @@ const RequestStokSparepart = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    status_spb: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "progres",
+    },
 
     note: {
       type: DataTypes.STRING,
@@ -95,6 +100,10 @@ const RequestStokSparepart = db.define(
     },
 
     note_verifikasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    note_validasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },
