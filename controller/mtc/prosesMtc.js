@@ -201,18 +201,21 @@ const ProsessMtc = {
       id_proses,
       kode_analisis_mtc,
       nama_analisis_mtc,
+      jenis_analisis_mtc,
       note_analisis,
       masalah_sparepart,
       skor_mtc,
       cara_perbaikan,
       note_mtc,
       nama_mesin,
+
       image_url,
     } = req.body;
 
     if (
       !id_proses ||
       !kode_analisis_mtc ||
+      !jenis_analisis_mtc ||
       !nama_analisis_mtc ||
       !skor_mtc ||
       !cara_perbaikan ||
@@ -231,9 +234,9 @@ const ProsessMtc = {
 
     let obj = {
       status_tiket: status,
-
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
+      jenis_analisis_mtc: jenis_analisis_mtc,
       waktu_selesai_mtc: new Date(),
       skor_mtc: skor_mtc,
       cara_perbaikan: cara_perbaikan,
@@ -244,6 +247,7 @@ const ProsessMtc = {
       status_qc: "done",
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
+      jenis_analisis_mtc: jenis_analisis_mtc,
       waktu_selesai_mtc: new Date(),
       skor_mtc: skor_mtc,
       cara_perbaikan: cara_perbaikan,

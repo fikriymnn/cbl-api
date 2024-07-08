@@ -86,6 +86,10 @@ const TicketOs3 = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    jenis_analisis_mtc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     kode_analisis_mtc: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -100,10 +104,10 @@ const TicketOs3 = db.define(
   }
 );
 
-PointPm1.hasOne(TicketOs3, { foreignKey: "id_point_pm1" });
+PointPm1.hasMany(TicketOs3, { foreignKey: "id_point_pm1" });
 TicketOs3.belongsTo(PointPm1, { foreignKey: "id_point_pm1", as: "point_pm1" });
 
-PointPm2.hasOne(TicketOs3, { foreignKey: "id_point_pm2" });
+PointPm2.hasMany(TicketOs3, { foreignKey: "id_point_pm2" });
 TicketOs3.belongsTo(PointPm2, { foreignKey: "id_point_pm2", as: "point_pm2" });
 
 module.exports = TicketOs3;

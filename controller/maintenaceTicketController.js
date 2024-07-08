@@ -358,6 +358,69 @@ const ticketController = {
       }
     }
   },
+  injectDataTicket: async (req, res) => {
+    const {
+      mesin,
+      operator,
+      tgl_tiket,
+      waktu_tiket,
+      nama_kendala,
+      kode_ticket,
+      bagian_tiket,
+      tgl_respon,
+      waktu_respon,
+      id_eksekutor,
+      tgl_selesai_mtc,
+      waktu_selesai_mtc,
+      skor_mtc,
+      cara_perbaikan,
+      kode_analisis_mtc,
+      nama_analisis_mtc,
+      note_mtc,
+    } = req.body;
+    try {
+      const tanggalRespon = new Date(tgl_respon + " " + waktu_respon);
+      const tglTiket = new Date(tgl_tiket + " " + waktu_tiket);
+      const tanggalSelesaiMtc = new Date(
+        tgl_selesai_mtc + " " + waktu_selesai_mtc
+      );
+
+      const ticket = await Ticket.create({
+        mesin: mesin,
+        operator: operator,
+        tgl: tglTiket,
+        jenis_kendala: "mesin",
+        nama_kendala: nama_kendala,
+        kode_ticket: kode_ticket,
+        bagian_tiket: bagian_tiket,
+        status_tiket: "monitoring",
+        id_respon_mtc: id_eksekutor,
+        waktu_respon: tanggalRespon,
+        waktu_mulai_mtc: tanggalRespon,
+        waktu_selesai_mtc: tanggalSelesaiMtc,
+        createdAt: tglTiket,
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+      });
+      await ProsesMtc.create({
+        id_tiket: ticket.id,
+        id_eksekutor: id_eksekutor,
+        status_proses: "monitoring",
+        waktu_mulai_mtc: tanggalRespon,
+        waktu_selesai_mtc: waktu_selesai_mtc,
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        note_mtc: note_mtc,
+      });
+      res.status(201).json({ msg: "berhasil" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 // cron.schedule("* * * * *", async () => {

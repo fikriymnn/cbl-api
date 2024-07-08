@@ -9,17 +9,11 @@ const Ticket = db.define(
   {
     id_jo: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     id_kendala: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     id_respon_mtc: {
       type: DataTypes.INTEGER,
@@ -37,109 +31,64 @@ const Ticket = db.define(
 
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     nama_produk: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     no_so: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     nama_customer: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     qty: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     qty_druk: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     spek: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     proses: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     bagian: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     tgl: {
       type: DataTypes.DATE,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     jenis_kendala: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
 
     nama_kendala: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     kode_lkh: {
       type: DataTypes.STRING,
@@ -149,18 +98,12 @@ const Ticket = db.define(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: "incoming",
-      validate: {
-        notEmpty: true,
-      },
     },
 
     status_tiket: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: "pending",
-      validate: {
-        notEmpty: true,
-      },
     },
     waktu_respon: {
       type: DataTypes.DATE,
@@ -191,6 +134,10 @@ const Ticket = db.define(
       allowNull: true,
     },
     kode_analisis_mtc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jenis_analisis_mtc: {
       type: DataTypes.STRING,
       allowNull: true,
     },
