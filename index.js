@@ -37,6 +37,10 @@ const taskpm2 = require("./model/mtc/preventive/pm2/taskPm2");
 const mspointpm3 = require("./model/masterData/mtc/preventive/pm3/inspenctionPoinPm3Model");
 const mstaskpm3 = require("./model/masterData/mtc/preventive/pm3/inspectionTaskPm3Model");
 
+const tcpm3 = require("./model/mtc/preventive/pm3/ticketPm3");
+const pointpm3 = require("./model/mtc/preventive/pm3/pointPm3");
+const taskpm3 = require("./model/mtc/preventive/pm3/taskPm3");
+
 const notif = require("./model/notificationModel");
 
 const cookieParser = require("cookie-parser");
@@ -51,12 +55,12 @@ const app = express();
 
 // database sync to table
 // (async () => {
-//   await db.sync({ alter: true });
+//   await taskpm3.sync({ alter: true });
 // })();
 
 //model sync to table (pancingan)
 // (async () => {
-//   await mstaskpm3.sync({ alter: true });
+//   await tcpm3.sync({ alter: true });
 // })();
 
 // const ip100 = 75

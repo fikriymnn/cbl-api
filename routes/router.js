@@ -12,6 +12,7 @@ router.use("/", require("./mtc/DashboardMtc"));
 //pm
 router.use("/", require("./mtc/preventive/inspectionPm1Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm2Routes"));
+router.use("/", require("./mtc/preventive/inspentionPm3Routes"));
 
 //master data
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
