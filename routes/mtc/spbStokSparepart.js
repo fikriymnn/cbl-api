@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const {
   getSpbStokSparepart,
+  getSpbStokSparepartPurchase,
   getHistoryRejectedSpbStokSparepart,
   getHistorySpbStokSparepart,
   getSpbStokSparepartById,
@@ -19,6 +20,7 @@ router.get(
   "/spbStokSparepart/historyRejected",
   getHistoryRejectedSpbStokSparepart
 );
+router.get("/spbStokSparepartPurchase", getSpbStokSparepartPurchase);
 router.get("/spbStokSparepart/history", getHistorySpbStokSparepart);
 router.get("/spbStokSparepart/:id", getSpbStokSparepartById);
 router.post("/spbStokSparepart", auth, createSpbStokSparepart);

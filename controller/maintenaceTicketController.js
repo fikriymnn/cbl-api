@@ -86,6 +86,8 @@ const ticketController = {
       res.status(200).json({
         total_page: Math.ceil(data / limit),
         data: response,
+        offset: page,
+        limit: limit,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });

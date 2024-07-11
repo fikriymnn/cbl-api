@@ -69,9 +69,12 @@ const SpbStokSparepartController = {
           limit: parseInt(limit),
           offset: parseInt(offset),
         });
-        res
-          .status(200)
-          .json({ data: response, total_page: Math.ceil(length_data / limit) });
+        res.status(200).json({
+          data: response,
+          total_page: Math.ceil(length_data / limit),
+          offset: page,
+          limit: limit,
+        });
       } else {
         const response = await SpbStokSparepart.findAll({
           where: obj,
@@ -139,6 +142,99 @@ const SpbStokSparepartController = {
         ],
       });
       res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getSpbStokSparepartPurchase: async (req, res) => {
+    const {
+      no_spb,
+      tgl_spb,
+      tgl_permintaan_kedatangan,
+      id_stok_sparepart,
+      kriteria,
+      tgl_po,
+      no_po,
+      suplier,
+      status_pengajuan,
+      tgl_aktual,
+      limit,
+      page,
+    } = req.query;
+
+    let offset = (page - 1) * limit;
+    let obj = {
+      [Op.and]: [
+        {
+          status_pengajuan: {
+            [Op.ne]: "done",
+          },
+        },
+        {
+          status_pengajuan: {
+            [Op.ne]: "spb rejected",
+          },
+        },
+        {
+          status_pengajuan: {
+            [Op.ne]: "section head approval",
+          },
+        },
+        // {
+        //   incoming_sparepart: {
+        //     [Op.ne]: "oke",
+        //   },
+        // },
+      ],
+    };
+    if (no_spb) obj.no_spb = no_spb;
+    if (tgl_spb) obj.tgl_spb = tgl_spb;
+    if (tgl_permintaan_kedatangan)
+      obj.tgl_permintaan_kedatangan = tgl_permintaan_kedatangan;
+    if (id_stok_sparepart) obj.id_stok_sparepart = id_stok_sparepart;
+    if (kriteria) obj.kriteria = kriteria;
+    if (tgl_po) obj.tgl_po = tgl_po;
+    if (no_po) obj.no_po = no_po;
+    if (suplier) obj.suplier = suplier;
+    if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
+    if (tgl_aktual) obj.tgl_aktual = tgl_aktual;
+
+    try {
+      if (page && limit) {
+        const length_data = await SpbStokSparepart.count({ where: obj });
+        const response = await SpbStokSparepart.findAll({
+          order: [["id", "DESC"]],
+          where: obj,
+          include: [
+            {
+              model: StokSparepart,
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+        res.status(200).json({
+          data: response,
+          total_page: Math.ceil(length_data / limit),
+          offset: page,
+          limit: limit,
+        });
+      } else {
+        const response = await SpbStokSparepart.findAll({
+          where: obj,
+          include: [
+            {
+              model: StokSparepart,
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

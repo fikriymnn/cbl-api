@@ -4,6 +4,7 @@ const {
   getHistorySpbServiceSparepart,
   getHistoryRejectedSpbServiceSparepart,
   getSpbServiceSparepartById,
+  getSpbServiceSparepartPurchase,
   createSpbServiceSparepart,
   createManySpbServiceSparepart,
   updateMonitoringSpbServiceSparepart,
@@ -21,6 +22,7 @@ router.get(
 );
 router.get("/spbServiceSparepart/history", getHistorySpbServiceSparepart);
 router.get("/spbServiceSparepart/:id", getSpbServiceSparepartById);
+router.get("/spbServiceSparepartPurchase", getSpbServiceSparepartPurchase);
 router.post("/spbServiceSparepart", auth, createSpbServiceSparepart);
 router.post("/spbServiceSparepartMany", auth, createManySpbServiceSparepart);
 router.put("/spbServiceSparepart/:id", updateSpbServiceSparepart);

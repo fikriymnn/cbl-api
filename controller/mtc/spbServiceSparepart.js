@@ -11,7 +11,10 @@ const { Op } = require("sequelize");
 
 const SpbServiceSparepartController = {
   getSpbServiceSparepart: async (req, res) => {
-    const { no_spb, tgl_spb, tgl_permintaan_kedatangan } = req.query;
+    const { no_spb, tgl_spb, tgl_permintaan_kedatangan, limit, page } =
+      req.query;
+
+    let offset = (page - 1) * limit;
 
     let obj = {
       [Op.and]: [
@@ -25,6 +28,7 @@ const SpbServiceSparepartController = {
             [Op.ne]: "spb rejected",
           },
         },
+
         // {
         //   incoming_sparepart: {
         //     [Op.ne]: "oke",
@@ -38,19 +42,43 @@ const SpbServiceSparepartController = {
       obj.tgl_permintaan_kedatangan = tgl_permintaan_kedatangan;
 
     try {
-      const response = await SpbServiceSparepart.findAll({
-        where: obj,
-        order: [["id", "DESC"]],
-        include: [
-          {
-            model: MasterSparepart,
-            as: "master_part",
-            include: [{ model: MasterMesin, as: "mesin" }],
-          },
-          { model: Users, as: "pelapor" },
-        ],
-      });
-      res.status(200).json(response);
+      if (page && limit) {
+        const length_data = await SpbServiceSparepart.count({ where: obj });
+        const response = await SpbServiceSparepart.findAll({
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: MasterSparepart,
+              as: "master_part",
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+        res.status(200).json({
+          data: response,
+          total_page: Math.ceil(length_data / limit),
+          offset: page,
+          limit: limit,
+        });
+      } else {
+        const response = await SpbServiceSparepart.findAll({
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: MasterSparepart,
+              as: "master_part",
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -108,6 +136,84 @@ const SpbServiceSparepartController = {
         ],
       });
       res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getSpbServiceSparepartPurchase: async (req, res) => {
+    const { no_spb, tgl_spb, tgl_permintaan_kedatangan, limit, page } =
+      req.query;
+
+    let offset = (page - 1) * limit;
+
+    let obj = {
+      [Op.and]: [
+        {
+          status_pengajuan: {
+            [Op.ne]: "done",
+          },
+        },
+        {
+          status_pengajuan: {
+            [Op.ne]: "spb rejected",
+          },
+        },
+        {
+          status_pengajuan: {
+            [Op.ne]: "section head approval",
+          },
+        },
+        // {
+        //   incoming_sparepart: {
+        //     [Op.ne]: "oke",
+        //   },
+        // },
+      ],
+    };
+    if (no_spb) obj.no_spb = no_spb;
+    if (tgl_spb) obj.tgl_spb = tgl_spb;
+    if (tgl_permintaan_kedatangan)
+      obj.tgl_permintaan_kedatangan = tgl_permintaan_kedatangan;
+
+    try {
+      if (page && limit) {
+        const length_data = await SpbServiceSparepart.count({ where: obj });
+        const response = await SpbServiceSparepart.findAll({
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: MasterSparepart,
+              as: "master_part",
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+        res.status(200).json({
+          data: response,
+          total_page: Math.ceil(length_data / limit),
+          offset: page,
+          limit: limit,
+        });
+      } else {
+        const response = await SpbServiceSparepart.findAll({
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: MasterSparepart,
+              as: "master_part",
+              include: [{ model: MasterMesin, as: "mesin" }],
+            },
+            { model: Users, as: "pelapor" },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
