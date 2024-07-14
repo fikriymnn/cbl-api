@@ -542,6 +542,87 @@ const SpbServiceSparepartController = {
     }
   },
 
+  verifikasiSpbServiceSparepartQc: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const request = await SpbServiceSparepart.findByPk(_id);
+
+      if (request.sumber == "Os2" && request.status_spb == "progres") {
+        const requestAll = await SpbServiceSparepart.findAll({
+          where: {
+            id_proses_os2: request.id_proses_os2,
+            [Op.and]: [
+              {
+                status_pengajuan: {
+                  [Op.ne]: "done",
+                },
+              },
+              {
+                status_pengajuan: {
+                  [Op.ne]: "spb rejected",
+                },
+              },
+            ],
+          },
+        });
+
+        const requestAllDone = await SpbServiceSparepart.findAll({
+          where: {
+            id_proses_os2: request.id_proses_os2,
+            status_pengajuan: "qc verifikasi",
+          },
+        });
+
+        function checkLengthDifference(array1, array2) {
+          const lengthDifference = Math.abs(array1.length - array2.length);
+          return lengthDifference === 1;
+        }
+
+        const cekArray = checkLengthDifference(requestAll, requestAllDone);
+        console.log(cekArray);
+
+        if (cekArray == true) {
+          const proses = await ProsesMtc.findByPk(request.id_proses_os2);
+          const ticket = await Ticket.update(
+            { bagian_tiket: "service", status_tiket: "active" },
+            { where: { id: proses.id_tiket } }
+          );
+        }
+      }
+      await SpbServiceSparepart.update(
+        {
+          status_pengajuan: "section head verifikasi",
+          status_spb: "done",
+          id_qc: req.user.id,
+        },
+        { where: { id: _id } }
+      );
+
+      res.status(201).json({ msg: "Spb Stok Sparepart Done" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  rejectSpbServiceSparepartQc: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      await SpbServiceSparepart.update(
+        {
+          status_pengajuan: "qc rejected",
+          id_qc: req.user.id,
+        },
+        { where: { id: _id } }
+      );
+
+      res.status(201).json({ msg: "Spb Stok Sparepart Rejected" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   //   createStokSparepart: async (req, res) => {
   //     const {
   //       kode,

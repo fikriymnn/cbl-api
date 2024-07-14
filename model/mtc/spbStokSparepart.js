@@ -25,6 +25,14 @@ const RequestStokSparepart = db.define(
         key: "id",
       },
     },
+    id_qc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     tgl_spb: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -126,6 +134,14 @@ Users.hasMany(RequestStokSparepart, {
   RequestStokSparepart.belongsTo(Users, {
     foreignKey: "id_user",
     as: "pelapor",
+  });
+
+Users.hasMany(RequestStokSparepart, {
+  foreignKey: "id_qc",
+}),
+  RequestStokSparepart.belongsTo(Users, {
+    foreignKey: "id_qc",
+    as: "qc",
   });
 
 module.exports = RequestStokSparepart;

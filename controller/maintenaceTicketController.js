@@ -281,6 +281,40 @@ const ticketController = {
     }
   },
 
+  validasiQcTiket: async (req, res) => {
+    const _id = req.params.id;
+
+    let obj = {
+      bagian_tiket: "incoming",
+      id_respon_qc: req.user.id,
+      waktu_respon_qc: new Date()
+    }
+    try {
+      await Ticket.update(obj, { where: { id: _id } }),
+        res.status(201).json({ msg: "Ticket update Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  rejectQcTiket: async (req, res) => {
+    const _id = req.params.id;
+    const {note_qc} = req.body;
+
+    let obj = {
+      bagian_tiket: "reject",
+      id_respon_qc: req.user.id,
+      waktu_respon_qc: new Date(),
+      note_qc: note_qc,
+    }
+    try {
+      await Ticket.update(obj, { where: { id: _id } }),
+        res.status(201).json({ msg: "Ticket update Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   // updateTiketTypeMtc: async (req, res) => {
   //   const _id = req.params.id;
   //   const { tipe_mtc } = req.body;

@@ -1,9 +1,12 @@
 const router = require("express").Router();
 const {
+  getProsesHistoryQcMtc,
   getProsesMtcByTicket,
   getProsesMtcById,
   responseMtc,
   analisisMtc,
+  verifikasiQc,
+  rejectQcTicket,
   deleteProses,
   pendingProses,
   requestedDate,
@@ -17,10 +20,13 @@ const {
 } = require("../../controller/mtc/prosesMtc");
 const { auth } = require("../../middlewares/authMiddlewares");
 
+router.get("/prosessMtcHistoryQc", getProsesHistoryQcMtc);
 router.get("/prosessMtcById/:id", getProsesMtcById);
 router.get("/prosessMtcByIdTicket/:id", getProsesMtcByTicket);
 router.get("/ticket/respon/:id", auth, responseMtc);
 router.put("/ticket/analisis/:id", analisisMtc);
+router.put("/ticket/verifikasiQc/:id", verifikasiQc);
+router.put("/ticket/rejectQc/:id", rejectQcTicket);
 router.put("/ticket/delete/:id", deleteProses);
 router.put("/ticket/pending/:id", pendingProses);
 //router.put("/ticket/selectMtc/:id",  selectMtc);

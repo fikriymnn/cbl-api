@@ -466,6 +466,37 @@ const SpbStokSparepartController = {
       }
       await SpbStokSparepart.update(
         {
+          status_pengajuan: "section head verifikasi", //nanti jadi qc verifikasi
+          status_spb: "done",
+        },
+        { where: { id: _id } }
+      );
+
+      res.status(201).json({ msg: "Spb Stok Sparepart Done" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  verifikasiSpbStokSparepartPurchase: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const request = await SpbStokSparepart.findByPk(_id);
+
+      if (request.status_spb == "progres") {
+        const sparepart = await StokSparepart.findByPk(
+          request.id_stok_sparepart
+        );
+        const stok_sparepart = sparepart.stok + request.qty;
+
+        await StokSparepart.update(
+          { stok: stok_sparepart, id_qc: req.user.id },
+          { where: { id: request.id_stok_sparepart } }
+        );
+      }
+      await SpbStokSparepart.update(
+        {
           status_pengajuan: "section head verifikasi",
           status_spb: "done",
         },
@@ -473,6 +504,36 @@ const SpbStokSparepartController = {
       );
 
       res.status(201).json({ msg: "Spb Stok Sparepart Done" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  rejectSpbStokSparepartPurchase: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const request = await SpbStokSparepart.findByPk(_id);
+
+      if (request.status_spb == "progres") {
+        const sparepart = await StokSparepart.findByPk(
+          request.id_stok_sparepart
+        );
+        const stok_sparepart = sparepart.stok + request.qty;
+
+        await StokSparepart.update(
+          { stok: stok_sparepart, id_qc: req.user.id },
+          { where: { id: request.id_stok_sparepart } }
+        );
+      }
+      await SpbStokSparepart.update(
+        {
+          status_pengajuan: "qc rejected",
+        },
+        { where: { id: _id } }
+      );
+
+      res.status(201).json({ msg: "Spb Stok Sparepart rejected" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

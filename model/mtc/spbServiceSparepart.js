@@ -34,6 +34,14 @@ const RequestServiceSparepart = db.define(
         key: "id",
       },
     },
+    id_qc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     tgl_spb: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -143,6 +151,14 @@ Users.hasMany(RequestServiceSparepart, {
   RequestServiceSparepart.belongsTo(Users, {
     foreignKey: "id_user",
     as: "pelapor",
+  });
+
+Users.hasMany(RequestServiceSparepart, {
+  foreignKey: "id_qc",
+}),
+  RequestServiceSparepart.belongsTo(Users, {
+    foreignKey: "id_qc",
+    as: "qc",
   });
 
 module.exports = RequestServiceSparepart;

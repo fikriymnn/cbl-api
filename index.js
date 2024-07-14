@@ -55,7 +55,7 @@ const app = express();
 
 // database sync to table
 // (async () => {
-//   await taskpm3.sync({ alter: true });
+//   await db.sync({ alter: true });
 // })();
 
 //model sync to table (pancingan)

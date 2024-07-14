@@ -23,6 +23,14 @@ const Ticket = db.define(
         key: "id",
       },
     },
+    id_respon_qc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
 
     kode_ticket: {
       type: DataTypes.STRING,
@@ -97,13 +105,17 @@ const Ticket = db.define(
     bagian_tiket: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "incoming",
+      defaultValue: "qc",
     },
 
     status_tiket: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: "pending",
+    },
+    waktu_respon_qc: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     waktu_respon: {
       type: DataTypes.DATE,
@@ -145,6 +157,10 @@ const Ticket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    note_qc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
 
   {
@@ -155,5 +171,9 @@ const Ticket = db.define(
 Users.hasMany(Ticket, { foreignKey: "id_respon_mtc" });
 
 Ticket.belongsTo(Users, { foreignKey: "id_respon_mtc", as: "user_respon_mtc" });
+
+Users.hasMany(Ticket, { foreignKey: "id_respon_qc" });
+
+Ticket.belongsTo(Users, { foreignKey: "id_respon_qc", as: "user_respon_qc" });
 
 module.exports = Ticket;

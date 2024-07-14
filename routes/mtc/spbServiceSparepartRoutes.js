@@ -12,6 +12,8 @@ const {
   approveSpbServiceSparepart,
   tolakSpbStokSparepart,
   doneSpbServiceSparepartPurchase,
+  verifikasiSpbServiceSparepartQc,
+  rejectSpbServiceSparepartQc,
 } = require("../../controller/mtc/spbServiceSparepart");
 const { auth } = require("../../middlewares/authMiddlewares");
 
@@ -33,6 +35,8 @@ router.put(
 router.put("/approveSpbService/:id", approveSpbServiceSparepart);
 router.put("/tolakSpbService/:id", tolakSpbStokSparepart);
 router.put("/doneSpbServicePurchase/:id", doneSpbServiceSparepartPurchase);
+router.put("/verifikasiSpbServiceqQc/:id", verifikasiSpbServiceSparepartQc);
+router.put("/rejectSpbServiceqQc/:id", rejectSpbServiceSparepartQc);
 // router.delete("/spbStokSparepart/:id", deletespbStokSparepart);
 // router.put("/approvespbStokSparepart/:id", approveRequestspbStokSparepart);
 // router.delete("/tolakspbStokSparepart/:id", tolakRequestspbStokSparepart);
