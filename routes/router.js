@@ -33,6 +33,11 @@ router.use("/", require("./mtc/prosessMtcRoutes"));
 router.use("/", require("./mtc/prosesMtcOs3Routes"));
 router.use("/", require("./mtc/kpi/kpiActualRoute"));
 
+//qc
+router.use("/",require("./qc/inspeksi/bahan/inspeksiBahanRoutes"))
+router.use("/",require("./qc/inspeksi/bahan/inspeksiBahanResultRoutes"))
+
 router.use("/", require("./uploadRoutes"));
+
 
 module.exports = router;
