@@ -30,11 +30,16 @@ router.post("/spbServiceSparepartMany", auth, createManySpbServiceSparepart);
 router.put("/spbServiceSparepart/:id", updateSpbServiceSparepart);
 router.put(
   "/spbServiceSparepartMonitoring/:id",
+  auth,
   updateMonitoringSpbServiceSparepart
 );
-router.put("/approveSpbService/:id", approveSpbServiceSparepart);
+router.put("/approveSpbService/:id", auth, approveSpbServiceSparepart);
 router.put("/tolakSpbService/:id", tolakSpbStokSparepart);
-router.put("/doneSpbServicePurchase/:id", doneSpbServiceSparepartPurchase);
+router.put(
+  "/doneSpbServicePurchase/:id",
+  auth,
+  doneSpbServiceSparepartPurchase
+);
 router.put("/verifikasiSpbServiceqQc/:id", verifikasiSpbServiceSparepartQc);
 router.put("/rejectSpbServiceqQc/:id", rejectSpbServiceSparepartQc);
 // router.delete("/spbStokSparepart/:id", deletespbStokSparepart);

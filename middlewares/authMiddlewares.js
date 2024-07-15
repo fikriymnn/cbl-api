@@ -2,9 +2,11 @@ const jwt = require("jsonwebtoken");
 
 const authMiddlewares = {
   auth: async (req, res, next) => {
+    console.log(req.cookies.access_token);
     try {
       if (!req.cookies.access_token)
         return res.status(500).json({ msg: "pliss login" });
+
       jwt.verify(
         req.cookies.access_token,
         process.env.JWT_ACC_SECRET,
