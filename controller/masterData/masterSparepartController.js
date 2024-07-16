@@ -68,39 +68,70 @@ const masterSparepartController = {
       actual_umur,
       sisa_umur,
       keterangan,
+      jenis_part,
     } = req.body;
-    if (
-      !id_mesin ||
-      !nama_sparepart ||
-      !kode ||
-      !posisi_part ||
-      !tgl_pasang ||
-      !tgl_rusak ||
-      !umur_a ||
-      !umur_grade ||
-      !grade_2 ||
-      !actual_umur ||
-      !sisa_umur
-    )
-      return res.status(404).json({ msg: "incomplete data!!" });
+    if (jenis_part == "ganti") {
+      if (
+        !id_mesin ||
+        !nama_sparepart ||
+        !kode ||
+        !posisi_part ||
+        !tgl_pasang ||
+        !tgl_rusak ||
+        !umur_a ||
+        !umur_grade ||
+        !grade_2 ||
+        !actual_umur ||
+        !sisa_umur
+      )
+        return res.status(404).json({ msg: "incomplete data!!" });
+    } else {
+      if (
+        !id_mesin ||
+        !nama_sparepart ||
+        !kode ||
+        !posisi_part ||
+        !tgl_pasang ||
+        !tgl_rusak ||
+        !sisa_umur
+      )
+        return res.status(404).json({ msg: "incomplete data!!" });
+    }
 
     try {
-      const response = await masterSparepart.create({
-        id_mesin,
-        nama_mesin,
-        kode,
-        nama_sparepart,
-        posisi_part,
-        tgl_pasang,
-        tgl_rusak,
-        umur_a,
-        umur_grade,
-        grade_2,
-        actual_umur,
-        sisa_umur,
-        keterangan,
-      });
-      res.status(200).json(response);
+      if (jenis_part == "ganti") {
+        const response = await masterSparepart.create({
+          id_mesin,
+          nama_mesin,
+          kode,
+          nama_sparepart,
+          posisi_part,
+          tgl_pasang,
+          tgl_rusak,
+          jenis_part,
+          umur_a,
+          umur_grade,
+          grade_2,
+          actual_umur,
+          sisa_umur,
+          keterangan,
+        });
+        res.status(200).json(response);
+      } else {
+        const response = await masterSparepart.create({
+          id_mesin,
+          nama_mesin,
+          kode,
+          nama_sparepart,
+          posisi_part,
+          tgl_pasang,
+          tgl_rusak,
+          jenis_part,
+          umur_service: sisa_umur,
+          keterangan,
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

@@ -518,7 +518,6 @@ const SpbServiceSparepartController = {
         }
 
         const cekArray = checkLengthDifference(requestAll, requestAllDone);
-        console.log(cekArray);
 
         if (cekArray == true) {
           const proses = await ProsesMtc.findByPk(request.id_proses_os2);
@@ -580,7 +579,6 @@ const SpbServiceSparepartController = {
         }
 
         const cekArray = checkLengthDifference(requestAll, requestAllDone);
-        console.log(cekArray);
 
         if (cekArray == true) {
           const proses = await ProsesMtc.findByPk(request.id_proses_os2);
