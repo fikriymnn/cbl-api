@@ -53,18 +53,18 @@ const ticketOs3Controller = {
                     model: Users,
                     as: "inspector",
                   },
-                  {
-                    model: Users,
-                    as: "leader",
-                  },
-                  {
-                    model: Users,
-                    as: "supervisor",
-                  },
-                  {
-                    model: Users,
-                    as: "ka_bag",
-                  },
+                  // {
+                  //   model: Users,
+                  //   as: "leader",
+                  // },
+                  // {
+                  //   model: Users,
+                  //   as: "supervisor",
+                  // },
+                  // {
+                  //   model: Users,
+                  //   as: "ka_bag",
+                  // },
                 ],
               },
             ],

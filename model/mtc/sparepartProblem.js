@@ -32,7 +32,7 @@ const SparepartProblem = db.define(
 
     id_proses: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: ProsesMtc,
         key: "id",
@@ -40,7 +40,7 @@ const SparepartProblem = db.define(
     },
     id_proses_os3: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: ProsesMtcOs3,
         key: "id",

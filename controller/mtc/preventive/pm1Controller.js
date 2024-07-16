@@ -11,10 +11,21 @@ const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 
 const Pm1Controller = {
   getPm1: async (req, res) => {
-    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
+    const {
+      id_mesin,
+      nama_mesin,
+      id_inspector,
+      start_date,
+      end_date,
+      tgl,
+      limit,
+      page,
+    } = req.query;
 
     let obj = {};
     let des = [];
+    let offset = (page - 1) * limit;
+    if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
     if (tgl)
@@ -42,33 +53,68 @@ const Pm1Controller = {
     }
 
     try {
-      const response = await TicketPm1.findAll({
-        where: obj,
-        order: des,
-        include: [
-          {
-            model: Users,
-            as: "inspector",
-          },
-          {
-            model: Users,
-            as: "leader",
-          },
-          {
-            model: Users,
-            as: "supervisor",
-          },
-          {
-            model: Users,
-            as: "ka_bag",
-          },
-          {
-            model: MasterMesin,
-            as: "mesin",
-          },
-        ],
-      });
-      res.status(200).json(response);
+      if (page && limit) {
+        const length_data = await TicketPm1.count({ where: obj });
+        const response = await TicketPm1.findAll({
+          where: obj,
+          order: des,
+          include: [
+            {
+              model: Users,
+              as: "inspector",
+            },
+            {
+              model: Users,
+              as: "leader",
+            },
+            {
+              model: Users,
+              as: "supervisor",
+            },
+            {
+              model: Users,
+              as: "ka_bag",
+            },
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+        res
+          .status(200)
+          .json({ data: response, total_page: Math.ceil(length_data / limit) });
+      } else {
+        const response = await TicketPm1.findAll({
+          where: obj,
+          order: des,
+          include: [
+            {
+              model: Users,
+              as: "inspector",
+            },
+            {
+              model: Users,
+              as: "leader",
+            },
+            {
+              model: Users,
+              as: "supervisor",
+            },
+            {
+              model: Users,
+              as: "ka_bag",
+            },
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

@@ -1,21 +1,21 @@
-const masterTaskPm2 = require("../../../../model/masterData/mtc/preventive/pm2/inspectionTaskPm2Model");
-const masterPointPm2 = require("../../../../model/masterData/mtc/preventive/pm2/inspenctionPoinPm2Model");
+const masterTaskPm3 = require("../../../../model/masterData/mtc/preventive/pm3/inspectionTaskPm3Model");
+const masterPointPm3 = require("../../../../model/masterData/mtc/preventive/pm3/inspenctionPoinPm3Model");
 
 const { Sequelize } = require("sequelize");
 
-const masterTaskPm2Controller = {
-  getMasterPointPm2: async (req, res) => {
+const masterTaskPm3Controller = {
+  getMasterPointPm3: async (req, res) => {
     const { id_mesin, nama_mesin } = req.query;
     let obj = {};
 
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_mesin) obj.id_mesin = id_mesin;
     try {
-      const response = await masterPointPm2.findAll({
+      const response = await masterPointPm3.findAll({
         where: obj,
         include: [
           {
-            model: masterTaskPm2,
+            model: masterTaskPm3,
           },
         ],
       });
@@ -25,23 +25,23 @@ const masterTaskPm2Controller = {
     }
   },
 
-  getMasterPointPm2ById: async (req, res) => {
+  getMasterPointPm3ById: async (req, res) => {
     try {
-      const response = await masterPointPm2.findByPk(req.params.id);
+      const response = await masterPointPm3.findByPk(req.params.id);
       res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
   },
 
-  createMasterPointPm2: async (req, res) => {
+  createMasterPointPm3: async (req, res) => {
     const { id_mesin, nama_mesin, inspection_point } = req.body;
     if (!nama_mesin || !id_mesin || !inspection_point)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
       for (let index = 0; index < inspection_point.length; index++) {
-        const point = await masterPointPm2.create({
+        const point = await masterPointPm3.create({
           id_mesin: id_mesin,
           nama_mesin: nama_mesin,
           inspection_point: inspection_point[index].inspection_point,
@@ -53,7 +53,7 @@ const masterTaskPm2Controller = {
             i < inspection_point[index].sub_inspection.length;
             i++
           ) {
-            const response = await masterTaskPm2.create({
+            const response = await masterTaskPm3.create({
               id_inspection_poin: point.id,
               task: inspection_point[index].sub_inspection[i].task,
               acceptance_criteria:
@@ -71,20 +71,20 @@ const masterTaskPm2Controller = {
     }
   },
 
-  // createMasterPointPm2: async (req, res) => {
+  // createMasterPointPm3: async (req, res) => {
   //   const { id_mesin, nama_mesin, inspection_point, sub_inspection } = req.body;
   //   if (!id_mesin || !nama_mesin || !inspection_point || sub_inspection == [])
   //     return res.status(404).json({ msg: "incomplete data!!" });
 
   //   try {
-  //     const point = await masterPointPm2.create({
+  //     const point = await masterPointPm3.create({
   //       id_mesin,
   //       nama_mesin,
   //       inspection_point,
   //     });
 
   //     for (let i = 0; i < sub_inspection.length; i++) {
-  //       const response = await masterTaskPm2.create({
+  //       const response = await masterTaskPm3.create({
   //         id_inspection_poin: point.id,
   //         task: sub_inspection[i].task,
   //         acceptance_criteria: sub_inspection[i].acceptance_criteria,
@@ -99,14 +99,14 @@ const masterTaskPm2Controller = {
   //   }
   // },
 
-  createMasterTaskPm2: async (req, res) => {
+  createMasterTaskPm3: async (req, res) => {
     const { id_inspection_poin, task, acceptance_criteria, method, tools } =
       req.body;
     if (!id_inspection_poin || !task || !acceptance_criteria)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
-      const response = await masterTaskPm2.create({
+      const response = await masterTaskPm3.create({
         id_inspection_poin,
         task,
         acceptance_criteria,
@@ -120,7 +120,7 @@ const masterTaskPm2Controller = {
     }
   },
 
-  updateMasterPointPm2: async (req, res) => {
+  updateMasterPointPm3: async (req, res) => {
     const _id = req.params.id;
     const { id_mesin, nama_mesin, inspection_point, ms_inspection_task_pm2s } =
       req.body;
@@ -131,11 +131,11 @@ const masterTaskPm2Controller = {
     if (inspection_point) obj.inspection_point = inspection_point;
 
     try {
-      const point = await masterPointPm2.update(obj, { where: { id: _id } });
+      const point = await masterPointPm3.update(obj, { where: { id: _id } });
 
       if (ms_inspection_task_pm2s != [] || !ms_inspection_task_pm2s) {
         for (let i = 0; i < ms_inspection_task_pm2s.length; i++) {
-          const response = await masterTaskPm2.update(
+          const response = await masterTaskPm3.update(
             {
               task: ms_inspection_task_pm2s[i].task,
               acceptance_criteria:
@@ -154,29 +154,29 @@ const masterTaskPm2Controller = {
     }
   },
 
-  deleteMasterPointPm2: async (req, res) => {
+  deleteMasterPointPm3: async (req, res) => {
     const _id = req.params.id;
     try {
-      const point = await masterPointPm2.findByPk(_id, {
-        include: [{ model: masterTaskPm2 }],
+      const point = await masterPointPm3.findByPk(_id, {
+        include: [{ model: masterTaskPm3 }],
       });
 
       for (let i = 0; i < point.ms_inspection_task_pm2s.length; i++) {
-        await masterTaskPm2.destroy({
+        await masterTaskPm3.destroy({
           where: { id: point.ms_inspection_task_pm2s[i].id },
         });
       }
-      await masterPointPm2.destroy({ where: { id: _id } });
+      await masterPointPm3.destroy({ where: { id: _id } });
 
       res.status(201).json({ msg: " delete Success" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
-  deleteMasterTaskPm2: async (req, res) => {
+  deleteMasterTaskPm3: async (req, res) => {
     const _id = req.params.id;
     try {
-      await masterTaskPm2.destroy({ where: { id: _id } }),
+      await masterTaskPm3.destroy({ where: { id: _id } }),
         res.status(201).json({ msg: " delete Success" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
@@ -184,4 +184,4 @@ const masterTaskPm2Controller = {
   },
 };
 
-module.exports = masterTaskPm2Controller;
+module.exports = masterTaskPm3Controller;
