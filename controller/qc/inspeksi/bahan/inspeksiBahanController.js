@@ -83,7 +83,7 @@ const inspeksiBahanController = {
                     await InspeksiBahanResult.bulkCreate(array)
                 }
             }
-            return res.status(200).json({ data })
+            return res.status(200).json({ data,msg:'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }
@@ -104,7 +104,7 @@ const inspeksiBahanController = {
             await InspeksiBahan.update(obj, {
                 where: { id: id }
             })
-            return res.status(200).json({ data: "Update successfully!" })
+            return res.status(200).json({ msg: "Update successfully!" })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }
@@ -113,7 +113,7 @@ const inspeksiBahanController = {
         const id = req.params.id;
         try {
             await InspeksiBahan.destroy({ where: { id: id } }),
-                res.status(200).json({ data: "delete successfuly" });
+                res.status(200).json({ msg: "delete successfuly" });
         } catch (error) {
             res.status(400).json({ msg: error.message });
         }

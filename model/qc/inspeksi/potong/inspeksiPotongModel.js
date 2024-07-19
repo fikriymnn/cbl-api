@@ -48,6 +48,10 @@ const InspeksiPotong = db.define(
         status : {
             type: DataTypes.STRING,
             defaultValue: "incoming"
+        },
+        foto: {
+            type : String,
+            allowNull: true
         }
     },
     {

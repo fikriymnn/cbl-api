@@ -68,18 +68,6 @@ const InspeksiBahanResult = db.define("cs_inspeksi_bahan_result",{
         type : DataTypes.INTEGER,
         allowNull: true
     },
-    waktu_mulai : {
-        type : DataTypes.DATE,
-        allowNull: true
-    },
-    waktu_selesai : {
-        type : DataTypes.DATE,
-        allowNull: true
-    },
-    lama_pengerjaan : {
-        type : DataTypes.FLOAT,
-        allowNull: true
-    },
     foto : {
         type : DataTypes.STRING,
         allowNull: true

@@ -50,6 +50,14 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
     verifikasi : {
         type : DataTypes.STRING,
         allowNull: true
+    },
+    waktu_mulai : {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    waktu_selesai : {
+        type : DataTypes.DATE,
+        allowNull: true
     }
 },
 {
