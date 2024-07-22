@@ -10,18 +10,7 @@ const inspeksiBahanResultController = {
             res.status(400).json({ msg: error.message });
         }
     },
-    startInspeksiBahanResult: async (req, res) => {
-        try {
-            const { id } = req.params
-            await InspeksiBahanResult.update({ waktu_mulai: new Date() }, {
-                where: { id: id }
-            })
-            return res.status(200).json({ data: "Start successfully!" })
-        } catch (err) {
-            res.status(500).json({ msg: err.message })
-        }
-    },
-    stopInspeksiBahanResult: async (req, res) => {
+    updateInspeksiBahanResult: async (req, res) => {
         try {
             const { id } = req.params
             const { hasil,
@@ -33,7 +22,6 @@ const inspeksiBahanResultController = {
                 foto } = req.body
 
             let obj = {
-                waktu_selesai: new Date()
             }
             if (hasil)
                 obj.hasil = hasil

@@ -117,6 +117,26 @@ const inspeksiBahanController = {
         } catch (error) {
             res.status(400).json({ msg: error.message });
         }
+    },
+    startInspeksiBahan: async (req,res)=>{
+        const id = req.params.id;
+        const date = new Date()
+        try {
+            await InspeksiBahan.update({waktu_mulai : date},{ where: { id: id } }),
+                res.status(200).json({ msg: "start successfuly" });
+        } catch (error) {
+            res.status(400).json({ msg: error.message });
+        } 
+    },
+    stopInspeksiBahan: async (req,res)=>{
+        const id = req.params.id;
+        const date = new Date()
+        try {
+            await InspeksiBahan.update({waktu_mulai : date},{ where: { id: id } }),
+                res.status(200).json({ msg: "stop successfuly" });
+        } catch (error) {
+            res.status(400).json({ msg: error.message });
+        } 
     }
 }
 
