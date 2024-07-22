@@ -34,8 +34,6 @@ const InspeksiPotongResult = db.define(
             type: DataTypes.STRING,
             allowNull: true
         },
-
-    
     },
     {
         freezeTableName: true

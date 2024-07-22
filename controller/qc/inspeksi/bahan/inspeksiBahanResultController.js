@@ -41,7 +41,7 @@ const inspeksiBahanResultController = {
             await InspeksiBahanResult.update(obj, {
                 where: { id: id }
             })
-            return res.status(200).json({ data: "Stop successfully!" })
+            return res.status(200).json({ msg: "Update successfully!" })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }

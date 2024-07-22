@@ -53,6 +53,14 @@ const InspeksiPotong = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
