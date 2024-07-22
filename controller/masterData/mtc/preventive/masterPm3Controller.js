@@ -168,9 +168,9 @@ const masterTaskPm3Controller = {
         include: [{ model: masterTaskPm3 }],
       });
 
-      for (let i = 0; i < point.ms_inspection_task_pm2s.length; i++) {
+      for (let i = 0; i < point.ms_inspection_task_pm3s.length; i++) {
         await masterTaskPm3.destroy({
-          where: { id: point.ms_inspection_task_pm2s[i].id },
+          where: { id: point.ms_inspection_task_pm3s[i].id },
         });
       }
       await masterPointPm3.destroy({ where: { id: _id } });

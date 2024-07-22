@@ -11,9 +11,94 @@ const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 
 const Pm3Controller = {
   getPm3: async (req, res) => {
-    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
+    const {
+      nama_mesin,
+      id_inspector,
+      start_date,
+      end_date,
+      tgl,
+      thisMonth,
+      month,
+    } = req.query;
 
     let obj = {};
+    let des = [];
+    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (id_inspector) obj.id_inspector = id_inspector;
+    if (thisMonth) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+
+      const firstDayOfMonth = new Date(year, month - 1, 1);
+      const lastDayOfMonth = new Date(year, month, 0);
+      console.log(firstDayOfMonth, lastDayOfMonth);
+
+      obj.tgl_approve_from = {
+        [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+      };
+    }
+
+    if (month) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const monthIndex = month; // Bulan  dalam JavaScript dihitung dari 0
+
+      const firstDayOfMonth = new Date(year, monthIndex - 1, 1);
+      const lastDayOfMonth = new Date(year, monthIndex, 0);
+      console.log(month);
+
+      obj.tgl_approve_from = {
+        [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+      };
+    }
+
+    if (start_date && end_date) {
+      obj.tgl = {
+        [Op.between]: [
+          new Date(start_date).setHours(0, 0, 0, 0),
+          new Date(end_date).setHours(23, 59, 59, 999),
+        ],
+      };
+    } else if (start_date) {
+      obj.tgl = {
+        [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+      };
+    } else if (end_date) {
+      obj.tgl = {
+        [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+      };
+    }
+
+    try {
+      const response = await TicketPm3.findAll({
+        where: obj,
+        order: des,
+        include: [
+          {
+            model: Users,
+            as: "inspector",
+          },
+
+          {
+            model: MasterMesin,
+            as: "mesin",
+          },
+        ],
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getPm3RequestDate: async (req, res) => {
+    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
+
+    let obj = {
+      tgl_approve_from: null,
+      tgl_approve_to: null,
+    };
     let des = [];
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
@@ -87,6 +172,7 @@ const Pm3Controller = {
               "id",
               "lama_pengerjaan",
               "inspection_point",
+              "category",
               "id_ticket",
               "tgl",
               "hasil",
@@ -144,6 +230,7 @@ const Pm3Controller = {
           const point = await PointPm3.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
+            category: masterPoint[ii].category,
             tgl: new Date(),
           });
 
@@ -163,6 +250,29 @@ const Pm3Controller = {
             });
           }
         }
+      }
+
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  submitAllRequestDatePm3: async (req, res) => {
+    const { data } = req.body;
+    if (!data) return res.status(404).json({ msg: "incomplete data!!" });
+
+    try {
+      for (let i = 0; i < data.length; i++) {
+        const point = await TicketPm3.update(
+          {
+            tgl_request_from: data[i].tgl_request_from,
+            tgl_request_to: data[i].tgl_request_to,
+            tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
+            tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
+          },
+          { where: { id: data[i].id } }
+        );
       }
 
       res.status(200).json({ msg: "success" });

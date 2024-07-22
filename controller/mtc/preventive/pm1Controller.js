@@ -131,6 +131,7 @@ const Pm1Controller = {
               "id",
               "lama_pengerjaan",
               "inspection_point",
+              "category",
               "id_ticket",
               "tgl",
               "hasil",
@@ -199,6 +200,7 @@ const Pm1Controller = {
           const point = await PointPm1.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
+            category: masterPoint[ii].category,
             tgl: new Date(),
           });
 

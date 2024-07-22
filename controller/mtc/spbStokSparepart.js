@@ -377,6 +377,7 @@ const SpbStokSparepartController = {
       total_harga,
       status_pengajuan,
       tgl_aktual,
+      qty_update,
     } = req.body;
 
     let obj = {};
@@ -387,6 +388,7 @@ const SpbStokSparepartController = {
     if (total_harga) obj.total_harga = total_harga;
     if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
     if (tgl_aktual) obj.tgl_aktual = tgl_aktual;
+    if (qty_update) obj.qty_update = qty_update;
 
     try {
       await SpbStokSparepart.update(obj, { where: { id: _id } }),

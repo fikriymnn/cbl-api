@@ -1,8 +1,14 @@
-const router = require("express").Router()
-const {auth} = require("../../../../middlewares/authMiddlewares")
-const inspeksiBahanResult = require('../../../../controller/qc/inspeksi/bahan/inspeksiBahanResultController')
+const router = require("express").Router();
+const { auth } = require("../../../../middlewares/authMiddlewares");
+const inspeksiBahanResult = require("../../../../controller/qc/inspeksi/bahan/inspeksiBahanResultController");
 
-router.delete("/qc/cs/inspeksiBahanResult/:id",inspeksiBahanResult.deleteInspeksiBahanResult)
-router.put("/qc/cs/inspeksiBahanResult",inspeksiBahanResult.updateInspeksiBahanResult)
+router.delete(
+  "/qc/cs/inspeksiBahanResult/:id",
+  inspeksiBahanResult.deleteInspeksiBahanResult
+);
+router.put(
+  "/qc/cs/inspeksiBahanResult/:id",
+  inspeksiBahanResult.updateInspeksiBahanResult
+);
 
-module.exports = router
+module.exports = router;
