@@ -46,6 +46,10 @@ const inspectionPointPm1 = db.define("inspection_point_pm1", {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 });
 
 Ticketpm1.hasMany(inspectionPointPm1, {

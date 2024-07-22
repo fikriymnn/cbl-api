@@ -20,6 +20,10 @@ const inspectionPointPm2Master = db.define("ms_inspection_point_pm2", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 });
 
 masterMesin.hasMany(inspectionPointPm2Master, { foreignKey: "id_mesin" });
