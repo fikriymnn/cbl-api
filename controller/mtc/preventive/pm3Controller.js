@@ -177,8 +177,6 @@ const Pm3Controller = {
     if (!date_from || !date_to)
       return res.status(404).json({ msg: "incomplete data!!" });
 
-    console.log(_id);
-
     try {
       const point = await TicketPm3.update(
         {

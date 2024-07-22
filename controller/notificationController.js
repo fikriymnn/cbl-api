@@ -54,7 +54,6 @@ const userController = {
 
   deleteAllNotification: async (req, res) => {
     const user_id = req.params.userId;
-    console.log(user_id);
 
     try {
       await Notification.destroy({ where: { user_id: user_id } });

@@ -5,6 +5,7 @@ const authMiddlewares = {
     try {
       if (!req.cookies.access_token)
         return res.status(500).json({ msg: "pliss login" });
+
       jwt.verify(
         req.cookies.access_token,
         process.env.JWT_ACC_SECRET,

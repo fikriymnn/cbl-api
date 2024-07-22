@@ -32,7 +32,7 @@ router.put(
   "/spbServiceSparepartMonitoring/:id",
   updateMonitoringSpbServiceSparepart
 );
-router.put("/approveSpbService/:id", approveSpbServiceSparepart);
+router.put("/approveSpbService/:id", auth, approveSpbServiceSparepart);
 router.put("/tolakSpbService/:id", tolakSpbStokSparepart);
 router.put("/doneSpbServicePurchase/:id", doneSpbServiceSparepartPurchase);
 router.put("/verifikasiSpbServiceqQc/:id", verifikasiSpbServiceSparepartQc);

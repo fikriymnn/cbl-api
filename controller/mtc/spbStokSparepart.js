@@ -306,7 +306,6 @@ const SpbStokSparepartController = {
       return res.status(404).json({ msg: "incomplite data" });
 
     try {
-      console.log(sparepartRequest);
       for (let i = 0; i < sparepartRequest.length; i++) {
         const sparepart = await StokSparepart.findByPk(
           sparepartRequest[i].id_stok_sparepart
@@ -359,7 +358,6 @@ const SpbStokSparepartController = {
     if (note_verifikasi) obj.note_verifikasi = note_verifikasi;
     if (note_validasi) obj.note_validasi = note_validasi;
     if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
-    console.log(obj);
 
     try {
       await SpbStokSparepart.update(obj, { where: { id: _id } }),

@@ -358,9 +358,9 @@ const ProsessMtc = {
     const monitoring = await MasterMonitoring.findByPk(1);
 
     let status = "";
-    if (skor_mtc <= monitoring.minimal_skor) {
+    if (skor_mtc < monitoring.minimal_skor) {
       status = "temporary";
-    } else if (skor_mtc > monitoring.minimal_skor) {
+    } else if (skor_mtc >= monitoring.minimal_skor) {
       status = "monitoring";
     }
 

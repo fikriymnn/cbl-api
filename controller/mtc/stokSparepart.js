@@ -32,7 +32,7 @@ const StokSparepartController = {
       if (page && limit) {
         const length_data = await StokSparepart.count({ where: obj });
         const response = await StokSparepart.findAll({
-          order: [['id', 'DESC']],
+          order: [["id", "DESC"]],
           where: obj,
           include: [
             {
@@ -87,7 +87,7 @@ const StokSparepartController = {
       keterangan,
       umur_sparepart,
     } = req.body;
-    console.log(nama_sparepart, id_mesin, umur_sparepart);
+
     if (!nama_sparepart || !id_mesin || !umur_sparepart)
       return res.status(404).json({ msg: "incomplete data!!" });
 

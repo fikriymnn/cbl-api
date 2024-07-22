@@ -25,13 +25,13 @@ const Pm2Controller = {
         currentDate.getMonth(),
         currentDate.getDate() - (currentDate.getDay() - 2)
       );
-      console.log(startOfWeek);
+
       const endOfWeek = new Date(
         startOfWeek.getFullYear(),
         startOfWeek.getMonth(),
         startOfWeek.getDate() + 6
       );
-      console.log(endOfWeek);
+
       obj.tgl = {
         [Op.between]: [startOfWeek, endOfWeek],
       };
