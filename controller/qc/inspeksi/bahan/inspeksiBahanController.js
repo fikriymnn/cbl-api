@@ -8,20 +8,20 @@ const inspeksiBahanController = {
             const { id } = req.params
             const offset = (parseInt(page) - 1) * parseInt(limit)
             if (page && limit && status) {
-                const data = await InspeksiBahan.findAll({ limit: parseInt(limit), offset, where: { status } })
+                const data = await InspeksiBahan.findAll({order: [['createdAt', 'DESC']], limit: parseInt(limit), offset, where: { status } })
                 const length = await InspeksiBahan.count({ where: { status } })
                 return res.status(200).json({
                     data, total_page: Math.ceil(length / parseInt(limit))
                 })
             } else if (page && limit) {
-                const data = await InspeksiBahan.findAll({ offset, limit: parseInt(limit) })
+                const data = await InspeksiBahan.findAll({order: [['createdAt', 'DESC']], offset, limit: parseInt(limit) })
                 const length = await InspeksiBahan.count()
                 return res.status(200).json({
                     data, total_page: Math.ceil(length / parseInt(limit))
                 })
             }
             else if (status) {
-                const data = await InspeksiBahan.findAll({ where: { status } })
+                const data = await InspeksiBahan.findAll({order: [['createdAt', 'DESC']], where: { status } })
                 const length = await InspeksiBahan.count({ where: { status } })
                 return res.status(200).json({
                     data, total_page: Math.ceil(length / parseInt(limit))
@@ -39,7 +39,7 @@ const inspeksiBahanController = {
                 }
                 return res.status(200).json({ data })
             } else {
-                const data = await InspeksiBahan.findAll()
+                const data = await InspeksiBahan.findAll({order: [['createdAt', 'DESC']]})
                 return res.status(200).json({ data })
             }
         } catch (err) {

@@ -50,8 +50,16 @@ const InspeksiPotong = db.define(
             defaultValue: "incoming"
         },
         foto: {
-            type : String,
+            type : DataTypes.STRING,
             allowNull: true
+        },
+        waktu_mulai : {
+            type : DataTypes.DATE,
+            allowNull: true
+        },
+        waktu_selesai : {
+            type: DataTypes.DATE,
+            allowNull : true
         }
     },
     {
