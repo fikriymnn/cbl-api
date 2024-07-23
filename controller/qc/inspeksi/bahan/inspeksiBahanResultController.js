@@ -15,10 +15,11 @@ const inspeksiBahanResultController = {
       const { id } = req.params;
       const {
         hasil,
+        coating,
         hasil_kiri,
         hasil_tengah,
         hasil_kanan,
-        rata_rata,
+        hasil_rata_rata,
         keterangan_hasil,
         foto,
       } = req.body;
@@ -27,10 +28,19 @@ const inspeksiBahanResultController = {
         send: true,
       };
       if (hasil) obj.hasil = hasil;
+      if (coating) obj.coating = coating;
       if (hasil_kiri) obj.hasil_kiri = hasil_kiri;
       if (hasil_tengah) obj.hasil_tengah = hasil_tengah;
       if (hasil_kanan) obj.hasil_kanan = hasil_kanan;
-      if (rata_rata) obj.rata_rata = rata_rata;
+      if (hasil_rata_rata) {
+        const hasil_rata =
+          (parseInt(hasil_kiri) +
+            parseInt(hasil_tengah) +
+            parseInt(hasil_kanan)) /
+          3;
+        const hasil = hasil_rata.toFixed(2);
+        obj.hasil_rata_rata = hasil;
+      }
       if (keterangan_hasil) obj.keterangan_hasil = keterangan_hasil;
       if (foto) obj.foto = foto;
 
