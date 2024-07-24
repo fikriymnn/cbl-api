@@ -129,9 +129,10 @@ const inspeksiPotongController = {
     },
     stopInspeksiPotong: async (req,res)=>{
         const id = req.params.id;
+        const lama_pengerjaan = req.body.lama_pengerjaan
         const date = new Date()
         try {
-            await InspeksiPotong.update({waktu_mulai : date},{ where: { id: id } }),
+            await InspeksiPotong.update({waktu_mulai : date,lama_pengerjaan},{ where: { id: id } }),
                 res.status(200).json({ msg: "stop successfuly" });
         } catch (error) {
             res.status(400).json({ msg: error.message });
