@@ -61,6 +61,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    lama_pengerjaan : {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    }
   },
   {
     freezeTableName: true,
