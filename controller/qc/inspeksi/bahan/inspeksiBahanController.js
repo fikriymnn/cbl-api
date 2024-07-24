@@ -122,14 +122,14 @@ const inspeksiBahanController = {
   updateInspeksiBahan: async (req, res) => {
     try {
       const { id } = req.query;
-      const { hasil_rumus, no_lot, verifikasi,lama_pengerjaan } = req.body;
+      const { hasil_rumus, no_lot, verifikasi, lama_pengerjaan } = req.body;
       let obj = {
         status: "history",
       };
       if (hasil_rumus) obj.hasil_rumus = hasil_rumus;
       if (no_lot) obj.no_lot = no_lot;
-      if (verifikasi) obj.verifikasi= verifikasi;
-      if (lama_pengerjaan) obj.verifikasi= lama_pengerjaan;
+      if (verifikasi) obj.verifikasi = verifikasi;
+      if (lama_pengerjaan) obj.verifikasi = lama_pengerjaan;
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });
@@ -159,10 +159,11 @@ const inspeksiBahanController = {
   },
   stopInspeksiBahan: async (req, res) => {
     const id = req.params.id;
+    const { lama_pengerjaan } = req.body;
     const date = new Date();
     try {
       await InspeksiBahan.update(
-        { waktu_selesai: date },
+        { waktu_selesai: date, lama_pengerjaan: lama_pengerjaan },
         { where: { id: id } }
       ),
         res.status(200).json({ msg: "stop successfuly" });
