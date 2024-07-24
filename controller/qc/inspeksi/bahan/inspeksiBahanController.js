@@ -121,8 +121,8 @@ const inspeksiBahanController = {
   },
   updateInspeksiBahan: async (req, res) => {
     try {
-      const { id } = req.query;
-      const { hasil_rumus, no_lot, verifikasi } = req.body;
+      const { id } = req.params;
+      const { hasil_rumus, no_lot, verifikasi, lama_pengerjaan } = req.body;
       let obj = {
         status: "history",
       };
