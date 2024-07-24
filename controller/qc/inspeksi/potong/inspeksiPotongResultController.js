@@ -12,6 +12,7 @@ const inspeksiPotongResultController = {
       if (hasil_check) obj.hasil_check = hasil_check;
       if (standar) obj.standar = standar;
       if (keterangan) obj.keterangan = keterangan;
+      
 
       await InspeksiPotongResult.update(obj, {
         where: { id: id },

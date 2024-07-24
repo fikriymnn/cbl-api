@@ -97,7 +97,7 @@ const inspeksiPotongController = {
     updateInspeksiPotong: async (req, res) => {
         try {
             const { id } = req.query
-            const { mesin, foto } = req.body
+            const { mesin, foto,lama_pengerjaan } = req.body
             let obj = {
                 status: "history"
             }
@@ -106,6 +106,9 @@ const inspeksiPotongController = {
                 obj.mesin = mesin
             if (foto)
                 obj.foto = foto
+            if(lama_pengerjaan)
+                obj.lama_pengerjaan = lama_pengerjaan
+            
             await InspeksiPotong.update(obj, {
                 where: { id: id }
             })

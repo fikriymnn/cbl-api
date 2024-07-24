@@ -58,6 +58,10 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
     waktu_selesai : {
         type : DataTypes.DATE,
         allowNull: true
+    },
+    lama_pengerjaan : {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
 },
 {
