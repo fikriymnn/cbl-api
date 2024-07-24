@@ -96,7 +96,7 @@ const inspeksiPotongController = {
     },
     updateInspeksiPotong: async (req, res) => {
         try {
-            const { id } = req.query
+            const { id } = req.params
             const { mesin, foto,lama_pengerjaan } = req.body
             let obj = {
                 status: "history"
