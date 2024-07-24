@@ -468,6 +468,7 @@ const SpbStokSparepartController = {
         {
           status_pengajuan: "section head verifikasi", //nanti jadi qc verifikasi
           status_spb: "done",
+          tgl_aktual: new Date(),
         },
         { where: { id: _id } }
       );

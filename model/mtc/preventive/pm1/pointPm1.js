@@ -48,7 +48,7 @@ const inspectionPointPm1 = db.define("inspection_point_pm1", {
   },
   category: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
 });
 
