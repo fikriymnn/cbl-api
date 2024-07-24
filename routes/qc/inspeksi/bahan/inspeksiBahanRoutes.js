@@ -12,6 +12,6 @@ router.put(
 );
 //start and stop
 router.get("/qc/cs/inspeksiBahan/start/:id", inspeksiBahan.startInspeksiBahan);
-router.get("/qc/cs/inspeksiBahan/stop/:id", inspeksiBahan.stopInspeksiBahan);
+router.put("/qc/cs/inspeksiBahan/stop/:id", inspeksiBahan.stopInspeksiBahan);
 
 module.exports = router;

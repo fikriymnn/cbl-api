@@ -159,11 +159,11 @@ const inspeksiBahanController = {
   },
   stopInspeksiBahan: async (req, res) => {
     const id = req.params.id;
-    const { lama_pengerjaan } = req.body;
+    const lama_pengerjaan = req.body.lama_pengerjaan;
     const date = new Date();
     try {
       await InspeksiBahan.update(
-        { waktu_selesai: date, lama_pengerjaan: lama_pengerjaan },
+        { waktu_selesai: date, lama_pengerjaan },
         { where: { id: id } }
       ),
         res.status(200).json({ msg: "stop successfuly" });
