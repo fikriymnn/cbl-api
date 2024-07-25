@@ -3,6 +3,7 @@ const {
   getPm3,
   getPm3ById,
   getPm3RequestDate,
+
   createTicketPm3,
   responseTicketPm3,
   createPointPm3,
@@ -17,6 +18,7 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get("/pm3", getPm3);
 router.get("/pm3/requestDate", getPm3RequestDate);
+
 router.get("/pm3/:id", getPm3ById);
 router.post("/pm3/create", createTicketPm3);
 router.put("/pm3/requestDate/:id", requestDatePm3);

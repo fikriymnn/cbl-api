@@ -19,6 +19,7 @@ const Pm3Controller = {
       tgl,
       thisMonth,
       month,
+      year,
     } = req.query;
 
     let obj = {};
@@ -50,6 +51,16 @@ const Pm3Controller = {
 
       obj.tgl_approve_from = {
         [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+      };
+    }
+
+    if (year) {
+      const today = new Date();
+      const currentYear = today.getFullYear();
+
+      obj.tgl_approve_from = {
+        [Op.gte]: new Date(`${currentYear}-01-01`),
+        [Op.lte]: new Date(`${currentYear}-12-31`),
       };
     }
 
