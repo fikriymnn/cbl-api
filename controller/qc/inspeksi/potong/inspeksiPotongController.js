@@ -81,11 +81,11 @@ const inspeksiPotongController = {
         tanggal,
         no_io,
         no_jo,
-        mesin,
         operator,
         shift,
         jam,
         item,
+        mesin
       } = req.body;
 
       if (!jenis_potong)
