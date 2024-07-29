@@ -393,19 +393,21 @@ const Pm3Controller = {
       );
       const dataPoint = await PointPm3.findOne({
         where: { id: _id },
-        attributes: ["id", "id_ticket", "hasil"],
+        attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
       if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
         const ticketPm3 = await TicketPm3.findOne({
           where: { id: dataPoint.id_ticket },
         });
-        const ticketOs3 = await TicketOs3.create({
-          id_point_pm3: dataPoint.id,
-          nama_mesin: ticketPm3.nama_mesin,
-          sumber: "pm3",
-          status_tiket: "open",
-        });
+        if (dataPoint.category != "man") {
+          const ticketOs3 = await TicketOs3.create({
+            id_point_pm3: dataPoint.id,
+            nama_mesin: ticketPm3.nama_mesin,
+            sumber: "pm3",
+            status_tiket: "open",
+          });
+        }
       }
       res.status(200).json({ msg: "success" });
     } catch (error) {
