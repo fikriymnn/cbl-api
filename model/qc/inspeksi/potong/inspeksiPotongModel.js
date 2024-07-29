@@ -43,7 +43,7 @@ const InspeksiPotong = db.define(
     },
     inspector: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,

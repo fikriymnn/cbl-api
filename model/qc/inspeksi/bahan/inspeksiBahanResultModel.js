@@ -58,6 +58,14 @@ const InspeksiBahanResult = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    hasil_panjang: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    hasil_lebar : {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     keterangan_hasil: {
       type: DataTypes.STRING,
       allowNull: true,

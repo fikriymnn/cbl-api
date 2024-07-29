@@ -33,7 +33,7 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
     },
     inspector : {
         type : DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     jumlah : {
         type: DataTypes.STRING,

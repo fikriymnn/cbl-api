@@ -40,10 +40,15 @@ const inspeksiBahanController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id) {
+      } else if (id && req.user.name) {
         const data = await InspeksiBahan.findByPk(id, {
           include: { model: InspeksiBahanResult, as: "inspeksi_bahan_result" },
         });
+
+        if(data && !data?.inspector){
+          await InspeksiBahan.update({inspector: req.user.name},{where: {id}})
+        }
+      
         let array = [];
         data.inspeksi_bahan_result.forEach((value) => {
           value.metode = value.metode?.split("|");
@@ -89,8 +94,6 @@ const inspeksiBahanController = {
       else if (!ukuran)
         return res.status(400).json({ msg: "Field ukuran kosong!" });
       else if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
-      else if (!inspector)
-        return res.status(400).json({ msg: "Field inspector kosong!" });
       else if (!jumlah)
         return res.status(400).json({ msg: "Field jumlah kosong!" });
 
