@@ -4,6 +4,10 @@ const Mesin = require("../model/masterData/masterMesinModel");
 const MasterMesin = require("../model/masterData/masterMesinModel");
 const PointPm1 = require("../model/mtc/preventive/pm1/pointPm1");
 const TicketPm1 = require("../model/mtc/preventive/pm1/ticketPm1");
+const PointPm2 = require("../model/mtc/preventive/pm2/pointPm2");
+const TicketPm2 = require("../model/mtc/preventive/pm2/ticketPm2");
+const PointPm3 = require("../model/mtc/preventive/pm3/pointPm3");
+const TicketPm3 = require("../model/mtc/preventive/pm3/ticketPm3");
 const ProsesMtcOs3 = require("../model/mtc/prosesMtcOs3");
 
 const ticketOs3Controller = {
@@ -53,18 +57,36 @@ const ticketOs3Controller = {
                     model: Users,
                     as: "inspector",
                   },
-                  // {
-                  //   model: Users,
-                  //   as: "leader",
-                  // },
-                  // {
-                  //   model: Users,
-                  //   as: "supervisor",
-                  // },
-                  // {
-                  //   model: Users,
-                  //   as: "ka_bag",
-                  // },
+                ],
+              },
+            ],
+          },
+          {
+            model: PointPm2,
+            as: "point_pm2",
+            include: [
+              {
+                model: TicketPm2,
+                include: [
+                  {
+                    model: Users,
+                    as: "inspector",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: PointPm3,
+            as: "point_pm3",
+            include: [
+              {
+                model: TicketPm3,
+                include: [
+                  {
+                    model: Users,
+                    as: "inspector",
+                  },
                 ],
               },
             ],

@@ -23,7 +23,7 @@ const Pm2Controller = {
       const startOfWeek = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth(),
-        currentDate.getDate() - (currentDate.getDay() - 2)
+        currentDate.getDate() - (currentDate.getDay() - 1)
       );
 
       const endOfWeek = new Date(
@@ -31,6 +31,8 @@ const Pm2Controller = {
         startOfWeek.getMonth(),
         startOfWeek.getDate() + 6
       );
+
+      console.log(startOfWeek, endOfWeek);
 
       obj.tgl = {
         [Op.between]: [startOfWeek, endOfWeek],
@@ -276,7 +278,10 @@ const Pm2Controller = {
         attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
-      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
+      console.log(dataPoint.hasil);
+
+      if (dataPoint.hasil == "jelek" || "tidak terpasang") {
+        console.log(1);
         const ticketPm2 = await TicketPm2.findOne({
           where: { id: dataPoint.id_ticket },
         });
