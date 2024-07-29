@@ -4,13 +4,14 @@ const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspe
 const inspeksiPotongController = {
   getInspeksiPotong: async (req, res) => {
     try {
-      const { status, jenis_potong, page, limit } = req.query;
+      const { status, jenis_potong,mesin, page, limit } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (page && limit && (status || jenis_potong)) {
+      if (page && limit && (status || jenis_potong||mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
+        if (mesin) obj.mesin = mesin;
         const data = await InspeksiPotong.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
@@ -33,9 +34,11 @@ const inspeksiPotongController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status || jenis_potong) {
+      } else if (status || jenis_potong||mesin) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
+        if (mesin) obj.mesin = mesin;
+
         const data = await InspeksiPotong.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
@@ -45,13 +48,18 @@ const inspeksiPotongController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id) {
+      } else if (id&&req.user.name) {
         const data = await InspeksiPotong.findByPk(id, {
           include: {
             model: InspeksiPotongResult,
             as: "inspeksi_potong_result",
           },
         });
+          
+        if(data && !data?.inspector){
+            await InspeksiPotong.update({inspector: req.user.name},{where: {id}})
+          }
+
         if (array.length == 9) {
           data.inspeksi_bahan_result = array;
         }
@@ -73,12 +81,11 @@ const inspeksiPotongController = {
         tanggal,
         no_io,
         no_jo,
-        mesin,
         operator,
         shift,
         jam,
         item,
-        inspector,
+        mesin
       } = req.body;
 
       if (!jenis_potong)
@@ -93,15 +100,12 @@ const inspeksiPotongController = {
       if (!shift) return res.status(400).json({ msg: "Field shift kosong!" });
       if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
       if (!item) return res.status(400).json({ msg: "Field item kosong!" });
-      if (!inspector)
-        return res.status(400).json({ msg: "Field inspector kosong!" });
 
       const data_exist = await InspeksiPotong.findAll({
         order: [["createdAt", "DESC"]],
         limit: 1,
       });
-      console.log(data_exist);
-      if (data_exist || data_exist.length > 0) {
+      if ((data_exist || data_exist.length > 0)&&mesin==data_exist[0].mesin) {
         await InspeksiPotong.update(
           { status: "history" },
           { where: { id: data_exist[0].id } }
@@ -117,7 +121,6 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
-        inspector,
       });
 
       if (data) {
