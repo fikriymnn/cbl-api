@@ -79,7 +79,6 @@ const inspeksiBahanController = {
         jenis_kertas,
         ukuran,
         jam,
-        inspector,
         jumlah,
       } = req.body;
 
@@ -104,7 +103,6 @@ const inspeksiBahanController = {
         jenis_kertas,
         ukuran,
         jam,
-        inspector,
         jumlah,
       });
       if (data) {

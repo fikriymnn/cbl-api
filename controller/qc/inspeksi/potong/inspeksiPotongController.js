@@ -86,7 +86,6 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
-        inspector,
       } = req.body;
 
       if (!jenis_potong)
@@ -122,7 +121,6 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
-        inspector,
       });
 
       if (data) {
