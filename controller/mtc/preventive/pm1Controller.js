@@ -349,7 +349,14 @@ const Pm1Controller = {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
 
+    if (!catatan) return res.status(400).json({ msg: "catatan wajib di isi" });
+
     try {
+      const checkPointDone = await PointPm1.findAll({
+        where: { id_ticket: _id, hasil: null },
+      });
+      if (checkPointDone.length > 0)
+        return res.status(400).json({ msg: "Point PM Wajib Di isi Semua" });
       const response = await TicketPm1.update(
         {
           waktu_selesai: new Date(),

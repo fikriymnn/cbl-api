@@ -4,11 +4,11 @@ const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspe
 const inspeksiPotongController = {
   getInspeksiPotong: async (req, res) => {
     try {
-      const { status, jenis_potong,mesin, page, limit } = req.query;
+      const { status, jenis_potong, mesin, page, limit } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (page && limit && (status || jenis_potong||mesin)) {
+      if (page && limit && (status || jenis_potong || mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
         if (mesin) obj.mesin = mesin;
@@ -34,7 +34,7 @@ const inspeksiPotongController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status || jenis_potong||mesin) {
+      } else if (status || jenis_potong || mesin) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
         if (mesin) obj.mesin = mesin;
@@ -48,21 +48,21 @@ const inspeksiPotongController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id&&req.user.name) {
+      } else if (id && req.user.name) {
         const data = await InspeksiPotong.findByPk(id, {
           include: {
             model: InspeksiPotongResult,
             as: "inspeksi_potong_result",
           },
         });
-          
-        if(data && !data?.inspector){
-            await InspeksiPotong.update({inspector: req.user.name},{where: {id}})
-          }
 
-        if (array.length == 9) {
-          data.inspeksi_bahan_result = array;
+        if (data && !data?.inspector) {
+          await InspeksiPotong.update(
+            { inspector: req.user.name },
+            { where: { id } }
+          );
         }
+
         return res.status(200).json({ data });
       } else {
         const data = await InspeksiPotong.findAll({
@@ -85,7 +85,7 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
-        mesin
+        mesin,
       } = req.body;
 
       if (!jenis_potong)
@@ -105,7 +105,10 @@ const inspeksiPotongController = {
         order: [["createdAt", "DESC"]],
         limit: 1,
       });
-      if ((data_exist || data_exist.length > 0)&&mesin==data_exist[0].mesin) {
+      if (
+        (data_exist || data_exist.length > 0) &&
+        mesin == data_exist[0].mesin
+      ) {
         await InspeksiPotong.update(
           { status: "history" },
           { where: { id: data_exist[0].id } }
@@ -125,10 +128,18 @@ const inspeksiPotongController = {
 
       if (data) {
         let array = [];
-        master_data_fix.forEach((value) => {
-          value.id_inspeksi_potong = data.id;
-          array.push(value);
-        });
+        if (jenis_potong == "potong jadi") {
+          master_data_fix_jadi.forEach((value) => {
+            value.id_inspeksi_potong = data.id;
+            array.push(value);
+          });
+        } else {
+          master_data_fix.forEach((value) => {
+            value.id_inspeksi_potong = data.id;
+            array.push(value);
+          });
+        }
+
         if (array.length == 4) {
           await InspeksiPotongResult.bulkCreate(array);
         }
@@ -174,12 +185,42 @@ const inspeksiPotongController = {
     const date = new Date();
     try {
       await InspeksiPotong.update(
-        { waktu_mulai: date, lama_pengerjaan },
+        { waktu_selesai: date, lama_pengerjaan },
         { where: { id: id } }
       ),
         res.status(200).json({ msg: "stop successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
+    }
+  },
+  doneInspeksiPotong: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { hasil_check } = req.body;
+      let obj = {
+        status: "history",
+      };
+
+      const inspeksi = await InspeksiPotong.update(obj, {
+        where: { id: id },
+      });
+
+      for (let i = 0; i < hasil_check.length; i++) {
+        await InspeksiPotongResult.update(
+          {
+            hasil_check: hasil_check[i].hasil_check,
+            keterangan: hasil_check[i].keterangan,
+            standar: hasil_check[i].standar,
+            send: true,
+          },
+          {
+            where: { id: hasil_check[i].id },
+          }
+        );
+      }
+      return res.status(200).json({ msg: "Update successfully!" });
+    } catch (err) {
+      res.status(400).json({ msg: err.message });
     }
   },
 };
@@ -200,6 +241,25 @@ const master_data_fix = [
   {
     no: 4,
     point_check: "Arah Serat",
+    standar: "Mounting di BOM",
+  },
+];
+const master_data_fix_jadi = [
+  {
+    no: 1,
+    point_check: "Register",
+  },
+  {
+    no: 2,
+    point_check: "Ukuran",
+  },
+  {
+    no: 3,
+    point_check: "Ketajaman Pisau",
+  },
+  {
+    no: 4,
+    point_check: "Bentuk Jadi",
     standar: "Mounting di BOM",
   },
 ];
