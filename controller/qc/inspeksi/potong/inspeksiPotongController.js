@@ -152,7 +152,7 @@ const inspeksiPotongController = {
   updateInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { mesin, foto, lama_pengerjaan } = req.body;
+      const { mesin, foto, lama_pengerjaan,waktu_selesai } = req.body;
       let obj = {
         status: "history",
       };
@@ -160,6 +160,7 @@ const inspeksiPotongController = {
       if (mesin) obj.mesin = mesin;
       if (foto) obj.foto = foto;
       if (lama_pengerjaan) obj.lama_pengerjaan = lama_pengerjaan;
+      if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
 
       await InspeksiPotong.update(obj, {
         where: { id: id },
