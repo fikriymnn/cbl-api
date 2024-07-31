@@ -152,7 +152,7 @@ const inspeksiPotongController = {
   updateInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { mesin, foto, lama_pengerjaan,waktu_selesai } = req.body;
+      const { mesin, foto, lama_pengerjaan, waktu_selesai } = req.body;
       let obj = {
         status: "history",
       };
@@ -197,9 +197,12 @@ const inspeksiPotongController = {
   doneInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_check } = req.body;
+      const { hasil_check, lama_pengerjaan } = req.body;
+      const date = new Date();
       let obj = {
         status: "history",
+        waktu_selesai: date,
+        lama_pengerjaan: lama_pengerjaan,
       };
 
       const inspeksi = await InspeksiPotong.update(obj, {
@@ -212,6 +215,8 @@ const inspeksiPotongController = {
             hasil_check: hasil_check[i].hasil_check,
             keterangan: hasil_check[i].keterangan,
             standar: hasil_check[i].standar,
+            hasil_panjang: hasil_check[i].hasil_panjang,
+            hasil_lebar: hasil_check[i].hasil_lebar,
             send: true,
           },
           {

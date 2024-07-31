@@ -113,6 +113,10 @@ const Ticket = db.define(
       allowNull: false,
       defaultValue: "pending",
     },
+    status_qc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     waktu_respon_qc: {
       type: DataTypes.DATE,
       allowNull: true,

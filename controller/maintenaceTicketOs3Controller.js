@@ -3,9 +3,12 @@ const Users = require("../model/userModel");
 const Mesin = require("../model/masterData/masterMesinModel");
 const MasterMesin = require("../model/masterData/masterMesinModel");
 const PointPm1 = require("../model/mtc/preventive/pm1/pointPm1");
+const TaskPm1 = require("../model/mtc/preventive/pm1/taskPm1");
 const TicketPm1 = require("../model/mtc/preventive/pm1/ticketPm1");
+const TaskPm2 = require("../model/mtc/preventive/pm2/taskPm2");
 const PointPm2 = require("../model/mtc/preventive/pm2/pointPm2");
 const TicketPm2 = require("../model/mtc/preventive/pm2/ticketPm2");
+const TaskPm3 = require("../model/mtc/preventive/pm3/taskPm3");
 const PointPm3 = require("../model/mtc/preventive/pm3/pointPm3");
 const TicketPm3 = require("../model/mtc/preventive/pm3/ticketPm3");
 const ProsesMtcOs3 = require("../model/mtc/prosesMtcOs3");
@@ -51,6 +54,9 @@ const ticketOs3Controller = {
             as: "point_pm1",
             include: [
               {
+                model: TaskPm1,
+              },
+              {
                 model: TicketPm1,
                 include: [
                   {
@@ -66,6 +72,9 @@ const ticketOs3Controller = {
             as: "point_pm2",
             include: [
               {
+                model: TaskPm2,
+              },
+              {
                 model: TicketPm2,
                 include: [
                   {
@@ -80,6 +89,9 @@ const ticketOs3Controller = {
             model: PointPm3,
             as: "point_pm3",
             include: [
+              {
+                model: TaskPm3,
+              },
               {
                 model: TicketPm3,
                 include: [

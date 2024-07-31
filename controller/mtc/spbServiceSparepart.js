@@ -298,13 +298,12 @@ const SpbServiceSparepartController = {
       return res.status(404).json({ msg: "incomplite data" });
 
     try {
+      console.log(serviceRequest);
       if (
         serviceRequest != [] ||
         serviceRequest != null ||
-        serviceRequest.length != 0
+        serviceRequest.length > 0
       ) {
-        console.log(serviceRequest);
-
         for (let i = 0; i < serviceRequest.length; i++) {
           if (serviceRequest[i].sumber == "kebutuhan") {
             const sparepart = await MasterSparepart.findByPk(
@@ -360,8 +359,9 @@ const SpbServiceSparepartController = {
       if (
         sparepartRequest != [] ||
         sparepartRequest != null ||
-        sparepartRequest.length != 0
+        sparepartRequest.length > 0
       ) {
+        console.log(sparepartRequest);
         for (let i = 0; i < sparepartRequest.length; i++) {
           const sparepart = await StokSparepart.findByPk(
             sparepartRequest[i].id_stok_sparepart

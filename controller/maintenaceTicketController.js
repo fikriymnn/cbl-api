@@ -282,11 +282,14 @@ const ticketController = {
 
   validasiQcTiket: async (req, res) => {
     const _id = req.params.id;
+    const { note_qc } = req.body;
 
     let obj = {
       bagian_tiket: "incoming",
       id_respon_qc: req.user.id,
+      status_qc: "di validasi",
       waktu_respon_qc: new Date(),
+      note_qc: note_qc,
     };
     try {
       await Ticket.update(obj, { where: { id: _id } }),
@@ -302,6 +305,7 @@ const ticketController = {
 
     let obj = {
       bagian_tiket: "reject",
+      status_qc: "di tolak",
       id_respon_qc: req.user.id,
       waktu_respon_qc: new Date(),
       note_qc: note_qc,

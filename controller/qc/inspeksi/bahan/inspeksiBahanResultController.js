@@ -21,6 +21,8 @@ const inspeksiBahanResultController = {
         hasil_kanan,
         hasil_rata_rata,
         keterangan_hasil,
+        hasil_lebar,
+        hasil_panjang,
         foto,
       } = req.body;
 
@@ -41,6 +43,8 @@ const inspeksiBahanResultController = {
         const hasil = hasil_rata.toFixed(2);
         obj.hasil_rata_rata = hasil;
       }
+      if (hasil_panjang) obj.hasil_panjang = hasil_panjang;
+      if (hasil_lebar) obj.hasil_lebar = hasil_lebar;
       if (keterangan_hasil) obj.keterangan_hasil = keterangan_hasil;
       if (foto) obj.foto = foto;
 

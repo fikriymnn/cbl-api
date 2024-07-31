@@ -174,6 +174,7 @@ const ProsessMtc = {
           limit: parseInt(limit),
           offset: parseInt(offset),
           where: obj,
+          order: [["waktu_selesai", "DESC"]],
           include: [
             {
               model: Users,
@@ -409,41 +410,41 @@ const ProsessMtc = {
             }
           );
 
-        const requestSpbService = await SpbService.findAll({
-          where: {
-            id_proses_os2: id_proses,
-            status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
-          },
-        });
+        // const requestSpbService = await SpbService.findAll({
+        //   where: {
+        //     id_proses_os2: id_proses,
+        //     status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
+        //   },
+        // });
 
-        for (
-          let indexService = 0;
-          indexService < requestSpbService.length;
-          indexService++
-        ) {
-          if (
-            requestSpbService != [] ||
-            requestSpbService != null ||
-            requestSpbService.length != 0
-          ) {
-            //console.log(requestSpbService[0].id_master_sparepart);
-            if (requestSpbService) {
-              await MasterSparepart.update(
-                {
-                  jenis_part: "service",
-                  umur_service: 360,
-                  tgl_pasang: new Date(),
-                  tgl_rusak: requestSpbService[indexService].tgl_spb,
-                },
-                {
-                  where: {
-                    id: requestSpbService[indexService].id_master_sparepart,
-                  },
-                }
-              );
-            }
-          }
-        }
+        // for (
+        //   let indexService = 0;
+        //   indexService < requestSpbService.length;
+        //   indexService++
+        // ) {
+        //   if (
+        //     requestSpbService != [] ||
+        //     requestSpbService != null ||
+        //     requestSpbService.length != 0
+        //   ) {
+        //     //console.log(requestSpbService[0].id_master_sparepart);
+        //     if (requestSpbService) {
+        //       await MasterSparepart.update(
+        //         {
+        //           jenis_part: "service",
+        //           umur_service: 360,
+        //           tgl_pasang: new Date(),
+        //           tgl_rusak: requestSpbService[indexService].tgl_spb,
+        //         },
+        //         {
+        //           where: {
+        //             id: requestSpbService[indexService].id_master_sparepart,
+        //           },
+        //         }
+        //       );
+        //     }
+        //   }
+        // }
 
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
@@ -491,87 +492,87 @@ const ProsessMtc = {
 
         await MasalahSparepart.bulkCreate(sparepart_masalah_data);
 
-        for (let i = 0; i < sparepart_masalah_data.length; i++) {
-          StokSparepart.findOne({
-            where: { id: sparepart_masalah_data[i].id_stok_sparepart },
-          }).then(async (stokSparepart) => {
-            const stok = stokSparepart.stok - sparepart_masalah_data[i].use_qty;
-            let percentage = 1;
-            let umurGrade = 100;
-            if (stokSparepart.grade == "A") {
-              percentage = 1;
-              umurGrade = 100;
-            } else if (stokSparepart.grade == "B") {
-              percentage = 0.8;
-              umurGrade = 80;
-            } else if (stokSparepart.grade == "C") {
-              percentage = 0.6;
-              umurGrade = 60;
-            } else if (stokSparepart.grade == "D") {
-              percentage = 0.4;
-              umurGrade = 40;
-            } else if (stokSparepart.grade == "E") {
-              percentage = 0.2;
-              umurGrade = 20;
-            }
+        // for (let i = 0; i < sparepart_masalah_data.length; i++) {
+        //   StokSparepart.findOne({
+        //     where: { id: sparepart_masalah_data[i].id_stok_sparepart },
+        //   }).then(async (stokSparepart) => {
+        //     const stok = stokSparepart.stok - sparepart_masalah_data[i].use_qty;
+        //     let percentage = 1;
+        //     let umurGrade = 100;
+        //     if (stokSparepart.grade == "A") {
+        //       percentage = 1;
+        //       umurGrade = 100;
+        //     } else if (stokSparepart.grade == "B") {
+        //       percentage = 0.8;
+        //       umurGrade = 80;
+        //     } else if (stokSparepart.grade == "C") {
+        //       percentage = 0.6;
+        //       umurGrade = 60;
+        //     } else if (stokSparepart.grade == "D") {
+        //       percentage = 0.4;
+        //       umurGrade = 40;
+        //     } else if (stokSparepart.grade == "E") {
+        //       percentage = 0.2;
+        //       umurGrade = 20;
+        //     }
 
-            const umur = stokSparepart.umur_sparepart * percentage;
+        //     const umur = stokSparepart.umur_sparepart * percentage;
 
-            await MasterSparepart.update(
-              {
-                nama_sparepart: stokSparepart.nama_sparepart,
-                umur_a: stokSparepart.umur_sparepart,
-                umur_grade: umurGrade,
-                grade_2: stokSparepart.grade,
-                actual_umur: umur,
-                sisa_umur: umur,
-                tgl_pasang: new Date(),
-                tgl_rusak: ticketMtc.createdAt,
-                jenis_part: "ganti",
-              },
-              { where: { id: sparepart_masalah_data[i].id_ms_sparepart } }
-            );
-            await StokSparepart.update(
-              { stok: stok },
-              { where: { id: stokSparepart.id } }
-            );
-          });
-        }
-        const requestSpbService = await SpbService.findAll({
-          where: {
-            id_proses_os2: id_proses,
-            status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
-          },
-        });
+        //     await MasterSparepart.update(
+        //       {
+        //         nama_sparepart: stokSparepart.nama_sparepart,
+        //         umur_a: stokSparepart.umur_sparepart,
+        //         umur_grade: umurGrade,
+        //         grade_2: stokSparepart.grade,
+        //         actual_umur: umur,
+        //         sisa_umur: umur,
+        //         tgl_pasang: new Date(),
+        //         tgl_rusak: ticketMtc.createdAt,
+        //         jenis_part: "ganti",
+        //       },
+        //       { where: { id: sparepart_masalah_data[i].id_ms_sparepart } }
+        //     );
+        //     await StokSparepart.update(
+        //       { stok: stok },
+        //       { where: { id: stokSparepart.id } }
+        //     );
+        //   });
+        // }
+        // const requestSpbService = await SpbService.findAll({
+        //   where: {
+        //     id_proses_os2: id_proses,
+        //     status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
+        //   },
+        // });
 
-        for (
-          let indexService = 0;
-          indexService < requestSpbService.length;
-          indexService++
-        ) {
-          if (
-            requestSpbService != [] ||
-            requestSpbService != null ||
-            requestSpbService.length != 0
-          ) {
-            //console.log(requestSpbService[0].id_master_sparepart);
-            if (requestSpbService) {
-              await MasterSparepart.update(
-                {
-                  jenis_part: "service",
-                  umur_service: 360,
-                  tgl_pasang: new Date(),
-                  tgl_rusak: requestSpbService[indexService].tgl_spb,
-                },
-                {
-                  where: {
-                    id: requestSpbService[indexService].id_master_sparepart,
-                  },
-                }
-              );
-            }
-          }
-        }
+        // for (
+        //   let indexService = 0;
+        //   indexService < requestSpbService.length;
+        //   indexService++
+        // ) {
+        //   if (
+        //     requestSpbService != [] ||
+        //     requestSpbService != null ||
+        //     requestSpbService.length != 0
+        //   ) {
+        //     //console.log(requestSpbService[0].id_master_sparepart);
+        //     if (requestSpbService) {
+        //       await MasterSparepart.update(
+        //         {
+        //           jenis_part: "service",
+        //           umur_service: 360,
+        //           tgl_pasang: new Date(),
+        //           tgl_rusak: requestSpbService[indexService].tgl_spb,
+        //         },
+        //         {
+        //           where: {
+        //             id: requestSpbService[indexService].id_master_sparepart,
+        //           },
+        //         }
+        //       );
+        //     }
+        //   }
+        // }
 
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       }
@@ -607,6 +608,7 @@ const ProsessMtc = {
           note_qc: note_qc,
           id_qc: id_qc,
           waktu_selesai: new Date(),
+          status_qc: "approved",
         },
         {
           where: {
@@ -627,6 +629,7 @@ const ProsessMtc = {
             const stok = stokSparepart.stok - masalahSparepart[i].use_qty;
             let percentage = 1;
             let umurGrade = 100;
+
             if (stokSparepart.grade == "A") {
               percentage = 1;
               umurGrade = 100;
@@ -722,6 +725,8 @@ const ProsessMtc = {
           note_qc: note_qc,
           id_qc: id_qc,
           status_proses: "qc rejected",
+          waktu_selesai: new Date(),
+          status_qc: "rejected",
         },
         {
           where: {
