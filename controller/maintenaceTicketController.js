@@ -240,6 +240,7 @@ const ticketController = {
         id_kendala: id_kendala,
         nama_kendala: nama_kendala,
         kode_ticket: kodeTicket,
+        bagian_tiket: "incoming",
       }),
         createNotification(
           "maintenance",

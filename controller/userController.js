@@ -13,7 +13,7 @@ const userController = {
 
     try {
       const response = await Users.findAll(
-        { where: obj },
+        { where: obj,order: [['id', 'DESC']] },
         {
           attributes: [
             "id",
