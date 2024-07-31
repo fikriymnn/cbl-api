@@ -131,6 +131,7 @@ const Pm1Controller = {
               "id",
               "lama_pengerjaan",
               "inspection_point",
+              "category",
               "id_ticket",
               "tgl",
               "hasil",
@@ -199,6 +200,7 @@ const Pm1Controller = {
           const point = await PointPm1.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
+            category: masterPoint[ii].category,
             tgl: new Date(),
           });
 
@@ -235,6 +237,7 @@ const Pm1Controller = {
       const point = await PointPm1.create({
         id_ticket: id_ticket,
         inspection_point: inspection_point.inspection_point,
+        category: inspection_point.category,
         tgl: new Date(),
       });
 
@@ -303,19 +306,21 @@ const Pm1Controller = {
       );
       const dataPoint = await PointPm1.findOne({
         where: { id: _id },
-        attributes: ["id", "id_ticket", "hasil"],
+        attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
       if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
         const ticketPm1 = await TicketPm1.findOne({
           where: { id: dataPoint.id_ticket },
         });
-        const ticketOs3 = await TicketOs3.create({
-          id_point_pm1: dataPoint.id,
-          nama_mesin: ticketPm1.nama_mesin,
-          sumber: "pm1",
-          status_tiket: "open",
-        });
+        if (dataPoint.category != "man") {
+          await TicketOs3.create({
+            id_point_pm1: dataPoint.id,
+            nama_mesin: ticketPm1.nama_mesin,
+            sumber: "pm1",
+            status_tiket: "open",
+          });
+        }
       }
       res.status(200).json({ msg: "success" });
     } catch (error) {
@@ -344,7 +349,14 @@ const Pm1Controller = {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
 
+    if (!catatan) return res.status(400).json({ msg: "catatan wajib di isi" });
+
     try {
+      const checkPointDone = await PointPm1.findAll({
+        where: { id_ticket: _id, hasil: null },
+      });
+      if (checkPointDone.length > 0)
+        return res.status(400).json({ msg: "Point PM Wajib Di isi Semua" });
       const response = await TicketPm1.update(
         {
           waktu_selesai: new Date(),

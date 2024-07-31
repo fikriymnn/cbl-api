@@ -11,9 +11,105 @@ const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
 
 const Pm3Controller = {
   getPm3: async (req, res) => {
-    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
+    const {
+      nama_mesin,
+      id_inspector,
+      start_date,
+      end_date,
+      tgl,
+      thisMonth,
+      month,
+      year,
+    } = req.query;
 
     let obj = {};
+    let des = [];
+    if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (id_inspector) obj.id_inspector = id_inspector;
+    if (thisMonth) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+
+      const firstDayOfMonth = new Date(year, month - 1, 1);
+      const lastDayOfMonth = new Date(year, month, 0);
+      console.log(firstDayOfMonth, lastDayOfMonth);
+
+      obj.tgl_approve_from = {
+        [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+      };
+    }
+
+    if (month) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const monthIndex = month; // Bulan  dalam JavaScript dihitung dari 0
+
+      const firstDayOfMonth = new Date(year, monthIndex - 1, 1);
+      const lastDayOfMonth = new Date(year, monthIndex, 0);
+      console.log(month);
+
+      obj.tgl_approve_from = {
+        [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+      };
+    }
+
+    if (year) {
+      const today = new Date();
+      const currentYear = today.getFullYear();
+
+      obj.tgl_approve_from = {
+        [Op.gte]: new Date(`${currentYear}-01-01`),
+        [Op.lte]: new Date(`${currentYear}-12-31`),
+      };
+    }
+
+    if (start_date && end_date) {
+      obj.tgl = {
+        [Op.between]: [
+          new Date(start_date).setHours(0, 0, 0, 0),
+          new Date(end_date).setHours(23, 59, 59, 999),
+        ],
+      };
+    } else if (start_date) {
+      obj.tgl = {
+        [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+      };
+    } else if (end_date) {
+      obj.tgl = {
+        [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+      };
+    }
+
+    try {
+      const response = await TicketPm3.findAll({
+        where: obj,
+        order: des,
+        include: [
+          {
+            model: Users,
+            as: "inspector",
+          },
+
+          {
+            model: MasterMesin,
+            as: "mesin",
+          },
+        ],
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getPm3RequestDate: async (req, res) => {
+    const { nama_mesin, id_inspector, start_date, end_date, tgl } = req.query;
+
+    let obj = {
+      tgl_approve_from: null,
+      tgl_approve_to: null,
+    };
     let des = [];
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
@@ -87,6 +183,7 @@ const Pm3Controller = {
               "id",
               "lama_pengerjaan",
               "inspection_point",
+              "category",
               "id_ticket",
               "tgl",
               "hasil",
@@ -144,6 +241,7 @@ const Pm3Controller = {
           const point = await PointPm3.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
+            category: masterPoint[ii].category,
             tgl: new Date(),
           });
 
@@ -171,13 +269,34 @@ const Pm3Controller = {
     }
   },
 
+  submitAllRequestDatePm3: async (req, res) => {
+    const { data } = req.body;
+    if (!data) return res.status(404).json({ msg: "incomplete data!!" });
+
+    try {
+      for (let i = 0; i < data.length; i++) {
+        const point = await TicketPm3.update(
+          {
+            tgl_request_from: data[i].tgl_request_from,
+            tgl_request_to: data[i].tgl_request_to,
+            tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
+            tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
+          },
+          { where: { id: data[i].id } }
+        );
+      }
+
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   requestDatePm3: async (req, res) => {
     const _id = req.params.id;
     const { date_from, date_to } = req.body;
     if (!date_from || !date_to)
       return res.status(404).json({ msg: "incomplete data!!" });
-
-    console.log(_id);
 
     try {
       const point = await TicketPm3.update(
@@ -205,6 +324,7 @@ const Pm3Controller = {
       const point = await PointPm3.create({
         id_ticket: id_ticket,
         inspection_point: inspection_point.inspection_point,
+        category: inspection_point.category,
         tgl: new Date(),
       });
 
@@ -273,19 +393,21 @@ const Pm3Controller = {
       );
       const dataPoint = await PointPm3.findOne({
         where: { id: _id },
-        attributes: ["id", "id_ticket", "hasil"],
+        attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
       if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
         const ticketPm3 = await TicketPm3.findOne({
           where: { id: dataPoint.id_ticket },
         });
-        const ticketOs3 = await TicketOs3.create({
-          id_point_pm3: dataPoint.id,
-          nama_mesin: ticketPm3.nama_mesin,
-          sumber: "pm3",
-          status_tiket: "open",
-        });
+        if (dataPoint.category != "man") {
+          const ticketOs3 = await TicketOs3.create({
+            id_point_pm3: dataPoint.id,
+            nama_mesin: ticketPm3.nama_mesin,
+            sumber: "pm3",
+            status_tiket: "open",
+          });
+        }
       }
       res.status(200).json({ msg: "success" });
     } catch (error) {
@@ -313,8 +435,14 @@ const Pm3Controller = {
   doneTicketPm3: async (req, res) => {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
+    if (!catatan) return res.status(400).json({ msg: "catatan wajib di isi" });
 
     try {
+      const checkPointDone = await PointPm3.findAll({
+        where: { id_ticket: _id, hasil: null },
+      });
+      if (checkPointDone.length > 0)
+        return res.status(400).json({ msg: "Point PM Wajib Di isi Semua" });
       const response = await TicketPm3.update(
         {
           waktu_selesai: new Date(),

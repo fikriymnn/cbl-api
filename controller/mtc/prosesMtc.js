@@ -174,6 +174,7 @@ const ProsessMtc = {
           limit: parseInt(limit),
           offset: parseInt(offset),
           where: obj,
+          order: [["waktu_selesai", "DESC"]],
           include: [
             {
               model: Users,
@@ -358,9 +359,9 @@ const ProsessMtc = {
     const monitoring = await MasterMonitoring.findByPk(1);
 
     let status = "";
-    if (skor_mtc <= monitoring.minimal_skor) {
+    if (skor_mtc < monitoring.minimal_skor) {
       status = "temporary";
-    } else if (skor_mtc > monitoring.minimal_skor) {
+    } else if (skor_mtc >= monitoring.minimal_skor) {
       status = "monitoring";
     }
 
@@ -409,36 +410,41 @@ const ProsessMtc = {
             }
           );
 
-        const requestSpbService = await SpbService.findAll({
-          where: {
-            id_proses_os2: id_proses,
-            status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
-          },
-        });
+        // const requestSpbService = await SpbService.findAll({
+        //   where: {
+        //     id_proses_os2: id_proses,
+        //     status_pengajuan: { [Op.or]: ["done", "section head verifikasi"] },
+        //   },
+        // });
 
-        for (
-          let indexService = 0;
-          indexService < requestSpbService.length;
-          indexService++
-        ) {
-          if (
-            requestSpbService != [] ||
-            requestSpbService != null ||
-            requestSpbService.length != 0
-          ) {
-            //console.log(requestSpbService[0].id_master_sparepart);
-            if (requestSpbService) {
-              await MasterSparepart.update(
-                { jenis_part: "service", umur_service: 360 },
-                {
-                  where: {
-                    id: requestSpbService[indexService].id_master_sparepart,
-                  },
-                }
-              );
-            }
-          }
-        }
+        // for (
+        //   let indexService = 0;
+        //   indexService < requestSpbService.length;
+        //   indexService++
+        // ) {
+        //   if (
+        //     requestSpbService != [] ||
+        //     requestSpbService != null ||
+        //     requestSpbService.length != 0
+        //   ) {
+        //     //console.log(requestSpbService[0].id_master_sparepart);
+        //     if (requestSpbService) {
+        //       await MasterSparepart.update(
+        //         {
+        //           jenis_part: "service",
+        //           umur_service: 360,
+        //           tgl_pasang: new Date(),
+        //           tgl_rusak: requestSpbService[indexService].tgl_spb,
+        //         },
+        //         {
+        //           where: {
+        //             id: requestSpbService[indexService].id_master_sparepart,
+        //           },
+        //         }
+        //       );
+        //     }
+        //   }
+        // }
 
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
@@ -552,7 +558,12 @@ const ProsessMtc = {
         //     //console.log(requestSpbService[0].id_master_sparepart);
         //     if (requestSpbService) {
         //       await MasterSparepart.update(
-        //         { jenis_part: "service", umur_service: 360 },
+        //         {
+        //           jenis_part: "service",
+        //           umur_service: 360,
+        //           tgl_pasang: new Date(),
+        //           tgl_rusak: requestSpbService[indexService].tgl_spb,
+        //         },
         //         {
         //           where: {
         //             id: requestSpbService[indexService].id_master_sparepart,
@@ -597,6 +608,7 @@ const ProsessMtc = {
           note_qc: note_qc,
           id_qc: id_qc,
           waktu_selesai: new Date(),
+          status_qc: "approved",
         },
         {
           where: {
@@ -617,6 +629,7 @@ const ProsessMtc = {
             const stok = stokSparepart.stok - masalahSparepart[i].use_qty;
             let percentage = 1;
             let umurGrade = 100;
+
             if (stokSparepart.grade == "A") {
               percentage = 1;
               umurGrade = 100;
@@ -712,6 +725,8 @@ const ProsessMtc = {
           note_qc: note_qc,
           id_qc: id_qc,
           status_proses: "qc rejected",
+          waktu_selesai: new Date(),
+          status_qc: "rejected",
         },
         {
           where: {

@@ -44,6 +44,12 @@ const taskpm3 = require("./model/mtc/preventive/pm3/taskPm3");
 
 const notif = require("./model/notificationModel");
 
+const inspeksiBahan = require("./model/qc/inspeksi/bahan/inspeksiBahanModel");
+const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResultModel");
+
+const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
+const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -59,9 +65,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-//model sync to table (pancingan)
+// model sync to table (pancingan)
 // (async () => {
-//   await tcpm3.sync({ alter: true });
+//   await inspeksiPotongResult.sync({ alter: true });
 // })();
 
 // const ip100 = 75

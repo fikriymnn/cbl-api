@@ -1,0 +1,273 @@
+const InspeksiPotong = require("../../../../model/qc/inspeksi/potong/inspeksiPotongModel");
+const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspeksiPotongResultModel");
+
+const inspeksiPotongController = {
+  getInspeksiPotong: async (req, res) => {
+    try {
+      const { status, jenis_potong, mesin, page, limit } = req.query;
+      const { id } = req.params;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      let obj = {};
+      if (page && limit && (status || jenis_potong || mesin)) {
+        if (status) obj.status = status;
+        if (jenis_potong) obj.jenis_potong = jenis_potong;
+        if (mesin) obj.mesin = mesin;
+        const data = await InspeksiPotong.findAll({
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit),
+          offset,
+          where: obj,
+        });
+        const length = await InspeksiPotong.count({ where: obj });
+        return res.status(200).json({
+          data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (page && limit) {
+        const data = await InspeksiPotong.findAll({
+          order: [["createdAt", "DESC"]],
+          offset,
+          limit: parseInt(limit),
+        });
+        const length = await InspeksiPotong.count();
+        return res.status(200).json({
+          data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (status || jenis_potong || mesin) {
+        if (status) obj.status = status;
+        if (jenis_potong) obj.jenis_potong = jenis_potong;
+        if (mesin) obj.mesin = mesin;
+
+        const data = await InspeksiPotong.findAll({
+          order: [["createdAt", "DESC"]],
+          where: obj,
+        });
+        const length = await InspeksiPotong.count({ where: obj });
+        return res.status(200).json({
+          data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (id && req.user.name) {
+        const data = await InspeksiPotong.findByPk(id, {
+          include: {
+            model: InspeksiPotongResult,
+            as: "inspeksi_potong_result",
+          },
+        });
+
+        if (data && !data?.inspector) {
+          await InspeksiPotong.update(
+            { inspector: req.user.name },
+            { where: { id } }
+          );
+        }
+
+        return res.status(200).json({ data });
+      } else {
+        const data = await InspeksiPotong.findAll({
+          order: [["createdAt", "DESC"]],
+        });
+        return res.status(200).json({ data });
+      }
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+  createInpeksiPotong: async (req, res) => {
+    try {
+      const {
+        jenis_potong,
+        tanggal,
+        no_io,
+        no_jo,
+        operator,
+        shift,
+        jam,
+        item,
+        mesin,
+      } = req.body;
+
+      if (!jenis_potong)
+        return res.status(400).json({ msg: "Field jenis potong kosong!" });
+      if (!tanggal)
+        return res.status(400).json({ msg: "Field tanggal kosong!" });
+      if (!no_io) return res.status(400).json({ msg: "Field no_io kosong!" });
+      if (!no_jo) return res.status(400).json({ msg: "Field no_jo kosong!" });
+      if (!mesin) return res.status(400).json({ msg: "Field mesin kosong!" });
+      if (!operator)
+        return res.status(400).json({ msg: "Field operator kosong!" });
+      if (!shift) return res.status(400).json({ msg: "Field shift kosong!" });
+      if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
+      if (!item) return res.status(400).json({ msg: "Field item kosong!" });
+
+      const data_exist = await InspeksiPotong.findAll({
+        order: [["createdAt", "DESC"]],
+        limit: 1,
+      });
+      if (
+        (data_exist || data_exist.length > 0) &&
+        mesin == data_exist[0].mesin
+      ) {
+        await InspeksiPotong.update(
+          { status: "history" },
+          { where: { id: data_exist[0].id } }
+        );
+      }
+      const data = await InspeksiPotong.create({
+        jenis_potong,
+        tanggal,
+        no_io,
+        no_jo,
+        mesin,
+        operator,
+        shift,
+        jam,
+        item,
+      });
+
+      if (data) {
+        let array = [];
+        if (jenis_potong == "potong jadi") {
+          master_data_fix_jadi.forEach((value) => {
+            value.id_inspeksi_potong = data.id;
+            array.push(value);
+          });
+        } else {
+          master_data_fix.forEach((value) => {
+            value.id_inspeksi_potong = data.id;
+            array.push(value);
+          });
+        }
+
+        if (array.length == 4) {
+          await InspeksiPotongResult.bulkCreate(array);
+        }
+      }
+      res.status(200).json({ data, msg: "OK" });
+    } catch (err) {
+      res.status(400).json({ msg: err.message });
+    }
+  },
+  updateInspeksiPotong: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { mesin, foto, lama_pengerjaan, waktu_selesai } = req.body;
+      let obj = {
+        status: "history",
+      };
+
+      if (mesin) obj.mesin = mesin;
+      if (foto) obj.foto = foto;
+      if (lama_pengerjaan) obj.lama_pengerjaan = lama_pengerjaan;
+      if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
+
+      await InspeksiPotong.update(obj, {
+        where: { id: id },
+      });
+      return res.status(200).json({ msg: "Update successfully!" });
+    } catch (err) {
+      res.status(400).json({ msg: err.message });
+    }
+  },
+  startInspeksiPotong: async (req, res) => {
+    const id = req.params.id;
+    const date = new Date();
+    try {
+      await InspeksiPotong.update({ waktu_mulai: date }, { where: { id: id } }),
+        res.status(200).json({ msg: "start successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+  stopInspeksiPotong: async (req, res) => {
+    const id = req.params.id;
+    const lama_pengerjaan = req.body.lama_pengerjaan;
+    const date = new Date();
+    try {
+      await InspeksiPotong.update(
+        { waktu_selesai: date, lama_pengerjaan },
+        { where: { id: id } }
+      ),
+        res.status(200).json({ msg: "stop successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+  doneInspeksiPotong: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { hasil_check, lama_pengerjaan } = req.body;
+      const date = new Date();
+      let obj = {
+        status: "history",
+        waktu_selesai: date,
+        lama_pengerjaan: lama_pengerjaan,
+      };
+
+      const inspeksi = await InspeksiPotong.update(obj, {
+        where: { id: id },
+      });
+
+      for (let i = 0; i < hasil_check.length; i++) {
+        await InspeksiPotongResult.update(
+          {
+            hasil_check: hasil_check[i].hasil_check,
+            keterangan: hasil_check[i].keterangan,
+            standar: hasil_check[i].standar,
+            hasil_panjang: hasil_check[i].hasil_panjang,
+            hasil_lebar: hasil_check[i].hasil_lebar,
+            send: true,
+          },
+          {
+            where: { id: hasil_check[i].id },
+          }
+        );
+      }
+      return res.status(200).json({ msg: "Update successfully!" });
+    } catch (err) {
+      res.status(400).json({ msg: err.message });
+    }
+  },
+};
+
+const master_data_fix = [
+  {
+    no: 1,
+    point_check: "Jenis Kertas",
+  },
+  {
+    no: 2,
+    point_check: "Gramatur",
+  },
+  {
+    no: 3,
+    point_check: "Ukuran Potong",
+  },
+  {
+    no: 4,
+    point_check: "Arah Serat",
+    standar: "Mounting di BOM",
+  },
+];
+const master_data_fix_jadi = [
+  {
+    no: 1,
+    point_check: "Register",
+  },
+  {
+    no: 2,
+    point_check: "Ukuran",
+  },
+  {
+    no: 3,
+    point_check: "Ketajaman Pisau",
+  },
+  {
+    no: 4,
+    point_check: "Bentuk Jadi",
+    standar: "Mounting di BOM",
+  },
+];
+
+module.exports = inspeksiPotongController;

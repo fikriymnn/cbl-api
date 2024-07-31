@@ -45,6 +45,7 @@ const masterTaskPm2Controller = {
           id_mesin: id_mesin,
           nama_mesin: nama_mesin,
           inspection_point: inspection_point[index].inspection_point,
+          category: inspection_point[index].category,
         });
 
         if (inspection_point[index].sub_inspection != []) {
@@ -122,13 +123,19 @@ const masterTaskPm2Controller = {
 
   updateMasterPointPm2: async (req, res) => {
     const _id = req.params.id;
-    const { id_mesin, nama_mesin, inspection_point, ms_inspection_task_pm2s } =
-      req.body;
+    const {
+      id_mesin,
+      nama_mesin,
+      inspection_point,
+      category,
+      ms_inspection_task_pm2s,
+    } = req.body;
 
     let obj = {};
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (inspection_point) obj.inspection_point = inspection_point;
+    if (category) obj.category = category;
 
     try {
       const point = await masterPointPm2.update(obj, { where: { id: _id } });

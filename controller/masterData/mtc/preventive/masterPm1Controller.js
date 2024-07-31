@@ -36,6 +36,7 @@ const masterTaskPm1Controller = {
 
   createMasterPointPm1: async (req, res) => {
     const { id_mesin, nama_mesin, inspection_point } = req.body;
+    console.log(req.body);
     if (!nama_mesin || !id_mesin || !inspection_point)
       return res.status(404).json({ msg: "incomplete data!!" });
 
@@ -45,6 +46,7 @@ const masterTaskPm1Controller = {
           id_mesin: id_mesin,
           nama_mesin: nama_mesin,
           inspection_point: inspection_point[index].inspection_point,
+          category: inspection_point[index].category,
         });
 
         if (inspection_point[index].sub_inspection != []) {
@@ -122,13 +124,19 @@ const masterTaskPm1Controller = {
 
   updateMasterPointPm1: async (req, res) => {
     const _id = req.params.id;
-    const { id_mesin, nama_mesin, inspection_point, ms_inspection_task_pm1s } =
-      req.body;
+    const {
+      id_mesin,
+      nama_mesin,
+      inspection_point,
+      category,
+      ms_inspection_task_pm1s,
+    } = req.body;
 
     let obj = {};
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (inspection_point) obj.inspection_point = inspection_point;
+    if (category) obj.category = category;
 
     try {
       const point = await masterPointPm1.update(obj, { where: { id: _id } });

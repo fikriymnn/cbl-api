@@ -81,8 +81,7 @@ const ticketController = {
       }
       const data = await Ticket.count({ where: obj });
       const response = await Ticket.findAll(options);
-      console.log(data);
-      console.log(Math.ceil(data / limit));
+
       res.status(200).json({
         total_page: Math.ceil(data / limit),
         data: response,
@@ -284,12 +283,15 @@ const ticketController = {
 
   validasiQcTiket: async (req, res) => {
     const _id = req.params.id;
+    const { note_qc } = req.body;
 
     let obj = {
       bagian_tiket: "incoming",
       id_respon_qc: req.user.id,
-      waktu_respon_qc: new Date()
-    }
+      status_qc: "di validasi",
+      waktu_respon_qc: new Date(),
+      note_qc: note_qc,
+    };
     try {
       await Ticket.update(obj, { where: { id: _id } }),
         res.status(201).json({ msg: "Ticket update Successfuly" });
@@ -300,14 +302,15 @@ const ticketController = {
 
   rejectQcTiket: async (req, res) => {
     const _id = req.params.id;
-    const {note_qc} = req.body;
+    const { note_qc } = req.body;
 
     let obj = {
       bagian_tiket: "reject",
+      status_qc: "di tolak",
       id_respon_qc: req.user.id,
       waktu_respon_qc: new Date(),
       note_qc: note_qc,
-    }
+    };
     try {
       await Ticket.update(obj, { where: { id: _id } }),
         res.status(201).json({ msg: "Ticket update Successfuly" });

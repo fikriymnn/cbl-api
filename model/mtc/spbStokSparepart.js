@@ -45,6 +45,11 @@ const RequestStokSparepart = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    qty_update: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     tgl_permintaan_kedatangan: {
       type: DataTypes.DATE,
       allowNull: true,

@@ -23,15 +23,17 @@ const Pm2Controller = {
       const startOfWeek = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth(),
-        currentDate.getDate() - (currentDate.getDay() - 2)
+        currentDate.getDate() - (currentDate.getDay() - 1)
       );
-      console.log(startOfWeek);
+
       const endOfWeek = new Date(
         startOfWeek.getFullYear(),
         startOfWeek.getMonth(),
         startOfWeek.getDate() + 6
       );
-      console.log(endOfWeek);
+
+      console.log(startOfWeek, endOfWeek);
+
       obj.tgl = {
         [Op.between]: [startOfWeek, endOfWeek],
       };
@@ -98,6 +100,7 @@ const Pm2Controller = {
               "id",
               "lama_pengerjaan",
               "inspection_point",
+              "category",
               "id_ticket",
               "tgl",
               "hasil",
@@ -166,6 +169,7 @@ const Pm2Controller = {
           const point = await PointPm2.create({
             id_ticket: ticket.id,
             inspection_point: masterPoint[ii].inspection_point,
+            category: masterPoint[ii].category,
             tgl: new Date(),
           });
 
@@ -202,6 +206,7 @@ const Pm2Controller = {
       const point = await PointPm2.create({
         id_ticket: id_ticket,
         inspection_point: inspection_point.inspection_point,
+        category: inspection_point.category,
         tgl: new Date(),
       });
 
@@ -270,19 +275,24 @@ const Pm2Controller = {
       );
       const dataPoint = await PointPm2.findOne({
         where: { id: _id },
-        attributes: ["id", "id_ticket", "hasil"],
+        attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
-      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
+      console.log(dataPoint.hasil);
+
+      if (dataPoint.hasil == "jelek" || "tidak terpasang") {
+        console.log(1);
         const ticketPm2 = await TicketPm2.findOne({
           where: { id: dataPoint.id_ticket },
         });
-        const ticketOs3 = await TicketOs3.create({
-          id_point_pm2: dataPoint.id,
-          nama_mesin: ticketPm2.nama_mesin,
-          sumber: "pm2",
-          status_tiket: "open",
-        });
+        if (dataPoint.category != "man") {
+          const ticketOs3 = await TicketOs3.create({
+            id_point_pm2: dataPoint.id,
+            nama_mesin: ticketPm2.nama_mesin,
+            sumber: "pm2",
+            status_tiket: "open",
+          });
+        }
       }
       res.status(200).json({ msg: "success" });
     } catch (error) {
@@ -310,8 +320,13 @@ const Pm2Controller = {
   doneTicketPm2: async (req, res) => {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;
-
+    if (!catatan) return res.status(400).json({ msg: "catatan wajib di isi" });
     try {
+      const checkPointDone = await PointPm2.findAll({
+        where: { id_ticket: _id, hasil: null },
+      });
+      if (checkPointDone.length > 0)
+        return res.status(400).json({ msg: "Point PM Wajib Di isi Semua" });
       const response = await TicketPm2.update(
         {
           waktu_selesai: new Date(),

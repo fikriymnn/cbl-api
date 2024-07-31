@@ -34,10 +34,9 @@ router.put(
 );
 router.put("/approveSpbService/:id", auth, approveSpbServiceSparepart);
 router.put("/tolakSpbService/:id", tolakSpbStokSparepart);
-router.put(
-  "/doneSpbServicePurchase/:id",
-  doneSpbServiceSparepartPurchase
-);
+
+router.put("/doneSpbServicePurchase/:id", doneSpbServiceSparepartPurchase);
+
 router.put("/verifikasiSpbServiceqQc/:id", verifikasiSpbServiceSparepartQc);
 router.put("/rejectSpbServiceqQc/:id", rejectSpbServiceSparepartQc);
 // router.delete("/spbStokSparepart/:id", deletespbStokSparepart);

@@ -298,45 +298,70 @@ const SpbServiceSparepartController = {
       return res.status(404).json({ msg: "incomplite data" });
 
     try {
+      console.log(serviceRequest);
       if (
         serviceRequest != [] ||
         serviceRequest != null ||
-        serviceRequest.length != 0
+        serviceRequest.length > 0
       ) {
         for (let i = 0; i < serviceRequest.length; i++) {
-          const sparepart = await MasterSparepart.findByPk(
-            serviceRequest[i].id_master_sparepart
-          );
+          if (serviceRequest[i].sumber == "kebutuhan") {
+            const sparepart = await MasterSparepart.findByPk(
+              serviceRequest[i].id_master_sparepart
+            );
 
-          const proses = await ProsesMtc.findByPk(serviceRequest[i].id_proses);
-          const ticket = await Ticket.update(
-            { bagian_tiket: "service", status_tiket: "requested" },
-            { where: { id: proses.id_tiket } }
-          );
+            await SpbServiceSparepart.create({
+              id_master_sparepart: sparepart.id,
+              qty: serviceRequest[i].qty,
+              tgl_spb: new Date(),
+              no_spb: "",
+              tgl_permintaan_kedatangan:
+                serviceRequest[i].tgl_permintaan_kedatangan,
+              note: note,
+              kriteria: serviceRequest[i].kriteria,
+              kode_estimasi: serviceRequest[i].kode_estimasi,
+              sumber: serviceRequest[i].sumber,
+              status_pengajuan: "section head approval",
+              id_user: req.user.id,
+            });
+          } else if (serviceRequest[i].sumber == "Os2") {
+            const sparepart = await MasterSparepart.findByPk(
+              serviceRequest[i].id_master_sparepart
+            );
 
-          await SpbServiceSparepart.create({
-            id_master_sparepart: sparepart.id,
-            id_proses_os2: serviceRequest[i].id_proses,
-            qty: serviceRequest[i].qty,
-            tgl_spb: new Date(),
-            no_spb: "",
-            tgl_permintaan_kedatangan:
-              serviceRequest[i].tgl_permintaan_kedatangan,
-            note: note,
-            kriteria: serviceRequest[i].kriteria,
-            kode_estimasi: serviceRequest[i].kode_estimasi,
-            sumber: serviceRequest[i].sumber,
-            status_pengajuan: "section head approval",
-            id_user: req.user.id,
-          });
+            const proses = await ProsesMtc.findByPk(
+              serviceRequest[i].id_proses
+            );
+            const ticket = await Ticket.update(
+              { bagian_tiket: "service", status_tiket: "requested" },
+              { where: { id: proses.id_tiket } }
+            );
+
+            await SpbServiceSparepart.create({
+              id_master_sparepart: sparepart.id,
+              id_proses_os2: serviceRequest[i].id_proses,
+              qty: serviceRequest[i].qty,
+              tgl_spb: new Date(),
+              no_spb: "",
+              tgl_permintaan_kedatangan:
+                serviceRequest[i].tgl_permintaan_kedatangan,
+              note: note,
+              kriteria: serviceRequest[i].kriteria,
+              kode_estimasi: serviceRequest[i].kode_estimasi,
+              sumber: serviceRequest[i].sumber,
+              status_pengajuan: "section head approval",
+              id_user: req.user.id,
+            });
+          }
         }
       }
 
       if (
         sparepartRequest != [] ||
         sparepartRequest != null ||
-        sparepartRequest.length != 0
+        sparepartRequest.length > 0
       ) {
+        console.log(sparepartRequest);
         for (let i = 0; i < sparepartRequest.length; i++) {
           const sparepart = await StokSparepart.findByPk(
             sparepartRequest[i].id_stok_sparepart
@@ -443,11 +468,11 @@ const SpbServiceSparepartController = {
         { where: { id: _id } }
       );
 
-      const proses = await ProsesMtc.findByPk(request.id_proses_os2);
-      const ticket = await Ticket.update(
-        { bagian_tiket: "service", status_tiket: "active" },
-        { where: { id: proses.id_tiket } }
-      );
+      // const proses = await ProsesMtc.findByPk(request.id_proses_os2);
+      // const ticket = await Ticket.update(
+      //   { bagian_tiket: "service", status_tiket: "active" },
+      //   { where: { id: proses.id_tiket } }
+      // );
 
       // await MasterSparepart.update(
       //   { jenis_part: "service", umur_service: 360 },
@@ -518,7 +543,6 @@ const SpbServiceSparepartController = {
         }
 
         const cekArray = checkLengthDifference(requestAll, requestAllDone);
-        console.log(cekArray);
 
         if (cekArray == true) {
           const proses = await ProsesMtc.findByPk(request.id_proses_os2);
@@ -527,11 +551,22 @@ const SpbServiceSparepartController = {
             { where: { id: proses.id_tiket } }
           );
         }
+      } else if (request.sumber == "kebutuhan") {
+        await MasterSparepart.update(
+          {
+            jenis_part: "service",
+            umur_service: 360,
+            tgl_pasang: new Date(),
+            tgl_rusak: request.tgl_spb,
+          },
+          { where: { id: request.id_master_sparepart } }
+        );
       }
       await SpbServiceSparepart.update(
         {
           status_pengajuan: "section head verifikasi",
           status_spb: "done",
+          tgl_aktual: new Date(),
         },
         { where: { id: _id } }
       );
@@ -580,7 +615,6 @@ const SpbServiceSparepartController = {
         }
 
         const cekArray = checkLengthDifference(requestAll, requestAllDone);
-        console.log(cekArray);
 
         if (cekArray == true) {
           const proses = await ProsesMtc.findByPk(request.id_proses_os2);
