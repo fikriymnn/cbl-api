@@ -1,7 +1,21 @@
 const InspeksiPotong = require("../../../../model/qc/inspeksi/potong/inspeksiPotongModel");
 const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspeksiPotongResultModel");
+const { Op, Sequelize } = require("sequelize");
 
 const inspeksiPotongController = {
+  getInspeksiPotongMesin: async (req, res) => {
+    try {
+      const mesin = await InspeksiPotong.findAll({
+        attributes: ["mesin", [Sequelize.fn("COUNT", "*"), "count"]],
+        group: ["mesin"],
+        order: [[Sequelize.col("count"), "DESC"]],
+      });
+      res.status(200).json(mesin);
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
   getInspeksiPotong: async (req, res) => {
     try {
       const { status, jenis_potong, mesin, page, limit } = req.query;

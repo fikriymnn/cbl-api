@@ -24,6 +24,7 @@ const ticketController = {
         end_date,
         limit,
         page,
+        historiQc,
       } = req.query;
 
       let options = {
@@ -50,6 +51,10 @@ const ticketController = {
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (mesin) obj.mesin = mesin;
       if (tgl) obj.tgl = tgl;
+      if (historiQc)
+        obj.bagian_tiket = {
+          [Op.ne]: "qc",
+        };
       if (start_date && end_date) {
         obj.tgl = {
           [Op.between]: [
