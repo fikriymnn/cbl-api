@@ -101,19 +101,21 @@ const inspeksiPotongController = {
       if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
       if (!item) return res.status(400).json({ msg: "Field item kosong!" });
 
-      const data_exist = await InspeksiPotong.findAll({
-        order: [["createdAt", "DESC"]],
-        limit: 1,
-      });
-      if (
-        (data_exist || data_exist.length > 0) &&
-        mesin == data_exist[0].mesin
-      ) {
-        await InspeksiPotong.update(
-          { status: "history" },
-          { where: { id: data_exist[0].id } }
-        );
-      }
+      // const data_exist = await InspeksiPotong.findAll({
+      //   order: [["createdAt", "DESC"]],
+      //   limit: 1,
+      // });
+      // console.log(data_exist);
+      // if (
+      //   (data_exist || data_exist.length > 0) &&
+      //   mesin == data_exist[0].mesin
+      // ) {
+      //   await InspeksiPotong.update(
+      //     { status: "history" },
+      //     { where: { id: data_exist[0].id } }
+      //   );
+      // }
+
       const data = await InspeksiPotong.create({
         jenis_potong,
         tanggal,

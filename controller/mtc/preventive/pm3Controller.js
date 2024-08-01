@@ -20,12 +20,17 @@ const Pm3Controller = {
       thisMonth,
       month,
       year,
+      status,
+      limit,
+      page,
     } = req.query;
 
     let obj = {};
     let des = [];
+    let offset = (page - 1) * limit;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
+    if (status) obj.status = status;
     if (thisMonth) {
       const today = new Date();
       const year = today.getFullYear();
@@ -65,7 +70,7 @@ const Pm3Controller = {
     }
 
     if (start_date && end_date) {
-      obj.tgl = {
+      obj.tgl_approve_from = {
         [Op.between]: [
           new Date(start_date).setHours(0, 0, 0, 0),
           new Date(end_date).setHours(23, 59, 59, 999),
@@ -82,22 +87,47 @@ const Pm3Controller = {
     }
 
     try {
-      const response = await TicketPm3.findAll({
-        where: obj,
-        order: des,
-        include: [
-          {
-            model: Users,
-            as: "inspector",
-          },
+      if (page && limit) {
+        const length_data = await TicketPm3.count({ where: obj });
+        const response = await TicketPm3.findAll({
+          where: obj,
+          order: des,
+          include: [
+            {
+              model: Users,
+              as: "inspector",
+            },
 
-          {
-            model: MasterMesin,
-            as: "mesin",
-          },
-        ],
-      });
-      res.status(200).json(response);
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+        });
+
+        res
+          .status(200)
+          .json({ data: response, total_page: Math.ceil(length_data / limit) });
+      } else {
+        const response = await TicketPm3.findAll({
+          where: obj,
+          order: des,
+          include: [
+            {
+              model: Users,
+              as: "inspector",
+            },
+
+            {
+              model: MasterMesin,
+              as: "mesin",
+            },
+          ],
+        });
+        res.status(200).json(response);
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -421,6 +451,7 @@ const Pm3Controller = {
       const response = await TicketPm3.update(
         {
           waktu_mulai: new Date(),
+          tgl_inspeksi: new Date(),
           status: "on progres",
           id_inspector: req.user.id,
         },

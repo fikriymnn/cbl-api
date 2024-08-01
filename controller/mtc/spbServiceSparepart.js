@@ -356,18 +356,16 @@ const SpbServiceSparepartController = {
         }
       }
 
-      if (
-        sparepartRequest != [] ||
-        sparepartRequest != null ||
-        sparepartRequest.length > 0
-      ) {
+      if (sparepartRequest.length > 0) {
         console.log(sparepartRequest);
         for (let i = 0; i < sparepartRequest.length; i++) {
+          console.log(1);
           const sparepart = await StokSparepart.findByPk(
             sparepartRequest[i].id_stok_sparepart
           );
+          console.log(sparepart);
 
-          await SpbStokSparepart.create({
+          const spb = await SpbStokSparepart.create({
             id_stok_sparepart: sparepart.id,
             qty: sparepartRequest[i].qty,
             tgl_spb: new Date(),
