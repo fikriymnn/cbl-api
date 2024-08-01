@@ -955,7 +955,8 @@ const ProsessMtc = {
 
         const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
 
-        if (dateDiff >= waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
+        if (dateDiff >= waktuMonitor) {
+          console.log(1);
           await Ticket.update(
             { status_tiket: "closed", bagian_tiket: "histori os2" },
             { where: { id: proses[i].id_tiket } }

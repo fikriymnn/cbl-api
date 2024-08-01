@@ -17,6 +17,7 @@ const Pm1Controller = {
       id_inspector,
       start_date,
       end_date,
+      status,
       tgl,
       limit,
       page,
@@ -27,6 +28,7 @@ const Pm1Controller = {
     let offset = (page - 1) * limit;
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
+    if (status) obj.status = status;
     if (id_inspector) obj.id_inspector = id_inspector;
     if (tgl)
       obj.tgl = {
