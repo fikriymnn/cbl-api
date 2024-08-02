@@ -100,6 +100,7 @@ const inspeksiPotongController = {
         jam,
         item,
         mesin,
+        merk
       } = req.body;
 
       if (!jenis_potong)
@@ -140,6 +141,7 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
+        merk
       });
 
       if (data) {
@@ -168,7 +170,7 @@ const inspeksiPotongController = {
   updateInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { mesin, foto, lama_pengerjaan, waktu_selesai } = req.body;
+      const { mesin, foto, lama_pengerjaan, waktu_selesai,catatan,merk } = req.body;
       let obj = {
         status: "history",
       };
@@ -177,6 +179,8 @@ const inspeksiPotongController = {
       if (foto) obj.foto = foto;
       if (lama_pengerjaan) obj.lama_pengerjaan = lama_pengerjaan;
       if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
+      if (catatan) obj.catatan = catatan;
+      if (merk) obj.merk = merk;
 
       await InspeksiPotong.update(obj, {
         where: { id: id },
