@@ -123,14 +123,14 @@ const inspeksiBahanController = {
   updateInspeksiBahan: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_rumus, no_lot, verifikasi, lama_pengerjaan } = req.body;
+      const { hasil_rumus, no_lot, verifikasi, catatan } = req.body;
       let obj = {
         status: "history",
       };
       if (hasil_rumus) obj.hasil_rumus = hasil_rumus;
       if (no_lot) obj.no_lot = no_lot;
       if (verifikasi) obj.verifikasi = verifikasi;
-      // if (lama_pengerjaan) obj.verifikasi = lama_pengerjaan;
+      if (catatan) obj.catatan = catatan;
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });

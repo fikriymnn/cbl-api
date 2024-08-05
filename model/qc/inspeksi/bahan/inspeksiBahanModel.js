@@ -62,7 +62,11 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
     lama_pengerjaan : {
         type: DataTypes.INTEGER,
         allowNull: true
-    }
+    },
+     catatan : {
+        type : DataTypes.STRING,
+        allowNull: true
+    },
 },
 {
     freezeTableName: true,
