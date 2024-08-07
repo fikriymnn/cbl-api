@@ -27,12 +27,20 @@ const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
 const taskpm1 = require("./model/mtc/preventive/pm1/taskPm1");
 
+const tcpm1Man = require("./model/mtc/preventive/pm1Man/ticketPm1Man");
+const pointpm1Man = require("./model/mtc/preventive/pm1Man/pointPm1Man");
+const taskpm1Man = require("./model/mtc/preventive/pm1Man/taskPm1Man");
+
 const msPointPm2 = require("./model/masterData/mtc/preventive/pm2/inspenctionPoinPm2Model");
 const msTaskPm2 = require("./model/masterData/mtc/preventive/pm2/inspectionTaskPm2Model");
 
 const tcpm2 = require("./model/mtc/preventive/pm2/ticketPm2");
 const pointpm2 = require("./model/mtc/preventive/pm2/pointPm2");
 const taskpm2 = require("./model/mtc/preventive/pm2/taskPm2");
+
+const tcpm2Man = require("./model/mtc/preventive/pm2Man/ticketPm2Man");
+const pointpm2Man = require("./model/mtc/preventive/pm2Man/pointPm2Man");
+const taskpm2Man = require("./model/mtc/preventive/pm2Man/taskPm2Man");
 
 const mspointpm3 = require("./model/masterData/mtc/preventive/pm3/inspenctionPoinPm3Model");
 const mstaskpm3 = require("./model/masterData/mtc/preventive/pm3/inspectionTaskPm3Model");
@@ -41,6 +49,10 @@ const tcpm3 = require("./model/mtc/preventive/pm3/ticketPm3");
 const pointpm3 = require("./model/mtc/preventive/pm3/pointPm3");
 const taskpm3 = require("./model/mtc/preventive/pm3/taskPm3");
 
+const tcpm3Man = require("./model/mtc/preventive/pm3Man/ticketPm3Man");
+const pointpm3Man = require("./model/mtc/preventive/pm3Man/pointPm3Man");
+const taskpm3Man = require("./model/mtc/preventive/pm3Man/taskPm3Man");
+
 const notif = require("./model/notificationModel");
 
 const inspeksiBahan = require("./model/qc/inspeksi/bahan/inspeksiBahanModel");
@@ -48,6 +60,10 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
+
+const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
+const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
+const inspeksiCetakAwalPoint = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -66,7 +82,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiPotongResult.sync({ alter: true });
+//   await inspeksiCetakAwalPoint.sync({ alter: true });
 // })();
 
 // const ip100 = 75

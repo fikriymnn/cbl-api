@@ -1,60 +1,66 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../../config/database");
 const { DataTypes } = Sequelize;
-const Ticketpm2 = require("./ticketPm3Man");
+const Ticketpm3Man = require("./ticketPm3Man");
 
-const inspectionPointPm3 = db.define("inspection_point_pm3", {
-  id_ticket: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Ticketpm2,
-      key: "id",
+const inspectionPointPm3Man = db.define(
+  "inspection_point_pm3_man",
+  {
+    id_ticket: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: Ticketpm3Man,
+        key: "id",
+      },
+    },
+    inspection_point: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    tgl: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    hasil: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    catatan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    category: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
-  inspection_point: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  tgl: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  hasil: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  file: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  catatan: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  waktu_mulai: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  waktu_selesai: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
-  lama_pengerjaan: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-});
+  {
+    freezeTableName: true,
+  }
+);
 
-Ticketpm2.hasMany(inspectionPointPm3, {
+Ticketpm3Man.hasMany(inspectionPointPm3Man, {
   foreignKey: "id_ticket",
 });
-inspectionPointPm3.belongsTo(Ticketpm2, {
+inspectionPointPm3Man.belongsTo(Ticketpm3Man, {
   foreignKey: "id_ticket",
 });
 
-module.exports = inspectionPointPm3;
+module.exports = inspectionPointPm3Man;
