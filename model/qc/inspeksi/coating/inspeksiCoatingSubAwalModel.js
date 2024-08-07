@@ -3,10 +3,9 @@ const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 const InspeksiCoating = require("./inspeksiCoatingModel");
 
-const InspeksiCoatingSub = db.define(
-  "cs_inspeksi_coating_sub",
-  {
-    
+const InspeksiCoatingSubAwal = db.define(
+  "cs_inspeksi_coating_sub_awal",
+  { 
     id_inspeksi_coating: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -28,13 +27,13 @@ const InspeksiCoatingSub = db.define(
   }
 );
 
-InspeksiCoating.hasMany(InspeksiCoatingSub, {
+InspeksiCoating.hasMany(InspeksiCoatingSubAwal, {
     foreignKey: "id_inspeksi_coating",
-    as: "inspeksi_coating_sub",
+    as: "inspeksi_coating_sub_awal",
   });
-InspeksiCoatingSub.belongsTo(InspeksiCoating, {
+InspeksiCoatingSubAwal.belongsTo(InspeksiCoating, {
     foreignKey: "id_inspeksi_coating",
     as: "inspeksi_coating",
   });
 
-module.exports = InspeksiCoatingSub;
+module.exports = InspeksiCoatingSubAwal;

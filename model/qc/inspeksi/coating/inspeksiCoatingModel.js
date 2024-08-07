@@ -5,7 +5,14 @@ const db = require("../../../../config/database");
 const InspeksiCoating = db.define(
   "cs_inspeksi_coating",
   {
-    
+    id_coating_result_awal: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    id_coating_sub_awal: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -64,12 +71,15 @@ const InspeksiCoating = db.define(
       },
     inspector: {
       type: DataTypes.STRING,
-      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
     },
+    periode : {
+      type: DataTypes.STRING,
+      allowNull: false,
+    }
   },
   {
     freezeTableName: true,
