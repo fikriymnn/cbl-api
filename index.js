@@ -49,6 +49,10 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
+const InspeksiCoating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel")
+const InspeksiCoatingResultAwal = require("./model/qc/inspeksi/coating/inspeksiCoatingResultAwalModel")
+const InspeksiCoatingSubAwal = require("./model/qc/inspeksi/coating/inspeksiCoatingSubAwalModel")
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");

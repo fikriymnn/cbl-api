@@ -13,6 +13,14 @@ const InspeksiCoating = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    id_coating_result_periode: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_coating_sub_periode: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -75,10 +83,6 @@ const InspeksiCoating = db.define(
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
-    },
-    periode : {
-      type: DataTypes.STRING,
-      allowNull: false,
     }
   },
   {
