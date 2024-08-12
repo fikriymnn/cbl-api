@@ -39,6 +39,11 @@ router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanResultRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
 
+// qc cetak
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakRoutes"));
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalRoutes"));
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalPointRoutes"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;

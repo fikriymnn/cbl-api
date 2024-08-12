@@ -7,6 +7,7 @@ const inspeksiPotongController = {
     try {
       const mesin = await InspeksiPotong.findAll({
         attributes: ["mesin", [Sequelize.fn("COUNT", "*"), "count"]],
+        where: { status: "incoming" },
         group: ["mesin"],
         order: [[Sequelize.col("count"), "DESC"]],
       });
