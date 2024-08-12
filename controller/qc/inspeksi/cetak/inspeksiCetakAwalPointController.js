@@ -8,6 +8,9 @@ const inspeksiCetakAwalpointController = {
   startCetakAwalPoint: async (req, res) => {
     const _id = req.params.id;
     try {
+      const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.findByPk(_id);
+      if (inspeksiCetakAwalPoint.id_inspektor != null)
+        return res.status(400).json({ msg: "sudah ada user yang mulai" });
       await InspeksiCetakAwalPoint.update(
         {
           waktu_mulai: new Date(),

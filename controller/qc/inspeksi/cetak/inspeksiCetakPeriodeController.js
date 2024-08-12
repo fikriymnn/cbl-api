@@ -31,7 +31,7 @@ const inspeksiCetakPeriodeController = {
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(_id);
 
       await InspeksiCetak.update(
-        { status: "done" },
+        { status: "history" },
         { where: { id: cetakPeriode.id_inspeksi_cetak } }
       );
 

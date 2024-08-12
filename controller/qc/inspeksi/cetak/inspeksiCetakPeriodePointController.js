@@ -10,6 +10,10 @@ const inspeksiCetakPeriodepointController = {
   startCetakPeriodePoint: async (req, res) => {
     const _id = req.params.id;
     try {
+      const inspeksiCetakPeriodePoint =
+        await InspeksiCetakPeriodePoint.findByPk(_id);
+      if (inspeksiCetakPeriodePoint.id_inspektor != null)
+        return res.status(400).json({ msg: "sudah ada user yang mulai" });
       await InspeksiCetakPeriodePoint.update(
         {
           waktu_mulai: new Date(),

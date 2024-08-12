@@ -51,6 +51,7 @@ router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalPointRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakPeriodeRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakPeriodePointRoutes"));
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakPeriodeDefectRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
