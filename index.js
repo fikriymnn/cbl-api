@@ -64,6 +64,11 @@ const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongR
 const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
 const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
 const inspeksiCetakAwalPoint = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
+const inspeksiCetakPeriode = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
+const inspeksiCetakPeriodePoint = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
+const inspeksiCetakPeriodeDefect = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+
+const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -82,7 +87,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiCetakAwalPoint.sync({ alter: true });
+//   await inspeksiCetakPeriodeDefect.sync({ alter: true });
 // })();
 
 // const ip100 = 75

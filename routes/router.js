@@ -14,7 +14,7 @@ router.use("/", require("./mtc/preventive/inspectionPm1Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm2Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm3Routes"));
 
-//master data
+//master data maintenance
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
 router.use("/", require("./masterdata/mtc/masterSparepartRoute"));
 router.use("/", require("./masterdata/mtc/masterTimeMonitoringRoute"));
@@ -24,6 +24,12 @@ router.use("/", require("./masterdata/mtc/preventive/masterTaskPm1Route"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm2Route"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm3Route"));
 router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
+
+//master data qc
+router.use(
+  "/",
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCetakRoute")
+);
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));
@@ -43,6 +49,8 @@ router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalRoutes"));
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakAwalPointRoutes"));
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakPeriodeRoutes"));
+router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakPeriodePointRoutes"));
 
 router.use("/", require("./uploadRoutes"));
 

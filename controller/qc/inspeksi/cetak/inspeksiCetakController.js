@@ -2,6 +2,9 @@ const { Op, Sequelize } = require("sequelize");
 const InspeksiCetak = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
 const InspeksiCetakAwal = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
 const InspeksiCetakAwalPoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
+const InspeksiCetakPeriode = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
+const InspeksiCetakPeriodePoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
+const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiCetakController = {
@@ -55,20 +58,42 @@ const inspeksiCetakController = {
         });
       } else if (id) {
         const data = await InspeksiCetak.findByPk(id, {
-          include: {
-            model: InspeksiCetakAwal,
-            as: "inspeksi_cetak_awal",
-            include: [
-              {
-                model: InspeksiCetakAwalPoint,
-                as: "inspeksi_cetak_awal_point",
-                include: {
-                  model: User,
-                  as: "inspektor",
+          include: [
+            {
+              model: InspeksiCetakAwal,
+              as: "inspeksi_cetak_awal",
+              include: [
+                {
+                  model: InspeksiCetakAwalPoint,
+                  as: "inspeksi_cetak_awal_point",
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
                 },
-              },
-            ],
-          },
+              ],
+            },
+            {
+              model: InspeksiCetakPeriode,
+              as: "inspeksi_cetak_periode",
+              include: [
+                {
+                  model: InspeksiCetakPeriodePoint,
+                  as: "inspeksi_cetak_periode_point",
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                    {
+                      model: InspeksiCetakPeriodeDefect,
+                      as: "inspeksi_cetak_periode_defect",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         });
 
         return res.status(200).json({ data });
