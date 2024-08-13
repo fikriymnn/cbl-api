@@ -69,6 +69,7 @@ const inspeksiCetakPeriodePoint = require("./model/qc/inspeksi/cetak/inspeksiCet
 const inspeksiCetakPeriodeDefect = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
 
 const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
+const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -87,7 +88,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiCetakPeriodeDefect.sync({ alter: true });
+//   await msPondmasalah.sync({ alter: true });
 // })();
 
 // const ip100 = 75
