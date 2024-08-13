@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
-const db = require("../../../../config/database");
-const InspeksiCoating = require("./inspeksiCoatingModel");
+const db = require("../../../../../config/database");
+const InspeksiCoating = require("../inspeksiCoatingModel");
 
 const InspeksiCoatingResultAwal = db.define(
     "cs_inspeksi_coating_result_awal",
@@ -13,7 +13,7 @@ const InspeksiCoatingResultAwal = db.define(
                 model: InspeksiCoating
             }
         },
-        inspektor: {
+        inspector: {
             type: DataTypes.STRING,
             allowNull: true,
         },
@@ -41,19 +41,11 @@ const InspeksiCoatingResultAwal = db.define(
             type: DataTypes.STRING,
             allowNull: true
         },
-        design: {
+        permukaan: {
             type: DataTypes.STRING,
             allowNull: true
         },
-        redaksi: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        barcode: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        jenis_bahan: {
+        nilai_glossy: {
             type: DataTypes.STRING,
             allowNull: true
         },
@@ -61,14 +53,18 @@ const InspeksiCoatingResultAwal = db.define(
             type: DataTypes.STRING,
             allowNull: true
         },
-        layout_pisau: {
+        hasil_coating: {
             type: DataTypes.STRING,
             allowNull: true
         },
-        acc_warna_awal_jalan: {
+        spot_uv: {
             type: DataTypes.STRING,
             allowNull: true
         },
+        tes_cracking: {
+            type: DataTypes.STRING,
+            allowNull: true
+        }
     },
     {
         freezeTableName: true,

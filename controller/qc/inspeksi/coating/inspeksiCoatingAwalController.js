@@ -1,9 +1,9 @@
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
-const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultAwalModel");
-const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPeriodeModel");
+const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
+const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
-const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingSubAwalModel");
-const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingSubPeriodeModel");
+const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
+const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 
 const inspeksiCoatingController = {
    getInspeksiCoating: async (req, res) => {
@@ -91,15 +91,14 @@ const inspeksiCoatingController = {
          res.status(500).json({ msg: err.message });
       }
    },
-   addInspeksiCoating: async (req, res) => {
+   addInspeksiCoatingAwal: async (req, res) => {
       try {
          const {
             tanggal,
             jumlah,
             jenis_kertas,
             jenis_gramatur,
-            warna_depan,
-            warna_belakang,
+            coating,
             jam,
             no_jo,
             nama_produk,
@@ -107,32 +106,40 @@ const inspeksiCoatingController = {
             shift,
             mesin,
             operator,
-            status_jo,
-            inspector,
-            periode
+            status_jo
          } = req.body;
 
          if (!tanggal)
             return res.status(400).json({ msg: "Field tanggal kosong!" });
-         else if (!no_surat_jalan)
-            return res.status(400).json({ msg: "Field no_surat_jalan kosong!" });
-         else if (!supplier)
-            return res.status(400).json({ msg: "Field supplier kosong!" });
+         else if (!jenis_gramatur)
+            return res.status(400).json({ msg: "Field jenis_gramatur kosong!" });
+         else if (!no_jo)
+            return res.status(400).json({ msg: "Field no_jo kosong!" });
          else if (!jenis_kertas)
             return res.status(400).json({ msg: "Field jenis_kertas kosong!" });
-         else if (!ukuran)
-            return res.status(400).json({ msg: "Field ukuran kosong!" });
+         else if (!nama_produk)
+            return res.status(400).json({ msg: "Field nama_produk kosong!" });
          else if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
          else if (!jumlah)
             return res.status(400).json({ msg: "Field jumlah kosong!" });
+         else if (!coating)
+            return res.status(400).json({ msg: "Field coating kosong!" });
+         else if (!customer)
+            return res.status(400).json({ msg: "Field customer kosong!" });
+         else if (!shift)
+            return res.status(400).json({ msg: "Field shift kosong!" });
+         else if (!mesin)
+            return res.status(400).json({ msg: "Field mesin kosong!" });
+         else if (!operator)
+            return res.status(400).json({ msg: "Field operator kosong!" });
+         else if (!status_jo)
+            return res.status(400).json({ msg: "Field status_jo kosong!" });
 
-         const data = await InspeksiBahan.create({
+         const data = await InspeksiCoating.create({
             tanggal,
             jumlah,
             jenis_kertas,
             jenis_gramatur,
-            warna_depan,
-            warna_belakang,
             jam,
             no_jo,
             nama_produk,
@@ -141,21 +148,47 @@ const inspeksiCoatingController = {
             mesin,
             operator,
             status_jo,
-            inspector,
-            periode
+            periode,
+            coating
          });
+         if (data.id) {
+            await InspeksiCoatingResultAwal.create(
+               {
+                  id_inspeksi_coating: data?.id,
+               }
+            )
+            await InspeksiCoatingSubAwal.create(
+               {
+                  id_inspeksi_coating: data?.id,
+               }
+            )
+         }
 
          return res.status(200).json({ data, msg: "OK" });
       } catch (err) {
          res.status(500).json({ msg: err.message })
       }
    },
-   updateInspeksiCoating: async (req, res) => {
+   updateInspeksiCoatingAwal: async (req, res) => {
       try {
-
+         const { jumlah_periode_check,
+            waktu_check } = req.body
+         const { id } = req.params
+         await InspeksiCoatingSubAwal.update({
+            jumlah_periode_check,
+            waktu_check
+         }, {
+            where: {
+               id_inspeksi_coating: id
+            }
+         })
+         await InspeksiCoating.update({
+            status:"history"
+         },{where: {id}})
+         return res.status(200).json({ data:"update successfully", msg: "OK" });
       } catch (err) {
          res.status(500).json({ msg: err.message })
       }
-   }
+   },
 }
 module.exports = inspeksiCoatingController 

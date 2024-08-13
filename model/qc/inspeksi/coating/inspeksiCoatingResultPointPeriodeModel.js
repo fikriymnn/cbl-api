@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-const InspeksiCoatingResultPeriode = require('./inspeksiCoatingResultPeriodeModel')
+const InspeksiCoatingResultPeriode = require('./result/inspeksiCoatingResultPeriodeModel')
 
 const InspeksiCoatingResultPointPeriode = db.define(
   "cs_inspeksi_coating_result_point_periode",
