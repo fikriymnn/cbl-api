@@ -29,6 +29,10 @@ const InspeksiCoating = db.define(
         type: DataTypes.INTEGER,
         defaultValue: 0
       },
+    coating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     jenis_kertas: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -37,14 +41,6 @@ const InspeksiCoating = db.define(
         type: DataTypes.STRING,
         allowNull: false,
     },
-    warna_depan: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      warna_belakang: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       jam: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -77,9 +73,6 @@ const InspeksiCoating = db.define(
         type: DataTypes.STRING,
         allowNull: false,
       },
-    inspector: {
-      type: DataTypes.STRING,
-    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

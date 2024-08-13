@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
-const db = require("../../../../config/database");
-const InspeksiCoating = require("./inspeksiCoatingModel");
+const db = require("../../../../../config/database");
+const InspeksiCoating = require("../inspeksiCoatingModel");
 
 const InspeksiCoatingSubAwal = db.define(
   "cs_inspeksi_coating_sub_awal",
@@ -20,7 +20,11 @@ const InspeksiCoatingSubAwal = db.define(
     waktu_check: {
         type: DataTypes.STRING,
         allowNull: true,
-      }
+      },
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "incoming"
+      },
   },
   {
     freezeTableName: true,
