@@ -1,14 +1,14 @@
 const { Op, Sequelize } = require("sequelize");
-const InspeksiCetak = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
-const InspeksiCetakAwal = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
-const InspeksiCetakAwalPoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
-const InspeksiCetakPeriode = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
-const InspeksiCetakPeriodePoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
-const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+const InspeksiPond = require("../../../../model/qc/inspeksi/pond/inspeksiPondModel");
+const InspeksiPondAwal = require("../../../../model/qc/inspeksi/pond/inspeksiPondAwalModel");
+const InspeksiPondAwalPoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondAwalPointModel");
+const InspeksiPondPeriode = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
+const InspeksiPondPeriodePoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
+const InspeksiPondPeriodeDefect = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
 const User = require("../../../../model/userModel");
 
-const inspeksiCetakController = {
-  getInspeksiCetak: async (req, res) => {
+const inspeksiPondController = {
+  getInspeksiPond: async (req, res) => {
     try {
       const { status, tgl, mesin, page, limit } = req.query;
       const { id } = req.params;
@@ -19,8 +19,8 @@ const inspeksiCetakController = {
         if (tgl) obj.tanggal = tgl;
         if (mesin) obj.mesin = mesin;
 
-        const length = await InspeksiCetak.count({ where: obj });
-        const data = await InspeksiCetak.findAll({
+        const length = await InspeksiPond.count({ where: obj });
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -32,12 +32,12 @@ const inspeksiCetakController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (page && limit) {
-        const data = await InspeksiCetak.findAll({
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
           offset,
           limit: parseInt(limit),
         });
-        const length = await InspeksiCetak.count();
+        const length = await InspeksiPond.count();
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -47,25 +47,25 @@ const inspeksiCetakController = {
         if (tgl) obj.tanggal = tgl;
         if (mesin) obj.mesin = mesin;
 
-        const data = await InspeksiCetak.findAll({
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
         });
-        const length = await InspeksiCetak.count({ where: obj });
+        const length = await InspeksiPond.count({ where: obj });
         return res.status(200).json({
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
-        const data = await InspeksiCetak.findByPk(id, {
+        const data = await InspeksiPond.findByPk(id, {
           include: [
             {
-              model: InspeksiCetakAwal,
-              as: "inspeksi_cetak_awal",
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
               include: [
                 {
-                  model: InspeksiCetakAwalPoint,
-                  as: "inspeksi_cetak_awal_point",
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
                   include: {
                     model: User,
                     as: "inspektor",
@@ -74,20 +74,20 @@ const inspeksiCetakController = {
               ],
             },
             {
-              model: InspeksiCetakPeriode,
-              as: "inspeksi_cetak_periode",
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
               include: [
                 {
-                  model: InspeksiCetakPeriodePoint,
-                  as: "inspeksi_cetak_periode_point",
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
                   include: [
                     {
                       model: User,
                       as: "inspektor",
                     },
                     {
-                      model: InspeksiCetakPeriodeDefect,
-                      as: "inspeksi_cetak_periode_defect",
+                      model: InspeksiPondPeriodeDefect,
+                      as: "inspeksi_pond_periode_defect",
                     },
                   ],
                 },
@@ -98,7 +98,7 @@ const inspeksiCetakController = {
 
         return res.status(200).json({ data });
       } else {
-        const data = await InspeksiCetak.findAll({
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
         });
         return res.status(200).json({ data });
@@ -108,7 +108,7 @@ const inspeksiCetakController = {
     }
   },
 
-  createInspeksiCetak: async (req, res) => {
+  createInspeksiPond: async (req, res) => {
     const {
       tanggal,
       no_jo,
@@ -120,14 +120,13 @@ const inspeksiCetakController = {
       mata,
       jenis_kertas,
       jenis_gramatur,
-      warna_depan,
-      warna_belakang,
+      ukuran_jadi,
       nama_produk,
       customer,
     } = req.body;
 
     try {
-      const inspeksicetak = await InspeksiCetak.create({
+      const inspeksiPond = await InspeksiPond.create({
         tanggal,
         no_jo,
         no_io,
@@ -138,17 +137,16 @@ const inspeksiCetakController = {
         mata,
         jenis_kertas,
         jenis_gramatur,
-        warna_depan,
-        warna_belakang,
+        ukuran_jadi,
         nama_produk,
         customer,
       });
 
-      const inspeksiCetakAwal = await InspeksiCetakAwal.create({
-        id_inspeksi_cetak: inspeksicetak.id,
+      const inspeksiPondAwal = await InspeksiPondAwal.create({
+        id_inspeksi_pond: inspeksiPond.id,
       });
-      const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.create({
-        id_inspeksi_cetak_awal: inspeksiCetakAwal.id,
+      const inspeksiPondAwalPoint = await InspeksiPondAwalPoint.create({
+        id_inspeksi_pond_awal: inspeksiPondAwal.id,
       });
 
       res.status(200).json({ msg: "create Successful" });
@@ -158,4 +156,4 @@ const inspeksiCetakController = {
   },
 };
 
-module.exports = inspeksiCetakController;
+module.exports = inspeksiPondController;
