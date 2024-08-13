@@ -68,8 +68,28 @@ const inspeksiCetakPeriode = require("./model/qc/inspeksi/cetak/inspeksiCetakPer
 const inspeksiCetakPeriodePoint = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
 const inspeksiCetakPeriodeDefect = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
 
+const inspeksiPond = require("./model/qc/inspeksi/pond/inspeksiPondModel");
+const inspeksiPondAwal = require("./model/qc/inspeksi/pond/inspeksiPondAwalModel");
+const inspeksiPondAwalPoint = require("./model/qc/inspeksi/pond/inspeksiPondAwalPointModel");
+const inspeksiPondPeriode = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
+const inspeksiPondPeriodePoint = require("./model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
+const inspeksiPondPeriodeDefect = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
+
+const inspeksiLem = require("./model/qc/inspeksi/lem/inspeksiLemModel");
+const inspeksiLemAwal = require("./model/qc/inspeksi/lem/inspeksiLemAwalModel");
+const inspeksiLemAwalPoint = require("./model/qc/inspeksi/lem/inspeksiLemAwalPointModel");
+const inspeksiLemPeriode = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
+const inspeksiLemPeriodePoint = require("./model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
+const inspeksiLemPeriodeDefect = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
+
+const inspeksiRabut = require("./model/qc/inspeksi/rabut/inspeksiRabutModel");
+const inspeksiRabutPoint = require("./model/qc/inspeksi/rabut/inspeksiRabutPointModel");
+const inspeksiRabutDefect = require("./model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+
 const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
 const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
+const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
+const msSamplingRabutMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -88,7 +108,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await msPondmasalah.sync({ alter: true });
+//   await inspeksiRabut.sync({ alter: true });
 // })();
 
 // const ip100 = 75

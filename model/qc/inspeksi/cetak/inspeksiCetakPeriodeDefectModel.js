@@ -38,7 +38,7 @@ InspeksiCetakPeriodePoint.hasMany(InspeksiCetakPeriodeDefect, {
 });
 InspeksiCetakPeriodeDefect.belongsTo(InspeksiCetakPeriodePoint, {
   foreignKey: "id_inspeksi_cetak_periode_point",
-  as: "inspeksi_periode_periode_point",
+  as: "inspeksi_cetak_periode_point",
 });
 
 module.exports = InspeksiCetakPeriodeDefect;

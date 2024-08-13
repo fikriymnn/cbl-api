@@ -1,7 +1,7 @@
-const masterKodeMasalahCetak = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
+const masterKodeMasalahLem = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
 
-const masterKodeMasalahCetakController = {
-  getMasterKodeMasalahCetak: async (req, res) => {
+const masterKodeMasalahLemController = {
+  getMasterKodeMasalahLem: async (req, res) => {
     // const {}
     const _id = req.params.id;
     const { kode, masalah, status } = req.query;
@@ -14,10 +14,10 @@ const masterKodeMasalahCetakController = {
 
     try {
       if (!_id) {
-        const response = await masterKodeMasalahCetak.findAll({ where: obj });
+        const response = await masterKodeMasalahLem.findAll({ where: obj });
         res.status(200).json(response);
       } else {
-        const response = await masterKodeMasalahCetak.findByPk(_id);
+        const response = await masterKodeMasalahLem.findByPk(_id);
         res.status(200).json(response);
       }
     } catch (error) {
@@ -25,13 +25,13 @@ const masterKodeMasalahCetakController = {
     }
   },
 
-  createMasterKodeMasalahCetak: async (req, res) => {
+  createMasterKodeMasalahLem: async (req, res) => {
     const { kode, masalah } = req.body;
     if (!kode || !masalah)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
-      const response = await masterKodeMasalahCetak.create({
+      const response = await masterKodeMasalahLem.create({
         kode,
         masalah,
       });
@@ -41,7 +41,7 @@ const masterKodeMasalahCetakController = {
     }
   },
 
-  updateMasterKodeMasalahCetak: async (req, res) => {
+  updateMasterKodeMasalahLem: async (req, res) => {
     const _id = req.params.id;
     const { kode, masalah } = req.body;
 
@@ -50,17 +50,17 @@ const masterKodeMasalahCetakController = {
     if (masalah) obj.masalah = masalah;
 
     try {
-      await masterKodeMasalahCetak.update(obj, { where: { id: _id } }),
+      await masterKodeMasalahLem.update(obj, { where: { id: _id } }),
         res.status(201).json({ msg: "masalah update Successful" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
 
-  deleteMasterKodeMasalahCetak: async (req, res) => {
+  deleteMasterKodeMasalahLem: async (req, res) => {
     const _id = req.params.id;
     try {
-      await masterKodeMasalahCetak.update(
+      await masterKodeMasalahLem.update(
         { status: "non active" },
         { where: { id: _id } }
       ),
@@ -71,4 +71,4 @@ const masterKodeMasalahCetakController = {
   },
 };
 
-module.exports = masterKodeMasalahCetakController;
+module.exports = masterKodeMasalahLemController;

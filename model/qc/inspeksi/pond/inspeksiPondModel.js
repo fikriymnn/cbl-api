@@ -2,8 +2,8 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 
-const InspeksiPotong = db.define(
-  "cs_inspeksi_cetak",
+const InspeksiPond = db.define(
+  "cs_inspeksi_pond",
   {
     tanggal: {
       type: DataTypes.STRING,
@@ -31,11 +31,11 @@ const InspeksiPotong = db.define(
     },
     jumlah_druk: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
     mata: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
     jenis_kertas: {
       type: DataTypes.STRING,
@@ -45,11 +45,7 @@ const InspeksiPotong = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    warna_depan: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    warna_belakang: {
+    ukuran_jadi: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -71,4 +67,4 @@ const InspeksiPotong = db.define(
   }
 );
 
-module.exports = InspeksiPotong;
+module.exports = InspeksiPond;
