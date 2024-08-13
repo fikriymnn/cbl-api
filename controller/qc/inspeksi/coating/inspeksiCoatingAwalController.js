@@ -1,7 +1,7 @@
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
-const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+const InspeksiCoatingResultPointPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 
@@ -23,17 +23,6 @@ const inspeksiCoatingController = {
                where: obj,
             });
             const length = await InspeksiCoating.count({ where: obj });
-            return res.status(200).json({
-               data,
-               total_page: Math.ceil(length / parseInt(limit)),
-            });
-         } else if (page && limit) {
-            const data = await InspeksiCoating.findAll({
-               order: [["createdAt", "DESC"]],
-               offset,
-               limit: parseInt(limit),
-            });
-            const length = await InspeksiCoating.count();
             return res.status(200).json({
                data,
                total_page: Math.ceil(length / parseInt(limit)),
@@ -176,15 +165,19 @@ const inspeksiCoatingController = {
          const { id } = req.params
          await InspeksiCoatingSubAwal.update({
             jumlah_periode_check,
-            waktu_check
+            waktu_check,
+            status: "history"
          }, {
             where: {
                id_inspeksi_coating: id
             }
          })
-         await InspeksiCoating.update({
-            status:"history"
-         },{where: {id}})
+         await InspeksiCoatingSubPeriode.create({
+           id_inspeksi_coating: id
+         })
+         await InspeksiCoatingResultPeriode.create({
+            id_inspeksi_coating: id
+         })
          return res.status(200).json({ data:"update successfully", msg: "OK" });
       } catch (err) {
          res.status(500).json({ msg: err.message })

@@ -4,8 +4,23 @@ const inspeksiCoatingAwalResultController = {
     startCoatingAwalResult: async (req, res) => {
         try {
             const {id} = req.params
+            const timenow = new Date()
+            await InspeksiCoatingResultAwal.update({waktu_mulai: timenow },{id})
+
+            es.status(500).json({ data:"start successfully",msg: 'OK' })
+
+        } catch (err) {
+            res.status(500).json({ msg: err.message })
+        }
+    },
+    stopCoatingAwalResult: async (req, res) => {
+        try {
+            const {id} = req.params
+
+            const newdate = new Date()
+
             const {
-                waktu_mulai,
+                lama_pengerjaan,
                 catatan,
                 foto,
                 line_clearance,
@@ -16,8 +31,10 @@ const inspeksiCoatingAwalResultController = {
                 spot_uv,
                 tes_cracking
             } = req.body
+
             await InspeksiCoatingResultAwal.update({
-                waktu_mulai,
+                lama_pengerjaan,
+                waktu_selesai: newdate,
                 catatan,
                 foto,
                 line_clearance,
@@ -28,14 +45,8 @@ const inspeksiCoatingAwalResultController = {
                 spot_uv,
                 tes_cracking
             },{id})
-            res.status(500).json({ data:"update successfully",msg: 'OK' })
-        } catch (err) {
-            res.status(500).json({ msg: err.message })
-        }
-    },
-    stopCoatingAwalResult: async (req, res) => {
-        try {
-            const {id} = req.params
+
+            res.status(500).json({ data:"stop successfully",msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }

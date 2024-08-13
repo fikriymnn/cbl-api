@@ -16,7 +16,11 @@ const InspeksiCoatingSubPeriode = db.define(
     catatan: {
         type: DataTypes.STRING,
         allowNull: true
-      }
+      },
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "incoming"
+      },
   },
   {
     freezeTableName: true,

@@ -20,7 +20,11 @@ const InspeksiCoatingSubAwal = db.define(
     waktu_check: {
         type: DataTypes.STRING,
         allowNull: true,
-      }
+      },
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "incoming"
+      },
   },
   {
     freezeTableName: true,

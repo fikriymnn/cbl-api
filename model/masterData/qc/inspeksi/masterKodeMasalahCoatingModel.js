@@ -5,14 +5,19 @@ const db = require("../../../../config/database");
 const InspeksiCoatingPointMasterPeriode = db.define(
   "cs_inspeksi_coating_point_master_periode",
   { 
-      point: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-      value: {
-        type: DataTypes.STRING,
-        allowNull: true
-      }
+    kode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING, 
+      allowNull: true,
+      defaultValue: "active",
+    },
   },
   {
     freezeTableName: true,
