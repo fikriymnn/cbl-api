@@ -80,7 +80,9 @@ const inspeksiPondPeriodepointController = {
   createInspeksiPondPeriodePoint: async (req, res) => {
     const { id_inspeksi_pond_periode } = req.body;
     try {
-      const masterKodepond = await MasterKodeMasalahpond.findAll();
+      const masterKodepond = await MasterKodeMasalahpond.findAll({
+        where: { status: "active" },
+      });
 
       const pondPeriodePoint = await InspeksiPondPeriodePoint.create({
         id_inspeksi_pond_periode: id_inspeksi_pond_periode,

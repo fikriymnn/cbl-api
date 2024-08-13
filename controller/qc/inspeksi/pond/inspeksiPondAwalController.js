@@ -32,7 +32,9 @@ const inspeksiPondAwalController = {
       const pondAwal = await InspeksiPondAwal.findByPk(_id);
       console.log(pondAwal);
 
-      const masterKodepond = await MasterKodeMasalahpond.findAll();
+      const masterKodepond = await MasterKodeMasalahpond.findAll({
+        where: { status: "active" },
+      });
 
       const pondPeriode = await InspeksiPondPeriode.create({
         id_inspeksi_pond: pondAwal.id_inspeksi_pond,

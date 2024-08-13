@@ -32,7 +32,9 @@ const inspeksiCetakAwalController = {
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
       console.log(cetakAwal);
 
-      const masterKodeCetak = await MasterKodeMasalahCetak.findAll();
+      const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
+        where: { status: "active" },
+      });
 
       const cetakPeriode = await InspeksiCetakPeriode.create({
         id_inspeksi_cetak: cetakAwal.id_inspeksi_cetak,

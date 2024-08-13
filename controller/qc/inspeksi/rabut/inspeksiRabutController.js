@@ -109,7 +109,9 @@ const inspeksiRabutController = {
         customer,
       });
 
-      const masterKodeRabut = await MasterKodeMasalahRabut.findAll();
+      const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
+        where: { status: "active" },
+      });
 
       const rabutPoint = await InspeksiRabutPoint.create({
         id_inspeksi_rabut: inspeksiRabut.id,

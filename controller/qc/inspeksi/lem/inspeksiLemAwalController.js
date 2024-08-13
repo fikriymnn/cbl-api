@@ -45,7 +45,9 @@ const inspeksiLemAwalController = {
         }
       );
 
-      const masterKodelem = await MasterKodeMasalahLem.findAll();
+      const masterKodelem = await MasterKodeMasalahLem.findAll({
+        where: { status: "active" },
+      });
 
       const lemPeriode = await InspeksiLemPeriode.create({
         id_inspeksi_lem: lemAwal.id_inspeksi_lem,

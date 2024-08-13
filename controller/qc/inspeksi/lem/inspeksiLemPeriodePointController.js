@@ -80,7 +80,9 @@ const inspeksiLemPeriodepointController = {
   createInspeksiLemPeriodePoint: async (req, res) => {
     const { id_inspeksi_lem_periode } = req.body;
     try {
-      const masterKodelem = await MasterKodeMasalahLem.findAll();
+      const masterKodelem = await MasterKodeMasalahLem.findAll({
+        where: { status: "active" },
+      });
 
       const lemPeriodePoint = await InspeksiLemPeriodePoint.create({
         id_inspeksi_lem_periode: id_inspeksi_lem_periode,

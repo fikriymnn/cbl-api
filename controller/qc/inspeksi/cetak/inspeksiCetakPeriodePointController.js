@@ -79,7 +79,9 @@ const inspeksiCetakPeriodepointController = {
   createInspeksiCetakPeriodePoint: async (req, res) => {
     const { id_inspeksi_cetak_periode } = req.body;
     try {
-      const masterKodeCetak = await MasterKodeMasalahCetak.findAll();
+      const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
+        where: { status: "active" },
+      });
 
       const cetakPeriodePoint = await InspeksiCetakPeriodePoint.create({
         id_inspeksi_cetak_periode: id_inspeksi_cetak_periode,
