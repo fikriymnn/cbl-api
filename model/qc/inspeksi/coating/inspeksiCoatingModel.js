@@ -5,22 +5,6 @@ const db = require("../../../../config/database");
 const InspeksiCoating = db.define(
   "cs_inspeksi_coating",
   {
-    id_coating_result_awal: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    id_coating_sub_awal: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    id_coating_result_periode: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    id_coating_sub_periode: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: false,

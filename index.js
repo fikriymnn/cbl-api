@@ -91,6 +91,9 @@ const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahP
 const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
 const msSamplingRabutMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 
+const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel")
+const inspeksi_coating_point_periode = require('./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel')
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -108,7 +111,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiRabut.sync({ alter: true });
+//   await inspeksi_coating_point_periode.sync({ alter: true });
 // })();
 
 // const ip100 = 75

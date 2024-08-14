@@ -13,14 +13,14 @@ const InspeksiCoatingResultPointPeriode = db.define(
         model: InspeksiCoatingResultPeriode
       }
     },
-    point: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-      value: {
-        type: DataTypes.STRING,
-        allowNull: true
-      }
+    kode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

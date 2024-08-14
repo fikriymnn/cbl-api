@@ -67,6 +67,10 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
         type : DataTypes.STRING,
         allowNull: true
     },
+    total_skor : {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    }
 },
 {
     freezeTableName: true,
