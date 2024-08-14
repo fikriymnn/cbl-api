@@ -1,25 +1,25 @@
 const router = require("express").Router();
-const kodeMasalahCetakController = require("../../../../controller/masterData/qc/inspeksi/masterKodeMasalahCetakController");
+const kodeMasalahCoatingController = require("../../../../controller/masterData/qc/inspeksi/masterKodeMasalahCoatingController");
 const { auth } = require("../../../../middlewares/authMiddlewares");
 
 router.get(
-  "/master/qc/cs/masalahCetak/:id?",
-  kodeMasalahCetakController.getMasterKodeMasalahCetak
+  "/master/qc/cs/masalahCoating/:id?",
+  kodeMasalahCoatingController.getMasterKodeMasalahCoating
 );
 router.post(
-  "/master/qc/cs/masalahCetak",
+  "/master/qc/cs/masalahCoating",
   auth,
-  kodeMasalahCetakController.createMasterKodeMasalahCetak
+  kodeMasalahCoatingController.createMasterKodeMasalahCoating
 );
 router.put(
-  "/master/qc/cs/masalahCetak/:id",
+  "/master/qc/cs/masalahCoating/:id",
   auth,
-  kodeMasalahCetakController.updateMasterKodeMasalahCetak
+  kodeMasalahCoatingController.updateMasterKodeMasalahCoating
 );
 router.delete(
-  "/master/qc/cs/masalahCetak/:id",
+  "/master/qc/cs/masalahCoating/:id",
   auth,
-  kodeMasalahCetakController.deleteMasterKodeMasalahCetak
+  kodeMasalahCoatingController.deleteMasterKodeMasalahCoating
 );
 
 module.exports = router;

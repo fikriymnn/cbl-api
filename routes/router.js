@@ -81,7 +81,9 @@ router.use("/", require("./qc/inspeksi/rabut/inspeksiRabutRoute"));
 router.use("/", require("./qc/inspeksi/rabut/inspeksiRabutPointRoute"));
 
 // qc coating
-router.use("/", require("./qc/inspeksi/"));
+router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingRoutes"));
+router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingAwalRoutes"));
+router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
 
 router.use("/", require("./uploadRoutes"));
 

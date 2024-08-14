@@ -1,13 +1,23 @@
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel")
 
 const inspeksiCoatingAwalResultController = {
+    addInspeksiCoatingAwalResult : async (req,res)=>{
+        try {
+            const {id} = req.params
+            await InspeksiCoatingResultAwal.create({id_inspeksi_coating: id})
+            
+            res.status(200).json({ data:"create data successfully",msg: 'OK' })
+        } catch (err) {
+            res.status(500).json({ msg: err.message })
+        }
+    },
     startCoatingAwalResult: async (req, res) => {
         try {
             const {id} = req.params
             const timenow = new Date()
             await InspeksiCoatingResultAwal.update({waktu_mulai: timenow },{id})
 
-            es.status(500).json({ data:"start successfully",msg: 'OK' })
+            res.status(200).json({ data:"start successfully",msg: 'OK' })
 
         } catch (err) {
             res.status(500).json({ msg: err.message })
@@ -46,7 +56,7 @@ const inspeksiCoatingAwalResultController = {
                 tes_cracking
             },{id})
 
-            res.status(500).json({ data:"stop successfully",msg: 'OK' })
+            res.status(200).json({ data:"stop successfully",msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }

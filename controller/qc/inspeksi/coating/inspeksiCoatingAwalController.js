@@ -4,6 +4,7 @@ const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coat
 const InspeksiCoatingResultPointPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
+const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 
 const inspeksiCoatingController = {
    getInspeksiCoating: async (req, res) => {
@@ -178,10 +179,37 @@ const inspeksiCoatingController = {
          await InspeksiCoatingResultPeriode.create({
             id_inspeksi_coating: id
          })
+         const data = await InspeksiCoatingPointMasterPeriode.findAll({where:{
+            status: "active"
+         }})
+         let a= 0
+         data.forEach((v,i)=>{
+            data[i].id_inspeksi_coating = id
+            a++
+         })
+         if(data.length==a){
+            await InspeksiCoatingResultPointPeriode.bulkCreate(data)
+         }
+
          return res.status(200).json({ data:"update successfully", msg: "OK" });
       } catch (err) {
          res.status(500).json({ msg: err.message })
       }
    },
+   getInspeksiCoatingJenisProsess : async (req,res)=>{
+     try{
+        const {id} = req.params
+        const data = await InspeksiCoatingSubAwal.findAll({where:{id_inspeksi_coating:id}})
+        const data2 = await InspeksiCoatingSubPeriode.findAll({where: {id_inspeksi_coating:id}})
+        data.push(data2)
+        if(data2.length>0){
+         return res.status(200).json({ data: ["awal","periode"], msg: "OK" });
+        }else{
+         return res.status(200).json({ data: ["awal"], msg: "OK" });
+        }
+     }catch(err){
+      res.status(500).json({ msg: err.message })
+     }
+   }
 }
 module.exports = inspeksiCoatingController 

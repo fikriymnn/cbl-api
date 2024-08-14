@@ -3,7 +3,7 @@ const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 
 const InspeksiCoatingPointMasterPeriode = db.define(
-  "cs_inspeksi_coating_point_master_periode",
+  "cs_master_inspeksi_coating_periode_defect",
   { 
     kode: {
       type: DataTypes.STRING,
