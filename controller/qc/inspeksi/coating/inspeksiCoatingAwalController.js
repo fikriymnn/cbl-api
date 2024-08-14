@@ -1,7 +1,7 @@
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
-const InspeksiCoatingResultPointPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
@@ -28,7 +28,41 @@ const inspeksiCoatingController = {
                data,
                total_page: Math.ceil(length / parseInt(limit)),
             });
-         } else if (status || jenis_pengecekan) {
+         } else if (id) {
+            if (jenis_pengecekan == 'awal') {
+               const data = await InspeksiCoating.findByPk(id,
+                  {
+                     include: [{ model: InspeksiCoatingResultAwal, as: "inspeksi_coating_result_awal" }, { model: InspeksiCoatingSubAwal, as: "inspeksi_coating_sub_awal" }],
+                  });
+               if (req?.user?.nama && data && !data?.inspector) {
+                  await InspeksiCoatingResultAwal.update({ inspector: req.user.name }, { where: { id } })
+               }
+               return res.status(200).json({ data });
+            } else if (jenis_pengecekan == 'periode') {
+               const data = await InspeksiCoating.findByPk(id,
+                  {
+                     include: [{
+                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_periode",include: {
+                           model: InspeksiCoatingResultPointPeriode, as: "inspeksi_coating_result_point_periode"
+                        }
+                     }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }],
+                  });
+               if (req?.user?.nama && data && !data?.inspector) {
+                  await InspeksiCoatingResultPeriode.update({ inspector: req.user.name }, { where: { id } })
+               }
+               return res.status(200).json({ data });
+            } else {
+               const data = await InspeksiCoating.findByPk(id,
+                  {
+                     include: [{
+                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_periode", include: {
+                           model: InspeksiCoatingResultPointPeriode, as: "inspeksi_coating_result_point_periode"
+                        }
+                     }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }, { model: InspeksiCoatingResultAwal, as: "inspeksi_coating_result_awal" }, { model: InspeksiCoatingSubAwal, as: "inspeksi_coating_sub_awal" }],
+                  });
+               return res.status(200).json({ data,msg: 'OK' });
+            }
+         } else if (status && jenis_pengecekan) {
             if (status) obj.status = status
             if (jenis_pengecekan) obj.jenis_pengecekan = jenis_pengecekan
             const data = await InspeksiCoating.findAll({
@@ -40,37 +74,6 @@ const inspeksiCoatingController = {
                data,
                total_page: Math.ceil(length / parseInt(limit)),
             });
-         } else if (id) {
-            if (jenis_pengecekan == 'awal') {
-               const data = await InspeksiCoating.findByPk(id,
-                  {
-                     include: [{ model: InspeksiCoatingResultAwal, as: "inspeksi_coating_result_awal" }, { model: InspeksiCoatingSubAwal, as: "inspeksi_coating_sub_awal" }],
-                  });
-               if (req.user.name && data && !data?.inspector) {
-                  await data.update({ inspector: req.user.name }, { where: { id } })
-               }
-               return res.status(200).json({ data });
-            } else if (jenis_pengecekan == 'periode') {
-               const data = await InspeksiCoating.findByPk(id,
-                  {
-                     include: [{
-                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_priode", include: {
-                           model: InspeksiCoatingResultPointPeriode, as: "inspeksi_coating_result_point_periode"
-                        }
-                     }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }],
-                  });
-               return res.status(200).json({ data });
-            } else {
-               const data = await InspeksiCoating.findByPk(id,
-                  {
-                     include: [{
-                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_priode", include: {
-                           model: InspeksiCoatingResultPointPeriode, as: "inspeksi_coating_result_point_periode"
-                        }
-                     }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }, { model: InspeksiCoatingResultAwal, as: "inspeksi_coating_result_awal" }, { model: InspeksiCoatingSubAwal, as: "inspeksi_coating_sub_awal" }],
-                  });
-               return res.status(200).json({ data });
-            }
          } else {
             const data = await InspeksiCoating.findAll({
                order: [["createdAt", "DESC"]],
@@ -138,10 +141,9 @@ const inspeksiCoatingController = {
             mesin,
             operator,
             status_jo,
-            periode,
             coating
          });
-         if (data.id) {
+         if (data?.id) {
             await InspeksiCoatingResultAwal.create(
                {
                   id_inspeksi_coating: data?.id,
@@ -174,42 +176,31 @@ const inspeksiCoatingController = {
             }
          })
          await InspeksiCoatingSubPeriode.create({
-           id_inspeksi_coating: id
+            id_inspeksi_coating: id
          })
          await InspeksiCoatingResultPeriode.create({
             id_inspeksi_coating: id
          })
-         const data = await InspeksiCoatingPointMasterPeriode.findAll({where:{
-            status: "active"
-         }})
-         let a= 0
-         data.forEach((v,i)=>{
-            data[i].id_inspeksi_coating = id
-            a++
-         })
-         if(data.length==a){
-            await InspeksiCoatingResultPointPeriode.bulkCreate(data)
-         }
 
-         return res.status(200).json({ data:"update successfully", msg: "OK" });
+         return res.status(200).json({ data: "update successfully", msg: "OK" });
       } catch (err) {
          res.status(500).json({ msg: err.message })
       }
    },
-   getInspeksiCoatingJenisProsess : async (req,res)=>{
-     try{
-        const {id} = req.params
-        const data = await InspeksiCoatingSubAwal.findAll({where:{id_inspeksi_coating:id}})
-        const data2 = await InspeksiCoatingSubPeriode.findAll({where: {id_inspeksi_coating:id}})
-        data.push(data2)
-        if(data2.length>0){
-         return res.status(200).json({ data: ["awal","periode"], msg: "OK" });
-        }else{
-         return res.status(200).json({ data: ["awal"], msg: "OK" });
-        }
-     }catch(err){
-      res.status(500).json({ msg: err.message })
-     }
+   getInspeksiCoatingJenisProsess: async (req, res) => {
+      try {
+         const { id } = req.params
+         const data = await InspeksiCoatingSubAwal.findAll({ where: { id_inspeksi_coating: id } })
+         const data2 = await InspeksiCoatingSubPeriode.findAll({ where: { id_inspeksi_coating: id } })
+         data.push(data2)
+         if (data2.length > 0) {
+            return res.status(200).json({ data: ["awal", "periode"], msg: "OK" });
+         } else {
+            return res.status(200).json({ data: ["awal"], msg: "OK" });
+         }
+      } catch (err) {
+         res.status(500).json({ msg: err.message })
+      }
    }
 }
 module.exports = inspeksiCoatingController 

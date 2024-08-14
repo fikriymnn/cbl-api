@@ -6,7 +6,7 @@ const inspeksiCoatingPeriodeResultController = {
         try {
             const {id} = req.params
             const timenow = new Date()
-            await InspeksiCoatingResultPeriode.update({waktu_mulai: timenow },{id})
+            await InspeksiCoatingResultPeriode.update({waktu_mulai: timenow },{where:{id}})
 
             res.status(200).json({ data:"start successfully",msg: 'OK' })
 
@@ -30,7 +30,18 @@ const inspeksiCoatingPeriodeResultController = {
                 nilai_glossy_tengah,
                 nilai_glossy_kanan,
                 jumlah_sampling,
+                kode_masalah
             } = req.body
+
+            let counter = 0
+            for (let i = 0; i < kode_masalah.length; i++) {
+                kode_masalah[i].id_inspeksi_coating_result_periode = id
+                counter++;
+            }
+            
+            if(kode_masalah.length==counter){
+                await InspeksiCoatingResultPointPeriode.bulkCreate(kode_masalah)
+            }
 
             await InspeksiCoatingResultPeriode.update({
                 waktu_selesai: newdate,
@@ -43,7 +54,7 @@ const inspeksiCoatingPeriodeResultController = {
                 nilai_glossy_tengah,
                 nilai_glossy_kanan,
                 jumlah_sampling,
-            },{id})
+            },{where:{id}})
 
             res.status(200).json({ data:"stop successfully",msg: 'OK' })
         } catch (err) {

@@ -1,3 +1,4 @@
+const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel")
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel")
 
 const inspeksiCoatingAwalResultController = {
@@ -5,7 +6,7 @@ const inspeksiCoatingAwalResultController = {
         try {
             const {id} = req.params
             await InspeksiCoatingResultAwal.create({id_inspeksi_coating: id})
-            
+
             res.status(200).json({ data:"create data successfully",msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
@@ -15,7 +16,7 @@ const inspeksiCoatingAwalResultController = {
         try {
             const {id} = req.params
             const timenow = new Date()
-            await InspeksiCoatingResultAwal.update({waktu_mulai: timenow },{id})
+            await InspeksiCoatingResultAwal.update({waktu_mulai: timenow },{where:{id}})
 
             res.status(200).json({ data:"start successfully",msg: 'OK' })
 
@@ -39,9 +40,11 @@ const inspeksiCoatingAwalResultController = {
                 gramatur,
                 hasil_coating,
                 spot_uv,
-                tes_cracking
+                tes_cracking,
+                
             } = req.body
 
+            
             await InspeksiCoatingResultAwal.update({
                 lama_pengerjaan,
                 waktu_selesai: newdate,
@@ -54,7 +57,7 @@ const inspeksiCoatingAwalResultController = {
                 hasil_coating,
                 spot_uv,
                 tes_cracking
-            },{id})
+            },{where:{id}})
 
             res.status(200).json({ data:"stop successfully",msg: 'OK' })
         } catch (err) {
