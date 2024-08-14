@@ -72,7 +72,11 @@ const InspeksiPotong = db.define(
     merk: {
       type: DataTypes.STRING,
       allowNull: true
-    }
+    },
+    total_skor:{
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
   },
   {
     freezeTableName: true,
