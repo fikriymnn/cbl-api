@@ -38,6 +38,7 @@ const inspeksiLemAwalpointController = {
       bentuk_jadi,
       kebersihan,
     } = req.body;
+
     if (
       !lama_pengerjaan ||
       !line_clearance ||

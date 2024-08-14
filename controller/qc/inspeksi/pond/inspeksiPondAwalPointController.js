@@ -38,6 +38,7 @@ const inspeksiPondAwalpointController = {
       riil,
       reforasi,
     } = req.body;
+
     if (
       !lama_pengerjaan ||
       !line_clearance ||
@@ -49,6 +50,7 @@ const inspeksiPondAwalpointController = {
       !reforasi
     )
       return res.status(400).json({ msg: "Incomplite Data" });
+
     try {
       await InspeksiPondAwalPoint.update(
         {
