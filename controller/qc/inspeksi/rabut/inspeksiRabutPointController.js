@@ -28,7 +28,10 @@ const inspeksiRabutpointController = {
 
   stopRabutPoint: async (req, res) => {
     const _id = req.params.id;
-    const { catatan, lama_pengerjaan, data_defect } = req.body;
+    const { catatan, lama_pengerjaan, qty_pallet, data_defect } = req.body;
+    if (!qty_pallet)
+      return res.status(400).json({ msg: "Qty Pallet Wajib di Isi" });
+
     if (!lama_pengerjaan || !data_defect || data_defect.length == 0)
       return res.status(400).json({ msg: "Incomplite Data" });
     try {
@@ -51,6 +54,7 @@ const inspeksiRabutpointController = {
           status: "done",
           lama_pengerjaan,
           catatan,
+          qty_pallet,
         },
         { where: { id: _id } }
       );
@@ -73,6 +77,7 @@ const inspeksiRabutpointController = {
           id_inspeksi_rabut_point: pondPeriodePoint.id,
           kode: masterKodepond[i].kode,
           masalah: masterKodepond[i].masalah,
+          id_inspeksi_rabut: id_inspeksi_rabut,
         });
       }
       res.status(200).json({ msg: "Create Successful" });

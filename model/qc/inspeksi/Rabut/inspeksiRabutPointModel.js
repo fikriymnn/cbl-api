@@ -37,6 +37,10 @@ const InspeksiRabutPoint = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_pallet: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

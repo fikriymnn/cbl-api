@@ -108,6 +108,17 @@ const Ticket = db.define(
       defaultValue: "qc",
     },
 
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
+    bagian_mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
+
     status_tiket: {
       type: DataTypes.STRING,
       allowNull: false,

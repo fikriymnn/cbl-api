@@ -8,4 +8,10 @@ router.put(
   inspeksiLemAwal.doneLemAwal
 );
 
+router.put(
+  "/qc/cs/inspeksiLemAwal/pending/:id",
+  auth,
+  inspeksiLemAwal.pendingLemAwal
+);
+
 module.exports = router;

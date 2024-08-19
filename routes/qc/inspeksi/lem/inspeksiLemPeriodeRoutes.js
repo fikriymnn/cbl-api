@@ -8,4 +8,10 @@ router.put(
   inspeksiLemPeriode.doneLemPeriode
 );
 
+router.put(
+  "/qc/cs/inspeksiLemPeriode/pending/:id",
+  auth,
+  inspeksiLemPeriode.pendingLemPeriode
+);
+
 module.exports = router;

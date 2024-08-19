@@ -55,6 +55,28 @@ const inspeksiCetakAwalController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  pendingCetakAwal: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
+      await InspeksiCetakAwal.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiCetak.update(
+        { status: "pending" },
+        {
+          where: { id: cetakAwal.id_inspeksi_cetak },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiCetakAwalController;

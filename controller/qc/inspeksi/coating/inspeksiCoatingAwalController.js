@@ -242,6 +242,7 @@ const inspeksiCoatingController = {
       res.status(500).json({ msg: err.message });
     }
   },
+
   getInspeksiCoatingJenisProsess: async (req, res) => {
     try {
       const { id } = req.params;

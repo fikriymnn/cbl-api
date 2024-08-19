@@ -44,6 +44,12 @@ const MasterSparepart = db.define(
       },
     },
 
+    peruntukan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+
     tgl_pasang: {
       type: DataTypes.DATE,
       allowNull: true,

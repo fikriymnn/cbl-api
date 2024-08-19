@@ -91,6 +91,16 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
+    bagian_mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
     note_analisis: {
       type: DataTypes.STRING,
       allowNull: true,

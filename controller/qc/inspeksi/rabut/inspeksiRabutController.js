@@ -72,8 +72,29 @@ const inspeksiRabutController = {
             ],
           },
         });
+        const inspeksiRabutPoint = await InspeksiRabutPoint.sum("qty_pallet", {
+          where: { id_inspeksi_rabut: id },
+        });
 
-        return res.status(200).json({ data });
+        const inspeksiRabutPointDefect = await InspeksiRabutDefect.findAll({
+          attributes: [
+            "kode",
+            [Sequelize.fn("SUM", Sequelize.col("hasil")), "total_defect"],
+          ],
+          group: ["kode"],
+          where: { id_inspeksi_rabut: id },
+        });
+
+        const totalDefect = await InspeksiRabutDefect.sum("hasil", {
+          where: { id_inspeksi_rabut: id },
+        });
+
+        return res.status(200).json({
+          data: data,
+          sumQtyPallet: inspeksiRabutPoint,
+          totalPointDefect: inspeksiRabutPointDefect,
+          totalDefect: totalDefect,
+        });
       } else {
         const data = await InspeksiRabut.findAll({
           order: [["createdAt", "DESC"]],
@@ -121,6 +142,7 @@ const inspeksiRabutController = {
           id_inspeksi_rabut_point: rabutPoint.id,
           kode: masterKodeRabut[i].kode,
           masalah: masterKodeRabut[i].masalah,
+          id_inspeksi_rabut: inspeksiRabut.id,
         });
       }
 

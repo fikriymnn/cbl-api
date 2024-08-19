@@ -68,6 +68,28 @@ const inspeksiLemAwalController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  pendingLemAwal: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const lemAwal = await InspeksiLemAwal.findByPk(_id);
+      await InspeksiLemAwal.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiLem.update(
+        { status: "pending" },
+        {
+          where: { id: lemAwal.id_inspeksi_lem },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiLemAwalController;
