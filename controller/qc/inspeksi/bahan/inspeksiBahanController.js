@@ -169,7 +169,7 @@ const inspeksiBahanController = {
       let total_skor = 0
       let counter = 0
       data.forEach((v,i)=>{
-        if(v.keterangan_hasil=="Sesuai"){
+        if(v.keterangan_hasil=="sesuai"){
           total_skor+=v.bobot
         }
         counter++
