@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../../config/database");
 const InspeksiCoating = require("../inspeksiCoatingModel");
+const Users = require("../../../../userModel");
 
 const InspeksiCoatingResultPeriode = db.define(
     "cs_inspeksi_coating_result_periode",
@@ -34,8 +35,11 @@ const InspeksiCoatingResultPeriode = db.define(
             allowNull: true
         },
         inspector: {
-            type: DataTypes.STRING,
-            allowNull: true
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model : Users
+            }
         },
         numerator: {
             type: DataTypes.STRING,

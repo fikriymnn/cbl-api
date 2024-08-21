@@ -4,11 +4,13 @@ const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coat
 const inspeksiCoatingPeriodeResultController = {
     startCoatingPeriodeResult: async (req, res) => {
         try {
-            const {id} = req.params
+            const { id } = req.params
             const timenow = new Date()
-            await InspeksiCoatingResultPeriode.update({waktu_mulai: timenow },{where:{id}})
-
-            res.status(200).json({ data:"start successfully",msg: 'OK' })
+            const data = await InspeksiCoatingResultPeriode.findByPk(id)
+            if (!data.inspector) {
+                await InspeksiCoatingResultPeriode.update({ waktu_mulai: timenow, inspector: req.user.id }, { where: { id } })
+            }
+            res.status(200).json({ data: "start successfully", msg: 'OK' })
 
         } catch (err) {
             res.status(500).json({ msg: err.message })
@@ -16,7 +18,7 @@ const inspeksiCoatingPeriodeResultController = {
     },
     stopCoatingPeriodeResult: async (req, res) => {
         try {
-            const {id} = req.params
+            const { id } = req.params
 
             const newdate = new Date()
 
@@ -38,8 +40,8 @@ const inspeksiCoatingPeriodeResultController = {
                 kode_masalah[i].id_inspeksi_coating_result_periode = id
                 counter++;
             }
-            
-            if(kode_masalah.length==counter){
+
+            if (kode_masalah.length == counter) {
                 await InspeksiCoatingResultPointPeriode.bulkCreate(kode_masalah)
             }
 
@@ -54,29 +56,29 @@ const inspeksiCoatingPeriodeResultController = {
                 nilai_glossy_tengah,
                 nilai_glossy_kanan,
                 jumlah_sampling,
-            },{where:{id}})
+            }, { where: { id } })
 
-            res.status(200).json({ data:"stop successfully",msg: 'OK' })
+            res.status(200).json({ data: "stop successfully", msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }
     },
-    addInspeksiCoatingPeriodeResult : async (req,res)=>{
+    addInspeksiCoatingPeriodeResult: async (req, res) => {
         try {
-            const {id} = req.params
-            await InspeksiCoatingResultPeriode.create({id_inspeksi_coating: id})
-            
-            res.status(200).json({ data:"create data successfully",msg: 'OK' })
+            const { id } = req.params
+            await InspeksiCoatingResultPeriode.create({ id_inspeksi_coating: id })
+
+            res.status(200).json({ data: "create data successfully", msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }
     },
-    addInspeksiCoatingPeriodePoint : async (req,res)=>{
+    addInspeksiCoatingPeriodePoint: async (req, res) => {
         try {
-            const {id} = req.params
-            await InspeksiCoatingResultPointPeriode.create({id_inspeksi_coating_result_periode: id})
-            
-            res.status(200).json({ data:"create data successfully",msg: 'OK' })
+            const { id } = req.params
+            await InspeksiCoatingResultPointPeriode.create({ id_inspeksi_coating_result_periode: id })
+
+            res.status(200).json({ data: "create data successfully", msg: 'OK' })
         } catch (err) {
             res.status(500).json({ msg: err.message })
         }
