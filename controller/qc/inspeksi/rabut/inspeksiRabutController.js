@@ -154,6 +154,7 @@ const inspeksiRabutController = {
 
   doneInspeksiRabut: async (req, res) => {
     const _id = req.params.id;
+    const { catatan } = req.body;
 
     try {
       const inspeksiRabutPoint = await InspeksiRabutPoint.findAll({
@@ -169,11 +170,27 @@ const inspeksiRabutController = {
           jumlah_periode: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "history",
+          catatan,
         },
         { where: { id: _id } }
       );
 
       res.status(200).json({ msg: "Done Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  pendingLemPeriode: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiRabut.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });
     }

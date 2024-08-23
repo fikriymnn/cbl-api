@@ -45,6 +45,10 @@ const InspeksiRabut = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    catatan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

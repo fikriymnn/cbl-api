@@ -10,4 +10,10 @@ router.put(
   inspeksiRabut.doneInspeksiRabut
 );
 
+router.put(
+  "/qc/cs/inspeksiRabut/pending/:id",
+  auth,
+  inspeksiRabut.pendingLemPeriode
+);
+
 module.exports = router;
