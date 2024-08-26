@@ -2,11 +2,20 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 const InspeksiRabutPoint = require("./inspeksiRabutPointModel");
+const InspeksiRabut = require("./inspeksiRabutModel");
 const User = require("../../../userModel");
 
 const InspeksiRabutDefect = db.define(
   "cs_inspeksi_rabut_defect",
   {
+    id_inspeksi_rabut: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: InspeksiRabut,
+        key: "id",
+      },
+    },
     id_inspeksi_rabut_point: {
       type: DataTypes.INTEGER,
       references: {
@@ -31,6 +40,15 @@ const InspeksiRabutDefect = db.define(
     freezeTableName: true,
   }
 );
+
+InspeksiRabut.hasMany(InspeksiRabutDefect, {
+  foreignKey: "id_inspeksi_rabut",
+  as: "inspeksi_defect",
+});
+InspeksiRabutDefect.belongsTo(InspeksiRabut, {
+  foreignKey: "id_inspeksi_rabut",
+  as: "inspeksi_rabut",
+});
 
 InspeksiRabutPoint.hasMany(InspeksiRabutDefect, {
   foreignKey: "id_inspeksi_rabut_point",

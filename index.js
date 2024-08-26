@@ -90,9 +90,14 @@ const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalah
 const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
 const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
 const msSamplingRabutMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const msCoatingMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 
-const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel")
-const inspeksi_coating_point_periode = require('./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel')
+const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel");
+const inspeksi_coating_sub_awal = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
+const inspeksi_coating_sub_periode = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
+const inspeksi_coating_result_awal = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
+const inspeksi_coating_result_periode = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
+const inspeksi_coating_point_periode = require("./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -111,7 +116,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksi_coating_point_periode.sync({ alter: true });
+//   await inspeksiRabut.sync({ alter: true });
 // })();
 
 // const ip100 = 75

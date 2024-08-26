@@ -38,6 +38,28 @@ const inspeksiLemPeriodeController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  pendingLemPeriode: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const lemPeriode = await InspeksiLemPeriode.findByPk(_id);
+      await InspeksiLemPeriode.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiLem.update(
+        { status: "pending" },
+        {
+          where: { id: lemPeriode.id_inspeksi_lem },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiLemPeriodeController;

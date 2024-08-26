@@ -7,5 +7,10 @@ router.put(
   auth,
   inspeksiCetakAwal.doneCetakAwal
 );
+router.put(
+  "/qc/cs/inspeksiCetakAwal/pending/:id",
+  auth,
+  inspeksiCetakAwal.pendingCetakAwal
+);
 
 module.exports = router;

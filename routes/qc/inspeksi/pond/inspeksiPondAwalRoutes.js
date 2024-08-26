@@ -8,4 +8,10 @@ router.put(
   inspeksiPondAwal.donePondAwal
 );
 
+router.put(
+  "/qc/cs/inspeksiPondAwal/pending/:id",
+  auth,
+  inspeksiPondAwal.pendingPondAwal
+);
+
 module.exports = router;

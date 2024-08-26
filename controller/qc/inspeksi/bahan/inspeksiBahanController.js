@@ -45,10 +45,13 @@ const inspeksiBahanController = {
           include: { model: InspeksiBahanResult, as: "inspeksi_bahan_result" },
         });
 
-        if(data && !data?.inspector){
-          await InspeksiBahan.update({inspector: req.user.name},{where: {id}})
+        if (data && !data?.inspector) {
+          await InspeksiBahan.update(
+            { inspector: req.user.name },
+            { where: { id } }
+          );
         }
-      
+
         let array = [];
         data.inspeksi_bahan_result.forEach((value) => {
           value.metode = value.metode?.split("|");
@@ -123,7 +126,7 @@ const inspeksiBahanController = {
   updateInspeksiBahan: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_rumus, no_lot, verifikasi, catatan } = req.body;
+      const { hasil_rumus, no_lot, verifikasi, catatan, total_skor } = req.body;
       let obj = {
         status: "history",
       };
@@ -131,6 +134,7 @@ const inspeksiBahanController = {
       if (no_lot) obj.no_lot = no_lot;
       if (verifikasi) obj.verifikasi = verifikasi;
       if (catatan) obj.catatan = catatan;
+      if (total_skor) obj.total_skor = total_skor;
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });

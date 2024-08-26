@@ -32,7 +32,9 @@ const inspeksiCetakAwalController = {
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
       console.log(cetakAwal);
 
-      const masterKodeCetak = await MasterKodeMasalahCetak.findAll();
+      const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
+        where: { status: "active" },
+      });
 
       const cetakPeriode = await InspeksiCetakPeriode.create({
         id_inspeksi_cetak: cetakAwal.id_inspeksi_cetak,
@@ -49,6 +51,28 @@ const inspeksiCetakAwalController = {
       }
 
       res.status(200).json({ msg: "Done Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  pendingCetakAwal: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
+      await InspeksiCetakAwal.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiCetak.update(
+        { status: "pending" },
+        {
+          where: { id: cetakAwal.id_inspeksi_cetak },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });
     }

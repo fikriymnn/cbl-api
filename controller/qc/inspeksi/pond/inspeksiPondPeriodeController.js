@@ -38,6 +38,27 @@ const inspeksiPondPeriodeController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+  pendingPondPeriode: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const pondPeriode = await InspeksiPondPeriode.findByPk(_id);
+      await InspeksiPondPeriode.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiPond.update(
+        { status: "pending" },
+        {
+          where: { id: pondPeriode.id_inspeksi_pond },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiPondPeriodeController;

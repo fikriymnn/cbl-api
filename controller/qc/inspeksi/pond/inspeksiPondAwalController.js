@@ -32,7 +32,9 @@ const inspeksiPondAwalController = {
       const pondAwal = await InspeksiPondAwal.findByPk(_id);
       console.log(pondAwal);
 
-      const masterKodepond = await MasterKodeMasalahpond.findAll();
+      const masterKodepond = await MasterKodeMasalahpond.findAll({
+        where: { status: "active" },
+      });
 
       const pondPeriode = await InspeksiPondPeriode.create({
         id_inspeksi_pond: pondAwal.id_inspeksi_pond,
@@ -49,6 +51,27 @@ const inspeksiPondAwalController = {
       }
 
       res.status(200).json({ msg: "Done Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+  pendingPondAwal: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const pondAwal = await InspeksiPondAwal.findByPk(_id);
+      await InspeksiPondAwal.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiPond.update(
+        { status: "pending" },
+        {
+          where: { id: pondAwal.id_inspeksi_pond },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });
     }

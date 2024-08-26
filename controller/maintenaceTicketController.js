@@ -179,6 +179,8 @@ const ticketController = {
       jenis_kendala,
       id_kendala,
       nama_kendala,
+      unit,
+      bagian_mesin,
     } = req.body;
 
     try {
@@ -245,6 +247,8 @@ const ticketController = {
         id_kendala: id_kendala,
         nama_kendala: nama_kendala,
         kode_ticket: kodeTicket,
+        unit: unit,
+        bagian_mesin: bagian_mesin,
       }),
         createNotification(
           "maintenance",

@@ -69,6 +69,7 @@ const masterSparepartController = {
       sisa_umur,
       keterangan,
       jenis_part,
+      peruntukan,
     } = req.body;
     if (jenis_part == "ganti") {
       if (
@@ -115,6 +116,7 @@ const masterSparepartController = {
           actual_umur,
           sisa_umur,
           keterangan,
+          peruntukan,
         });
         res.status(200).json(response);
       } else {
@@ -129,6 +131,7 @@ const masterSparepartController = {
           jenis_part,
           umur_service: sisa_umur,
           keterangan,
+          peruntukan,
         });
         res.status(200).json(response);
       }

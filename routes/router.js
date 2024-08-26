@@ -39,6 +39,10 @@ router.use(
 router.use("/", require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute"))
 router.use("/", require("./masterdata/qc/inspeksi/masterPointFinalRoute"))
 router.use("/", require("./masterdata/qc/inspeksi/masterSubFinalRoute"))
+router.use(
+  "/",
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
+);
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));

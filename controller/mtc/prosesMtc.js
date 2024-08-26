@@ -341,7 +341,8 @@ const ProsessMtc = {
       cara_perbaikan,
       note_mtc,
       nama_mesin,
-
+      unit,
+      bagian_mesin,
       image_url,
     } = req.body;
 
@@ -386,6 +387,8 @@ const ProsessMtc = {
       cara_perbaikan: cara_perbaikan,
       note_mtc: note_mtc,
       note_analisis: note_analisis,
+      unit: unit,
+      bagian_mesin: bagian_mesin,
       //image_url: image_url,
     };
 

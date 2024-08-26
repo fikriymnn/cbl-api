@@ -45,7 +45,9 @@ const inspeksiLemAwalController = {
         }
       );
 
-      const masterKodelem = await MasterKodeMasalahLem.findAll();
+      const masterKodelem = await MasterKodeMasalahLem.findAll({
+        where: { status: "active" },
+      });
 
       const lemPeriode = await InspeksiLemPeriode.create({
         id_inspeksi_lem: lemAwal.id_inspeksi_lem,
@@ -62,6 +64,28 @@ const inspeksiLemAwalController = {
       }
 
       res.status(200).json({ msg: "Done Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  pendingLemAwal: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const lemAwal = await InspeksiLemAwal.findByPk(_id);
+      await InspeksiLemAwal.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      await InspeksiLem.update(
+        { status: "pending" },
+        {
+          where: { id: lemAwal.id_inspeksi_lem },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });
     }

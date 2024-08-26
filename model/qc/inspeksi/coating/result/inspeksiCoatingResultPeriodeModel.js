@@ -68,12 +68,12 @@ const InspeksiCoatingResultPeriode = db.define(
 );
 
 InspeksiCoating.hasMany(InspeksiCoatingResultPeriode, {
-    foreignKey: "id_inspeksi_coating",
-    as: "inspeksi_coating_result_periode",
-  });
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating_result_periode",
+});
 InspeksiCoatingResultPeriode.belongsTo(InspeksiCoating, {
-    foreignKey: "id_inspeksi_coating",
-    as: "inspeksi_coating",
-  });
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating",
+});
 
 module.exports = InspeksiCoatingResultPeriode;
