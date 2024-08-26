@@ -7,7 +7,7 @@ const InspeksiFinal = require("./inspeksiFinalModel");
 const InspeksiFinalSub = db.define(
     "cs_inspeksi_final_sub",
     {
-        id_inspeksi: {
+        id_inspeksi_final: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
@@ -41,11 +41,11 @@ const InspeksiFinalSub = db.define(
 );
 
 InspeksiFinal.hasMany(InspeksiFinalSub,{
-    foreignKey: "id_inspeksi",as:"id_inspeksi"
+    foreignKey: "id_inspeksi",as:"inspeksi"
 })
 
 InspeksiFinalSub.belongsTo(InspeksiFinal,{
-    foreignKey: 'id_inspeksi',as : "id_inspeksi_sub"
+    foreignKey: 'id_inspeksi',as : "inspeksi_sub"
 })
 
 
