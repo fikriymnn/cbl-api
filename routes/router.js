@@ -88,6 +88,12 @@ router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingAwalRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
 
+//qc ncr
+router.use("/", require("./qc/ncr/ncrRoutes"));
+
+//capa
+router.use("/", require("./qc/capa/capaRoutes"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;

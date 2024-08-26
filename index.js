@@ -99,6 +99,13 @@ const inspeksi_coating_result_awal = require("./model/qc/inspeksi/coating/result
 const inspeksi_coating_result_periode = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const inspeksi_coating_point_periode = require("./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 
+const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
+
+const CapaTiket = require("./model/qc/capa/capaTiketmodel");
+const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -116,7 +123,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiRabut.sync({ alter: true });
+//   await CapaTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75
