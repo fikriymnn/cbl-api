@@ -9,17 +9,19 @@ const inspeksiFinalController = {
             const { id } = req.params;
             const offset = (parseInt(page) - 1) * parseInt(limit);
             let obj = {};
-            if (page && limit && (status || tgl || mesin)) {
+            if (page && limit && (status)) {
                 if (status) obj.status = status;
-                if (tgl) obj.tanggal = tgl;
-                if (mesin) obj.mesin = mesin;
-
+                
                 const length = await InspeksiFinal.count({ where: obj });
                 const data = await InspeksiFinal.findAll({
                     order: [["createdAt", "DESC"]],
                     limit: parseInt(limit),
                     offset,
                     where: obj,
+                    include: [
+                        { model: InspeksiFinalSub, as: "id_inspeksi_sub" },
+                        { model: InspeksiFinalPoint, as: "id_inspeksi_point" },
+                    ],
                 });
 
                 return res.status(200).json({
@@ -98,12 +100,25 @@ const inspeksiFinalController = {
                 customer,
             });
 
-
             res.status(200).json({ msg: "create Successful" });
         } catch (error) {
             res.status(404).json({ msg: error.message });
         }
     },
+    updateInspeksiFinal : async (req,res)=>{
+      try{
+        const {id} = req.params;
+        const {no_pallet,no_packing,jumlah_packing,inspeksiFinalPoint,inspeksiFinalSub} = req.body;
+
+        await InspeksiFinal.update({no_pallet,no_packing,jumlah_packing,status:"history"},{ where:{id} });
+        await InspeksiFinalPoint.bulkCreate(inspeksiFinalPoint);
+        await InspeksiFinalSub.bulkCreate(inspeksiFinalSub);
+
+        res.status(200).json({ msg: "Update Successful" });
+      }catch(err){
+        res.status(404).json({ msg: err.message });
+      }
+    }
 };
 
-module.exports = inspeksiCetakController;
+module.exports = inspeksiFinalController;
