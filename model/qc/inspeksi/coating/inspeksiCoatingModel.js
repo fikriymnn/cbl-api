@@ -53,6 +53,10 @@ const InspeksiCoating = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    jumlah_pending : {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
     status_jo: {
         type: DataTypes.STRING,
         allowNull: false,

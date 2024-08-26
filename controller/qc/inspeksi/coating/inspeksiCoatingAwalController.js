@@ -42,7 +42,7 @@ const inspeksiCoatingController = {
                const data = await InspeksiCoating.findByPk(id,
                   {
                      include: [{
-                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_periode",include: {
+                        model: InspeksiCoatingResultPeriode, as: "inspeksi_coating_result_periode", include: {
                            model: InspeksiCoatingResultPointPeriode, as: "inspeksi_coating_result_point_periode"
                         }
                      }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }],
@@ -60,7 +60,7 @@ const inspeksiCoatingController = {
                         }
                      }, { model: InspeksiCoatingSubPeriode, as: "inspeksi_coating_sub_periode" }, { model: InspeksiCoatingResultAwal, as: "inspeksi_coating_result_awal" }, { model: InspeksiCoatingSubAwal, as: "inspeksi_coating_sub_awal" }],
                   });
-               return res.status(200).json({ data,msg: 'OK' });
+               return res.status(200).json({ data, msg: 'OK' });
             }
          } else if (status && jenis_pengecekan) {
             if (status) obj.status = status
@@ -166,6 +166,11 @@ const inspeksiCoatingController = {
          const { jumlah_periode_check,
             waktu_check } = req.body
          const { id } = req.params
+
+         await InspeksiCoating.update({status:"incoming"},{
+            where: {id}
+         })
+
          await InspeksiCoatingSubAwal.update({
             jumlah_periode_check,
             waktu_check,
@@ -183,6 +188,32 @@ const inspeksiCoatingController = {
          })
 
          return res.status(200).json({ data: "update successfully", msg: "OK" });
+      } catch (err) {
+         res.status(500).json({ msg: err.message })
+      }
+   },
+   pendingInspeksiCoating: async (req, res) => {
+      try {
+         const {id} = req.params
+         const data = await InspeksiCoating.findByPk(id)
+         if(data){
+            await InspeksiCoating.update({status: "pending",jumlah_pending:data.jumlah_pending+1},{where: {id}})
+         }
+        res.status(200).json({data: "status to pending successfully",msg:"OK"})
+      } catch (err) {
+         res.status(500).json({ msg: err.message })
+      }
+   },
+   incomingInspeksiCoating: async (req, res) => {
+      try {
+         const {id} = req.params
+         const data = await InspeksiCoating.findAll({where: {
+            id
+         }})
+         if(data){
+            await InspeksiCoating.update({status: "incoming"},{where: {id}})
+         }
+        res.status(200).json({data: "status to incoming successfully",msg:"OK"})
       } catch (err) {
          res.status(500).json({ msg: err.message })
       }
