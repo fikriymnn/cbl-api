@@ -55,7 +55,10 @@ const inspeksiCetakPeriodepointController = {
 
       for (let index = 0; index < data_defect.length; index++) {
         await InspeksiCetakPeriodeDefect.update(
-          { hasil: data_defect[index].hasil },
+          {
+            hasil: data_defect[index].hasil,
+            jumlah_defect: data_defect[index].jumlah_defect,
+          },
           { where: { id: data_defect[index].id } }
         );
       }
@@ -82,17 +85,27 @@ const inspeksiCetakPeriodepointController = {
       const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
         where: { status: "active" },
       });
+      const cetakPeriode = await InspeksiCetakPeriode.findByPk(
+        id_inspeksi_cetak_periode
+      );
 
       const cetakPeriodePoint = await InspeksiCetakPeriodePoint.create({
         id_inspeksi_cetak_periode: id_inspeksi_cetak_periode,
       });
+      console.log(masterKodeCetak);
+
       for (let i = 0; i < masterKodeCetak.length; i++) {
         await InspeksiCetakPeriodeDefect.create({
           id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
+          id_inspeksi_cetak: cetakPeriode.id_inspeksi_cetak,
           kode: masterKodeCetak[i].kode,
           masalah: masterKodeCetak[i].masalah,
+          kriteria: masterKodeCetak[i].kriteria,
+          persen_kriteria: masterKodeCetak[i].persen_kriteria,
+          sumber_masalah: masterKodeCetak[i].sumber_masalah,
         });
       }
+
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });

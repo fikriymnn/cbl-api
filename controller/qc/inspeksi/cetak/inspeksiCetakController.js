@@ -96,12 +96,28 @@ const inspeksiCetakController = {
           ],
         });
 
-        return res.status(200).json({ data });
+        const pointDefect = await InspeksiCetakPeriodeDefect.findAll({
+          attributes: [
+            "kode",
+            "sumber_masalah",
+            "persen_kriteria",
+            "kriteria",
+            "masalah",
+            [
+              Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+              "total_defect",
+            ],
+          ],
+          group: ["kode"],
+          where: { id_inspeksi_cetak: id, hasil: "not ok" },
+        });
+
+        return res.status(200).json({ data: data, defect: pointDefect });
       } else {
         const data = await InspeksiCetak.findAll({
           order: [["createdAt", "DESC"]],
         });
-        return res.status(200).json({ data });
+        return res.status(200).json({ data: data });
       }
     } catch (err) {
       res.status(500).json({ msg: err.message });
@@ -117,6 +133,7 @@ const inspeksiCetakController = {
       operator,
       shift,
       jumlah_druk,
+      jumlah_pcs,
       mata,
       jenis_kertas,
       jenis_gramatur,
@@ -135,6 +152,7 @@ const inspeksiCetakController = {
         operator,
         shift,
         jumlah_druk,
+        jumlah_pcs,
         mata,
         jenis_kertas,
         jenis_gramatur,

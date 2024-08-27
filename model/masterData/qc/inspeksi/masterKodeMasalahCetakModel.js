@@ -15,6 +15,18 @@ const InspeksiMasterCetakPeriodeDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    sumber_masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kriteria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    persen_kriteria: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

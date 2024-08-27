@@ -33,6 +33,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     mata: {
       type: DataTypes.INTEGER,
       allowNull: true,
