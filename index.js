@@ -91,6 +91,8 @@ const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahP
 const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
 const msSamplingRabutMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 const msCoatingMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalModel");
+const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
 
 const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel");
 const inspeksi_coating_sub_awal = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
@@ -98,6 +100,10 @@ const inspeksi_coating_sub_periode = require("./model/qc/inspeksi/coating/sub/in
 const inspeksi_coating_result_awal = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const inspeksi_coating_result_periode = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const inspeksi_coating_point_periode = require("./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+
+const inspeksiFinal = require("./model/qc/inspeksi/final/inspeksiFinalModel");
+const inspeksiFinalpoint = require("./model/qc/inspeksi/final/inspeksiFinalPoint");
+const inspeksiFinalSub = require("./model/qc/inspeksi/final/inspeksiFinalSubModel");
 
 const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
@@ -123,7 +129,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiCetakPeriodeDefect.sync({ alter: true });
+//   await inspeksiPondPeriodeDefect.sync({ alter: true });
 // })();
 
 // const ip100 = 75

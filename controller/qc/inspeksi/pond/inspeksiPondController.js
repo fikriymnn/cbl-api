@@ -96,7 +96,23 @@ const inspeksiPondController = {
           ],
         });
 
-        return res.status(200).json({ data });
+        const pointDefect = await InspeksiPondPeriodeDefect.findAll({
+          attributes: [
+            "kode",
+            "sumber_masalah",
+            "persen_kriteria",
+            "kriteria",
+            "masalah",
+            [
+              Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+              "total_defect",
+            ],
+          ],
+          group: ["kode"],
+          where: { id_inspeksi_pond: id, hasil: "not ok" },
+        });
+
+        return res.status(200).json({ data: data, defect: pointDefect });
       } else {
         const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
@@ -117,6 +133,7 @@ const inspeksiPondController = {
       operator,
       shift,
       jumlah_druk,
+      jumlah_pcs,
       mata,
       jenis_kertas,
       jenis_gramatur,
@@ -134,6 +151,7 @@ const inspeksiPondController = {
         operator,
         shift,
         jumlah_druk,
+        jumlah_pcs,
         mata,
         jenis_kertas,
         jenis_gramatur,

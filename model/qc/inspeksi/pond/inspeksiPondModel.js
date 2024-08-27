@@ -33,6 +33,10 @@ const InspeksiPond = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     mata: {
       type: DataTypes.INTEGER,
       allowNull: false,

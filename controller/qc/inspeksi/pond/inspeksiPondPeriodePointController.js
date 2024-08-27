@@ -56,7 +56,10 @@ const inspeksiPondPeriodepointController = {
 
       for (let index = 0; index < data_defect.length; index++) {
         await InspeksiPondPeriodeDefect.update(
-          { hasil: data_defect[index].hasil },
+          {
+            hasil: data_defect[index].hasil,
+            jumlah_defect: data_defect[index].jumlah_defect,
+          },
           { where: { id: data_defect[index].id } }
         );
       }
@@ -84,14 +87,22 @@ const inspeksiPondPeriodepointController = {
         where: { status: "active" },
       });
 
+      const pondPeriode = await InspeksiPondPeriode.findByPk(
+        id_inspeksi_pond_periode
+      );
+
       const pondPeriodePoint = await InspeksiPondPeriodePoint.create({
         id_inspeksi_pond_periode: id_inspeksi_pond_periode,
       });
       for (let i = 0; i < masterKodepond.length; i++) {
         await InspeksiPondPeriodeDefect.create({
           id_inspeksi_pond_periode_point: pondPeriodePoint.id,
+          id_inspeksi_pond: pondPeriode.id_inspeksi_pond,
           kode: masterKodepond[i].kode,
           masalah: masterKodepond[i].masalah,
+          kriteria: masterKodepond[i].kriteria,
+          persen_kriteria: masterKodepond[i].persen_kriteria,
+          sumber_masalah: masterKodepond[i].sumber_masalah,
         });
       }
       res.status(200).json({ msg: "Create Successful" });
