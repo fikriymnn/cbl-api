@@ -40,6 +40,12 @@ router.use(
   "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
 );
+router.use("/", require("./masterdata/qc/inspeksi/masterPointFinalRoute"));
+router.use("/", require("./masterdata/qc/inspeksi/masterSubFinalRoute"));
+router.use(
+  "/",
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
+);
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));
@@ -87,6 +93,9 @@ router.use("/", require("./qc/inspeksi/rabut/inspeksiRabutPointRoute"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingAwalRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
+
+// qc final
+router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 
 //qc ncr
 router.use("/", require("./qc/ncr/ncrRoutes"));
