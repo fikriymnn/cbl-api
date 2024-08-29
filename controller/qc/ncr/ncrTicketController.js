@@ -8,7 +8,8 @@ const Users = require("../../../model/userModel");
 const NcrTicketController = {
   getNcrTicket: async (req, res) => {
     try {
-      const { status, tanggal, department, page, limit } = req.query;
+      const { status, tanggal, department, bagian_tiket, page, limit } =
+        req.query;
       const id = req.params.id;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
@@ -16,7 +17,7 @@ const NcrTicketController = {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
-
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
         const length = await NcrTicket.count({ where: obj });
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -88,10 +89,11 @@ const NcrTicketController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status || tanggal || department) {
+      } else if (status || tanggal || department || bagian_tiket) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
