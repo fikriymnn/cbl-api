@@ -19,20 +19,21 @@ const InspeksiFinal = db.define(
       allowNull: false,
     },
     quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     jam: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    inspector: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
       },
-      inspector: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: Users
-        }
-      },
+    },
     nama_produk: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -41,17 +42,17 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    no_pallet : {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    no_packing : {
+    no_pallet: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jumlah_packing : {
-        type : DataTypes.FLOAT,
-        allowNull: true
+    no_packing: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jumlah_packing: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
@@ -62,5 +63,12 @@ const InspeksiFinal = db.define(
     freezeTableName: true,
   }
 );
+
+Users.hasMany(InspeksiFinal, {
+  foreignKey: "inspector",
+});
+InspeksiFinal.belongsTo(Users, {
+  foreignKey: "inspector",
+});
 
 module.exports = InspeksiFinal;

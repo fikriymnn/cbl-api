@@ -20,10 +20,30 @@ const NcrTicketController = {
         const length = await NcrTicket.count({ where: obj });
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: NcrDepartment,
+              as: "data_department",
+              include: [
+                {
+                  model: NcrKetidaksesuain,
+                  as: "data_ketidaksesuaian",
+                },
+              ],
+            },
+          ],
           limit: parseInt(limit),
           offset,
           where: obj,
@@ -36,10 +56,30 @@ const NcrTicketController = {
       } else if (page && limit) {
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: NcrDepartment,
+              as: "data_department",
+              include: [
+                {
+                  model: NcrKetidaksesuain,
+                  as: "data_ketidaksesuaian",
+                },
+              ],
+            },
+          ],
           offset,
           limit: parseInt(limit),
         });
@@ -55,10 +95,30 @@ const NcrTicketController = {
 
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: NcrDepartment,
+              as: "data_department",
+              include: [
+                {
+                  model: NcrKetidaksesuain,
+                  as: "data_ketidaksesuaian",
+                },
+              ],
+            },
+          ],
           where: obj,
         });
         const length = await NcrTicket.count({ where: obj });
