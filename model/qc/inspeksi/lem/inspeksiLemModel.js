@@ -33,6 +33,10 @@ const InspeksiLem = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     jenis_lem: {
       type: DataTypes.STRING,
       allowNull: true,

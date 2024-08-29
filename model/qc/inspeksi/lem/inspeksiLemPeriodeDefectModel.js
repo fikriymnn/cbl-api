@@ -14,6 +14,10 @@ const InspeksiLemPeriodeDefect = db.define(
         key: "id",
       },
     },
+    id_inspeksi_lem: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -22,8 +26,24 @@ const InspeksiLemPeriodeDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    sumber_masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kriteria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    persen_kriteria: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     hasil: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jumlah_defect: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
   },

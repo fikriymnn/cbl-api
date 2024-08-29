@@ -56,7 +56,10 @@ const inspeksiLemPeriodepointController = {
 
       for (let index = 0; index < data_defect.length; index++) {
         await InspeksiLemPeriodeDefect.update(
-          { hasil: data_defect[index].hasil },
+          {
+            hasil: data_defect[index].hasil,
+            jumlah_defect: data_defect[index].jumlah_defect,
+          },
           { where: { id: data_defect[index].id } }
         );
       }
@@ -84,14 +87,22 @@ const inspeksiLemPeriodepointController = {
         where: { status: "active" },
       });
 
+      const lemPeriode = await InspeksiLemPeriode.findByPk(
+        id_inspeksi_lem_periode
+      );
+
       const lemPeriodePoint = await InspeksiLemPeriodePoint.create({
         id_inspeksi_lem_periode: id_inspeksi_lem_periode,
       });
       for (let i = 0; i < masterKodelem.length; i++) {
         await InspeksiLemPeriodeDefect.create({
           id_inspeksi_lem_periode_point: lemPeriodePoint.id,
+          id_inspeksi_lem: lemPeriode.id_inspeksi_lem,
           kode: masterKodelem[i].kode,
           masalah: masterKodelem[i].masalah,
+          kriteria: masterKodelem[i].kriteria,
+          persen_kriteria: masterKodelem[i].persen_kriteria,
+          sumber_masalah: masterKodelem[i].sumber_masalah,
         });
       }
       res.status(200).json({ msg: "Create Successful" });

@@ -58,8 +58,12 @@ const inspeksiLemAwalController = {
       for (let i = 0; i < masterKodelem.length; i++) {
         await InspeksiLemPeriodeDefect.create({
           id_inspeksi_lem_periode_point: lemPeriodePoint.id,
+          id_inspeksi_lem: lemAwal.id_inspeksi_lem,
           kode: masterKodelem[i].kode,
           masalah: masterKodelem[i].masalah,
+          kriteria: masterKodelem[i].kriteria,
+          persen_kriteria: masterKodelem[i].persen_kriteria,
+          sumber_masalah: masterKodelem[i].sumber_masalah,
         });
       }
 

@@ -96,7 +96,23 @@ const inspeksiLemController = {
           ],
         });
 
-        return res.status(200).json({ data });
+        const pointDefect = await InspeksiLemPeriodeDefect.findAll({
+          attributes: [
+            "kode",
+            "sumber_masalah",
+            "persen_kriteria",
+            "kriteria",
+            "masalah",
+            [
+              Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+              "total_defect",
+            ],
+          ],
+          group: ["kode"],
+          where: { id_inspeksi_lem: id, hasil: "not ok" },
+        });
+
+        return res.status(200).json({ data: data, defect: pointDefect });
       } else {
         const data = await InspeksiLem.findAll({
           order: [["createdAt", "DESC"]],
@@ -117,6 +133,7 @@ const inspeksiLemController = {
       operator,
       shift,
       jumlah,
+      jumlah_pcs,
       nama_produk,
       customer,
     } = req.body;
@@ -130,6 +147,7 @@ const inspeksiLemController = {
         operator,
         shift,
         jumlah,
+        jumlah_pcs,
         nama_produk,
         customer,
       });
