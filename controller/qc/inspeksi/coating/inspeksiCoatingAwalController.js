@@ -5,6 +5,7 @@ const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const { Sequelize } = require("sequelize");
 
 const inspeksiCoatingController = {
   getInspeksiCoating: async (req, res) => {
@@ -98,7 +99,22 @@ const inspeksiCoatingController = {
               },
             ],
           });
-          return res.status(200).json({ data, msg: "OK" });
+          const data2 = await InspeksiCoatingResultPointPeriode.findAll({
+            where: {id_inspeksi_coating:id,hasil:"not ok"},
+            group: ["kode"],
+            attributes :[
+              "kode",
+              "sumber_masalah",
+              "persen_kriteria",
+              "kriteria",
+              "masalah",
+              [
+                Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+                "total_defect",
+              ],
+            ]
+          })
+          return res.status(200).json({point_defect:data2, data, msg: "OK" });
         }
       } else if (status || jenis_pengecekan) {
         if (status) obj.status = status;
@@ -165,6 +181,7 @@ const inspeksiCoatingController = {
         return res.status(400).json({ msg: "Field operator kosong!" });
       else if (!status_jo)
         return res.status(400).json({ msg: "Field status_jo kosong!" });
+
 
       const data = await InspeksiCoating.create({
         tanggal,
@@ -236,6 +253,9 @@ const inspeksiCoatingController = {
           id_inspeksi_coating_result_periode: resultPeriode.id,
           kode: masterMasalah[i].kode,
           masalah: masterMasalah[i].masalah,
+          sumber_masalah: masterMasalah[i].sumber_masalah,
+          kriteria: masterMasalah[i].kriteria,
+          persen_kriteria: masterMasalah[i].persen_kriteria 
         });
       }
 

@@ -1,6 +1,7 @@
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
 
 const inspeksiCoatingPeriodeResultController = {
   startCoatingPeriodeResult: async (req, res) => {
@@ -41,7 +42,14 @@ const inspeksiCoatingPeriodeResultController = {
         kode_masalah[i].id_inspeksi_coating_result_periode = id;
         counter++;
         await InspeksiCoatingResultPointPeriode.update(
-          { hasil: kode_masalah[i].hasil },
+          { 
+            hasil: kode_masalah[i].hasil,
+            jumlah_defect: kode_masalah[i].jumlah_defect,
+            masalah: kode_masalah[i].masalah,
+            sumber_masalah: kode_masalah[i].sumber_masalah,
+            kriteria: kode_masalah[i].kriteria,
+            persen_kriteria: kode_masalah[i].persen_kriteria 
+          },
           { where: { id: kode_masalah[i].id } }
         );
       }
@@ -79,8 +87,12 @@ const inspeksiCoatingPeriodeResultController = {
       for (let i = 0; i < masterMasalah.length; i++) {
         InspeksiCoatingResultPointPeriode.create({
           id_inspeksi_coating_result_periode: resultPeriode.id,
+          id_inspeksi_coating: id,
           kode: masterMasalah[i].kode,
           masalah: masterMasalah[i].masalah,
+          sumber_masalah: masterMasalah[i].sumber_masalah,
+          kriteria:masterMasalah[i].kriteria,
+          persen_kriteria:masterMasalah[i].persen_kriteria
         });
       }
 
@@ -92,11 +104,13 @@ const inspeksiCoatingPeriodeResultController = {
   addInspeksiCoatingPeriodePoint: async (req, res) => {
     try {
       const { id } = req.params;
-      const { kode, masalah } = req.body;
+      const { kode, masalah,sumber_masalah, kriteria, persen_kriteria } = req.body;
+      const data = await InspeksiCoatingResultPeriode.findByPk(id)
       await InspeksiCoatingResultPointPeriode.create({
         id_inspeksi_coating_result_periode: id,
+        id_inspeksi_coating: data.id_inspeksi_coating,
         kode,
-        masalah,
+        masalah,sumber_masalah, kriteria, persen_kriteria
       });
 
       res.status(200).json({ data: "create data successfully", msg: "OK" });
