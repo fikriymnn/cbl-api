@@ -7,7 +7,7 @@ const InspeksiFinal = require("./inspeksiFinalModel");
 const InspeksiFinalPoint = db.define(
   "cs_inspeksi_final_point",
   {
-      id_inspeksi : {
+      id_inspeksi_final : {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
@@ -41,11 +41,11 @@ const InspeksiFinalPoint = db.define(
 );
 
 InspeksiFinal.hasMany(InspeksiFinalPoint,{
-    foreignKey: "id_inspeksi",as:"id_inspeksi"
+    foreignKey: "id_inspeksi_final",as:"inspeksi_final_point"
 })
 
 InspeksiFinalPoint.belongsTo(InspeksiFinal,{
-    foreignKey: 'id_inspeksi',as : "id_inspeksi_point"
+    foreignKey: 'id_inspeksi_final',as : "inspeksi_final"
 })
 
 module.exports = InspeksiFinalPoint;
