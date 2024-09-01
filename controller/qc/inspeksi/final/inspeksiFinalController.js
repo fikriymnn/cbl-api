@@ -1,3 +1,5 @@
+const InspeksiMasterPointFinal = require("../../../../model/masterData/qc/inspeksi/masterPointFinalModel");
+const InspeksiMasterSubFinal = require("../../../../model/masterData/qc/inspeksi/masterSubFinalModel");
 const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinalModel");
 const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksiFinalPoint");
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
@@ -62,8 +64,8 @@ const inspeksiFinalController = {
 
         const data = await InspeksiFinal.findByPk(id, {
           include: [
-            { model: InspeksiFinalSub, as: "id_inspeksi_sub" },
-            { model: InspeksiFinalPoint, as: "id_inspeksi_point" },
+            { model: InspeksiFinalSub, as: "inspeksi_final_sub" },
+            { model: InspeksiFinalPoint, as: "inspeksi_final_point" },
           ],
         });
         return res.status(200).json({ data });
@@ -81,9 +83,8 @@ const inspeksiFinalController = {
   createInspeksiFinal: async (req, res) => {
     const { tanggal, no_jo, no_io, quantity, jam, nama_produk, customer } =
       req.body;
-    console.log("1");
     try {
-      await InspeksiFinal.create({
+      const data = await InspeksiFinal.create({
         tanggal,
         no_jo,
         no_io,
@@ -92,6 +93,28 @@ const inspeksiFinalController = {
         nama_produk,
         customer,
       });
+      
+      const masterSubFinal = await InspeksiMasterSubFinal.findAll()
+      const masterPointFinal = await InspeksiMasterPointFinal.findAll({where: {status:"active"}})
+      
+      for (let i = 0; i < masterSubFinal.length; i++) {
+        InspeksiFinalSub.create({
+          id_inspeksi_final:data.id,
+          quantity:masterSubFinal.quantity,
+          jumlah:masterSubFinal[i].jumlah,
+          kualitas_lulus:masterSubFinal[i].kualitas_lulus,
+          kualitas_tolak:masterSubFinal[i].kualitas_tolak,
+        })
+      }
+      for (let i = 0; i < masterPointFinal.length; i++) {
+        InspeksiFinalPoint.create({
+          id_inspeksi_final : data.id,
+          point: masterPointFinal[i].point,
+          standar: masterPointFinal[i].standar,
+          cara_periksa: masterPointFinal[i].cara_periksa
+        })
+      }
+      
 
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
@@ -105,16 +128,29 @@ const inspeksiFinalController = {
         no_pallet,
         no_packing,
         jumlah_packing,
-        inspeksiFinalPoint,
-        inspeksiFinalSub,
+        inspeksi_final_point,
+        inspeksi_final_sub,
       } = req.body;
 
       await InspeksiFinal.update(
         { no_pallet, no_packing, jumlah_packing, status: "history" },
         { where: { id } }
       );
-      await InspeksiFinalPoint.bulkCreate(inspeksiFinalPoint);
-      await InspeksiFinalSub.bulkCreate(inspeksiFinalSub);
+       
+      for (let i = 0; i < inspeksi_final_point.length; i++) {
+        InspeksiFinalPoint.update({
+          id_inspeksi_final:id,
+          hasil:inspeksi_final_point[i].hasil,
+          qty:inspeksi_final_point[i].qty
+        },{where: {id:inspeksi_final_point[i].id}})
+      }
+
+      for (let i = 0; i < inspeksi_final_sub.length; i++) {
+        InspeksiFinalSub.update({
+          id_inspeksi_final:id,
+          reject: inspeksi_final_sub[i].reject,
+        },{where: {id:inspeksi_final_sub[i].id}}) 
+      }
 
       res.status(200).json({ msg: "Update Successful" });
     } catch (err) {

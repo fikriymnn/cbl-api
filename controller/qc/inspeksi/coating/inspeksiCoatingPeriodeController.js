@@ -6,6 +6,7 @@ const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/su
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuaian = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 
 const inspeksiCoatingController = {
    updateInspeksiCoatingPeriode: async (req, res) => {

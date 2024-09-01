@@ -41,11 +41,11 @@ const InspeksiFinalSub = db.define(
 );
 
 InspeksiFinal.hasMany(InspeksiFinalSub,{
-    foreignKey: "id_inspeksi",as:"inspeksi"
+    foreignKey: "id_inspeksi",as:"inspeksi_final_sub"
 })
 
 InspeksiFinalSub.belongsTo(InspeksiFinal,{
-    foreignKey: 'id_inspeksi',as : "inspeksi_sub"
+    foreignKey: 'id_inspeksi',as : "inspeksi_final"
 })
 
 
