@@ -47,7 +47,7 @@ const inspeksiCoatingController = {
     
           for (let index = 0; index < pointDefect.length; index++) {
             let defect = pointDefect[index].jumlah_defect;
-            let pcs = inspeksiCoating.jumlah_pcs;
+            let pcs = inspeksiCoating.jumlah;
             let persen = (defect / pcs) * 100;
             let persen_kriteria = pointDefect[index].persen_kriteria;
             let department = pointDefect[index].sumber_masalah;
