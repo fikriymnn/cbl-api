@@ -26,8 +26,8 @@ const MasterKodeMasalahCoatingController = {
   },
 
   createMasterKodeMasalahCoating: async (req, res) => {
-    const { kode, masalah } = req.body;
-    if (!kode || !masalah)
+    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } = req.body;
+    if (!kode || !masalah || !sumber_masalah|| !kriteria|| !persen_kriteria)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
@@ -43,11 +43,14 @@ const MasterKodeMasalahCoatingController = {
 
   updateMasterKodeMasalahCoating: async (req, res) => {
     const _id = req.params.id;
-    const { kode, masalah } = req.body;
+    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } = req.body;
 
     let obj = {};
     if (kode) obj.kode = kode;
     if (masalah) obj.masalah = masalah;
+    if (sumber_masalah) obj.sumber_masalah = sumber_masalah;
+    if (kriteria) obj.kriteria = kriteria;
+    if (persen_kriteria) obj.persen_kriteria = persen_kriteria;
 
     try {
       await MasterKodeMasalahCoating.update(obj, { where: { id: _id } }),

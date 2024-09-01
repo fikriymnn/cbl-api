@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 const InspeksiCoatingResultPeriode = require("./result/inspeksiCoatingResultPeriodeModel");
+const InspeksiCoating = require("./inspeksiCoatingModel");
 
 const InspeksiCoatingResultPointPeriode = db.define(
   "cs_inspeksi_coating_result_point_periode",
@@ -13,6 +14,13 @@ const InspeksiCoatingResultPointPeriode = db.define(
         model: InspeksiCoatingResultPeriode,
       },
     },
+    id_inspeksi_coating: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: InspeksiCoating
+      }
+    },
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -23,6 +31,22 @@ const InspeksiCoatingResultPointPeriode = db.define(
     },
     hasil: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jumlah_defect: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    sumber_masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kriteria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    persen_kriteria: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
   },
@@ -38,6 +62,15 @@ InspeksiCoatingResultPeriode.hasMany(InspeksiCoatingResultPointPeriode, {
 InspeksiCoatingResultPointPeriode.belongsTo(InspeksiCoatingResultPeriode, {
   foreignKey: "id_inspeksi_coating_result_periode",
   as: "inspeksi_coating_result_periode",
+});
+
+InspeksiCoating.hasMany(InspeksiCoatingResultPointPeriode, {
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating_result_point_periode",
+});
+InspeksiCoatingResultPointPeriode.belongsTo(InspeksiCoating, {
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating",
 });
 
 module.exports = InspeksiCoatingResultPointPeriode;

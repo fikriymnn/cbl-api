@@ -18,6 +18,18 @@ const InspeksiCoatingPointMasterPeriode = db.define(
       allowNull: true,
       defaultValue: "active",
     },
+    sumber_masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kriteria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    persen_kriteria: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
