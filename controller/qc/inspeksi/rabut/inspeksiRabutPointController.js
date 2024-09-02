@@ -67,19 +67,42 @@ const inspeksiRabutpointController = {
   createInspeksiRabutPoint: async (req, res) => {
     const { id_inspeksi_rabut } = req.body;
     try {
-      const masterKodepond = await MasterKodeMasalahRabut.findAll();
+      //const masterKodepond = await MasterKodeMasalahRabut.findAll();
 
       const pondPeriodePoint = await InspeksiRabutPoint.create({
         id_inspeksi_rabut: id_inspeksi_rabut,
       });
-      for (let i = 0; i < masterKodepond.length; i++) {
-        await InspeksiRabutDefect.create({
-          id_inspeksi_rabut_point: pondPeriodePoint.id,
-          kode: masterKodepond[i].kode,
-          masalah: masterKodepond[i].masalah,
-          id_inspeksi_rabut: id_inspeksi_rabut,
-        });
-      }
+      // for (let i = 0; i < masterKodepond.length; i++) {
+      //   await InspeksiRabutDefect.create({
+      //     id_inspeksi_rabut_point: pondPeriodePoint.id,
+      //     kode: masterKodepond[i].kode,
+      //     masalah: masterKodepond[i].masalah,
+      //     id_inspeksi_rabut: id_inspeksi_rabut,
+      //   });
+      // }
+      res.status(200).json({ msg: "Create Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+  createInspeksiRabutPointDefect: async (req, res) => {
+    const { id_inspeksi_rabut, id_inspeksi_rabut_point, id_defect } = req.body;
+
+    try {
+      const MasterDefect = await MasterKodeMasalahRabut.findOne({
+        where: { id: id_defect },
+      });
+
+      await InspeksiRabutDefect.create({
+        id_inspeksi_rabut_point: id_inspeksi_rabut_point,
+        kode: MasterDefect.kode,
+        masalah: MasterDefect.masalah,
+        kriteria: MasterDefect.kriteria,
+        persen_kriteria: MasterDefect.persen_kriteria,
+        sumber_masalah: MasterDefect.sumber_masalah,
+        id_inspeksi_rabut: id_inspeksi_rabut,
+      });
+
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });

@@ -4,6 +4,9 @@ const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksi
 const InspeksiRabut = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutModel");
 const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
 const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiRabutController = {
@@ -111,6 +114,7 @@ const inspeksiRabutController = {
       tanggal,
       no_jo,
       no_io,
+      jumlah_pcs,
       mesin,
       operator,
       shift,
@@ -123,6 +127,7 @@ const inspeksiRabutController = {
         tanggal,
         no_jo,
         no_io,
+        jumlah_pcs,
         mesin,
         operator,
         shift,
@@ -130,21 +135,21 @@ const inspeksiRabutController = {
         customer,
       });
 
-      const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
-        where: { status: "active" },
-      });
+      // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
+      //   where: { status: "active" },
+      // });
 
       const rabutPoint = await InspeksiRabutPoint.create({
         id_inspeksi_rabut: inspeksiRabut.id,
       });
-      for (let i = 0; i < masterKodeRabut.length; i++) {
-        await InspeksiRabutDefect.create({
-          id_inspeksi_rabut_point: rabutPoint.id,
-          kode: masterKodeRabut[i].kode,
-          masalah: masterKodeRabut[i].masalah,
-          id_inspeksi_rabut: inspeksiRabut.id,
-        });
-      }
+      // for (let i = 0; i < masterKodeRabut.length; i++) {
+      //   await InspeksiRabutDefect.create({
+      //     id_inspeksi_rabut_point: rabutPoint.id,
+      //     kode: masterKodeRabut[i].kode,
+      //     masalah: masterKodeRabut[i].masalah,
+      //     id_inspeksi_rabut: inspeksiRabut.id,
+      //   });
+      // }
 
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
@@ -157,6 +162,9 @@ const inspeksiRabutController = {
     const { catatan } = req.body;
 
     try {
+      const inspeksiRabut = await InspeksiRabut.findOne({
+        where: { id: _id },
+      });
       const inspeksiRabutPoint = await InspeksiRabutPoint.findAll({
         where: { id_inspeksi_rabut: _id },
       });
@@ -174,6 +182,67 @@ const inspeksiRabutController = {
         },
         { where: { id: _id } }
       );
+
+      const pointDefect = await InspeksiRabutDefect.findAll({
+        attributes: [
+          [Sequelize.fn("SUM", Sequelize.col("hasil")), "hasil"],
+          "kode",
+          "sumber_masalah",
+          "persen_kriteria",
+          "kriteria",
+          "masalah",
+        ],
+        group: ["kode"],
+        where: {
+          id_inspeksi_rabut: _id,
+        },
+      });
+
+      for (let index = 0; index < pointDefect.length; index++) {
+        let defect = pointDefect[index].hasil;
+        let pcs = inspeksiRabut.jumlah_pcs;
+        let persen = (defect / pcs) * 100;
+        let persen_kriteria = pointDefect[index].persen_kriteria;
+        let department = pointDefect[index].sumber_masalah;
+        let department_tujuan = "";
+        if (department == "man") {
+          department_tujuan = "hrd";
+        } else if (department == "material") {
+          department_tujuan = "purchasing";
+        } else if (department == "persiapan") {
+          department_tujuan = "persiapan";
+        }
+
+        if (
+          persen >= persen_kriteria &&
+          pointDefect[index].sumber_masalah != "mesin"
+        ) {
+          console.log("masuk ncr");
+          const data = await NcrTicket.create({
+            id_pelapor: req.user.id,
+            tanggal: new Date(),
+            kategori_laporan: pointDefect[index].sumber_masalah,
+            no_jo: inspeksiRabut.no_jo,
+            no_io: inspeksiRabut.no_io,
+            qty_defect: pointDefect.jumlah_defect,
+            nama_produk: inspeksiRabut.nama_produk,
+          });
+
+          const department = await NcrDepartment.create({
+            id_ncr_tiket: data.id,
+            department: department_tujuan,
+          });
+          await NcrKetidaksesuain.create({
+            id_department: department.id,
+            ketidaksesuaian: `masalah pada proses sampling rabut dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+          });
+        } else if (
+          persen >= persen_kriteria &&
+          pointDefect[index].sumber_masalah == "mesin"
+        ) {
+          console.log("masuk os");
+        }
+      }
 
       res.status(200).json({ msg: "Done Successful" });
     } catch (error) {

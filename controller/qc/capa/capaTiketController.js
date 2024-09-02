@@ -5,7 +5,8 @@ const Users = require("../../../model/userModel");
 const capaTicketController = {
   getCapaTicket: async (req, res) => {
     try {
-      const { status, tanggal, department, page, limit } = req.query;
+      const { status, bagian_tiket, tanggal, department, page, limit } =
+        req.query;
       const id = req.params.id;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
@@ -13,14 +14,29 @@ const capaTicketController = {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
         const length = await CapaTicket.count({ where: obj });
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: capaKetidaksesuain,
+              as: "data_ketidaksesuaian",
+            },
+          ],
           limit: parseInt(limit),
           offset,
           where: obj,
@@ -33,10 +49,24 @@ const capaTicketController = {
       } else if (page && limit) {
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: capaKetidaksesuain,
+              as: "data_ketidaksesuaian",
+            },
+          ],
           offset,
           limit: parseInt(limit),
         });
@@ -45,17 +75,32 @@ const capaTicketController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status || tanggal || department) {
+      } else if (status || bagian_tiket || tanggal || department) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "pelapor",
-          },
+          include: [
+            {
+              model: Users,
+              as: "pelapor",
+            },
+            {
+              model: Users,
+              as: "qa",
+            },
+            {
+              model: Users,
+              as: "mr",
+            },
+            {
+              model: capaKetidaksesuain,
+              as: "data_ketidaksesuaian",
+            },
+          ],
           where: obj,
         });
         const length = await CapaTicket.count({ where: obj });
@@ -87,8 +132,12 @@ const capaTicketController = {
 
         return res.status(200).json({ data });
       } else {
-        const data = await NcrTicket.findAll({
+        const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
+          include: {
+            model: Users,
+            as: "pelapor",
+          },
         });
         return res.status(200).json({ data });
       }

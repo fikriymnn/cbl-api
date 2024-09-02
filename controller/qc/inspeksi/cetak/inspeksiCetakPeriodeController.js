@@ -88,6 +88,7 @@ const inspeksiCetakPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiCetak.no_jo,
             no_io: inspeksiCetak.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiCetak.nama_produk,
           });
 

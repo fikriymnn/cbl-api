@@ -86,6 +86,7 @@ const inspeksiLemPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiLem.no_jo,
             no_io: inspeksiLem.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiLem.nama_produk,
           });
 

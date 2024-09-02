@@ -86,6 +86,7 @@ const inspeksiPondPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiPond.no_jo,
             no_io: inspeksiPond.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiPond.nama_produk,
           });
 

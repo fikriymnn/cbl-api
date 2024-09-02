@@ -31,6 +31,18 @@ const InspeksiRabutDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    sumber_masalah: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kriteria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    persen_kriteria: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     hasil: {
       type: DataTypes.INTEGER,
       allowNull: true,
