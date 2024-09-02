@@ -9,10 +9,18 @@ const InspeksiCoating = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    jumlah: {
+    jumlah_druk: {
         type: DataTypes.INTEGER,
         defaultValue: 0
       },
+    jumlah_pcs: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    mata: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     coating: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -30,6 +38,10 @@ const InspeksiCoating = db.define(
         allowNull: false,
       },
     no_jo: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    no_io: {
       type: DataTypes.STRING,
       allowNull: false,
     },
