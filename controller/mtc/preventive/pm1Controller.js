@@ -293,8 +293,10 @@ const Pm1Controller = {
   stopTaskPm1: async (req, res) => {
     const _id = req.params.id;
     const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
+    console.log(req.body);
     if (!lama_pengerjaan || !waktu_selesai || !hasil)
       return res.status(401).json({ msg: "incomplite data" });
+
     try {
       const response = await PointPm1.update(
         {

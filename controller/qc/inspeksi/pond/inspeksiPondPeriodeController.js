@@ -121,8 +121,11 @@ const inspeksiPondPeriodeController = {
           where: { id: _id },
         }
       );
+      const inspeksipond = await InspeksiPond.findByPk(
+        pondPeriode.id_inspeksi_pond
+      );
       await InspeksiPond.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksipond.jumlah_pending + 1 },
         {
           where: { id: pondPeriode.id_inspeksi_pond },
         }

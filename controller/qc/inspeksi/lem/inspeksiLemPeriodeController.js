@@ -122,8 +122,12 @@ const inspeksiLemPeriodeController = {
           where: { id: _id },
         }
       );
+
+      const inspeksiLem = await InspeksiLem.findByPk(
+        lemPeriode.id_inspeksi_lem
+      );
       await InspeksiLem.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiLem.jumlah_pending + 1 },
         {
           where: { id: lemPeriode.id_inspeksi_lem },
         }

@@ -12,7 +12,7 @@ const db = new Sequelize(
     dialect: "mysql",
     dialectModule: require("mysql2"),
 
-    logging: false,
+    //logging: false,
   }
 );
 

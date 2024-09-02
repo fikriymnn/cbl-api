@@ -11,6 +11,7 @@ const InspeksiCoatingResultAwal = db.define(
       allowNull: false,
       references: {
         model: InspeksiCoating,
+        key: "id",
       },
     },
     inspector: {

@@ -124,8 +124,11 @@ const inspeksiCetakPeriodeController = {
           where: { id: _id },
         }
       );
+      const inspeksiCetak = await InspeksiCetak.findByPk(
+        cetakPeriode.id_inspeksi_cetak
+      );
       await InspeksiCetak.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiCetak.jumlah_pending + 1 },
         {
           where: { id: cetakPeriode.id_inspeksi_cetak },
         }

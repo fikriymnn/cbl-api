@@ -73,7 +73,22 @@ const inspeksiCoatingController = {
               { where: { id } }
             );
           }
-          return res.status(200).json({ data });
+          const data2 = await InspeksiCoatingResultPointPeriode.findAll({
+            where: { id_inspeksi_coating: id, hasil: "not ok" },
+            group: ["kode"],
+            attributes: [
+              "kode",
+              "sumber_masalah",
+              "persen_kriteria",
+              "kriteria",
+              "masalah",
+              [
+                Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+                "total_defect",
+              ],
+            ],
+          });
+          return res.status(200).json({ data: data, defect: data2 });
         } else {
           const data = await InspeksiCoating.findByPk(id, {
             include: [
@@ -100,9 +115,9 @@ const inspeksiCoatingController = {
             ],
           });
           const data2 = await InspeksiCoatingResultPointPeriode.findAll({
-            where: {id_inspeksi_coating:id,hasil:"not ok"},
+            where: { id_inspeksi_coating: id, hasil: "not ok" },
             group: ["kode"],
-            attributes :[
+            attributes: [
               "kode",
               "sumber_masalah",
               "persen_kriteria",
@@ -112,9 +127,10 @@ const inspeksiCoatingController = {
                 Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
                 "total_defect",
               ],
-            ]
-          })
-          return res.status(200).json({point_defect:data2, data, msg: "OK" });
+            ],
+          });
+
+          return res.status(200).json({ data: data, defect: data2, msg: "OK" });
         }
       } else if (status || jenis_pengecekan) {
         if (status) obj.status = status;
@@ -171,8 +187,8 @@ const inspeksiCoatingController = {
       else if (!nama_produk)
         return res.status(400).json({ msg: "Field nama_produk kosong!" });
       else if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
-      else if (!jumlah)
-        return res.status(400).json({ msg: "Field jumlah kosong!" });
+      else if (!jumlah_pcs)
+        return res.status(400).json({ msg: "Field jumlah pcs kosong!" });
       else if (!coating)
         return res.status(400).json({ msg: "Field coating kosong!" });
       else if (!customer)
@@ -185,7 +201,6 @@ const inspeksiCoatingController = {
         return res.status(400).json({ msg: "Field operator kosong!" });
       else if (!status_jo)
         return res.status(400).json({ msg: "Field status_jo kosong!" });
-
 
       const data = await InspeksiCoating.create({
         tanggal,
@@ -225,7 +240,7 @@ const inspeksiCoatingController = {
       const { jumlah_periode_check, waktu_check } = req.body;
       const { id } = req.params;
 
-      await InspeksiCoating.update({status:"incoming"},{where: {id}})
+      await InspeksiCoating.update({ status: "incoming" }, { where: { id } });
 
       const inspeksiCoatingAwalPoint = await InspeksiCoatingResultAwal.findAll({
         where: { id_inspeksi_coating: id },
@@ -259,11 +274,12 @@ const inspeksiCoatingController = {
       for (let i = 0; i < masterMasalah.length; i++) {
         InspeksiCoatingResultPointPeriode.create({
           id_inspeksi_coating_result_periode: resultPeriode.id,
+          id_inspeksi_coating: id,
           kode: masterMasalah[i].kode,
           masalah: masterMasalah[i].masalah,
           sumber_masalah: masterMasalah[i].sumber_masalah,
           kriteria: masterMasalah[i].kriteria,
-          persen_kriteria: masterMasalah[i].persen_kriteria 
+          persen_kriteria: masterMasalah[i].persen_kriteria,
         });
       }
 
@@ -292,34 +308,41 @@ const inspeksiCoatingController = {
       res.status(500).json({ msg: err.message });
     }
   },
-  pendingInspeksiCoating : async (req,res)=>{
-    try{
-      const {id} = req.params
-      const data = await InspeksiCoating.findByPk(id)
-      if(data){
-         await InspeksiCoating.update({
-            status: "pending",jumlah_pending: data.jumlah_pending+1
-         },{
-            where: {id}
-         })
+  pendingInspeksiCoating: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = await InspeksiCoating.findByPk(id);
+      if (data) {
+        await InspeksiCoating.update(
+          {
+            status: "pending",
+            jumlah_pending: data.jumlah_pending + 1,
+          },
+          {
+            where: { id },
+          }
+        );
       }
-      res.status(200).json({data:"pending successfully"})
-    }catch(err){
+      res.status(200).json({ data: "pending successfully" });
+    } catch (err) {
       res.status(500).json({ msg: err.message });
     }
   },
-  incomingInspeksiCoating : async (req,res)=>{
-   try{
-      const {id} = req.params
-      await InspeksiCoating.update({
-         status: "incoming"
-      },{
-         where: {id}
-      })
-      res.status(200).json({data:"incoming successfully"})
-   }catch(err){
+  incomingInspeksiCoating: async (req, res) => {
+    try {
+      const { id } = req.params;
+      await InspeksiCoating.update(
+        {
+          status: "incoming",
+        },
+        {
+          where: { id },
+        }
+      );
+      res.status(200).json({ data: "incoming successfully" });
+    } catch (err) {
       res.status(500).json({ msg: err.message });
-   }
-  }
+    }
+  },
 };
 module.exports = inspeksiCoatingController;

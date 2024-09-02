@@ -12,14 +12,16 @@ const InspeksiCoatingResultPointPeriode = db.define(
       allowNull: false,
       references: {
         model: InspeksiCoatingResultPeriode,
+        key: "id",
       },
     },
     id_inspeksi_coating: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: InspeksiCoating
-      }
+        model: InspeksiCoating,
+        key: "id",
+      },
     },
     kode: {
       type: DataTypes.STRING,

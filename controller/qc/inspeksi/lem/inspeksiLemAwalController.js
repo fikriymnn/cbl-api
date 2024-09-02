@@ -35,6 +35,10 @@ const inspeksiLemAwalController = {
       );
       const lemAwal = await InspeksiLemAwal.findByPk(_id);
       await InspeksiLem.update(
+        { status: "incoming" },
+        { where: { id: lemAwal.id_inspeksi_lem } }
+      );
+      await InspeksiLem.update(
         {
           jenis_lem: jenis_lem,
         },
@@ -83,8 +87,10 @@ const inspeksiLemAwalController = {
           where: { id: _id },
         }
       );
+
+      const inspeksiLem = await InspeksiLem.findByPk(lemAwal.id_inspeksi_lem);
       await InspeksiLem.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiLem.jumlah_pending + 1 },
         {
           where: { id: lemAwal.id_inspeksi_lem },
         }
