@@ -7,6 +7,7 @@ const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuaian = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
+const { Sequelize } = require("sequelize");
 
 const inspeksiCoatingController = {
    updateInspeksiCoatingPeriode: async (req, res) => {
@@ -47,7 +48,7 @@ const inspeksiCoatingController = {
     
           for (let index = 0; index < pointDefect.length; index++) {
             let defect = pointDefect[index].jumlah_defect;
-            let pcs = inspeksiCoating.jumlah;
+            let pcs = inspeksiCoating.jumlah_pcs;
             let persen = (defect / pcs) * 100;
             let persen_kriteria = pointDefect[index].persen_kriteria;
             let department = pointDefect[index].sumber_masalah;
