@@ -54,7 +54,15 @@ const InspeksiFinal = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    catatan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
+      type: DataTypes.STRING,
+      defaultValue: "incoming",
+    },
+    bagian_tiket: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
     },

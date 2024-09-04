@@ -4,7 +4,7 @@ const MasterPointFinalController = {
   getMasterPointFinal: async (req, res) => {
     // const {}
     const _id = req.params.id;
-    const { point,standar,cara_periksa,status } = req.query;
+    const { point, standar, cara_periksa, status } = req.query;
 
     let obj = {};
 
@@ -27,13 +27,16 @@ const MasterPointFinalController = {
   },
 
   createMasterPointFinal: async (req, res) => {
-    const { point,standar,cara_periksa,status } = req.body;
-    if (!point||!standar||!cara_periksa||!status)
+    const { point, standar, cara_periksa, status } = req.body;
+    if (!point || !standar || !cara_periksa)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
       const response = await masterPointFinal.create({
-        point,standar,cara_periksa,status
+        point,
+        standar,
+        cara_periksa,
+        status: "active",
       });
       res.status(200).json({ msg: "create successful", data: response });
     } catch (error) {
@@ -43,7 +46,7 @@ const MasterPointFinalController = {
 
   updateMasterPointFinal: async (req, res) => {
     const _id = req.params.id;
-    const { point,standar,cara_periksa,status } = req.body;
+    const { point, standar, cara_periksa, status } = req.body;
 
     let obj = {};
     if (point) obj.point = point;
