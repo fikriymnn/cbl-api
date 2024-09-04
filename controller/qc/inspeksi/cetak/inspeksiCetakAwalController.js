@@ -67,12 +67,12 @@ const inspeksiCetakAwalController = {
     const _id = req.params.id;
     try {
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
-      await InspeksiCetakAwal.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
-      );
+      // await InspeksiCetakAwal.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
       const inspeksiCetak = await InspeksiCetak.findByPk(
         cetakAwal.id_inspeksi_cetak
       );

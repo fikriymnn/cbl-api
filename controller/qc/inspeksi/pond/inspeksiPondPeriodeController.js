@@ -115,12 +115,12 @@ const inspeksiPondPeriodeController = {
     const _id = req.params.id;
     try {
       const pondPeriode = await InspeksiPondPeriode.findByPk(_id);
-      await InspeksiPondPeriode.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
-      );
+      // await InspeksiPondPeriode.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
       const inspeksipond = await InspeksiPond.findByPk(
         pondPeriode.id_inspeksi_pond
       );

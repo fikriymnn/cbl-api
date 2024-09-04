@@ -118,12 +118,12 @@ const inspeksiCetakPeriodeController = {
     const _id = req.params.id;
     try {
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(_id);
-      await InspeksiCetakPeriode.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
-      );
+      // await InspeksiCetakPeriode.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
       const inspeksiCetak = await InspeksiCetak.findByPk(
         cetakPeriode.id_inspeksi_cetak
       );

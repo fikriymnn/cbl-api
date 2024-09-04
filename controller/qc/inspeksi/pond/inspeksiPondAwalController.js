@@ -30,10 +30,10 @@ const inspeksiPondAwalController = {
         { where: { id: _id } }
       );
       const pondAwal = await InspeksiPondAwal.findByPk(_id);
-      await InspeksiPond.update(
-        { status: "incoming" },
-        { where: { id: pondAwal.id_inspeksi_pond } }
-      );
+      // await InspeksiPond.update(
+      //   { status: "incoming" },
+      //   { where: { id: pondAwal.id_inspeksi_pond } }
+      // );
 
       const masterKodepond = await MasterKodeMasalahpond.findAll({
         where: { status: "active" },

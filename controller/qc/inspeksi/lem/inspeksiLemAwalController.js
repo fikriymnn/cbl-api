@@ -81,12 +81,12 @@ const inspeksiLemAwalController = {
     const _id = req.params.id;
     try {
       const lemAwal = await InspeksiLemAwal.findByPk(_id);
-      await InspeksiLemAwal.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
-      );
+      // await InspeksiLemAwal.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
 
       const inspeksiLem = await InspeksiLem.findByPk(lemAwal.id_inspeksi_lem);
       await InspeksiLem.update(

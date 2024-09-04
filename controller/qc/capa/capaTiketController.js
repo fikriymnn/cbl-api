@@ -1,20 +1,36 @@
 const CapaTicket = require("../../../model/qc/capa/capaTiketmodel");
 const capaKetidaksesuain = require("../../../model/qc/capa/capaKetidakSesuaianModel");
 const Users = require("../../../model/userModel");
+const { Op } = require("sequelize");
 
 const capaTicketController = {
   getCapaTicket: async (req, res) => {
     try {
-      const { status, bagian_tiket, tanggal, department, page, limit } =
-        req.query;
+      const {
+        status,
+        statusNotEqual,
+        bagian_tiket,
+        tanggal,
+        department,
+        page,
+        limit,
+      } = req.query;
       const id = req.params.id;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (page && limit && (status || tanggal || department)) {
+      if (
+        page &&
+        limit &&
+        (status || tanggal || department || statusNotEqual)
+      ) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+        if (statusNotEqual)
+          obj.status = {
+            [Op.ne]: statusNotEqual,
+          };
 
         const length = await CapaTicket.count({ where: obj });
         const data = await CapaTicket.findAll({
@@ -75,11 +91,21 @@ const capaTicketController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status || bagian_tiket || tanggal || department) {
+      } else if (
+        status ||
+        bagian_tiket ||
+        tanggal ||
+        department ||
+        statusNotEqual
+      ) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+        if (statusNotEqual)
+          obj.status = {
+            [Op.ne]: statusNotEqual,
+          };
 
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -150,6 +176,26 @@ const capaTicketController = {
     try {
       const _id = req.params.id;
       const { data_ketidaksesuaian } = req.body;
+
+      for (let index = 0; index < data_ketidaksesuaian.length; index++) {
+        let data = data_ketidaksesuaian[index];
+        if (data.analisa_penyebab == null)
+          return res.status(400).json({ msg: "analisa penyebab wajib di isi" });
+        if (data.tindakan_perbaikan == null)
+          return res
+            .status(400)
+            .json({ msg: "tindakan perbaikan wajib di isi" });
+        if (data.pencegahan == null)
+          return res.status(400).json({ msg: "pencegahan wajib di isi" });
+        if (data.pencegahan_efektif_dilakukan == null)
+          return res
+            .status(400)
+            .json({ msg: "pencegahan efektif dilakukan wajib di isi" });
+        if (data.keterangan_ketidak_sesuaian == null)
+          return res
+            .status(400)
+            .json({ msg: "keterangan ketidak sesuaian wajib di isi" });
+      }
       let obj = {
         status: "menunggu verifikasi qa",
         id_inspektor: req.user.id,
@@ -202,7 +248,7 @@ const capaTicketController = {
       let bagianTiket = "incoming";
       if (status == "sesuai") {
         statusValidasi = "di teruskan";
-        // bagianTiket = "history";
+        bagianTiket = "history";
       } else {
         statusValidasi = "di tolak mr";
         // bagianTiket = "history";
