@@ -12,6 +12,7 @@ const InspeksiCoatingResultPeriode = db.define(
       allowNull: false,
       references: {
         model: InspeksiCoating,
+        key: "id",
       },
     },
     waktu_mulai: {
@@ -62,6 +63,10 @@ const InspeksiCoatingResultPeriode = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "incoming",
+    },
   },
   {
     freezeTableName: true,
@@ -78,7 +83,6 @@ InspeksiCoatingResultPeriode.belongsTo(InspeksiCoating, {
 });
 Users.hasMany(InspeksiCoatingResultPeriode, {
   foreignKey: "inspector",
-  as: "inspektor",
 });
 InspeksiCoatingResultPeriode.belongsTo(Users, {
   foreignKey: "inspector",

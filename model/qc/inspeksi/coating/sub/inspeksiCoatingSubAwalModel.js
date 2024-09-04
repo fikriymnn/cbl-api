@@ -5,26 +5,27 @@ const InspeksiCoating = require("../inspeksiCoatingModel");
 
 const InspeksiCoatingSubAwal = db.define(
   "cs_inspeksi_coating_sub_awal",
-  { 
+  {
     id_inspeksi_coating: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: InspeksiCoating
-      }
+        model: InspeksiCoating,
+        key: "id",
+      },
     },
     jumlah_periode_check: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0
-      },
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     waktu_check: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      status: {
-        type: DataTypes.STRING,
-        defaultValue: "incoming"
-      },
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "incoming",
+    },
   },
   {
     freezeTableName: true,
@@ -32,12 +33,12 @@ const InspeksiCoatingSubAwal = db.define(
 );
 
 InspeksiCoating.hasMany(InspeksiCoatingSubAwal, {
-    foreignKey: "id_inspeksi_coating",
-    as: "inspeksi_coating_sub_awal",
-  });
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating_sub_awal",
+});
 InspeksiCoatingSubAwal.belongsTo(InspeksiCoating, {
-    foreignKey: "id_inspeksi_coating",
-    as: "inspeksi_coating",
-  });
+  foreignKey: "id_inspeksi_coating",
+  as: "inspeksi_coating",
+});
 
 module.exports = InspeksiCoatingSubAwal;

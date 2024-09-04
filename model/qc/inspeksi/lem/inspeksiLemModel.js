@@ -50,6 +50,10 @@ const InspeksiLem = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    jumlah_pending: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

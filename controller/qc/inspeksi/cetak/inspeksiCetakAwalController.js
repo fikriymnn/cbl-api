@@ -30,7 +30,10 @@ const inspeksiCetakAwalController = {
         { where: { id: _id } }
       );
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
-      console.log(cetakAwal);
+      await InspeksiCetak.update(
+        { status: "incoming" },
+        { where: { id: cetakAwal.id_inspeksi_cetak } }
+      );
 
       const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
         where: { status: "active" },
@@ -64,14 +67,18 @@ const inspeksiCetakAwalController = {
     const _id = req.params.id;
     try {
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
-      await InspeksiCetakAwal.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
+      // await InspeksiCetakAwal.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
+      const inspeksiCetak = await InspeksiCetak.findByPk(
+        cetakAwal.id_inspeksi_cetak
       );
+
       await InspeksiCetak.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiCetak.jumlah_pending + 1 },
         {
           where: { id: cetakAwal.id_inspeksi_cetak },
         }

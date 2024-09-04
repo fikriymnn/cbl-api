@@ -44,7 +44,6 @@ const inspeksiFinalController = {
       } else if (status) {
         if (status) obj.status = status;
         if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
 
         const data = await InspeksiFinal.findAll({
           order: [["createdAt", "DESC"]],
@@ -59,7 +58,10 @@ const inspeksiFinalController = {
         const data1 = await InspeksiFinal.findByPk(id);
 
         if (!data1.inspector) {
-          await InspeksiFinal.update({ inspector: req.user.id });
+          await InspeksiFinal.update(
+            { inspector: req.user.id },
+            { where: { id: id } }
+          );
         }
 
         const data = await InspeksiFinal.findByPk(id, {
@@ -93,28 +95,31 @@ const inspeksiFinalController = {
         nama_produk,
         customer,
       });
-      
-      const masterSubFinal = await InspeksiMasterSubFinal.findAll()
-      const masterPointFinal = await InspeksiMasterPointFinal.findAll({where: {status:"active"}})
-      
+
+      const masterSubFinal = await InspeksiMasterSubFinal.findAll();
+      const masterPointFinal = await InspeksiMasterPointFinal.findAll({
+        where: { status: "active" },
+      });
+
       for (let i = 0; i < masterSubFinal.length; i++) {
-        InspeksiFinalSub.create({
-          id_inspeksi_final:data.id,
-          quantity:masterSubFinal.quantity,
-          jumlah:masterSubFinal[i].jumlah,
-          kualitas_lulus:masterSubFinal[i].kualitas_lulus,
-          kualitas_tolak:masterSubFinal[i].kualitas_tolak,
-        })
+        console.log(1);
+        await InspeksiFinalSub.create({
+          id_inspeksi_final: data.id,
+          quantity: masterSubFinal[i].quantity,
+          jumlah: masterSubFinal[i].jumlah,
+          kualitas_lulus: masterSubFinal[i].kualitas_lulus,
+          kualitas_tolak: masterSubFinal[i].kualitas_tolak,
+        });
       }
       for (let i = 0; i < masterPointFinal.length; i++) {
-        InspeksiFinalPoint.create({
-          id_inspeksi_final : data.id,
+        console.log(1);
+        await InspeksiFinalPoint.create({
+          id_inspeksi_final: data.id,
           point: masterPointFinal[i].point,
           standar: masterPointFinal[i].standar,
-          cara_periksa: masterPointFinal[i].cara_periksa
-        })
+          cara_periksa: masterPointFinal[i].cara_periksa,
+        });
       }
-      
 
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
@@ -136,20 +141,26 @@ const inspeksiFinalController = {
         { no_pallet, no_packing, jumlah_packing, status: "history" },
         { where: { id } }
       );
-       
+
       for (let i = 0; i < inspeksi_final_point.length; i++) {
-        InspeksiFinalPoint.update({
-          id_inspeksi_final:id,
-          hasil:inspeksi_final_point[i].hasil,
-          qty:inspeksi_final_point[i].qty
-        },{where: {id:inspeksi_final_point[i].id}})
+        InspeksiFinalPoint.update(
+          {
+            id_inspeksi_final: id,
+            hasil: inspeksi_final_point[i].hasil,
+            qty: inspeksi_final_point[i].qty,
+          },
+          { where: { id: inspeksi_final_point[i].id } }
+        );
       }
 
       for (let i = 0; i < inspeksi_final_sub.length; i++) {
-        InspeksiFinalSub.update({
-          id_inspeksi_final:id,
-          reject: inspeksi_final_sub[i].reject,
-        },{where: {id:inspeksi_final_sub[i].id}}) 
+        InspeksiFinalSub.update(
+          {
+            id_inspeksi_final: id,
+            reject: inspeksi_final_sub[i].reject,
+          },
+          { where: { id: inspeksi_final_sub[i].id } }
+        );
       }
 
       res.status(200).json({ msg: "Update Successful" });

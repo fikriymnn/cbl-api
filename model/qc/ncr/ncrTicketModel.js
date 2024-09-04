@@ -51,6 +51,10 @@ const NcrTicket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_defect: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     nama_produk: {
       type: DataTypes.STRING,
       allowNull: true,

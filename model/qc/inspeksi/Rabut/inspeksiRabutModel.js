@@ -17,6 +17,10 @@ const InspeksiRabut = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     mesin: {
       type: DataTypes.STRING,
       allowNull: true,

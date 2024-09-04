@@ -88,6 +88,7 @@ const inspeksiCetakPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiCetak.no_jo,
             no_io: inspeksiCetak.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiCetak.nama_produk,
           });
 
@@ -117,14 +118,17 @@ const inspeksiCetakPeriodeController = {
     const _id = req.params.id;
     try {
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(_id);
-      await InspeksiCetakPeriode.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
+      // await InspeksiCetakPeriode.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
+      const inspeksiCetak = await InspeksiCetak.findByPk(
+        cetakPeriode.id_inspeksi_cetak
       );
       await InspeksiCetak.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiCetak.jumlah_pending + 1 },
         {
           where: { id: cetakPeriode.id_inspeksi_cetak },
         }

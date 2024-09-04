@@ -1,4 +1,4 @@
-const MasterKodeMasalahCoating= require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const MasterKodeMasalahCoating = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 
 const MasterKodeMasalahCoatingController = {
   getMasterKodeMasalahCoating: async (req, res) => {
@@ -26,14 +26,18 @@ const MasterKodeMasalahCoatingController = {
   },
 
   createMasterKodeMasalahCoating: async (req, res) => {
-    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } = req.body;
-    if (!kode || !masalah || !sumber_masalah|| !kriteria|| !persen_kriteria)
+    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } =
+      req.body;
+    if (!kode || !masalah || !sumber_masalah || !kriteria || !persen_kriteria)
       return res.status(404).json({ msg: "incomplete data!!" });
 
     try {
       const response = await MasterKodeMasalahCoating.create({
         kode,
         masalah,
+        sumber_masalah,
+        kriteria,
+        persen_kriteria,
       });
       res.status(200).json({ msg: "create successful", data: response });
     } catch (error) {
@@ -43,7 +47,8 @@ const MasterKodeMasalahCoatingController = {
 
   updateMasterKodeMasalahCoating: async (req, res) => {
     const _id = req.params.id;
-    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } = req.body;
+    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } =
+      req.body;
 
     let obj = {};
     if (kode) obj.kode = kode;

@@ -20,4 +20,10 @@ router.post(
   inspeksiRabutPoint.createInspeksiRabutPoint
 );
 
+router.post(
+  "/qc/cs/inspeksiRabutPoint/createDefect",
+  auth,
+  inspeksiRabutPoint.createInspeksiRabutPointDefect
+);
+
 module.exports = router;

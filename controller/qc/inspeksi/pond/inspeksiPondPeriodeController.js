@@ -86,6 +86,7 @@ const inspeksiPondPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiPond.no_jo,
             no_io: inspeksiPond.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiPond.nama_produk,
           });
 
@@ -114,14 +115,17 @@ const inspeksiPondPeriodeController = {
     const _id = req.params.id;
     try {
       const pondPeriode = await InspeksiPondPeriode.findByPk(_id);
-      await InspeksiPondPeriode.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
+      // await InspeksiPondPeriode.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
+      const inspeksipond = await InspeksiPond.findByPk(
+        pondPeriode.id_inspeksi_pond
       );
       await InspeksiPond.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksipond.jumlah_pending + 1 },
         {
           where: { id: pondPeriode.id_inspeksi_pond },
         }

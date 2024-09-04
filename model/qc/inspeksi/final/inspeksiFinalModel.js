@@ -69,6 +69,7 @@ Users.hasMany(InspeksiFinal, {
 });
 InspeksiFinal.belongsTo(Users, {
   foreignKey: "inspector",
+  as: "data_inspector",
 });
 
 module.exports = InspeksiFinal;

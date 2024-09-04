@@ -86,6 +86,7 @@ const inspeksiLemPeriodeController = {
             kategori_laporan: pointDefect[index].sumber_masalah,
             no_jo: inspeksiLem.no_jo,
             no_io: inspeksiLem.no_io,
+            qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiLem.nama_produk,
           });
 
@@ -115,14 +116,18 @@ const inspeksiLemPeriodeController = {
     const _id = req.params.id;
     try {
       const lemPeriode = await InspeksiLemPeriode.findByPk(_id);
-      await InspeksiLemPeriode.update(
-        { status: "pending" },
-        {
-          where: { id: _id },
-        }
+      // await InspeksiLemPeriode.update(
+      //   { status: "pending" },
+      //   {
+      //     where: { id: _id },
+      //   }
+      // );
+
+      const inspeksiLem = await InspeksiLem.findByPk(
+        lemPeriode.id_inspeksi_lem
       );
       await InspeksiLem.update(
-        { status: "pending" },
+        { status: "pending", jumlah_pending: inspeksiLem.jumlah_pending + 1 },
         {
           where: { id: lemPeriode.id_inspeksi_lem },
         }
