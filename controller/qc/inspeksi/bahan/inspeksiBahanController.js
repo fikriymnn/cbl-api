@@ -108,7 +108,9 @@ const inspeksiBahanController = {
         jam,
         jumlah,
       });
+
       if (data) {
+        console.log(1);
         const array = [];
         master_result_fix.forEach((value) => {
           value.id_inspeksi_bahan = data.id;
@@ -167,26 +169,28 @@ const inspeksiBahanController = {
     const lama_pengerjaan = req.body.lama_pengerjaan;
     const date = new Date();
     try {
-      const data = await InspeksiBahanResult.findAll({where:{
-        id_inspeksi_bahan: id
-      }})
-      let total_skor = 0
-      let counter = 0
-      data.forEach((v,i)=>{
-        if(v.keterangan_hasil=="sesuai"){
-          total_skor+=v.bobot
+      const data = await InspeksiBahanResult.findAll({
+        where: {
+          id_inspeksi_bahan: id,
+        },
+      });
+      let total_skor = 0;
+      let counter = 0;
+      data.forEach((v, i) => {
+        if (v.keterangan_hasil == "sesuai") {
+          total_skor += v.bobot;
         }
-        counter++
-      })
+        counter++;
+      });
 
-      if(data.length==counter){
+      if (data.length == counter) {
         await InspeksiBahan.update(
-          { waktu_selesai: date, lama_pengerjaan,total_skor },
+          { waktu_selesai: date, lama_pengerjaan, total_skor },
           { where: { id: id } }
-        )
+        );
       }
-      
-        res.status(200).json({ msg: "stop successfuly" });
+
+      res.status(200).json({ msg: "stop successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

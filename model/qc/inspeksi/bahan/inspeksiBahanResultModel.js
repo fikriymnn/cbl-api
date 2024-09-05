@@ -16,7 +16,7 @@ const InspeksiBahanResult = db.define(
     },
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no: {
       type: DataTypes.INTEGER,
@@ -62,7 +62,7 @@ const InspeksiBahanResult = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    hasil_lebar : {
+    hasil_lebar: {
       type: DataTypes.STRING,
       allowNull: true,
     },
