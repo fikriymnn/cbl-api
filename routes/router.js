@@ -50,6 +50,10 @@ router.use(
   "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
 );
+router.use(
+  "/",
+  require("./masterdata/qc/inspeksi/masterPointOutsourcing")
+);
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));
@@ -100,6 +104,9 @@ router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
 
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
+
+// qc outsourcing
+router.use("/"), require("./qc/inspeksi/outsourcing/inspeksiOutsourcingRoutes")
 
 //qc ncr
 router.use("/", require("./qc/ncr/ncrRoutes"));
