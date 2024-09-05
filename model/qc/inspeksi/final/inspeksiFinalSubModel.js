@@ -5,50 +5,49 @@ const Users = require("../../../userModel");
 const InspeksiFinal = require("./inspeksiFinalModel");
 
 const InspeksiFinalSub = db.define(
-    "cs_inspeksi_final_sub",
-    {
-        id_inspeksi_final: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: InspeksiFinal
-            }
-        },
-        quantity: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        jumlah: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        kualitas_lulus: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        kualitas_tolak: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        reject: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
+  "cs_inspeksi_final_sub",
+  {
+    id_inspeksi_final: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: InspeksiFinal,
+      },
     },
-    {
-        freezeTableName: true,
-    }
+    quantity: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    jumlah: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    kualitas_lulus: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    kualitas_tolak: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    reject: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+  }
 );
 
-InspeksiFinal.hasMany(InspeksiFinalSub,{
-    foreignKey: "id_inspeksi",as:"inspeksi_final_sub"
-})
+InspeksiFinal.hasMany(InspeksiFinalSub, {
+  foreignKey: "id_inspeksi_final",
+  as: "inspeksi_final_sub",
+});
 
-InspeksiFinalSub.belongsTo(InspeksiFinal,{
-    foreignKey: 'id_inspeksi',as : "inspeksi_final"
-})
-
+InspeksiFinalSub.belongsTo(InspeksiFinal, {
+  foreignKey: "id_inspeksi_final",
+  as: "inspeksi_final",
+});
 
 module.exports = InspeksiFinalSub;
-
-

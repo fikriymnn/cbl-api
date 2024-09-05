@@ -46,6 +46,10 @@ router.use(
   "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
 );
+router.use(
+  "/",
+  require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
+);
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));

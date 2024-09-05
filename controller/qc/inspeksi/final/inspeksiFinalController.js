@@ -3,16 +3,18 @@ const InspeksiMasterSubFinal = require("../../../../model/masterData/qc/inspeksi
 const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinalModel");
 const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksiFinalPoint");
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
+const User = require("../../../../model/userModel");
 
 const inspeksiFinalController = {
   getInspeksiFinal: async (req, res) => {
     try {
-      const { status, page, limit } = req.query;
+      const { status, bagian_tiket, page, limit } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (page && limit && status) {
+      if (page && limit && (status || bagian_tiket)) {
         if (status) obj.status = status;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
         const length = await InspeksiFinal.count({ where: obj });
         const data = await InspeksiFinal.findAll({
@@ -23,6 +25,7 @@ const inspeksiFinalController = {
           include: [
             { model: InspeksiFinalSub, as: "id_inspeksi_sub" },
             { model: InspeksiFinalPoint, as: "id_inspeksi_point" },
+            { model: User, as: "data_inspector" },
           ],
         });
 
@@ -33,6 +36,7 @@ const inspeksiFinalController = {
       } else if (page && limit) {
         const data = await InspeksiFinal.findAll({
           order: [["createdAt", "DESC"]],
+          include: [{ model: User, as: "data_inspector" }],
           offset,
           limit: parseInt(limit),
         });
@@ -41,12 +45,13 @@ const inspeksiFinalController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (status) {
+      } else if (status || bagian_tiket) {
         if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
+        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
         const data = await InspeksiFinal.findAll({
           order: [["createdAt", "DESC"]],
+          include: [{ model: User, as: "data_inspector" }],
           where: obj,
         });
         const length = await InspeksiFinal.count({ where: obj });
@@ -68,12 +73,14 @@ const inspeksiFinalController = {
           include: [
             { model: InspeksiFinalSub, as: "inspeksi_final_sub" },
             { model: InspeksiFinalPoint, as: "inspeksi_final_point" },
+            { model: User, as: "data_inspector" },
           ],
         });
         return res.status(200).json({ data });
       } else {
         const data = await InspeksiFinal.findAll({
           order: [["createdAt", "DESC"]],
+          include: [{ model: User, as: "data_inspector" }],
         });
         return res.status(200).json({ data });
       }
@@ -112,7 +119,6 @@ const inspeksiFinalController = {
         });
       }
       for (let i = 0; i < masterPointFinal.length; i++) {
-        console.log(1);
         await InspeksiFinalPoint.create({
           id_inspeksi_final: data.id,
           point: masterPointFinal[i].point,
@@ -135,15 +141,24 @@ const inspeksiFinalController = {
         jumlah_packing,
         inspeksi_final_point,
         inspeksi_final_sub,
+        status,
+        catatan,
       } = req.body;
 
       await InspeksiFinal.update(
-        { no_pallet, no_packing, jumlah_packing, status: "history" },
+        {
+          no_pallet,
+          catatan,
+          no_packing,
+          jumlah_packing,
+          status,
+          bagian_tiket: "history",
+        },
         { where: { id } }
       );
 
       for (let i = 0; i < inspeksi_final_point.length; i++) {
-        InspeksiFinalPoint.update(
+        await InspeksiFinalPoint.update(
           {
             id_inspeksi_final: id,
             hasil: inspeksi_final_point[i].hasil,
@@ -154,7 +169,7 @@ const inspeksiFinalController = {
       }
 
       for (let i = 0; i < inspeksi_final_sub.length; i++) {
-        InspeksiFinalSub.update(
+        await InspeksiFinalSub.update(
           {
             id_inspeksi_final: id,
             reject: inspeksi_final_sub[i].reject,
