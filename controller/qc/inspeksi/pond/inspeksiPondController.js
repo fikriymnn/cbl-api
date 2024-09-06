@@ -96,6 +96,51 @@ const inspeksiPondController = {
           ],
         });
 
+        const checkInspeksiPond = await InspeksiPond.findOne({
+          include: [
+            {
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
+              include: [
+                {
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
+              include: [
+                {
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                    {
+                      model: InspeksiPondPeriodeDefect,
+                      as: "inspeksi_pond_periode_defect",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          where: {
+            no_jo: data.no_jo,
+            id: {
+              [Op.ne]: data.id,
+            },
+          },
+        });
+
         const pointDefect = await InspeksiPondPeriodeDefect.findAll({
           attributes: [
             "kode",
@@ -112,7 +157,13 @@ const inspeksiPondController = {
           where: { id_inspeksi_pond: id, hasil: "not ok" },
         });
 
-        return res.status(200).json({ data: data, defect: pointDefect });
+        return res
+          .status(200)
+          .json({
+            data: data,
+            history: checkInspeksiPond,
+            defect: pointDefect,
+          });
       } else {
         const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
@@ -143,6 +194,26 @@ const inspeksiPondController = {
     } = req.body;
 
     try {
+      const checkInspeksipond = await InspeksiPond.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+      if (checkInspeksipond) {
+        await InspeksiPond.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksipond.id,
+            },
+          }
+        );
+      }
       const inspeksiPond = await InspeksiPond.create({
         tanggal,
         no_jo,

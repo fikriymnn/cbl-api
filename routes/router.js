@@ -98,6 +98,13 @@ router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingAwalRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
 
+// qc barang rusak
+router.use("/", require("./qc/inspeksi/barangRusak/inspeksiBarangRusakRoutes"));
+router.use(
+  "/",
+  require("./qc/inspeksi/barangRusak/inspeksiBarangRusakDefectRoutes")
+);
+
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 

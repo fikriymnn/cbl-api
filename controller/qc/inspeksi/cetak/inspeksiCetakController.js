@@ -96,6 +96,51 @@ const inspeksiCetakController = {
           ],
         });
 
+        const checkInspeksiCetak = await InspeksiCetak.findOne({
+          include: [
+            {
+              model: InspeksiCetakAwal,
+              as: "inspeksi_cetak_awal",
+              include: [
+                {
+                  model: InspeksiCetakAwalPoint,
+                  as: "inspeksi_cetak_awal_point",
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiCetakPeriode,
+              as: "inspeksi_cetak_periode",
+              include: [
+                {
+                  model: InspeksiCetakPeriodePoint,
+                  as: "inspeksi_cetak_periode_point",
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                    {
+                      model: InspeksiCetakPeriodeDefect,
+                      as: "inspeksi_cetak_periode_defect",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          where: {
+            no_jo: data.no_jo,
+            id: {
+              [Op.ne]: data.id,
+            },
+          },
+        });
+
         const pointDefect = await InspeksiCetakPeriodeDefect.findAll({
           attributes: [
             "kode",
@@ -112,7 +157,11 @@ const inspeksiCetakController = {
           where: { id_inspeksi_cetak: id, hasil: "not ok" },
         });
 
-        return res.status(200).json({ data: data, defect: pointDefect });
+        return res.status(200).json({
+          data: data,
+          history: checkInspeksiCetak,
+          defect: pointDefect,
+        });
       } else {
         const data = await InspeksiCetak.findAll({
           order: [["createdAt", "DESC"]],
@@ -144,6 +193,26 @@ const inspeksiCetakController = {
     } = req.body;
 
     try {
+      const checkInspeksiCetak = await InspeksiCetak.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+      if (checkInspeksiCetak) {
+        await InspeksiCetak.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiCetak.id,
+            },
+          }
+        );
+      }
       const inspeksicetak = await InspeksiCetak.create({
         tanggal,
         no_jo,

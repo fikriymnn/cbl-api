@@ -14,13 +14,7 @@ const InspeksiBarangRusakDefect = db.define(
         key: "id",
       },
     },
-    id_inspektor: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: User,
-        key: "id",
-      },
-    },
+
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -74,14 +68,6 @@ InspeksiBarangRusak.hasMany(InspeksiBarangRusakDefect, {
 InspeksiBarangRusakDefect.belongsTo(InspeksiBarangRusak, {
   foreignKey: "id_inspeksi_barang_rusak",
   as: "inspeksi_barang_rusak",
-});
-
-User.hasMany(InspeksiBarangRusakDefect, {
-  foreignKey: "id_inspektor",
-});
-InspeksiBarangRusakDefect.belongsTo(User, {
-  foreignKey: "id_inspektor",
-  as: "inspektor",
 });
 
 module.exports = InspeksiBarangRusakDefect;

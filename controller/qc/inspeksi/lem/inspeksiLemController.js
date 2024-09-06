@@ -96,6 +96,51 @@ const inspeksiLemController = {
           ],
         });
 
+        const checkInspeksiLem = await InspeksiLem.findOne({
+          include: [
+            {
+              model: InspeksiLemAwal,
+              as: "inspeksi_lem_awal",
+              include: [
+                {
+                  model: InspeksiLemAwalPoint,
+                  as: "inspeksi_lem_awal_point",
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiLemPeriode,
+              as: "inspeksi_lem_periode",
+              include: [
+                {
+                  model: InspeksiLemPeriodePoint,
+                  as: "inspeksi_lem_periode_point",
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                    {
+                      model: InspeksiLemPeriodeDefect,
+                      as: "inspeksi_lem_periode_defect",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          where: {
+            no_jo: data.no_jo,
+            id: {
+              [Op.ne]: data.id,
+            },
+          },
+        });
+
         const pointDefect = await InspeksiLemPeriodeDefect.findAll({
           attributes: [
             "kode",
@@ -112,7 +157,9 @@ const inspeksiLemController = {
           where: { id_inspeksi_lem: id, hasil: "not ok" },
         });
 
-        return res.status(200).json({ data: data, defect: pointDefect });
+        return res
+          .status(200)
+          .json({ data: data, history: checkInspeksiLem, defect: pointDefect });
       } else {
         const data = await InspeksiLem.findAll({
           order: [["createdAt", "DESC"]],
@@ -139,6 +186,26 @@ const inspeksiLemController = {
     } = req.body;
 
     try {
+      const checkInspeksiLem = await InspeksiLem.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+      if (checkInspeksiLem) {
+        await InspeksiLem.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiLem.id,
+            },
+          }
+        );
+      }
       const inspeksiLem = await InspeksiLem.create({
         tanggal,
         no_jo,
