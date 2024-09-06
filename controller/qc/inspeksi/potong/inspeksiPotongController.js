@@ -1,7 +1,22 @@
 const InspeksiPotong = require("../../../../model/qc/inspeksi/potong/inspeksiPotongModel");
 const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspeksiPotongResultModel");
+const { Op, Sequelize } = require("sequelize");
 
 const inspeksiPotongController = {
+  getInspeksiPotongMesin: async (req, res) => {
+    try {
+      const mesin = await InspeksiPotong.findAll({
+        attributes: ["mesin", [Sequelize.fn("COUNT", "*"), "count"]],
+        where: { status: "incoming" },
+        group: ["mesin"],
+        order: [[Sequelize.col("count"), "DESC"]],
+      });
+      res.status(200).json(mesin);
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
   getInspeksiPotong: async (req, res) => {
     try {
       const { status, jenis_potong, mesin, page, limit } = req.query;
@@ -86,6 +101,7 @@ const inspeksiPotongController = {
         jam,
         item,
         mesin,
+        merk,
       } = req.body;
 
       if (!jenis_potong)
@@ -126,6 +142,7 @@ const inspeksiPotongController = {
         shift,
         jam,
         item,
+        merk,
       });
 
       if (data) {
@@ -154,7 +171,8 @@ const inspeksiPotongController = {
   updateInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { mesin, foto, lama_pengerjaan, waktu_selesai } = req.body;
+      const { mesin, foto, lama_pengerjaan, waktu_selesai, catatan, merk } =
+        req.body;
       let obj = {
         status: "history",
       };
@@ -163,6 +181,8 @@ const inspeksiPotongController = {
       if (foto) obj.foto = foto;
       if (lama_pengerjaan) obj.lama_pengerjaan = lama_pengerjaan;
       if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
+      if (catatan) obj.catatan = catatan;
+      if (merk) obj.merk = merk;
 
       await InspeksiPotong.update(obj, {
         where: { id: id },
@@ -199,12 +219,14 @@ const inspeksiPotongController = {
   doneInspeksiPotong: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_check, lama_pengerjaan } = req.body;
+      const { hasil_check, lama_pengerjaan, catatan, merk } = req.body;
       const date = new Date();
       let obj = {
         status: "history",
         waktu_selesai: date,
         lama_pengerjaan: lama_pengerjaan,
+        catatan: catatan,
+        merk: merk,
       };
 
       const inspeksi = await InspeksiPotong.update(obj, {

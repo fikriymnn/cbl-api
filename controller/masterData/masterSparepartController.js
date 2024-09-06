@@ -1,3 +1,4 @@
+const { Op, Sequelize } = require("sequelize");
 const masterSparepart = require("../../model/masterData/masterSparepart");
 const masterMesin = require("../../model/masterData/masterMesinModel");
 const SparepartProblem = require("../../model/mtc/sparepartProblem");
@@ -69,6 +70,7 @@ const masterSparepartController = {
       sisa_umur,
       keterangan,
       jenis_part,
+      peruntukan,
     } = req.body;
     if (jenis_part == "ganti") {
       if (
@@ -115,6 +117,7 @@ const masterSparepartController = {
           actual_umur,
           sisa_umur,
           keterangan,
+          peruntukan,
         });
         res.status(200).json(response);
       } else {
@@ -129,6 +132,7 @@ const masterSparepartController = {
           jenis_part,
           umur_service: sisa_umur,
           keterangan,
+          peruntukan,
         });
         res.status(200).json(response);
       }
@@ -179,6 +183,25 @@ const masterSparepartController = {
     try {
       await masterSparepart.destroy({ where: { id: _id } }),
         res.status(201).json({ msg: "Sparepart delete Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  kurangUmurMasterSparepart: async (req, res) => {
+    const { nama_mesin, jumlah } = req.body;
+    try {
+      const mesin = await masterMesin.findOne({
+        where: { nama_mesin: nama_mesin },
+      });
+      console.log(mesin);
+      await masterSparepart.update(
+        {
+          sisa_umur: Sequelize.literal(`sisa_umur - ${jumlah}`),
+        },
+        { where: { id_mesin: mesin.id } }
+      ),
+        res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

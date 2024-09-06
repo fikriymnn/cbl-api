@@ -24,7 +24,7 @@ const Pm2Controller = {
     } = req.query;
 
     let obj = {};
-    let des = [];
+    let des = [["createdAt", "DESC"]];
     let offset = (page - 1) * limit;
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
@@ -286,8 +286,10 @@ const Pm2Controller = {
   stopTaskPm2: async (req, res) => {
     const _id = req.params.id;
     const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
-    if (!lama_pengerjaan || !waktu_selesai || !hasil)
+    if (!lama_pengerjaan || !waktu_selesai)
       return res.status(401).json({ msg: "incomplite data" });
+    if (!catatan) return res.status(401).json({ msg: "catatan wajib di isi" });
+    if (!hasil) return res.status(401).json({ msg: "hasil wajib di isi" });
     try {
       const response = await PointPm2.update(
         {

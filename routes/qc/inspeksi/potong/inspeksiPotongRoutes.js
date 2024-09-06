@@ -7,6 +7,11 @@ router.get(
   auth,
   inspeksiPotong.getInspeksiPotong
 );
+router.get(
+  "/qc/cs/inspeksiPotongMesin",
+  auth,
+  inspeksiPotong.getInspeksiPotongMesin
+);
 router.post("/qc/cs/inspeksiPotong", inspeksiPotong.createInpeksiPotong);
 //update
 router.put(

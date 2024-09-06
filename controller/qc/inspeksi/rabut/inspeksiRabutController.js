@@ -1,0 +1,313 @@
+const { Op, Sequelize } = require("sequelize");
+
+const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPointModel");
+const InspeksiRabut = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutModel");
+const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const User = require("../../../../model/userModel");
+
+const inspeksiRabutController = {
+  getInspeksiRabut: async (req, res) => {
+    try {
+      const { status, tgl, mesin, page, limit } = req.query;
+      const { id } = req.params;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      let obj = {};
+      if (page && limit && (status || tgl || mesin)) {
+        if (status) obj.status = status;
+        if (tgl) obj.tanggal = tgl;
+        if (mesin) obj.mesin = mesin;
+
+        const length = await InspeksiRabut.count({ where: obj });
+        const data = await InspeksiRabut.findAll({
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit),
+          offset,
+          where: obj,
+        });
+
+        return res.status(200).json({
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (page && limit) {
+        const data = await InspeksiRabut.findAll({
+          order: [["createdAt", "DESC"]],
+          offset,
+          limit: parseInt(limit),
+        });
+        const length = await InspeksiRabut.count();
+        return res.status(200).json({
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (status || tgl || mesin) {
+        if (status) obj.status = status;
+        if (tgl) obj.tanggal = tgl;
+        if (mesin) obj.mesin = mesin;
+
+        const data = await InspeksiRabut.findAll({
+          order: [["createdAt", "DESC"]],
+          where: obj,
+        });
+        const length = await InspeksiRabut.count({ where: obj });
+        return res.status(200).json({
+          data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (id) {
+        const data = await InspeksiRabut.findByPk(id, {
+          include: {
+            model: InspeksiRabutPoint,
+            as: "inspeksi_rabut_point",
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+              {
+                model: InspeksiRabutDefect,
+                as: "inspeksi_rabut_defect",
+              },
+            ],
+          },
+        });
+        const checkInspeksiRabut = await InspeksiRabut.findOne({
+          include: {
+            model: InspeksiRabutPoint,
+            as: "inspeksi_rabut_point",
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+              {
+                model: InspeksiRabutDefect,
+                as: "inspeksi_rabut_defect",
+              },
+            ],
+          },
+          where: {
+            no_jo: data.no_jo,
+            id: {
+              [Op.ne]: data.id,
+            },
+          },
+        });
+
+        const inspeksiRabutPoint = await InspeksiRabutPoint.sum("qty_pallet", {
+          where: { id_inspeksi_rabut: id },
+        });
+
+        const inspeksiRabutPointDefect = await InspeksiRabutDefect.findAll({
+          attributes: [
+            "kode",
+            [Sequelize.fn("SUM", Sequelize.col("hasil")), "total_defect"],
+          ],
+          group: ["kode"],
+          where: { id_inspeksi_rabut: id },
+        });
+
+        const totalDefect = await InspeksiRabutDefect.sum("hasil", {
+          where: { id_inspeksi_rabut: id },
+        });
+
+        return res.status(200).json({
+          data: data,
+          history: checkInspeksiRabut,
+          sumQtyPallet: inspeksiRabutPoint,
+          totalPointDefect: inspeksiRabutPointDefect,
+          totalDefect: totalDefect,
+        });
+      } else {
+        const data = await InspeksiRabut.findAll({
+          order: [["createdAt", "DESC"]],
+        });
+        return res.status(200).json({ data });
+      }
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
+  createInspeksiRabut: async (req, res) => {
+    const {
+      tanggal,
+      no_jo,
+      no_io,
+      jumlah_pcs,
+      mesin,
+      operator,
+      shift,
+      nama_produk,
+      customer,
+    } = req.body;
+
+    try {
+      const checkInspeksiRabut = await InspeksiRabut.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+      if (checkInspeksiRabut) {
+        await InspeksiRabut.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiRabut.id,
+            },
+          }
+        );
+      }
+      const inspeksiRabut = await InspeksiRabut.create({
+        tanggal,
+        no_jo,
+        no_io,
+        jumlah_pcs,
+        mesin,
+        operator,
+        shift,
+        nama_produk,
+        customer,
+      });
+
+      // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
+      //   where: { status: "active" },
+      // });
+
+      const rabutPoint = await InspeksiRabutPoint.create({
+        id_inspeksi_rabut: inspeksiRabut.id,
+      });
+      // for (let i = 0; i < masterKodeRabut.length; i++) {
+      //   await InspeksiRabutDefect.create({
+      //     id_inspeksi_rabut_point: rabutPoint.id,
+      //     kode: masterKodeRabut[i].kode,
+      //     masalah: masterKodeRabut[i].masalah,
+      //     id_inspeksi_rabut: inspeksiRabut.id,
+      //   });
+      // }
+
+      res.status(200).json({ msg: "create Successful" });
+    } catch (error) {
+      res.status(404).json({ msg: error.message });
+    }
+  },
+
+  doneInspeksiRabut: async (req, res) => {
+    const _id = req.params.id;
+    const { catatan } = req.body;
+
+    try {
+      const inspeksiRabut = await InspeksiRabut.findOne({
+        where: { id: _id },
+      });
+      const inspeksiRabutPoint = await InspeksiRabutPoint.findAll({
+        where: { id_inspeksi_rabut: _id },
+      });
+      const jumlahPeriode = inspeksiRabutPoint.length;
+      let totalWaktuCheck = inspeksiRabutPoint.reduce(
+        (total, data) => total + data.lama_pengerjaan,
+        0
+      );
+      await InspeksiRabut.update(
+        {
+          jumlah_periode: jumlahPeriode,
+          waktu_check: totalWaktuCheck,
+          status: "history",
+          catatan,
+        },
+        { where: { id: _id } }
+      );
+
+      const pointDefect = await InspeksiRabutDefect.findAll({
+        attributes: [
+          [Sequelize.fn("SUM", Sequelize.col("hasil")), "hasil"],
+          "kode",
+          "sumber_masalah",
+          "persen_kriteria",
+          "kriteria",
+          "masalah",
+        ],
+        group: ["kode"],
+        where: {
+          id_inspeksi_rabut: _id,
+        },
+      });
+
+      for (let index = 0; index < pointDefect.length; index++) {
+        let defect = pointDefect[index].hasil;
+        let pcs = inspeksiRabut.jumlah_pcs;
+        let persen = (defect / pcs) * 100;
+        let persen_kriteria = pointDefect[index].persen_kriteria;
+        let department = pointDefect[index].sumber_masalah;
+        let department_tujuan = "";
+        if (department == "man") {
+          department_tujuan = "hrd";
+        } else if (department == "material") {
+          department_tujuan = "purchasing";
+        } else if (department == "persiapan") {
+          department_tujuan = "persiapan";
+        }
+
+        if (
+          persen >= persen_kriteria &&
+          pointDefect[index].sumber_masalah != "mesin"
+        ) {
+          console.log("masuk ncr");
+          const data = await NcrTicket.create({
+            id_pelapor: req.user.id,
+            tanggal: new Date(),
+            kategori_laporan: pointDefect[index].sumber_masalah,
+            no_jo: inspeksiRabut.no_jo,
+            no_io: inspeksiRabut.no_io,
+            qty_defect: pointDefect.jumlah_defect,
+            nama_produk: inspeksiRabut.nama_produk,
+          });
+
+          const department = await NcrDepartment.create({
+            id_ncr_tiket: data.id,
+            department: department_tujuan,
+          });
+          await NcrKetidaksesuain.create({
+            id_department: department.id,
+            ketidaksesuaian: `masalah pada proses sampling rabut dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+          });
+        } else if (
+          persen >= persen_kriteria &&
+          pointDefect[index].sumber_masalah == "mesin"
+        ) {
+          console.log("masuk os");
+        }
+      }
+
+      res.status(200).json({ msg: "Done Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  pendingLemPeriode: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiRabut.update(
+        { status: "pending" },
+        {
+          where: { id: _id },
+        }
+      );
+      res.status(200).json({ msg: "Pending Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+};
+
+module.exports = inspeksiRabutController;

@@ -62,6 +62,14 @@ const InspeksiBahan = db.define("cs_inspeksi_bahan",{
     lama_pengerjaan : {
         type: DataTypes.INTEGER,
         allowNull: true
+    },
+     catatan : {
+        type : DataTypes.STRING,
+        allowNull: true
+    },
+    total_skor : {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
 },
 {

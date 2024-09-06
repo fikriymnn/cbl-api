@@ -1,14 +1,14 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../../config/database");
 const { DataTypes } = Sequelize;
-const Ticketpm2 = require("./ticketPm3");
+const Ticketpm3 = require("./ticketPm3");
 
 const inspectionPointPm3 = db.define("inspection_point_pm3", {
   id_ticket: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Ticketpm2,
+      model: Ticketpm3,
       key: "id",
     },
   },
@@ -50,10 +50,10 @@ const inspectionPointPm3 = db.define("inspection_point_pm3", {
   },
 });
 
-Ticketpm2.hasMany(inspectionPointPm3, {
+Ticketpm3.hasMany(inspectionPointPm3, {
   foreignKey: "id_ticket",
 });
-inspectionPointPm3.belongsTo(Ticketpm2, {
+inspectionPointPm3.belongsTo(Ticketpm3, {
   foreignKey: "id_ticket",
 });
 

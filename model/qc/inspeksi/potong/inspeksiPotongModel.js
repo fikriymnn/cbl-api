@@ -61,10 +61,22 @@ const InspeksiPotong = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    lama_pengerjaan : {
-        type: DataTypes.INTEGER,
-        allowNull: true
-    }
+    lama_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    catatan: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    merk: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    total_skor:{
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
   },
   {
     freezeTableName: true,

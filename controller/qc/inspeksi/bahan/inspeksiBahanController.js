@@ -45,10 +45,13 @@ const inspeksiBahanController = {
           include: { model: InspeksiBahanResult, as: "inspeksi_bahan_result" },
         });
 
-        if(data && !data?.inspector){
-          await InspeksiBahan.update({inspector: req.user.name},{where: {id}})
+        if (data && !data?.inspector) {
+          await InspeksiBahan.update(
+            { inspector: req.user.name },
+            { where: { id } }
+          );
         }
-      
+
         let array = [];
         data.inspeksi_bahan_result.forEach((value) => {
           value.metode = value.metode?.split("|");
@@ -105,7 +108,9 @@ const inspeksiBahanController = {
         jam,
         jumlah,
       });
+
       if (data) {
+        console.log(1);
         const array = [];
         master_result_fix.forEach((value) => {
           value.id_inspeksi_bahan = data.id;
@@ -123,14 +128,15 @@ const inspeksiBahanController = {
   updateInspeksiBahan: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_rumus, no_lot, verifikasi, lama_pengerjaan } = req.body;
+      const { hasil_rumus, no_lot, verifikasi, catatan, total_skor } = req.body;
       let obj = {
         status: "history",
       };
       if (hasil_rumus) obj.hasil_rumus = hasil_rumus;
       if (no_lot) obj.no_lot = no_lot;
       if (verifikasi) obj.verifikasi = verifikasi;
-      // if (lama_pengerjaan) obj.verifikasi = lama_pengerjaan;
+      if (catatan) obj.catatan = catatan;
+      if (total_skor) obj.total_skor = total_skor;
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });
@@ -163,11 +169,28 @@ const inspeksiBahanController = {
     const lama_pengerjaan = req.body.lama_pengerjaan;
     const date = new Date();
     try {
-      await InspeksiBahan.update(
-        { waktu_selesai: date, lama_pengerjaan },
-        { where: { id: id } }
-      ),
-        res.status(200).json({ msg: "stop successfuly" });
+      const data = await InspeksiBahanResult.findAll({
+        where: {
+          id_inspeksi_bahan: id,
+        },
+      });
+      let total_skor = 0;
+      let counter = 0;
+      data.forEach((v, i) => {
+        if (v.keterangan_hasil == "sesuai") {
+          total_skor += v.bobot;
+        }
+        counter++;
+      });
+
+      if (data.length == counter) {
+        await InspeksiBahan.update(
+          { waktu_selesai: date, lama_pengerjaan, total_skor },
+          { where: { id: id } }
+        );
+      }
+
+      res.status(200).json({ msg: "stop successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

@@ -27,12 +27,20 @@ const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
 const taskpm1 = require("./model/mtc/preventive/pm1/taskPm1");
 
+const tcpm1Man = require("./model/mtc/preventive/pm1Man/ticketPm1Man");
+const pointpm1Man = require("./model/mtc/preventive/pm1Man/pointPm1Man");
+const taskpm1Man = require("./model/mtc/preventive/pm1Man/taskPm1Man");
+
 const msPointPm2 = require("./model/masterData/mtc/preventive/pm2/inspenctionPoinPm2Model");
 const msTaskPm2 = require("./model/masterData/mtc/preventive/pm2/inspectionTaskPm2Model");
 
 const tcpm2 = require("./model/mtc/preventive/pm2/ticketPm2");
 const pointpm2 = require("./model/mtc/preventive/pm2/pointPm2");
 const taskpm2 = require("./model/mtc/preventive/pm2/taskPm2");
+
+const tcpm2Man = require("./model/mtc/preventive/pm2Man/ticketPm2Man");
+const pointpm2Man = require("./model/mtc/preventive/pm2Man/pointPm2Man");
+const taskpm2Man = require("./model/mtc/preventive/pm2Man/taskPm2Man");
 
 const mspointpm3 = require("./model/masterData/mtc/preventive/pm3/inspenctionPoinPm3Model");
 const mstaskpm3 = require("./model/masterData/mtc/preventive/pm3/inspectionTaskPm3Model");
@@ -41,6 +49,10 @@ const tcpm3 = require("./model/mtc/preventive/pm3/ticketPm3");
 const pointpm3 = require("./model/mtc/preventive/pm3/pointPm3");
 const taskpm3 = require("./model/mtc/preventive/pm3/taskPm3");
 
+const tcpm3Man = require("./model/mtc/preventive/pm3Man/ticketPm3Man");
+const pointpm3Man = require("./model/mtc/preventive/pm3Man/pointPm3Man");
+const taskpm3Man = require("./model/mtc/preventive/pm3Man/taskPm3Man");
+
 const notif = require("./model/notificationModel");
 
 const inspeksiBahan = require("./model/qc/inspeksi/bahan/inspeksiBahanModel");
@@ -48,6 +60,63 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
+
+const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
+const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
+const inspeksiCetakAwalPoint = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
+const inspeksiCetakPeriode = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
+const inspeksiCetakPeriodePoint = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
+const inspeksiCetakPeriodeDefect = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+
+const inspeksiPond = require("./model/qc/inspeksi/pond/inspeksiPondModel");
+const inspeksiPondAwal = require("./model/qc/inspeksi/pond/inspeksiPondAwalModel");
+const inspeksiPondAwalPoint = require("./model/qc/inspeksi/pond/inspeksiPondAwalPointModel");
+const inspeksiPondPeriode = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
+const inspeksiPondPeriodePoint = require("./model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
+const inspeksiPondPeriodeDefect = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
+
+const inspeksiLem = require("./model/qc/inspeksi/lem/inspeksiLemModel");
+const inspeksiLemAwal = require("./model/qc/inspeksi/lem/inspeksiLemAwalModel");
+const inspeksiLemAwalPoint = require("./model/qc/inspeksi/lem/inspeksiLemAwalPointModel");
+const inspeksiLemPeriode = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
+const inspeksiLemPeriodePoint = require("./model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
+const inspeksiLemPeriodeDefect = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
+
+const inspeksiRabut = require("./model/qc/inspeksi/rabut/inspeksiRabutModel");
+const inspeksiRabutPoint = require("./model/qc/inspeksi/rabut/inspeksiRabutPointModel");
+const inspeksiRabutDefect = require("./model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+
+const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
+const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
+const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
+const msSamplingRabutMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const msCoatingMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalModel");
+const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
+const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
+
+const msCetakmasalahDepartment = require("./model/masterData/qc/inspeksi/department/masterDepartmentMasalahCetakModel");
+
+const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel");
+const inspeksi_coating_sub_awal = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
+const inspeksi_coating_sub_periode = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
+const inspeksi_coating_result_awal = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
+const inspeksi_coating_result_periode = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
+const inspeksi_coating_point_periode = require("./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+
+const inspeksiFinal = require("./model/qc/inspeksi/final/inspeksiFinalModel");
+const inspeksiFinalpoint = require("./model/qc/inspeksi/final/inspeksiFinalPoint");
+const inspeksiFinalSub = require("./model/qc/inspeksi/final/inspeksiFinalSubModel");
+
+const inspeksiBarangRusak = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakModel");
+const inspeksiBarangRusakDefect = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakDefectModel");
+
+const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
+
+const CapaTiket = require("./model/qc/capa/capaTiketmodel");
+const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -66,7 +135,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiPotongResult.sync({ alter: true });
+//   await inspeksiBarangRusakDefect.sync({ alter: true });
 // })();
 
 // const ip100 = 75
