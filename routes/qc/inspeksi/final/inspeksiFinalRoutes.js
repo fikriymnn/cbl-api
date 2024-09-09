@@ -10,7 +10,7 @@ router.get(
 
 router.post(
   "/qc/cs/inspeksiFinal",
-  auth,
+
   inspeksiFinalController.createInspeksiFinal
 );
 

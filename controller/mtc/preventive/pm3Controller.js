@@ -26,7 +26,7 @@ const Pm3Controller = {
     } = req.query;
 
     let obj = {};
-    let des = [];
+    let des = [["createdAt", "DESC"]];
     let offset = (page - 1) * limit;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (id_inspector) obj.id_inspector = id_inspector;
@@ -408,8 +408,10 @@ const Pm3Controller = {
   stopTaskPm3: async (req, res) => {
     const _id = req.params.id;
     const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
-    if (!lama_pengerjaan || !waktu_selesai || !hasil)
+    if (!lama_pengerjaan || !waktu_selesai)
       return res.status(401).json({ msg: "incomplite data" });
+    if (!catatan) return res.status(401).json({ msg: "catatan wajib di isi" });
+    if (!hasil) return res.status(401).json({ msg: "hasil wajib di isi" });
     try {
       const response = await PointPm3.update(
         {

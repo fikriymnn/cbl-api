@@ -1,3 +1,4 @@
+const { Op, Sequelize } = require("sequelize");
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
@@ -5,7 +6,6 @@ const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
-const { Sequelize } = require("sequelize");
 
 const inspeksiCoatingController = {
   getInspeksiCoating: async (req, res) => {
@@ -114,6 +114,37 @@ const inspeksiCoatingController = {
               },
             ],
           });
+
+          const checkInspeksiCoating = await InspeksiCoating.findOne({
+            include: [
+              {
+                model: InspeksiCoatingResultPeriode,
+                as: "inspeksi_coating_result_periode",
+                include: {
+                  model: InspeksiCoatingResultPointPeriode,
+                  as: "inspeksi_coating_result_point_periode",
+                },
+              },
+              {
+                model: InspeksiCoatingSubPeriode,
+                as: "inspeksi_coating_sub_periode",
+              },
+              {
+                model: InspeksiCoatingResultAwal,
+                as: "inspeksi_coating_result_awal",
+              },
+              {
+                model: InspeksiCoatingSubAwal,
+                as: "inspeksi_coating_sub_awal",
+              },
+            ],
+            where: {
+              no_jo: data.no_jo,
+              id: {
+                [Op.ne]: data.id,
+              },
+            },
+          });
           const data2 = await InspeksiCoatingResultPointPeriode.findAll({
             where: { id_inspeksi_coating: id, hasil: "not ok" },
             group: ["kode"],
@@ -130,7 +161,12 @@ const inspeksiCoatingController = {
             ],
           });
 
-          return res.status(200).json({ data: data, defect: data2, msg: "OK" });
+          return res.status(200).json({
+            data: data,
+            history: checkInspeksiCoating,
+            defect: data2,
+            msg: "OK",
+          });
         }
       } else if (status || jenis_pengecekan) {
         if (status) obj.status = status;
@@ -202,6 +238,27 @@ const inspeksiCoatingController = {
       else if (!status_jo)
         return res.status(400).json({ msg: "Field status_jo kosong!" });
 
+      const checkInspeksiCoating = await InspeksiCoating.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+
+      if (checkInspeksiCoating) {
+        await InspeksiCoating.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiCoating.id,
+            },
+          }
+        );
+      }
 
       const data = await InspeksiCoating.create({
         tanggal,

@@ -75,6 +75,29 @@ const inspeksiRabutController = {
             ],
           },
         });
+        const checkInspeksiRabut = await InspeksiRabut.findOne({
+          include: {
+            model: InspeksiRabutPoint,
+            as: "inspeksi_rabut_point",
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+              {
+                model: InspeksiRabutDefect,
+                as: "inspeksi_rabut_defect",
+              },
+            ],
+          },
+          where: {
+            no_jo: data.no_jo,
+            id: {
+              [Op.ne]: data.id,
+            },
+          },
+        });
+
         const inspeksiRabutPoint = await InspeksiRabutPoint.sum("qty_pallet", {
           where: { id_inspeksi_rabut: id },
         });
@@ -94,6 +117,7 @@ const inspeksiRabutController = {
 
         return res.status(200).json({
           data: data,
+          history: checkInspeksiRabut,
           sumQtyPallet: inspeksiRabutPoint,
           totalPointDefect: inspeksiRabutPointDefect,
           totalDefect: totalDefect,
@@ -123,6 +147,26 @@ const inspeksiRabutController = {
     } = req.body;
 
     try {
+      const checkInspeksiRabut = await InspeksiRabut.findOne({
+        where: {
+          no_jo: no_jo,
+          status: {
+            [Op.ne]: "history",
+          },
+        },
+      });
+      if (checkInspeksiRabut) {
+        await InspeksiRabut.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiRabut.id,
+            },
+          }
+        );
+      }
       const inspeksiRabut = await InspeksiRabut.create({
         tanggal,
         no_jo,

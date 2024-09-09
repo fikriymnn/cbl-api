@@ -1,4 +1,5 @@
 const masterKodeMasalahCetak = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
+const masterKodeMasalahDepartment = require("../../../../model/masterData/qc/inspeksi/department/masterDepartmentMasalahCetakModel");
 
 const masterKodeMasalahCetakController = {
   getMasterKodeMasalahCetak: async (req, res) => {
