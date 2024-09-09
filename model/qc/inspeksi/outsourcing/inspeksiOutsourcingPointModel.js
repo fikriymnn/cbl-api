@@ -25,26 +25,11 @@ const InspeksiOutsourcingPoint = db.define(
             type: DataTypes.STRING,
             allowNull: true,
         },
-        keterangan: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
         foto: {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        waktu_mulai: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        waktu_selesai: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        lama_pengerjaan: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
+       
     },
     {
         freezeTableName: true,

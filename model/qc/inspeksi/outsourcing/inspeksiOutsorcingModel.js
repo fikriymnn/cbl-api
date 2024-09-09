@@ -49,6 +49,18 @@ const InspeksiOutsourcing = db.define(
       type: DataTypes.STRING,
       allowNull: true
     },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+  },
+  waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+  },
+  lama_pengerjaan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+  },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

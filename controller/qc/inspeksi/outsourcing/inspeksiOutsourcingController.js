@@ -58,7 +58,7 @@ const inspeksiOutsourcingController = {
           } else if (id) {
             const data1 = await InspeksiOutsourcing.findByPk(id);
     
-            if (!data1.inspector) {
+            if (!data1.inspector&&req.user?.id) {
               await InspeksiOutsourcing.update(
                 { id_inspector: req.user.id },
                 { where: { id: id } }
@@ -120,7 +120,15 @@ const inspeksiOutsourcingController = {
         }
       },
       submitInspeksiOutsourcing: async (req,res)=>{
-        
+        try{
+          const {
+          outsourcing,
+          coating,
+          kesesuaian,
+          status_outsourcing} = req.body
+        }catch(err){
+          res.status(500).json({ msg: err.message });
+        }
       }
 }
 
