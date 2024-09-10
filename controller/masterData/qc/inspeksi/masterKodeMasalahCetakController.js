@@ -1,5 +1,6 @@
 const masterKodeMasalahCetak = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
-const masterKodeMasalahDepartment = require("../../../../model/masterData/qc/inspeksi/department/masterDepartmentMasalahCetakModel");
+const Department = require("../../../../model/masterData/qc/department/masterDepartmentModel");
+const DepartmentCetakModel = require("../../../../model/masterData/qc/department/departmentCetakModel");
 
 const masterKodeMasalahCetakController = {
   getMasterKodeMasalahCetak: async (req, res) => {
@@ -15,10 +16,29 @@ const masterKodeMasalahCetakController = {
 
     try {
       if (!_id) {
-        const response = await masterKodeMasalahCetak.findAll({ where: obj });
+        const response = await masterKodeMasalahCetak.findAll({
+          include: {
+            model: DepartmentCetakModel,
+            as: "department_cetak",
+            include: {
+              model: Department,
+              as: "department",
+            },
+          },
+          where: obj,
+        });
         res.status(200).json(response);
       } else {
-        const response = await masterKodeMasalahCetak.findByPk(_id);
+        const response = await masterKodeMasalahCetak.findByPk(_id, {
+          include: {
+            model: DepartmentCetakModel,
+            as: "department_cetak",
+            include: {
+              model: Department,
+              as: "department",
+            },
+          },
+        });
         res.status(200).json(response);
       }
     } catch (error) {
@@ -59,6 +79,13 @@ const masterKodeMasalahCetakController = {
         persen_kriteria,
       });
 
+      for (let index = 0; index < department.length; index++) {
+        await DepartmentCetakModel.create({
+          id_masalah_cetak: response.id,
+          id_department: department[index].id,
+        });
+      }
+
       res.status(200).json({ msg: "create successful", data: response });
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -67,8 +94,14 @@ const masterKodeMasalahCetakController = {
 
   updateMasterKodeMasalahCetak: async (req, res) => {
     const _id = req.params.id;
-    const { kode, masalah, sumber_masalah, kriteria, persen_kriteria } =
-      req.body;
+    const {
+      kode,
+      masalah,
+      sumber_masalah,
+      kriteria,
+      persen_kriteria,
+      department,
+    } = req.body;
 
     let obj = {};
     if (kode) obj.kode = kode;
@@ -78,8 +111,14 @@ const masterKodeMasalahCetakController = {
     if (persen_kriteria) obj.persen_kriteria = persen_kriteria;
 
     try {
-      await masterKodeMasalahCetak.update(obj, { where: { id: _id } }),
-        res.status(201).json({ msg: "masalah update Successful" });
+      await masterKodeMasalahCetak.update(obj, { where: { id: _id } });
+
+      for (let index = 0; index < department.length; index++) {
+        await DepartmentCetakModel.create({
+          id_department: department[index].id,
+        });
+      }
+      res.status(201).json({ msg: "masalah update Successful" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -92,6 +131,30 @@ const masterKodeMasalahCetakController = {
         { status: "non active" },
         { where: { id: _id } }
       ),
+        res.status(201).json({ msg: "Machine delete Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  deleteMasterKodeMasalahCetakDepartment: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await DepartmentCetakModel.destroy({ where: { id: _id } }),
+        res.status(201).json({ msg: "Machine delete Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  addMasterKodeMasalahCetakDepartment: async (req, res) => {
+    const _id = req.params.id;
+    const { id_department } = req.body;
+    try {
+      await DepartmentCetakModel.create({
+        id_department: id_department,
+        id_masalah_cetak: _id,
+      }),
         res.status(201).json({ msg: "Machine delete Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });

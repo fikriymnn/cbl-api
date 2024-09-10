@@ -1,7 +1,7 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-
+const Department = require("../department/masterDepartmentModel");
 const User = require("../../../userModel");
 
 const InspeksiMasterCetakPeriodeDefect = db.define(

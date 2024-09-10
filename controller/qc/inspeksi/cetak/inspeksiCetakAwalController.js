@@ -49,6 +49,7 @@ const inspeksiCetakAwalController = {
         await InspeksiCetakPeriodeDefect.create({
           id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
           id_inspeksi_cetak: cetakAwal.id_inspeksi_cetak,
+          //id_master_defect: masterKodeCetak[i].id,
           kode: masterKodeCetak[i].kode,
           masalah: masterKodeCetak[i].masalah,
           kriteria: masterKodeCetak[i].kriteria,

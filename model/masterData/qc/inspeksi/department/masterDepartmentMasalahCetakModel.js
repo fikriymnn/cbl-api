@@ -30,9 +30,4 @@ const InspeksiMasterCetakDepartmentDefect = db.define(
   }
 );
 
-MasterKodeCetakDefect.hasMany(InspeksiMasterCetakDepartmentDefect, {
-  foreignKey: "id_inspeksi_bahan",
-  as: "inspeksi_bahan_result",
-});
-
 module.exports = InspeksiMasterCetakDepartmentDefect;

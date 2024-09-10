@@ -33,9 +33,11 @@ const inspeksiBarangRusakController = {
       return res.status(400).json({ msg: "Setting awal wajib di isi" });
     if (!druk_awal)
       return res.status(400).json({ msg: "Druk awal wajib di isi" });
+    if (!catatan)
+      return res.status(400).json({ msg: "Catatan awal wajib di isi" });
 
     try {
-      const subTotal = setting_awal + druk_awal;
+      const subTotal = parseInt(setting_awal) + parseInt(druk_awal);
       await InspeksiBarangRusakDefect.update(
         {
           waktu_selesai: new Date(),
