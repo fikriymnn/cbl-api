@@ -5,6 +5,9 @@ const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksi
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
 const User = require("../../../../model/userModel");
 
+const axios = require("axios");
+const dotenv = require("dotenv");
+
 const inspeksiFinalController = {
   getInspeksiFinal: async (req, res) => {
     try {
@@ -62,12 +65,12 @@ const inspeksiFinalController = {
       } else if (id) {
         const data1 = await InspeksiFinal.findByPk(id);
 
-        if (!data1.inspector) {
-          await InspeksiFinal.update(
-            { inspector: req.user.id },
-            { where: { id: id } }
-          );
-        }
+        // if (!data1.inspector) {
+        //   await InspeksiFinal.update(
+        //     { inspector: req.user.id },
+        //     { where: { id: id } }
+        //   );
+        // }
 
         const data = await InspeksiFinal.findByPk(id, {
           include: [
@@ -147,6 +150,7 @@ const inspeksiFinalController = {
 
       await InspeksiFinal.update(
         {
+          inspector: req.user.id,
           no_pallet,
           catatan,
           no_packing,
@@ -177,6 +181,16 @@ const inspeksiFinalController = {
           { where: { id: inspeksi_final_sub[i].id } }
         );
       }
+      // console.log(req.body);
+
+      // const inspeksi = await InspeksiFinal.findByPk(id);
+      // if (status == "bisa kirim") {
+      //   const request = await axios.post(
+      //     `${process.env.LINK_P1}/api/approve-final-inspection?no_jo=${inspeksi.no_jo}`,
+      //     {}
+      //   );
+      //   console.log(request);
+      // }
 
       res.status(200).json({ msg: "Update Successful" });
     } catch (err) {
