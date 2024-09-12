@@ -8,6 +8,7 @@ const inspeksiCetakPeriodeDefectController = {
     const {
       id_inspeksi_cetak_periode_point,
       id_inspeksi_cetak,
+      //id_master_defect,
       kode,
       masalah,
       kriteria,
@@ -18,6 +19,7 @@ const inspeksiCetakPeriodeDefectController = {
       await InspeksiCetakPeriodeDefect.create({
         id_inspeksi_cetak_periode_point: id_inspeksi_cetak_periode_point,
         id_inspeksi_cetak: id_inspeksi_cetak,
+        //id_master_defect: id_master_defect,
         kode: kode,
         masalah: masalah,
         kriteria: kriteria,

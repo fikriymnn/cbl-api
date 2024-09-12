@@ -191,10 +191,6 @@ const capaTicketController = {
           return res
             .status(400)
             .json({ msg: "pencegahan efektif dilakukan wajib di isi" });
-        if (data.keterangan_ketidak_sesuaian == null)
-          return res
-            .status(400)
-            .json({ msg: "keterangan ketidak sesuaian wajib di isi" });
       }
       let obj = {
         status: "menunggu verifikasi qa",

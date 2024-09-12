@@ -102,7 +102,6 @@ const inspeksiBarangRusakController = {
       operator,
       nama_produk,
       customer,
-
       qty_rusak,
     } = req.body;
 

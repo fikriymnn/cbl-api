@@ -22,4 +22,16 @@ router.delete(
   kodeMasalahCetakController.deleteMasterKodeMasalahCetak
 );
 
+router.post(
+  "/master/qc/cs/masalahCetak/department/:id",
+  auth,
+  kodeMasalahCetakController.addMasterKodeMasalahCetakDepartment
+);
+
+router.delete(
+  "/master/qc/cs/masalahCetak/department/:id",
+  auth,
+  kodeMasalahCetakController.deleteMasterKodeMasalahCetakDepartment
+);
+
 module.exports = router;
