@@ -107,7 +107,6 @@ const inspeksiBahanController = {
       });
 
       if (data) {
-        console.log(1);
         const array = [];
         master_result_fix.forEach((value) => {
           value.id_inspeksi_bahan = data.id;
@@ -135,16 +134,16 @@ const inspeksiBahanController = {
       if (catatan) obj.catatan = catatan;
       if (total_skor) obj.total_skor = total_skor;
 
-      const inspeksi = await InspeksiBahan.findByPk(id);
-      if (verifikasi == "Diterima") {
-        const request = await axios.post(
-          `${process.env.LINK_P1}/api/approve-incoming-bahan/${inspeksi.no_surat_jalan}`,
-          {}
-        );
-      }
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });
+      // const inspeksi = await InspeksiBahan.findByPk(id);
+      // if (verifikasi == "Diterima") {
+      //   const request = await axios.post(
+      //     `${process.env.LINK_P1}/api/approve-incoming-bahan/${inspeksi.no_surat_jalan}`,
+      //     {}
+      //   );
+      // }
       return res.status(200).json({ msg: "Update successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });

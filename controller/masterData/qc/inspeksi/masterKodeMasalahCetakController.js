@@ -17,28 +17,11 @@ const masterKodeMasalahCetakController = {
     try {
       if (!_id) {
         const response = await masterKodeMasalahCetak.findAll({
-          include: {
-            model: DepartmentCetakModel,
-            as: "department_cetak",
-            include: {
-              model: Department,
-              as: "department",
-            },
-          },
           where: obj,
         });
         res.status(200).json(response);
       } else {
-        const response = await masterKodeMasalahCetak.findByPk(_id, {
-          include: {
-            model: DepartmentCetakModel,
-            as: "department_cetak",
-            include: {
-              model: Department,
-              as: "department",
-            },
-          },
-        });
+        const response = await masterKodeMasalahCetak.findByPk(_id);
         res.status(200).json(response);
       }
     } catch (error) {
@@ -79,12 +62,12 @@ const masterKodeMasalahCetakController = {
         persen_kriteria,
       });
 
-      for (let index = 0; index < department.length; index++) {
-        await DepartmentCetakModel.create({
-          id_masalah_cetak: response.id,
-          id_department: department[index].id,
-        });
-      }
+      // for (let index = 0; index < department.length; index++) {
+      //   await DepartmentCetakModel.create({
+      //     id_masalah_cetak: response.id,
+      //     id_department: department[index].id,
+      //   });
+      // }
 
       res.status(200).json({ msg: "create successful", data: response });
     } catch (error) {
@@ -113,11 +96,11 @@ const masterKodeMasalahCetakController = {
     try {
       await masterKodeMasalahCetak.update(obj, { where: { id: _id } });
 
-      for (let index = 0; index < department.length; index++) {
-        await DepartmentCetakModel.create({
-          id_department: department[index].id,
-        });
-      }
+      // for (let index = 0; index < department.length; index++) {
+      //   await DepartmentCetakModel.create({
+      //     id_department: department[index].id,
+      //   });
+      // }
       res.status(201).json({ msg: "masalah update Successful" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
@@ -152,7 +135,7 @@ const masterKodeMasalahCetakController = {
     const { id_department } = req.body;
     try {
       await DepartmentCetakModel.create({
-        id_department: id_department,
+        //id_department: id_department,
         id_masalah_cetak: _id,
       }),
         res.status(201).json({ msg: "Machine delete Successfuly" });

@@ -50,6 +50,10 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_packing: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     jumlah_packing: {
       type: DataTypes.FLOAT,
       allowNull: true,

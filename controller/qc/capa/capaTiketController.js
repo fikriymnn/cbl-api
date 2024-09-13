@@ -106,6 +106,7 @@ const capaTicketController = {
           obj.status = {
             [Op.ne]: statusNotEqual,
           };
+        console.log(req.query);
 
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -194,7 +195,7 @@ const capaTicketController = {
       }
       let obj = {
         status: "menunggu verifikasi qa",
-        id_inspektor: req.user.id,
+        //id_inspektor: req.user.id,
       };
 
       const data = await CapaTicket.update(obj, { where: { id: _id } });
