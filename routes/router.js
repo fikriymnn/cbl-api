@@ -48,6 +48,10 @@ router.use(
 );
 router.use(
   "/",
+  require("./masterdata/qc/inspeksi/masterPointOutsourcing")
+);
+router.use(
+  "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
 );
 router.use("/", require("./masterdata/qc/department/masterDepartmentRoutes"));

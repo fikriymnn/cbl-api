@@ -8,4 +8,7 @@ router.get("/qc/cs/inspeksiOutsoucing/:id?", auth, OutsourcingController.getInsp
 //create data outsourcing
 router.post("/qc/cs/inspeksiOutsourcing", OutsourcingController.createInspeksiOutsourcing);
 
+//submit data outsourcing
+router.put("/qc/cs/inspeksiOutsourcing/:id", OutsourcingController.submitInspeksiOutsourcing);
+
 module.exports = router;

@@ -37,10 +37,6 @@ const InspeksiOutsourcing = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    coating: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     kesesuaian: {
       type: DataTypes.STRING,
       allowNull: true,
