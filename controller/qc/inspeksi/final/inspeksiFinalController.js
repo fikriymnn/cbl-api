@@ -4,6 +4,7 @@ const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinal
 const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksiFinalPoint");
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
 const User = require("../../../../model/userModel");
+const { Op } = require("sequelize");
 
 const axios = require("axios");
 const dotenv = require("dotenv");
@@ -96,6 +97,7 @@ const inspeksiFinalController = {
     const { tanggal, no_jo, no_io, quantity, jam, nama_produk, customer } =
       req.body;
     try {
+      const qtyFinal = parseInt(quantity);
       const data = await InspeksiFinal.create({
         tanggal,
         no_jo,
@@ -106,21 +108,27 @@ const inspeksiFinalController = {
         customer,
       });
 
-      const masterSubFinal = await InspeksiMasterSubFinal.findAll();
+      const masterSubFinal = await InspeksiMasterSubFinal.findOne({
+        where: {
+          [Op.and]: [
+            { quantity_awal: { [Op.lte]: qtyFinal } },
+            { quantity_akhir: { [Op.gte]: qtyFinal } },
+          ],
+        },
+      });
       const masterPointFinal = await InspeksiMasterPointFinal.findAll({
         where: { status: "active" },
       });
 
-      for (let i = 0; i < masterSubFinal.length; i++) {
-        console.log(1);
-        await InspeksiFinalSub.create({
-          id_inspeksi_final: data.id,
-          quantity: masterSubFinal[i].quantity,
-          jumlah: masterSubFinal[i].jumlah,
-          kualitas_lulus: masterSubFinal[i].kualitas_lulus,
-          kualitas_tolak: masterSubFinal[i].kualitas_tolak,
-        });
-      }
+      await InspeksiFinalSub.create({
+        id_inspeksi_final: data.id,
+        quantity_awal: masterSubFinal.quantity_awal,
+        quantity_akhir: masterSubFinal.quantity_akhir,
+        jumlah: masterSubFinal.jumlah,
+        kualitas_lulus: masterSubFinal.kualitas_lulus,
+        kualitas_tolak: masterSubFinal.kualitas_tolak,
+      });
+
       for (let i = 0; i < masterPointFinal.length; i++) {
         await InspeksiFinalPoint.create({
           id_inspeksi_final: data.id,
@@ -141,12 +149,65 @@ const inspeksiFinalController = {
       const {
         no_pallet,
         no_packing,
-        jumlah_packing,
+        qty_packing,
         inspeksi_final_point,
         inspeksi_final_sub,
         status,
         catatan,
       } = req.body;
+      //parse bilanagn qty_packing
+      const qtyPacking = parseInt(qty_packing);
+      //menghitung akar dari qty_packing
+      const qtyQuadrat = Math.sqrt(qtyPacking);
+      //membulatkan hasil dari akar
+      const qtyQuadratFix = Math.round(qtyQuadrat);
+      //penghitungan terakhir rumus
+      const JumlahPacking = qtyQuadratFix + 1;
+
+      if (!qty_packing)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "QTY packing wajib di isi",
+        });
+      if (!no_packing)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "No packing wajib di isi",
+        });
+      if (!catatan)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "catatan wajib di isi",
+        });
+      if (!status)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "Status wajib di isi",
+        });
+
+      for (let i = 0; i < inspeksi_final_point.length; i++) {
+        if (!inspeksi_final_point[i].hasil)
+          return res.status(400).json({
+            statusCode: 400,
+            status: false,
+            msg: "Hasil wajib di isi",
+          });
+
+        if (!inspeksi_final_point[i].qty)
+          return res.status(400).json({
+            statusCode: 400,
+            status: false,
+            msg: "QTY reject wajib di isi",
+          });
+      }
+
+      const totalQtyReject = inspeksi_final_point.reduce((total, item) => {
+        return total + parseInt(item.qty);
+      }, 0);
 
       await InspeksiFinal.update(
         {
@@ -154,7 +215,8 @@ const inspeksiFinalController = {
           no_pallet,
           catatan,
           no_packing,
-          jumlah_packing,
+          qty_packing: qty_packing,
+          jumlah_packing: JumlahPacking,
           status,
           bagian_tiket: "history",
         },
@@ -176,7 +238,7 @@ const inspeksiFinalController = {
         await InspeksiFinalSub.update(
           {
             id_inspeksi_final: id,
-            reject: inspeksi_final_sub[i].reject,
+            reject: totalQtyReject,
           },
           { where: { id: inspeksi_final_sub[i].id } }
         );

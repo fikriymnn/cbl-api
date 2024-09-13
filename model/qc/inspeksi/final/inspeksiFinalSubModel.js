@@ -14,8 +14,12 @@ const InspeksiFinalSub = db.define(
         model: InspeksiFinal,
       },
     },
-    quantity: {
-      type: DataTypes.STRING,
+    quantity_awal: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    quantity_akhir: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     jumlah: {

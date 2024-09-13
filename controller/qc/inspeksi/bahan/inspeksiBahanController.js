@@ -107,7 +107,6 @@ const inspeksiBahanController = {
       });
 
       if (data) {
-        console.log(1);
         const array = [];
         master_result_fix.forEach((value) => {
           value.id_inspeksi_bahan = data.id;
