@@ -1,5 +1,9 @@
 const InspeksiBahan = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanModel");
 const InspeksiBahanResult = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanResultModel");
+const axios = require("axios");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const inspeksiBahanController = {
   getInspeksiBahan: async (req, res) => {
@@ -40,17 +44,10 @@ const inspeksiBahanController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id && req.user.name) {
+      } else if (id) {
         const data = await InspeksiBahan.findByPk(id, {
           include: { model: InspeksiBahanResult, as: "inspeksi_bahan_result" },
         });
-
-        if (data && !data?.inspector) {
-          await InspeksiBahan.update(
-            { inspector: req.user.name },
-            { where: { id } }
-          );
-        }
 
         let array = [];
         data.inspeksi_bahan_result.forEach((value) => {
@@ -110,7 +107,6 @@ const inspeksiBahanController = {
       });
 
       if (data) {
-        console.log(1);
         const array = [];
         master_result_fix.forEach((value) => {
           value.id_inspeksi_bahan = data.id;
@@ -137,9 +133,17 @@ const inspeksiBahanController = {
       if (verifikasi) obj.verifikasi = verifikasi;
       if (catatan) obj.catatan = catatan;
       if (total_skor) obj.total_skor = total_skor;
+
       await InspeksiBahan.update(obj, {
         where: { id: id },
       });
+      // const inspeksi = await InspeksiBahan.findByPk(id);
+      // if (verifikasi == "Diterima") {
+      //   const request = await axios.post(
+      //     `${process.env.LINK_P1}/api/approve-incoming-bahan/${inspeksi.no_surat_jalan}`,
+      //     {}
+      //   );
+      // }
       return res.status(200).json({ msg: "Update successfully!" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
@@ -158,7 +162,10 @@ const inspeksiBahanController = {
     const id = req.params.id;
     const date = new Date();
     try {
-      await InspeksiBahan.update({ waktu_mulai: date }, { where: { id: id } }),
+      await InspeksiBahan.update(
+        { waktu_mulai: date, inspector: req.user.name },
+        { where: { id: id } }
+      ),
         res.status(200).json({ msg: "start successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });

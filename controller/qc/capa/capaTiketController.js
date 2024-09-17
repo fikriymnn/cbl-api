@@ -106,6 +106,7 @@ const capaTicketController = {
           obj.status = {
             [Op.ne]: statusNotEqual,
           };
+        console.log(req.query);
 
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -175,7 +176,7 @@ const capaTicketController = {
   submitCapaTicket: async (req, res) => {
     try {
       const _id = req.params.id;
-      const { data_ketidaksesuaian } = req.body;
+      const { nama_inspektor, data_ketidaksesuaian } = req.body;
 
       for (let index = 0; index < data_ketidaksesuaian.length; index++) {
         let data = data_ketidaksesuaian[index];
@@ -191,14 +192,11 @@ const capaTicketController = {
           return res
             .status(400)
             .json({ msg: "pencegahan efektif dilakukan wajib di isi" });
-        if (data.keterangan_ketidak_sesuaian == null)
-          return res
-            .status(400)
-            .json({ msg: "keterangan ketidak sesuaian wajib di isi" });
       }
       let obj = {
         status: "menunggu verifikasi qa",
-        id_inspektor: req.user.id,
+        nama_inspektor: nama_inspektor,
+        //id_inspektor: req.user.id,
       };
 
       const data = await CapaTicket.update(obj, { where: { id: _id } });

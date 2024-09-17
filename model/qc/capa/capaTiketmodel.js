@@ -47,6 +47,18 @@ const capa = db.define(
         key: "id",
       },
     },
+    nama_inspektor: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_pelapor: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    department_pelapor: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     department: {
       type: DataTypes.STRING,
       allowNull: true,

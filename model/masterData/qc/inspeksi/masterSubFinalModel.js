@@ -4,11 +4,15 @@ const db = require("../../../../config/database");
 
 const User = require("../../../userModel");
 
-const InspeksiMasterSubFinal= db.define(
+const InspeksiMasterSubFinal = db.define(
   "cs_master_inspeksi_final_sub",
   {
-    quantity: {
-      type: DataTypes.STRING,
+    quantity_awal: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    quantity_akhir: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     jumlah: {
@@ -20,10 +24,9 @@ const InspeksiMasterSubFinal= db.define(
       allowNull: false,
     },
     kualitas_tolak: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
-  
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

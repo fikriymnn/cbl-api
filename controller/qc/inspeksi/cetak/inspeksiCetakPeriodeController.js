@@ -50,6 +50,7 @@ const inspeksiCetakPeriodeController = {
             Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
             "jumlah_defect",
           ],
+
           "kode",
           "sumber_masalah",
           "persen_kriteria",

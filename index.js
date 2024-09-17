@@ -95,7 +95,9 @@ const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalMod
 const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
 
-const msCetakmasalahDepartment = require("./model/masterData/qc/inspeksi/department/masterDepartmentMasalahCetakModel");
+const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
+
+const msdepartment = require("./model/masterData/qc/department/masterDepartmentModel");
 
 const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel");
 const inspeksi_coating_sub_awal = require("./model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
@@ -135,7 +137,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiBarangRusakDefect.sync({ alter: true });
+//   await CapaTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75

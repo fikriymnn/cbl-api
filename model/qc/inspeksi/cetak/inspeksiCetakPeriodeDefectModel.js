@@ -18,6 +18,10 @@ const InspeksiCetakPeriodeDefect = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    id_master_defect: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     kode: {
       type: DataTypes.STRING,
       allowNull: true,
