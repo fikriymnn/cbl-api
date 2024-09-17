@@ -176,7 +176,7 @@ const capaTicketController = {
   submitCapaTicket: async (req, res) => {
     try {
       const _id = req.params.id;
-      const { data_ketidaksesuaian } = req.body;
+      const { nama_inspektor, data_ketidaksesuaian } = req.body;
 
       for (let index = 0; index < data_ketidaksesuaian.length; index++) {
         let data = data_ketidaksesuaian[index];
@@ -195,6 +195,7 @@ const capaTicketController = {
       }
       let obj = {
         status: "menunggu verifikasi qa",
+        nama_inspektor: nama_inspektor,
         //id_inspektor: req.user.id,
       };
 

@@ -23,6 +23,10 @@ const NcrTicket = db.define(
         key: "id",
       },
     },
+    id_pelapor_p1: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     id_qa: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -56,6 +60,14 @@ const NcrTicket = db.define(
       allowNull: true,
     },
     nama_produk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_pelapor: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    department_pelapor: {
       type: DataTypes.STRING,
       allowNull: true,
     },

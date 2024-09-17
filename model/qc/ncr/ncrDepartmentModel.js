@@ -15,6 +15,10 @@ const NcrDepartment = db.define(
         key: "id",
       },
     },
+    id_department: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     department: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -11,6 +11,7 @@ const NcrTicketController = {
       const {
         status,
         id_user,
+        id_pelapor_p1,
         tanggal,
         department,
         bagian_tiket,
@@ -26,6 +27,7 @@ const NcrTicketController = {
         if (department) obj.department = department;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
         if (id_user) obj.id_pelapor = id_user;
+        if (id_pelapor_p1) obj.id_pelapor_p1 = id_pelapor_p1;
         const length = await NcrTicket.count({ where: obj });
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -103,6 +105,7 @@ const NcrTicketController = {
         if (department) obj.department = department;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
         if (id_user) obj.id_pelapor = id_user;
+        if (id_pelapor_p1) obj.id_pelapor_p1 = id_pelapor_p1;
 
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
@@ -180,12 +183,24 @@ const NcrTicketController = {
 
   createNcrTicket: async (req, res) => {
     try {
-      const { kategori_laporan, no_jo, no_io, nama_produk, data_department } =
-        req.body;
+      const {
+        kategori_laporan,
+        id_pelapor,
+        id_pelapor_p1,
+        no_jo,
+        no_io,
+        nama_produk,
+        nama_pelapor,
+        department_pelapor,
+        data_department,
+      } = req.body;
       const data = await NcrTicket.create({
-        id_pelapor: req.user.id,
+        id_pelapor: id_pelapor,
+        id_pelapor_p1: id_pelapor_p1,
         tanggal: new Date(),
         kategori_laporan,
+        nama_pelapor,
+        department_pelapor,
         no_jo,
         no_io,
         nama_produk,
@@ -194,6 +209,7 @@ const NcrTicketController = {
       for (let index = 0; index < data_department.length; index++) {
         const department = await NcrDepartment.create({
           id_ncr_tiket: data.id,
+          // id_department:data_department[index].id_department,
           department: data_department[index].department,
         });
         for (
@@ -311,6 +327,8 @@ const NcrTicketController = {
         for (let index = 0; index < ncrTiket.data_department.length; index++) {
           const capaTiket = await CapaTicket.create({
             id_pelapor: ncrTiket.id_pelapor,
+            nama_pelapor: ncrTiket.nama_pelapor,
+            department_pelapor: ncrTiket.department_pelapor,
             department: ncrTiket.data_department[index].department,
             tanggal_lapor: ncrTiket.tanggal,
             tanggal: new Date(),

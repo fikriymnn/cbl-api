@@ -137,7 +137,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiFinalSub.sync({ alter: true });
+//   await CapaTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75
