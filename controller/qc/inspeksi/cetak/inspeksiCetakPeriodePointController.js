@@ -1,10 +1,14 @@
 const { Op, Sequelize, where } = require("sequelize");
+const dotenv = require("dotenv");
 const InspeksiCetak = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
 const InspeksiCetakPeriode = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
 const InspeksiCetakPeriodePoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
 const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
 const MasterKodeMasalahCetak = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
 const User = require("../../../../model/userModel");
+const axios = require("axios");
+
+dotenv.config();
 
 const inspeksiCetakPeriodepointController = {
   startCetakPeriodePoint: async (req, res) => {
@@ -80,11 +84,15 @@ const inspeksiCetakPeriodepointController = {
   },
 
   createInspeksiCetakPeriodePoint: async (req, res) => {
-    const { id_inspeksi_cetak_periode } = req.body;
+    const { id_inspeksi_cetak_periode, masterKodeCetak, masterKodeCetak2 } =
+      req.body;
     try {
-      const masterKodeCetak = await MasterKodeMasalahCetak.findAll({
-        where: { status: "active" },
-      });
+      // const masterKodeCetak = await axios.get(
+      //   `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=3`
+      // );
+      // const masterKodeCetak2 = await axios.get(
+      //   `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=4`
+      // );
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(
         id_inspeksi_cetak_periode
       );
@@ -92,18 +100,38 @@ const inspeksiCetakPeriodepointController = {
       const cetakPeriodePoint = await InspeksiCetakPeriodePoint.create({
         id_inspeksi_cetak_periode: id_inspeksi_cetak_periode,
       });
-      console.log(masterKodeCetak);
 
-      for (let i = 0; i < masterKodeCetak.length; i++) {
+      for (let i = 0; i < masterKodeCetak.data.length; i++) {
         await InspeksiCetakPeriodeDefect.create({
           id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
           id_inspeksi_cetak: cetakPeriode.id_inspeksi_cetak,
-          kode: masterKodeCetak[i].kode,
-          masalah: masterKodeCetak[i].masalah,
-          kriteria: masterKodeCetak[i].kriteria,
-          persen_kriteria: masterKodeCetak[i].persen_kriteria,
-          sumber_masalah: masterKodeCetak[i].sumber_masalah,
+          kode: masterKodeCetak.data[i].e_kode_produksi,
+          masalah: masterKodeCetak.data[i].nama_kendala,
+          kriteria: masterKodeCetak.data[i].criteria,
+          persen_kriteria: masterKodeCetak.data[i].criteria_percent,
+          sumber_masalah: masterKodeCetak.data[i].kategori_kendala,
         });
+      }
+
+      for (let i = 0; i < masterKodeCetak2.data.length; i++) {
+        await InspeksiCetakPeriodeDefect.create({
+          id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
+          id_inspeksi_cetak: cetakPeriode.id_inspeksi_cetak,
+          kode: masterKodeCetak2.data[i].e_kode_produksi,
+          masalah: masterKodeCetak2.data[i].nama_kendala,
+          kriteria: masterKodeCetak2.data[i].criteria,
+          persen_kriteria: masterKodeCetak2.data[i].criteria_percent,
+          sumber_masalah: masterKodeCetak2.data[i].kategori_kendala,
+        });
+
+        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
+        //   const depart = masterKodeCetak[i].department[ii];
+        //   await InspeksiCetakPeriodeDefectDepartment.create({
+        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
+        //     id_department: depart.id,
+        //     nama_department: depart.name,
+        //   });
+        // }
       }
 
       res.status(200).json({ msg: "Create Successful" });

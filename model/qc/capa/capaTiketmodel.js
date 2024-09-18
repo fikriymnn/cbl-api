@@ -59,6 +59,10 @@ const capa = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    id_department: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     department: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -1,11 +1,16 @@
 const { Op, Sequelize } = require("sequelize");
+const dotenv = require("dotenv");
 const InspeksiCetak = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
 const InspeksiCetakAwal = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
 const InspeksiCetakAwalPoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
 const InspeksiCetakPeriode = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
 const InspeksiCetakPeriodePoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
 const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+const InspeksiCetakPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectDeparmentMOdel");
 const User = require("../../../../model/userModel");
+const axios = require("axios");
+
+dotenv.config();
 
 const inspeksiCetakController = {
   getInspeksiCetak: async (req, res) => {
@@ -155,6 +160,12 @@ const inspeksiCetakController = {
           ],
           group: ["kode"],
           where: { id_inspeksi_cetak: id, hasil: "not ok" },
+          include: [
+            {
+              model: InspeksiCetakPeriodeDefectDepartment,
+              as: "inspeksi_cetak_periode_defect_department",
+            },
+          ],
         });
 
         return res.status(200).json({
@@ -241,6 +252,20 @@ const inspeksiCetakController = {
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
       res.status(404).json({ msg: error.message });
+    }
+  },
+
+  testingApi: async (req, res) => {
+    try {
+      const masterKodeCetak = await axios.get(
+        `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=3`
+      );
+      console.log(masterKodeCetak.data);
+      let iii = masterKodeCetak.data;
+
+      res.status(200).json({ msg: "Done Successful", data: iii });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
     }
   },
 };

@@ -61,12 +61,16 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
+const inspeksiLipat = require("./model/qc/inspeksi/lipat/inspeksiLipatModel");
+const inspeksiLipatResult = require("./model/qc/inspeksi/lipat/inspeksiLipatResultModel");
+
 const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
 const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
 const inspeksiCetakAwalPoint = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
 const inspeksiCetakPeriode = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
 const inspeksiCetakPeriodePoint = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
 const inspeksiCetakPeriodeDefect = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+const inspeksiCetakPeriodeDefectDepartment = require("./model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectDeparmentMOdel");
 
 const inspeksiPond = require("./model/qc/inspeksi/pond/inspeksiPondModel");
 const inspeksiPondAwal = require("./model/qc/inspeksi/pond/inspeksiPondAwalModel");
@@ -74,6 +78,7 @@ const inspeksiPondAwalPoint = require("./model/qc/inspeksi/pond/inspeksiPondAwal
 const inspeksiPondPeriode = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
 const inspeksiPondPeriodePoint = require("./model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
 const inspeksiPondPeriodeDefect = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
+const inspeksiPondPeriodeDefectDepartment = require("./model/qc/inspeksi/pond/inspeksiPondPeriodeDefectDepartmentModel");
 
 const inspeksiLem = require("./model/qc/inspeksi/lem/inspeksiLemModel");
 const inspeksiLemAwal = require("./model/qc/inspeksi/lem/inspeksiLemAwalModel");
@@ -81,10 +86,17 @@ const inspeksiLemAwalPoint = require("./model/qc/inspeksi/lem/inspeksiLemAwalPoi
 const inspeksiLemPeriode = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
 const inspeksiLemPeriodePoint = require("./model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
 const inspeksiLemPeriodeDefect = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
+const inspeksiLemPeriodeDefectDepartment = require("./model/qc/inspeksi/lem/inspeksiLemPeriodeDefectDepartmentModel");
 
 const inspeksiRabut = require("./model/qc/inspeksi/rabut/inspeksiRabutModel");
 const inspeksiRabutPoint = require("./model/qc/inspeksi/rabut/inspeksiRabutPointModel");
 const inspeksiRabutDefect = require("./model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+const inspeksiRabutDefectDepartment = require("./model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
+
+const inspeksiAmparLem = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemModel");
+const inspeksiAmparLemPoint = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
+const inspeksiAmparLemDefect = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
+const inspeksiAmparLemDefectDepartment = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
 
 const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
 const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
@@ -94,6 +106,7 @@ const msCoatingMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasal
 const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalModel");
 const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
+const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
 
@@ -105,10 +118,15 @@ const inspeksi_coating_sub_periode = require("./model/qc/inspeksi/coating/sub/in
 const inspeksi_coating_result_awal = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const inspeksi_coating_result_periode = require("./model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const inspeksi_coating_point_periode = require("./model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+const inspeksi_coating_point_periode_department = require("./model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
 
 const inspeksiFinal = require("./model/qc/inspeksi/final/inspeksiFinalModel");
 const inspeksiFinalpoint = require("./model/qc/inspeksi/final/inspeksiFinalPoint");
 const inspeksiFinalSub = require("./model/qc/inspeksi/final/inspeksiFinalSubModel");
+
+const inspeksiOutsourcingBj = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJModel");
+const inspeksiOutsourcingBJpoint = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjPoint");
+const inspeksiOutsourcingBJSub = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjSubModel");
 
 const inspeksiBarangRusak = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakModel");
 const inspeksiBarangRusakDefect = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakDefectModel");
@@ -137,7 +155,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await CapaTiket.sync({ alter: true });
+//   await inspeksiLipatResult.sync({ alter: true });
 // })();
 
 // const ip100 = 75

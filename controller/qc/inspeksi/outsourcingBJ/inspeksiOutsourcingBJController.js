@@ -1,16 +1,16 @@
-const InspeksiMasterPointFinal = require("../../../../model/masterData/qc/inspeksi/masterPointFinalModel");
+const InspeksiMasterOutsourcingBJFinal = require("../../../../model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 const InspeksiMasterSubFinal = require("../../../../model/masterData/qc/inspeksi/masterSubFinalModel");
-const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinalModel");
-const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksiFinalPoint");
-const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
+const InspeksiOutsourcingBJ = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJModel");
+const InspeksiOutsourcingBJPoint = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjPoint");
+const InspeksiOutsourcingBJSub = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjSubModel");
 const User = require("../../../../model/userModel");
 const { Op } = require("sequelize");
 
 const axios = require("axios");
 const dotenv = require("dotenv");
 
-const inspeksiFinalController = {
-  getInspeksiFinal: async (req, res) => {
+const inspeksiOutsourcingBJController = {
+  getInspeksiOutsourcingBJ: async (req, res) => {
     try {
       const { status, bagian_tiket, page, limit } = req.query;
       const { id } = req.params;
@@ -20,15 +20,15 @@ const inspeksiFinalController = {
         if (status) obj.status = status;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
-        const length = await InspeksiFinal.count({ where: obj });
-        const data = await InspeksiFinal.findAll({
+        const length = await InspeksiOutsourcingBJ.count({ where: obj });
+        const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
           where: obj,
           include: [
-            { model: InspeksiFinalSub, as: "id_inspeksi_sub" },
-            { model: InspeksiFinalPoint, as: "id_inspeksi_point" },
+            { model: InspeksiOutsourcingBJSub, as: "id_inspeksi_sub" },
+            { model: InspeksiOutsourcingBJPoint, as: "id_inspeksi_point" },
             { model: User, as: "data_inspector" },
           ],
         });
@@ -38,13 +38,13 @@ const inspeksiFinalController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (page && limit) {
-        const data = await InspeksiFinal.findAll({
+        const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
           include: [{ model: User, as: "data_inspector" }],
           offset,
           limit: parseInt(limit),
         });
-        const length = await InspeksiFinal.count();
+        const length = await InspeksiOutsourcingBJ.count();
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -53,36 +53,42 @@ const inspeksiFinalController = {
         if (status) obj.status = status;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
 
-        const data = await InspeksiFinal.findAll({
+        const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
           include: [{ model: User, as: "data_inspector" }],
           where: obj,
         });
-        const length = await InspeksiFinal.count({ where: obj });
+        const length = await InspeksiOutsourcingBJ.count({ where: obj });
         return res.status(200).json({
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
-        const data1 = await InspeksiFinal.findByPk(id);
+        const data1 = await InspeksiOutsourcingBJ.findByPk(id);
 
         // if (!data1.inspector) {
-        //   await InspeksiFinal.update(
+        //   await InspeksiOutsourcingBJ.update(
         //     { inspector: req.user.id },
         //     { where: { id: id } }
         //   );
         // }
 
-        const data = await InspeksiFinal.findByPk(id, {
+        const data = await InspeksiOutsourcingBJ.findByPk(id, {
           include: [
-            { model: InspeksiFinalSub, as: "inspeksi_final_sub" },
-            { model: InspeksiFinalPoint, as: "inspeksi_final_point" },
+            {
+              model: InspeksiOutsourcingBJSub,
+              as: "inspeksi_outsourcing_bj_sub",
+            },
+            {
+              model: InspeksiOutsourcingBJPoint,
+              as: "inspeksi_outsourcing_bj_point",
+            },
             { model: User, as: "data_inspector" },
           ],
         });
         return res.status(200).json({ data });
       } else {
-        const data = await InspeksiFinal.findAll({
+        const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
           include: [{ model: User, as: "data_inspector" }],
         });
@@ -93,12 +99,12 @@ const inspeksiFinalController = {
     }
   },
 
-  createInspeksiFinal: async (req, res) => {
+  createInspeksiOutsourcingBJ: async (req, res) => {
     const { tanggal, no_jo, no_io, quantity, jam, nama_produk, customer } =
       req.body;
     try {
       const qtyFinal = parseInt(quantity);
-      const data = await InspeksiFinal.create({
+      const data = await InspeksiOutsourcingBJ.create({
         tanggal,
         no_jo,
         no_io,
@@ -116,12 +122,12 @@ const inspeksiFinalController = {
           ],
         },
       });
-      const masterPointFinal = await InspeksiMasterPointFinal.findAll({
+      const masterPointFinal = await InspeksiMasterOutsourcingBJFinal.findAll({
         where: { status: "active" },
       });
       if (masterSubFinal) {
-        await InspeksiFinalSub.create({
-          id_inspeksi_final: data.id,
+        await InspeksiOutsourcingBJSub.create({
+          id_inspeksi_outsourcing_bj: data.id,
           quantity_awal: masterSubFinal.quantity_awal,
           quantity_akhir: masterSubFinal.quantity_akhir,
           jumlah: masterSubFinal.jumlah,
@@ -131,8 +137,8 @@ const inspeksiFinalController = {
       }
 
       for (let i = 0; i < masterPointFinal.length; i++) {
-        await InspeksiFinalPoint.create({
-          id_inspeksi_final: data.id,
+        await InspeksiOutsourcingBJPoint.create({
+          id_inspeksi_outsourcing_bj: data.id,
           point: masterPointFinal[i].point,
           standar: masterPointFinal[i].standar,
           cara_periksa: masterPointFinal[i].cara_periksa,
@@ -144,15 +150,16 @@ const inspeksiFinalController = {
       res.status(404).json({ msg: error.message });
     }
   },
-  updateInspeksiFinal: async (req, res) => {
+  updateInspeksiOutsourcingBJ: async (req, res) => {
     try {
       const { id } = req.params;
       const {
         no_pallet,
         no_packing,
         qty_packing,
-        inspeksi_final_point,
-        inspeksi_final_sub,
+        inspeksi_outsourcing_bj_point,
+        inspeksi_outsourcing_bj_sub,
+        outsource,
         status,
         catatan,
       } = req.body;
@@ -170,6 +177,12 @@ const inspeksiFinalController = {
           statusCode: 400,
           status: false,
           msg: "QTY packing wajib di isi",
+        });
+      if (!outsource)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "outsource wajib di isi",
         });
       if (!no_packing)
         return res.status(400).json({
@@ -190,15 +203,15 @@ const inspeksiFinalController = {
           msg: "Status wajib di isi",
         });
 
-      for (let i = 0; i < inspeksi_final_point.length; i++) {
-        if (!inspeksi_final_point[i].hasil)
+      for (let i = 0; i < inspeksi_outsourcing_bj_point.length; i++) {
+        if (!inspeksi_outsourcing_bj_point[i].hasil)
           return res.status(400).json({
             statusCode: 400,
             status: false,
             msg: "Hasil wajib di isi",
           });
 
-        if (!inspeksi_final_point[i].qty)
+        if (!inspeksi_outsourcing_bj_point[i].qty)
           return res.status(400).json({
             statusCode: 400,
             status: false,
@@ -206,11 +219,14 @@ const inspeksiFinalController = {
           });
       }
 
-      const totalQtyReject = inspeksi_final_point.reduce((total, item) => {
-        return total + parseInt(item.qty);
-      }, 0);
+      const totalQtyReject = inspeksi_outsourcing_bj_point.reduce(
+        (total, item) => {
+          return total + parseInt(item.qty);
+        },
+        0
+      );
 
-      await InspeksiFinal.update(
+      await InspeksiOutsourcingBJ.update(
         {
           inspector: req.user.id,
           no_pallet,
@@ -219,34 +235,35 @@ const inspeksiFinalController = {
           qty_packing: qty_packing,
           jumlah_packing: JumlahPacking,
           status,
+          outsource,
           bagian_tiket: "history",
         },
         { where: { id } }
       );
 
-      for (let i = 0; i < inspeksi_final_point.length; i++) {
-        await InspeksiFinalPoint.update(
+      for (let i = 0; i < inspeksi_outsourcing_bj_point.length; i++) {
+        await InspeksiOutsourcingBJPoint.update(
           {
-            id_inspeksi_final: id,
-            hasil: inspeksi_final_point[i].hasil,
-            qty: inspeksi_final_point[i].qty,
+            id_inspeksi_outsourcing_bj: id,
+            hasil: inspeksi_outsourcing_bj_point[i].hasil,
+            qty: inspeksi_outsourcing_bj_point[i].qty,
           },
-          { where: { id: inspeksi_final_point[i].id } }
+          { where: { id: inspeksi_outsourcing_bj_point[i].id } }
         );
       }
 
-      for (let i = 0; i < inspeksi_final_sub.length; i++) {
-        await InspeksiFinalSub.update(
+      for (let i = 0; i < inspeksi_outsourcing_bj_sub.length; i++) {
+        await InspeksiOutsourcingBJSub.update(
           {
-            id_inspeksi_final: id,
+            id_inspeksi_outsourcing_bj: id,
             reject: totalQtyReject,
           },
-          { where: { id: inspeksi_final_sub[i].id } }
+          { where: { id: inspeksi_outsourcing_bj_sub[i].id } }
         );
       }
       // console.log(req.body);
 
-      // const inspeksi = await InspeksiFinal.findByPk(id);
+      // const inspeksi = await InspeksiOutsourcingBJ.findByPk(id);
       // if (status == "bisa kirim") {
       //   const request = await axios.post(
       //     `${process.env.LINK_P1}/api/approve-final-inspection?no_jo=${inspeksi.no_jo}`,
@@ -262,4 +279,4 @@ const inspeksiFinalController = {
   },
 };
 
-module.exports = inspeksiFinalController;
+module.exports = inspeksiOutsourcingBJController;

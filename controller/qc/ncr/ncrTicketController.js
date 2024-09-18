@@ -209,7 +209,7 @@ const NcrTicketController = {
       for (let index = 0; index < data_department.length; index++) {
         const department = await NcrDepartment.create({
           id_ncr_tiket: data.id,
-          // id_department:data_department[index].id_department,
+          id_department: data_department[index].id_department,
           department: data_department[index].department,
         });
         for (
@@ -329,6 +329,7 @@ const NcrTicketController = {
             id_pelapor: ncrTiket.id_pelapor,
             nama_pelapor: ncrTiket.nama_pelapor,
             department_pelapor: ncrTiket.department_pelapor,
+            id_department: ncrTiket.data_department[index].id_department,
             department: ncrTiket.data_department[index].department,
             tanggal_lapor: ncrTiket.tanggal,
             tanggal: new Date(),

@@ -3,6 +3,7 @@ const InspeksiPond = require("../../../../model/qc/inspeksi/pond/inspeksiPondMod
 const InspeksiPondPeriode = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
 const InspeksiPondPeriodePoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
 const InspeksiPondPeriodeDefect = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
+const InspeksiPondPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectDepartmentModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
@@ -47,6 +48,7 @@ const inspeksiPondPeriodeController = {
             Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
             "jumlah_defect",
           ],
+          "id",
           "kode",
           "sumber_masalah",
           "persen_kriteria",
@@ -59,6 +61,17 @@ const inspeksiPondPeriodeController = {
           hasil: "not ok",
         },
       });
+
+      let pointDefectDepartment = [];
+
+      for (let index = 0; index < pointDefect.length; index++) {
+        const dataaa = await InspeksiPondPeriodeDefectDepartment.findAll({
+          where: {
+            id_inspeksi_pond_periode_point_defect: pointDefect[index].id,
+          },
+        });
+        pointDefectDepartment.push(dataaa);
+      }
 
       for (let index = 0; index < pointDefect.length; index++) {
         let defect = pointDefect[index].jumlah_defect;
@@ -77,7 +90,7 @@ const inspeksiPondPeriodeController = {
         console.log(persen, persen_kriteria);
         if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah != "mesin"
+          pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
           const data = await NcrTicket.create({
@@ -90,17 +103,20 @@ const inspeksiPondPeriodeController = {
             nama_produk: inspeksiPond.nama_produk,
           });
 
-          const department = await NcrDepartment.create({
-            id_ncr_tiket: data.id,
-            department: department_tujuan,
-          });
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian: `masalah pada proses pond dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
-          });
+          for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
+            const department = await NcrDepartment.create({
+              id_ncr_tiket: data.id,
+              id_department: pointDefectDepartment[index][ii].id_department,
+              department: pointDefectDepartment[index][ii].nama_department,
+            });
+            await NcrKetidaksesuain.create({
+              id_department: department.id,
+              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+            });
+          }
         } else if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah == "mesin"
+          pointDefect[index].sumber_masalah == "Mesin"
         ) {
           console.log("masuk os");
         }

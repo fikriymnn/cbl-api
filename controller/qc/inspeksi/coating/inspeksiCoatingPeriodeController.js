@@ -4,6 +4,7 @@ const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coat
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
+const InspeksiCoatingResultPointPeriodeDepartment = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuaian = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
@@ -40,6 +41,7 @@ const inspeksiCoatingController = {
             Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
             "jumlah_defect",
           ],
+          "id",
           "kode",
           "sumber_masalah",
           "persen_kriteria",
@@ -52,7 +54,19 @@ const inspeksiCoatingController = {
           hasil: "not ok",
         },
       });
+
+      let pointDefectDepartment = [];
       console.log(pointDefect);
+      for (let index = 0; index < pointDefect.length; index++) {
+        const dataaa =
+          await InspeksiCoatingResultPointPeriodeDepartment.findAll({
+            where: {
+              id_inspeksi_coating_periode_point_defect: pointDefect[index].id,
+            },
+          });
+        pointDefectDepartment.push(dataaa);
+      }
+      console.log(pointDefectDepartment);
 
       for (let index = 0; index < pointDefect.length; index++) {
         console.log(pointDefect[index].jumlah_defect);
@@ -60,18 +74,10 @@ const inspeksiCoatingController = {
         let pcs = inspeksiCoating.jumlah_pcs;
         let persen = (defect / pcs) * 100;
         let persen_kriteria = pointDefect[index].persen_kriteria;
-        let department = pointDefect[index].sumber_masalah;
-        let department_tujuan = "";
-        if (department == "man") {
-          department_tujuan = "hrd";
-        } else if (department == "material") {
-          department_tujuan = "purchasing";
-        } else if (department == "persiapan") {
-          department_tujuan = "persiapan";
-        }
+
         if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah != "mesin"
+          pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
           const data = await NcrTicket.create({
@@ -83,17 +89,20 @@ const inspeksiCoatingController = {
             nama_produk: inspeksiCoating.nama_produk,
           });
 
-          const department = await NcrDepartment.create({
-            id_ncr_tiket: data.id,
-            department: department_tujuan,
-          });
-          await NcrKetidaksesuaian.create({
-            id_department: department.id,
-            ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
-          });
+          for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
+            const department = await NcrDepartment.create({
+              id_ncr_tiket: data.id,
+              id_department: pointDefectDepartment[index][ii].id_department,
+              department: pointDefectDepartment[index][ii].nama_department,
+            });
+            await NcrKetidaksesuaian.create({
+              id_department: department.id,
+              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+            });
+          }
         } else if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah == "mesin"
+          pointDefect[index].sumber_masalah == "Mesin"
         ) {
           console.log("masuk os");
         }

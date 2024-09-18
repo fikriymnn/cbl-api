@@ -1,18 +1,17 @@
 const { Op, Sequelize, where } = require("sequelize");
 
-const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPointModel");
-const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
-const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const InspeksiAmparLemPoint = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
+const InspeksiAmparLemDefect = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
 const User = require("../../../../model/userModel");
 
-const inspeksiRabutpointController = {
-  startRabutPoint: async (req, res) => {
+const inspeksiAmparLempointController = {
+  startAmparLemPoint: async (req, res) => {
     const _id = req.params.id;
     try {
-      const inspeksiRabutPoint = await InspeksiRabutPoint.findByPk(_id);
-      if (inspeksiRabutPoint.id_inspektor != null)
+      const inspeksiAmparLemPoint = await InspeksiAmparLemPoint.findByPk(_id);
+      if (inspeksiAmparLemPoint.id_inspektor != null)
         return res.status(400).json({ msg: "sudah ada user yang mulai" });
-      await InspeksiRabutPoint.update(
+      await InspeksiAmparLemPoint.update(
         {
           waktu_mulai: new Date(),
           id_inspektor: req.user.id,
@@ -43,12 +42,12 @@ const inspeksiRabutpointController = {
       }
 
       for (let index = 0; index < data_defect.length; index++) {
-        await InspeksiRabutDefect.update(
+        await InspeksiAmparLemDefect.update(
           { hasil: data_defect[index].hasil },
           { where: { id: data_defect[index].id } }
         );
       }
-      await InspeksiRabutPoint.update(
+      await InspeksiAmparLemPoint.update(
         {
           waktu_selesai: new Date(),
           status: "done",
@@ -64,16 +63,16 @@ const inspeksiRabutpointController = {
     }
   },
 
-  createInspeksiRabutPoint: async (req, res) => {
-    const { id_inspeksi_rabut } = req.body;
+  createInspeksiAmparLemPoint: async (req, res) => {
+    const { id_inspeksi_ampar_lem } = req.body;
     try {
       //const masterKodepond = await MasterKodeMasalahRabut.findAll();
 
-      const pondPeriodePoint = await InspeksiRabutPoint.create({
-        id_inspeksi_rabut: id_inspeksi_rabut,
+      const pondPeriodePoint = await InspeksiAmparLemPoint.create({
+        id_inspeksi_ampar_lem: id_inspeksi_ampar_lem,
       });
       // for (let i = 0; i < masterKodepond.length; i++) {
-      //   await InspeksiRabutDefect.create({
+      //   await InspeksiAmparLemDefect.create({
       //     id_inspeksi_rabut_point: pondPeriodePoint.id,
       //     kode: masterKodepond[i].kode,
       //     masalah: masterKodepond[i].masalah,
@@ -85,10 +84,10 @@ const inspeksiRabutpointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
-  createInspeksiRabutPointDefect: async (req, res) => {
+  createInspeksiAmparLemPointDefect: async (req, res) => {
     const {
-      id_inspeksi_rabut,
-      id_inspeksi_rabut_point,
+      id_inspeksi_ampar_lem,
+      id_inspeksi_ampar_lem_point,
       id_defect,
       MasterDefect,
     } = req.body;
@@ -98,14 +97,14 @@ const inspeksiRabutpointController = {
       //   where: { id: id_defect },
       // });
 
-      await InspeksiRabutDefect.create({
-        id_inspeksi_rabut_point: id_inspeksi_rabut_point,
+      await InspeksiAmparLemDefect.create({
+        id_inspeksi_ampar_lem_point: id_inspeksi_ampar_lem_point,
         kode: MasterDefect.e_kode_produksi,
         masalah: MasterDefect.nama_kendala,
         kriteria: MasterDefect.criteria,
         persen_kriteria: MasterDefect.criteria_percent,
         sumber_masalah: MasterDefect.kategori_kendala,
-        id_inspeksi_rabut: id_inspeksi_rabut,
+        id_inspeksi_ampar_lem: id_inspeksi_ampar_lem,
       });
 
       // untuk department ketika data udah dari p1
@@ -121,4 +120,4 @@ const inspeksiRabutpointController = {
   },
 };
 
-module.exports = inspeksiRabutpointController;
+module.exports = inspeksiAmparLempointController;
