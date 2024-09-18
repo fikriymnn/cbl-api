@@ -61,6 +61,9 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
+const inspeksiLipat = require("./model/qc/inspeksi/lipat/inspeksiLipatModel");
+const inspeksiLipatResult = require("./model/qc/inspeksi/lipat/inspeksiLipatResultModel");
+
 const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
 const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
 const inspeksiCetakAwalPoint = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
@@ -90,6 +93,11 @@ const inspeksiRabutPoint = require("./model/qc/inspeksi/rabut/inspeksiRabutPoint
 const inspeksiRabutDefect = require("./model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
 const inspeksiRabutDefectDepartment = require("./model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 
+const inspeksiAmparLem = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemModel");
+const inspeksiAmparLemPoint = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
+const inspeksiAmparLemDefect = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
+const inspeksiAmparLemDefectDepartment = require("./model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
+
 const msCetakmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahCetakModel");
 const msPondmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
 const msLemmasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
@@ -98,6 +106,7 @@ const msCoatingMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasal
 const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalModel");
 const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
+const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
 
@@ -114,6 +123,10 @@ const inspeksi_coating_point_periode_department = require("./model/qc/inspeksi/c
 const inspeksiFinal = require("./model/qc/inspeksi/final/inspeksiFinalModel");
 const inspeksiFinalpoint = require("./model/qc/inspeksi/final/inspeksiFinalPoint");
 const inspeksiFinalSub = require("./model/qc/inspeksi/final/inspeksiFinalSubModel");
+
+const inspeksiOutsourcingBj = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJModel");
+const inspeksiOutsourcingBJpoint = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjPoint");
+const inspeksiOutsourcingBJSub = require("./model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjSubModel");
 
 const inspeksiBarangRusak = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakModel");
 const inspeksiBarangRusakDefect = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakDefectModel");
@@ -142,7 +155,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiRabutDefectDepartment.sync({ alter: true });
+//   await inspeksiLipatResult.sync({ alter: true });
 // })();
 
 // const ip100 = 75
