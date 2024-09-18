@@ -86,22 +86,33 @@ const inspeksiRabutpointController = {
     }
   },
   createInspeksiRabutPointDefect: async (req, res) => {
-    const { id_inspeksi_rabut, id_inspeksi_rabut_point, id_defect } = req.body;
+    const {
+      id_inspeksi_rabut,
+      id_inspeksi_rabut_point,
+      id_defect,
+      MasterDefect,
+    } = req.body;
 
     try {
-      const MasterDefect = await MasterKodeMasalahRabut.findOne({
-        where: { id: id_defect },
-      });
+      // const MasterDefect = await MasterKodeMasalahRabut.findOne({
+      //   where: { id: id_defect },
+      // });
 
       await InspeksiRabutDefect.create({
         id_inspeksi_rabut_point: id_inspeksi_rabut_point,
-        kode: MasterDefect.kode,
-        masalah: MasterDefect.masalah,
-        kriteria: MasterDefect.kriteria,
-        persen_kriteria: MasterDefect.persen_kriteria,
-        sumber_masalah: MasterDefect.sumber_masalah,
+        kode: MasterDefect.e_kode_produksi,
+        masalah: MasterDefect.nama_kendala,
+        kriteria: MasterDefect.criteria,
+        persen_kriteria: MasterDefect.criteria_percent,
+        sumber_masalah: MasterDefect.kategori_kendala,
         id_inspeksi_rabut: id_inspeksi_rabut,
       });
+
+      // untuk department ketika data udah dari p1
+      // for (let index = 0; index < MasterDefect.department.length; index++) {
+      //   const element = array[index];
+
+      // }
 
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {

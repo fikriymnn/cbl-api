@@ -4,6 +4,7 @@ const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksi
 const InspeksiRabut = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutModel");
 const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
 const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
+const InspeksiRabutPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
@@ -230,6 +231,7 @@ const inspeksiRabutController = {
       const pointDefect = await InspeksiRabutDefect.findAll({
         attributes: [
           [Sequelize.fn("SUM", Sequelize.col("hasil")), "hasil"],
+          "id",
           "kode",
           "sumber_masalah",
           "persen_kriteria",
@@ -241,6 +243,17 @@ const inspeksiRabutController = {
           id_inspeksi_rabut: _id,
         },
       });
+
+      let pointDefectDepartment = [];
+
+      for (let index = 0; index < pointDefect.length; index++) {
+        const dataaa = await InspeksiRabutPeriodeDefectDepartment.findAll({
+          where: {
+            id_inspeksi_rabut_periode_point_defect: pointDefect[index].id,
+          },
+        });
+        pointDefectDepartment.push(dataaa);
+      }
 
       for (let index = 0; index < pointDefect.length; index++) {
         let defect = pointDefect[index].hasil;
@@ -272,14 +285,17 @@ const inspeksiRabutController = {
             nama_produk: inspeksiRabut.nama_produk,
           });
 
-          const department = await NcrDepartment.create({
-            id_ncr_tiket: data.id,
-            department: department_tujuan,
-          });
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian: `masalah pada proses sampling rabut dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
-          });
+          for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
+            const department = await NcrDepartment.create({
+              id_ncr_tiket: data.id,
+              id_department: pointDefectDepartment[index][ii].id_department,
+              department: pointDefectDepartment[index][ii].nama_department,
+            });
+            await NcrKetidaksesuain.create({
+              id_department: department.id,
+              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+            });
+          }
         } else if (
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah == "mesin"

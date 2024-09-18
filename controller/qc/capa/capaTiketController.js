@@ -12,6 +12,7 @@ const capaTicketController = {
         bagian_tiket,
         tanggal,
         department,
+        id_department,
         page,
         limit,
       } = req.query;
@@ -21,11 +22,12 @@ const capaTicketController = {
       if (
         page &&
         limit &&
-        (status || tanggal || department || statusNotEqual)
+        (status || tanggal || department || statusNotEqual || id_department)
       ) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
+        if (id_department) obj.id_department = parseInt(id_department);
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
         if (statusNotEqual)
           obj.status = {
@@ -96,17 +98,18 @@ const capaTicketController = {
         bagian_tiket ||
         tanggal ||
         department ||
+        id_department ||
         statusNotEqual
       ) {
         if (status) obj.status = status;
         if (tanggal) obj.tanggal = tanggal;
         if (department) obj.department = department;
+        if (id_department) obj.id_department = parseInt(id_department);
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
         if (statusNotEqual)
           obj.status = {
             [Op.ne]: statusNotEqual,
           };
-        console.log(req.query);
 
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],

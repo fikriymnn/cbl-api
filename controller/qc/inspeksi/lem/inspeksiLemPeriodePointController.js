@@ -1,10 +1,14 @@
 const { Op, Sequelize, where } = require("sequelize");
+const dotenv = require("dotenv");
 const InspeksiLem = require("../../../../model/qc/inspeksi/lem/inspeksiLemModel");
 const InspeksiLemPeriode = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
 const InspeksiLemPeriodePoint = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
 const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
 const MasterKodeMasalahLem = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
 const User = require("../../../../model/userModel");
+const axios = require("axios");
+
+dotenv.config();
 
 const inspeksiLemPeriodepointController = {
   startLemPeriodePoint: async (req, res) => {
@@ -81,11 +85,11 @@ const inspeksiLemPeriodepointController = {
   },
 
   createInspeksiLemPeriodePoint: async (req, res) => {
-    const { id_inspeksi_lem_periode } = req.body;
+    const { id_inspeksi_lem_periode, masterKodeLem } = req.body;
     try {
-      const masterKodelem = await MasterKodeMasalahLem.findAll({
-        where: { status: "active" },
-      });
+      // const masterKodeLem = await axios.get(
+      //   `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=11`
+      // );
 
       const lemPeriode = await InspeksiLemPeriode.findByPk(
         id_inspeksi_lem_periode
@@ -94,17 +98,27 @@ const inspeksiLemPeriodepointController = {
       const lemPeriodePoint = await InspeksiLemPeriodePoint.create({
         id_inspeksi_lem_periode: id_inspeksi_lem_periode,
       });
-      for (let i = 0; i < masterKodelem.length; i++) {
+      for (let i = 0; i < masterKodeLem.data.length; i++) {
         await InspeksiLemPeriodeDefect.create({
           id_inspeksi_lem_periode_point: lemPeriodePoint.id,
           id_inspeksi_lem: lemPeriode.id_inspeksi_lem,
-          kode: masterKodelem[i].kode,
-          masalah: masterKodelem[i].masalah,
-          kriteria: masterKodelem[i].kriteria,
-          persen_kriteria: masterKodelem[i].persen_kriteria,
-          sumber_masalah: masterKodelem[i].sumber_masalah,
+          kode: masterKodeLem.data[i].e_kode_produksi,
+          masalah: masterKodeLem.data[i].nama_kendala,
+          kriteria: masterKodeLem.data[i].criteria,
+          persen_kriteria: masterKodeLem.data[i].criteria_percent,
+          sumber_masalah: masterKodeLem.data[i].kategori_kendala,
         });
+
+        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
+        //   const depart = masterKodeCetak[i].department[ii];
+        //   await InspeksiCetakPeriodeDefectDepartment.create({
+        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
+        //     id_department: depart.id,
+        //     nama_department: depart.name,
+        //   });
+        // }
       }
+
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
       return res.status(400).json({ msg: error.message });
