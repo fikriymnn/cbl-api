@@ -15,19 +15,19 @@ const InspeksiBarangRusak = db.define(
     },
     tanggal: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     waktu_sortir: {
       type: DataTypes.DATE,
@@ -43,11 +43,11 @@ const InspeksiBarangRusak = db.define(
     },
     nama_produk: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     customer: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     lama_pengerjaan: {
       type: DataTypes.INTEGER,

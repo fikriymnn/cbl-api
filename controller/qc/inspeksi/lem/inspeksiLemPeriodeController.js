@@ -3,6 +3,7 @@ const InspeksiLem = require("../../../../model/qc/inspeksi/lem/inspeksiLemModel"
 const InspeksiLemPeriode = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
 const InspeksiLemPeriodePoint = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
 const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
+const InspeksiLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectDepartmentModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
@@ -47,6 +48,7 @@ const inspeksiLemPeriodeController = {
             Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
             "jumlah_defect",
           ],
+          "id",
           "kode",
           "sumber_masalah",
           "persen_kriteria",
@@ -60,24 +62,28 @@ const inspeksiLemPeriodeController = {
         },
       });
 
+      let pointDefectDepartment = [];
+
+      for (let index = 0; index < pointDefect.length; index++) {
+        const dataaa = await InspeksiLemPeriodeDefectDepartment.findAll({
+          where: {
+            id_inspeksi_lem_periode_point_defect: pointDefect[index].id,
+          },
+        });
+        pointDefectDepartment.push(dataaa);
+      }
+
       for (let index = 0; index < pointDefect.length; index++) {
         let defect = pointDefect[index].jumlah_defect;
         let pcs = inspeksiLem.jumlah_pcs;
         let persen = (defect / pcs) * 100;
         let persen_kriteria = pointDefect[index].persen_kriteria;
         let department = pointDefect[index].sumber_masalah;
-        let department_tujuan = "";
-        if (department == "man") {
-          department_tujuan = "hrd";
-        } else if (department == "material") {
-          department_tujuan = "purchasing";
-        } else if (department == "persiapan") {
-          department_tujuan = "persiapan";
-        }
+
         console.log(persen, persen_kriteria);
         if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah != "mesin"
+          pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
           const data = await NcrTicket.create({
@@ -90,17 +96,20 @@ const inspeksiLemPeriodeController = {
             nama_produk: inspeksiLem.nama_produk,
           });
 
-          const department = await NcrDepartment.create({
-            id_ncr_tiket: data.id,
-            department: department_tujuan,
-          });
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian: `masalah pada proses lem dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
-          });
+          for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
+            const department = await NcrDepartment.create({
+              id_ncr_tiket: data.id,
+              id_department: pointDefectDepartment[index][ii].id_department,
+              department: pointDefectDepartment[index][ii].nama_department,
+            });
+            await NcrKetidaksesuain.create({
+              id_department: department.id,
+              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+            });
+          }
         } else if (
           persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah == "mesin"
+          pointDefect[index].sumber_masalah == "Mesin"
         ) {
           console.log("masuk os");
         }

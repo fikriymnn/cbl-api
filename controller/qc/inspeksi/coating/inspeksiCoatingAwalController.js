@@ -1,4 +1,5 @@
 const { Op, Sequelize } = require("sequelize");
+const dotenv = require("dotenv");
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
@@ -6,6 +7,10 @@ const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const InspeksiCoatingPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
+const axios = require("axios");
+
+dotenv.config();
 
 const inspeksiCoatingController = {
   getInspeksiCoating: async (req, res) => {
@@ -295,8 +300,12 @@ const inspeksiCoatingController = {
   },
   updateInspeksiCoatingAwal: async (req, res) => {
     try {
-      const { jumlah_periode_check, waktu_check } = req.body;
+      const { jumlah_periode_check, waktu_check, masterMasalah } = req.body;
       const { id } = req.params;
+
+      // const masterMasalah = await axios.get(
+      //   `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=5`
+      // );
 
       await InspeksiCoating.update({ status: "incoming" }, { where: { id } });
 
@@ -327,18 +336,30 @@ const inspeksiCoatingController = {
         id_inspeksi_coating: id,
       });
 
-      const masterMasalah = await InspeksiCoatingPointMasterPeriode.findAll();
-
-      for (let i = 0; i < masterMasalah.length; i++) {
-        InspeksiCoatingResultPointPeriode.create({
+      for (let i = 0; i < masterMasalah.data.length; i++) {
+        const coatingDefect = await InspeksiCoatingResultPointPeriode.create({
           id_inspeksi_coating_result_periode: resultPeriode.id,
           id_inspeksi_coating: id,
-          kode: masterMasalah[i].kode,
-          masalah: masterMasalah[i].masalah,
-          sumber_masalah: masterMasalah[i].sumber_masalah,
-          kriteria: masterMasalah[i].kriteria,
-          persen_kriteria: masterMasalah[i].persen_kriteria,
+          kode: masterMasalah.data[i].e_kode_produksi,
+          masalah: masterMasalah.data[i].nama_kendala,
+          kriteria: masterMasalah.data[i].criteria,
+          persen_kriteria: masterMasalah.data[i].criteria_percent,
+          sumber_masalah: masterMasalah.data[i].kategori_kendala,
         });
+
+        //untuk department ketika sudah ada data di p1
+        for (
+          let ii = 0;
+          ii < masterMasalah.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterMasalah.data[i].target_department[ii];
+          await InspeksiCoatingPeriodeDefectDepartment.create({
+            id_inspeksi_coating_periode_point_defect: coatingDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       return res.status(200).json({ data: "update successfully", msg: "OK" });

@@ -119,15 +119,16 @@ const inspeksiFinalController = {
       const masterPointFinal = await InspeksiMasterPointFinal.findAll({
         where: { status: "active" },
       });
-
-      await InspeksiFinalSub.create({
-        id_inspeksi_final: data.id,
-        quantity_awal: masterSubFinal.quantity_awal,
-        quantity_akhir: masterSubFinal.quantity_akhir,
-        jumlah: masterSubFinal.jumlah,
-        kualitas_lulus: masterSubFinal.kualitas_lulus,
-        kualitas_tolak: masterSubFinal.kualitas_tolak,
-      });
+      if (masterSubFinal) {
+        await InspeksiFinalSub.create({
+          id_inspeksi_final: data.id,
+          quantity_awal: masterSubFinal.quantity_awal,
+          quantity_akhir: masterSubFinal.quantity_akhir,
+          jumlah: masterSubFinal.jumlah,
+          kualitas_lulus: masterSubFinal.kualitas_lulus,
+          kualitas_tolak: masterSubFinal.kualitas_tolak,
+        });
+      }
 
       for (let i = 0; i < masterPointFinal.length; i++) {
         await InspeksiFinalPoint.create({

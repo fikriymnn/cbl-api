@@ -44,6 +44,10 @@ router.use("/", require("./masterdata/qc/inspeksi/masterPointFinalRoute"));
 router.use("/", require("./masterdata/qc/inspeksi/masterSubFinalRoute"));
 router.use(
   "/",
+  require("./masterdata/qc/inspeksi/masterPointOutsourcingBJRoute")
+);
+router.use(
+  "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
 );
 router.use(
@@ -69,6 +73,8 @@ router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanRoutes"));
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanResultRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
+router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatRoutes"));
+router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatResultRoutes"));
 
 // qc cetak
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakRoutes"));
@@ -98,6 +104,10 @@ router.use("/", require("./qc/inspeksi/lem/inspeksiLemPeriodeDefectRoute"));
 router.use("/", require("./qc/inspeksi/rabut/inspeksiRabutRoute"));
 router.use("/", require("./qc/inspeksi/rabut/inspeksiRabutPointRoute"));
 
+// ampar lem
+router.use("/", require("./qc/inspeksi/amparLem/inspeksiAmparLemRoute"));
+router.use("/", require("./qc/inspeksi/amparLem/inspeksiAmparLemPointRoute"));
+
 // qc coating
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingRoutes"));
 router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingAwalRoutes"));
@@ -113,8 +123,11 @@ router.use(
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 
-// qc outsourcing
-router.use("/"), require("./qc/inspeksi/outsourcing/inspeksiOutsourcingRoutes")
+// qc outsourcing barang jadi
+router.use(
+  "/",
+  require("./qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJRoutes")
+);
 
 //qc ncr
 router.use("/", require("./qc/ncr/ncrRoutes"));

@@ -1,8 +1,12 @@
+const dotenv = require("dotenv");
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
+const InspeksiCoatingPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
+const axios = require("axios");
 
+dotenv.config();
 const inspeksiCoatingPeriodeResultController = {
   startCoatingPeriodeResult: async (req, res) => {
     try {
@@ -42,13 +46,13 @@ const inspeksiCoatingPeriodeResultController = {
         kode_masalah[i].id_inspeksi_coating_result_periode = id;
         counter++;
         await InspeksiCoatingResultPointPeriode.update(
-          { 
+          {
             hasil: kode_masalah[i].hasil,
             jumlah_defect: kode_masalah[i].jumlah_defect,
             masalah: kode_masalah[i].masalah,
             sumber_masalah: kode_masalah[i].sumber_masalah,
             kriteria: kode_masalah[i].kriteria,
-            persen_kriteria: kode_masalah[i].persen_kriteria 
+            persen_kriteria: kode_masalah[i].persen_kriteria,
           },
           { where: { id: kode_masalah[i].id } }
         );
@@ -79,21 +83,38 @@ const inspeksiCoatingPeriodeResultController = {
   addInspeksiCoatingPeriodeResult: async (req, res) => {
     try {
       const { id } = req.params;
+      const { masterMasalah } = req.body;
+
+      // const masterMasalah = await axios.get(
+      //   `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=5`
+      // );
       const resultPeriode = await InspeksiCoatingResultPeriode.create({
         id_inspeksi_coating: id,
       });
-      const masterMasalah = await InspeksiCoatingPointMasterPeriode.findAll();
 
-      for (let i = 0; i < masterMasalah.length; i++) {
-        InspeksiCoatingResultPointPeriode.create({
+      for (let i = 0; i < masterMasalah.data.length; i++) {
+        const coatingDefect = await InspeksiCoatingResultPointPeriode.create({
           id_inspeksi_coating_result_periode: resultPeriode.id,
           id_inspeksi_coating: id,
-          kode: masterMasalah[i].kode,
-          masalah: masterMasalah[i].masalah,
-          sumber_masalah: masterMasalah[i].sumber_masalah,
-          kriteria:masterMasalah[i].kriteria,
-          persen_kriteria:masterMasalah[i].persen_kriteria
+          kode: masterMasalah.data[i].e_kode_produksi,
+          masalah: masterMasalah.data[i].nama_kendala,
+          kriteria: masterMasalah.data[i].criteria,
+          persen_kriteria: masterMasalah.data[i].criteria_percent,
+          sumber_masalah: masterMasalah.data[i].kategori_kendala,
         });
+
+        for (
+          let ii = 0;
+          ii < masterMasalah.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterMasalah.data[i].target_department[ii];
+          await InspeksiCoatingPeriodeDefectDepartment.create({
+            id_inspeksi_coating_periode_point_defect: coatingDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       res.status(200).json({ data: "create data successfully", msg: "OK" });
@@ -104,14 +125,32 @@ const inspeksiCoatingPeriodeResultController = {
   addInspeksiCoatingPeriodePoint: async (req, res) => {
     try {
       const { id } = req.params;
-      const { kode, masalah,sumber_masalah, kriteria, persen_kriteria } = req.body;
-      const data = await InspeksiCoatingResultPeriode.findByPk(id)
-      await InspeksiCoatingResultPointPeriode.create({
+      const {
+        kode,
+        masalah,
+        sumber_masalah,
+        kriteria,
+        persen_kriteria,
+        department,
+      } = req.body;
+      const data = await InspeksiCoatingResultPeriode.findByPk(id);
+      const coatingDefect = await InspeksiCoatingResultPointPeriode.create({
         id_inspeksi_coating_result_periode: id,
         id_inspeksi_coating: data.id_inspeksi_coating,
         kode,
-        masalah,sumber_masalah, kriteria, persen_kriteria
+        masalah,
+        sumber_masalah,
+        kriteria,
+        persen_kriteria,
       });
+
+      for (let index = 0; index < department.length; index++) {
+        await InspeksiCoatingPeriodeDefectDepartment.create({
+          id_inspeksi_coating_periode_point_defect: coatingDefect.id,
+          id_department: department[index].id,
+          nama_department: department[index].department,
+        });
+      }
 
       res.status(200).json({ data: "create data successfully", msg: "OK" });
     } catch (err) {

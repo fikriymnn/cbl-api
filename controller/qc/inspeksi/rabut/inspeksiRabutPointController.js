@@ -2,6 +2,7 @@ const { Op, Sequelize, where } = require("sequelize");
 
 const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPointModel");
 const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+const InspeksiRabutDefectDepartment = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 const User = require("../../../../model/userModel");
 
@@ -86,22 +87,41 @@ const inspeksiRabutpointController = {
     }
   },
   createInspeksiRabutPointDefect: async (req, res) => {
-    const { id_inspeksi_rabut, id_inspeksi_rabut_point, id_defect } = req.body;
+    const {
+      id_inspeksi_rabut,
+      id_inspeksi_rabut_point,
+      id_defect,
+      MasterDefect,
+    } = req.body;
 
     try {
-      const MasterDefect = await MasterKodeMasalahRabut.findOne({
-        where: { id: id_defect },
-      });
+      // const MasterDefect = await MasterKodeMasalahRabut.findOne({
+      //   where: { id: id_defect },
+      // });
 
-      await InspeksiRabutDefect.create({
+      const rabutDefect = await InspeksiRabutDefect.create({
         id_inspeksi_rabut_point: id_inspeksi_rabut_point,
-        kode: MasterDefect.kode,
-        masalah: MasterDefect.masalah,
-        kriteria: MasterDefect.kriteria,
-        persen_kriteria: MasterDefect.persen_kriteria,
-        sumber_masalah: MasterDefect.sumber_masalah,
+        kode: MasterDefect.e_kode_produksi,
+        masalah: MasterDefect.nama_kendala,
+        kriteria: MasterDefect.criteria,
+        persen_kriteria: MasterDefect.criteria_percent,
+        sumber_masalah: MasterDefect.kategori_kendala,
         id_inspeksi_rabut: id_inspeksi_rabut,
       });
+
+      // untuk department ketika data udah dari p1
+      for (let ii = 0; ii < MasterDefect.target_department.length; ii++) {
+        const depart = MasterDefect.target_department[ii];
+        await InspeksiRabutDefectDepartment.create({
+          id_inspeksi_rabut_periode_point_defect: rabutDefect.id,
+          id_department: parseInt(depart.id_department),
+          nama_department: depart.nama_department,
+        });
+      }
+      // for (let index = 0; index < MasterDefect.department.length; index++) {
+      //   const element = array[index];
+
+      // }
 
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
