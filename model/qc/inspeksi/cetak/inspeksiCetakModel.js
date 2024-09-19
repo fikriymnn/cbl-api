@@ -7,15 +7,15 @@ const InspeksiPotong = db.define(
   {
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
@@ -23,11 +23,11 @@ const InspeksiPotong = db.define(
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shift: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah_druk: {
       type: DataTypes.INTEGER,
@@ -43,27 +43,27 @@ const InspeksiPotong = db.define(
     },
     jenis_kertas: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jenis_gramatur: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     warna_depan: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     warna_belakang: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     nama_produk: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     customer: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah_pending: {
       type: DataTypes.INTEGER,

@@ -8,6 +8,7 @@ const InspeksiPondPeriode = require("../../../../model/qc/inspeksi/pond/inspeksi
 const InspeksiPondPeriodePoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
 const InspeksiPondPeriodeDefect = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
 const MasterKodeMasalahpond = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
+const InspeksiPondPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectDepartmentModel");
 const axios = require("axios");
 
 dotenv.config();
@@ -50,7 +51,7 @@ const inspeksiPondAwalController = {
       });
 
       for (let i = 0; i < masterKodePond.data.length; i++) {
-        await InspeksiPondPeriodeDefect.create({
+        const pondDefect = await InspeksiPondPeriodeDefect.create({
           id_inspeksi_pond_periode_point: pondPeriodePoint.id,
           id_inspeksi_pond: pondAwal.id_inspeksi_pond,
           kode: masterKodePond.data[i].e_kode_produksi,
@@ -61,14 +62,18 @@ const inspeksiPondAwalController = {
         });
 
         //untuk department ketika sudah ada data di p1
-        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
-        //   const depart = masterKodeCetak[i].department[ii];
-        //   await InspeksiCetakPeriodeDefectDepartment.create({
-        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
-        //     id_department: depart.id,
-        //     nama_department: depart.name,
-        //   });
-        // }
+        for (
+          let ii = 0;
+          ii < masterKodePond.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodePond.data[i].target_department[ii];
+          await InspeksiPondPeriodeDefectDepartment.create({
+            id_inspeksi_pond_periode_point_defect: pondDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       res.status(200).json({ msg: "Done Successful" });

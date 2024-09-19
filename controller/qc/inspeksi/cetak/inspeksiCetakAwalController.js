@@ -55,7 +55,7 @@ const inspeksiCetakAwalController = {
       });
 
       for (let i = 0; i < masterKodeCetak.data.length; i++) {
-        await InspeksiCetakPeriodeDefect.create({
+        const cetakDefect = await InspeksiCetakPeriodeDefect.create({
           id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
           id_inspeksi_cetak: cetakPeriode.id_inspeksi_cetak,
           kode: masterKodeCetak.data[i].e_kode_produksi,
@@ -66,18 +66,22 @@ const inspeksiCetakAwalController = {
         });
 
         //untuk department ketika sudah ada data di p1
-        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
-        //   const depart = masterKodeCetak[i].department[ii];
-        //   await InspeksiCetakPeriodeDefectDepartment.create({
-        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
-        //     id_department: depart.id,
-        //     nama_department: depart.name,
-        //   });
-        // }
+        for (
+          let ii = 0;
+          ii < masterKodeCetak.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodeCetak.data[i].target_department[ii];
+          await InspeksiCetakPeriodeDefectDepartment.create({
+            id_inspeksi_cetak_periode_point_defect: cetakDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       for (let i = 0; i < masterKodeCetak2.data.length; i++) {
-        await InspeksiCetakPeriodeDefect.create({
+        const cetakDefect = await InspeksiCetakPeriodeDefect.create({
           id_inspeksi_cetak_periode_point: cetakPeriodePoint.id,
           id_inspeksi_cetak: cetakPeriode.id_inspeksi_cetak,
           kode: masterKodeCetak2.data[i].e_kode_produksi,
@@ -87,14 +91,18 @@ const inspeksiCetakAwalController = {
           sumber_masalah: masterKodeCetak2.data[i].kategori_kendala,
         });
 
-        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
-        //   const depart = masterKodeCetak[i].department[ii];
-        //   await InspeksiCetakPeriodeDefectDepartment.create({
-        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
-        //     id_department: depart.id,
-        //     nama_department: depart.name,
-        //   });
-        // }
+        for (
+          let ii = 0;
+          ii < masterKodeCetak2.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodeCetak2.data[i].target_department[ii];
+          await InspeksiCetakPeriodeDefectDepartment.create({
+            id_inspeksi_cetak_periode_point_defect: cetakDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       res.status(200).json({ msg: "Done Successful" });

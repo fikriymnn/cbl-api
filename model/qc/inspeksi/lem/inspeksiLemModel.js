@@ -7,15 +7,15 @@ const InspeksiLem = db.define(
   {
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
@@ -23,15 +23,15 @@ const InspeksiLem = db.define(
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shift: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah_pcs: {
       type: DataTypes.INTEGER,
@@ -44,11 +44,11 @@ const InspeksiLem = db.define(
 
     nama_produk: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     customer: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah_pending: {
       type: DataTypes.INTEGER,

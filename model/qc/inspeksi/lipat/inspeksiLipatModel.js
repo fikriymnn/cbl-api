@@ -7,15 +7,15 @@ const InspeksiLipat = db.define(
   {
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
@@ -23,19 +23,19 @@ const InspeksiLipat = db.define(
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shift: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jam: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     item: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     inspector: {
       type: DataTypes.STRING,

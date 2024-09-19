@@ -8,6 +8,7 @@ const InspeksiLemPeriode = require("../../../../model/qc/inspeksi/lem/inspeksiLe
 const InspeksiLemPeriodePoint = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
 const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
 const MasterKodeMasalahLem = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
+const InspeksiLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectDepartmentModel");
 const axios = require("axios");
 
 dotenv.config();
@@ -64,7 +65,7 @@ const inspeksiLemAwalController = {
       });
 
       for (let i = 0; i < masterKodeLem.data.length; i++) {
-        await InspeksiLemPeriodeDefect.create({
+        const lemDefect = await InspeksiLemPeriodeDefect.create({
           id_inspeksi_lem_periode_point: lemPeriodePoint.id,
           id_inspeksi_lem: lemPeriode.id_inspeksi_lem,
           kode: masterKodeLem.data[i].e_kode_produksi,
@@ -75,14 +76,18 @@ const inspeksiLemAwalController = {
         });
 
         //untuk department ketika sudah ada data di p1
-        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
-        //   const depart = masterKodeCetak[i].department[ii];
-        //   await InspeksiCetakPeriodeDefectDepartment.create({
-        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
-        //     id_department: depart.id,
-        //     nama_department: depart.name,
-        //   });
-        // }
+        for (
+          let ii = 0;
+          ii < masterKodeLem.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodeLem.data[i].target_department[ii];
+          await InspeksiLemPeriodeDefectDepartment.create({
+            id_inspeksi_lem_periode_point_defect: lemDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       res.status(200).json({ msg: "Done Successful" });
