@@ -69,7 +69,7 @@ const InspeksiOutsourcing = db.define(
 
 InspeksiOutsourcing.belongsTo(Users,{foreignKey:"id_inspector",as:"inspector"})
 
-Users.hasMany(Users,{foreignKey:"id_inspector"})
+Users.hasMany(Users,{foreignKey:"id_inspector",as: "inspector"})
 
 
 module.exports = InspeksiOutsourcing;
