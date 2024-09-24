@@ -3,8 +3,8 @@ const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 const Users = require("../../../userModel");
 
-const InspeksiLipat = db.define(
-  "cs_inspeksi_lipat",
+const IncomingOutsourcing = db.define(
+  "cs_incoming_outsourcing",
   {
     id_inspektor: {
       type: DataTypes.INTEGER,
@@ -14,8 +14,13 @@ const InspeksiLipat = db.define(
         key: "id",
       },
     },
+
     tanggal: {
-      type: DataTypes.STRING,
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_sortir: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
     no_jo: {
@@ -26,23 +31,40 @@ const InspeksiLipat = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    mesin: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    operator: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    shift: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     jam: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    item: {
+    nama_produk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jumlah_druk: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    outsourcing: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jenis: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jenis_hasil: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status_jo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -66,11 +88,15 @@ const InspeksiLipat = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     catatan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status_jo: {
+    hasil_check: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -79,13 +105,12 @@ const InspeksiLipat = db.define(
     freezeTableName: true,
   }
 );
-
-Users.hasMany(InspeksiLipat, {
+Users.hasMany(IncomingOutsourcing, {
   foreignKey: "id_inspektor",
 });
-InspeksiLipat.belongsTo(Users, {
+IncomingOutsourcing.belongsTo(Users, {
   foreignKey: "id_inspektor",
   as: "inspektor",
 });
 
-module.exports = InspeksiLipat;
+module.exports = IncomingOutsourcing;
