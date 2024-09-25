@@ -13,6 +13,12 @@ router.post(
   inspeksiOutsourcingBJController.createInspeksiOutsourcingBJ
 );
 
+router.get(
+  "/qc/cs/inspeksiOutsourcingBJ/start/:id",
+  auth,
+  inspeksiOutsourcingBJController.startInspeksiOutsourcingBj
+);
+
 router.put(
   "/qc/cs/inspeksiOutsourcingBJ/:id",
   auth,

@@ -61,8 +61,16 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
+const inspeksiPraPlate = require("./model/qc/inspeksi/plate/inspeksiPraPlateModel");
+const inspeksiKelengkapanPlate = require("./model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
+const inspeksiPraPlateResult = require("./model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
+
 const inspeksiLipat = require("./model/qc/inspeksi/lipat/inspeksiLipatModel");
+const inspeksiLipatPoint = require("./model/qc/inspeksi/lipat/inspeksiLipatPointModel");
 const inspeksiLipatResult = require("./model/qc/inspeksi/lipat/inspeksiLipatResultModel");
+
+const incomingOutsourcing = require("./model/qc/inspeksi/incomingOutsourcing/incomingOutsourcingModel");
+const incomingOutsourcingResult = require("./model/qc/inspeksi/incomingOutsourcing/incomingOutsourcingResultModel");
 
 const inspeksiCetak = require("./model/qc/inspeksi/cetak/inspeksiCetakModel");
 const inspeksiCetakAwal = require("./model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
@@ -155,7 +163,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiLipatResult.sync({ alter: true });
+//   await inspeksiCetak.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -2,6 +2,7 @@ const { Op, Sequelize, where } = require("sequelize");
 
 const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPointModel");
 const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+const InspeksiRabutDefectDepartment = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 const User = require("../../../../model/userModel");
 
@@ -98,7 +99,7 @@ const inspeksiRabutpointController = {
       //   where: { id: id_defect },
       // });
 
-      await InspeksiRabutDefect.create({
+      const rabutDefect = await InspeksiRabutDefect.create({
         id_inspeksi_rabut_point: id_inspeksi_rabut_point,
         kode: MasterDefect.e_kode_produksi,
         masalah: MasterDefect.nama_kendala,
@@ -109,6 +110,14 @@ const inspeksiRabutpointController = {
       });
 
       // untuk department ketika data udah dari p1
+      for (let ii = 0; ii < MasterDefect.target_department.length; ii++) {
+        const depart = MasterDefect.target_department[ii];
+        await InspeksiRabutDefectDepartment.create({
+          id_inspeksi_rabut_periode_point_defect: rabutDefect.id,
+          id_department: parseInt(depart.id_department),
+          nama_department: depart.nama_department,
+        });
+      }
       // for (let index = 0; index < MasterDefect.department.length; index++) {
       //   const element = array[index];
 

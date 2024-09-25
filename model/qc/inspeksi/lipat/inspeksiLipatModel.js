@@ -1,21 +1,30 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
+const Users = require("../../../userModel");
 
 const InspeksiLipat = db.define(
   "cs_inspeksi_lipat",
   {
+    id_inspektor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
@@ -23,21 +32,17 @@ const InspeksiLipat = db.define(
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shift: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jam: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     item: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    inspector: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -74,5 +79,13 @@ const InspeksiLipat = db.define(
     freezeTableName: true,
   }
 );
+
+Users.hasMany(InspeksiLipat, {
+  foreignKey: "id_inspektor",
+});
+InspeksiLipat.belongsTo(Users, {
+  foreignKey: "id_inspektor",
+  as: "inspektor",
+});
 
 module.exports = InspeksiLipat;

@@ -1,11 +1,25 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
+const Users = require("../../../userModel");
 
-const InspeksiPotong = db.define(
-  "cs_inspeksi_cetak",
+const IncomingOutsourcing = db.define(
+  "cs_incoming_outsourcing",
   {
+    id_inspektor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+
     tanggal: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_sortir: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -17,43 +31,8 @@ const InspeksiPotong = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    mesin: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    operator: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    shift: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    jumlah_druk: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    jumlah_pcs: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    mata: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    jenis_kertas: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    jenis_gramatur: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    warna_depan: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    warna_belakang: {
+
+    jam: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -65,18 +44,73 @@ const InspeksiPotong = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jumlah_pending: {
+    jumlah_druk: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      allowNull: true,
+    },
+    jumlah_pcs: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    outsourcing: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jenis: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jenis_hasil: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
+    },
+    foto: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    catatan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    hasil_check: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
     freezeTableName: true,
   }
 );
+Users.hasMany(IncomingOutsourcing, {
+  foreignKey: "id_inspektor",
+});
+IncomingOutsourcing.belongsTo(Users, {
+  foreignKey: "id_inspektor",
+  as: "inspektor",
+});
 
-module.exports = InspeksiPotong;
+module.exports = IncomingOutsourcing;

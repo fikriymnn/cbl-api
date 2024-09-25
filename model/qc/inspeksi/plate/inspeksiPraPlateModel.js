@@ -1,17 +1,22 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-const User = require("../../../userModel");
+const Users = require("../../../userModel");
 
-const InspeksiBarangRusak = db.define(
-  "cs_inspeksi_barang_rusak",
+const InspeksiPraPlate = db.define(
+  "cs_inspeksi_pra_plate",
   {
     id_inspektor: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
-        model: User,
+        model: Users,
         key: "id",
       },
+    },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     tanggal: {
       type: DataTypes.DATE,
@@ -25,20 +30,13 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    operator: {
+    mesin: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    waktu_sortir: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    waktu_selesai_sortir: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    qty_rusak: {
-      type: DataTypes.INTEGER,
+
+    jam: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     nama_produk: {
@@ -49,30 +47,50 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "incoming",
+    },
+    foto: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     lama_pengerjaan: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      allowNull: true,
+    },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     catatan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status: {
+    hasil_check: {
       type: DataTypes.STRING,
-      defaultValue: "incoming",
+      allowNull: true,
     },
   },
   {
     freezeTableName: true,
   }
 );
-
-User.hasMany(InspeksiBarangRusak, {
+Users.hasMany(InspeksiPraPlate, {
   foreignKey: "id_inspektor",
 });
-InspeksiBarangRusak.belongsTo(User, {
+InspeksiPraPlate.belongsTo(Users, {
   foreignKey: "id_inspektor",
   as: "inspektor",
 });
 
-module.exports = InspeksiBarangRusak;
+module.exports = InspeksiPraPlate;

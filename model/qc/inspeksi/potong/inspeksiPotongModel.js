@@ -7,19 +7,19 @@ const InspeksiPotong = db.define(
   {
     jenis_potong: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     mesin: {
       type: DataTypes.STRING,
@@ -27,19 +27,19 @@ const InspeksiPotong = db.define(
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shift: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jam: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     item: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     inspector: {
       type: DataTypes.STRING,
@@ -63,19 +63,19 @@ const InspeksiPotong = db.define(
     },
     lama_pengerjaan: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
     catatan: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     merk: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
-    total_skor:{
+    total_skor: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
   },
   {

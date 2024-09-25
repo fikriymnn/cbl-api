@@ -8,23 +8,23 @@ const InspeksiOutsourcingBJ = db.define(
   {
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     jam: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     inspector: {
       type: DataTypes.INTEGER,
@@ -36,11 +36,11 @@ const InspeksiOutsourcingBJ = db.define(
     },
     nama_produk: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     customer: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_pallet: {
       type: DataTypes.STRING,
@@ -73,6 +73,18 @@ const InspeksiOutsourcingBJ = db.define(
     bagian_tiket: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
+    },
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {

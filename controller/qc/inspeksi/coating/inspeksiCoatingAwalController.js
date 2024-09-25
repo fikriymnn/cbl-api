@@ -7,6 +7,7 @@ const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi
 const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
+const InspeksiCoatingPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
 const axios = require("axios");
 
 dotenv.config();
@@ -336,7 +337,7 @@ const inspeksiCoatingController = {
       });
 
       for (let i = 0; i < masterMasalah.data.length; i++) {
-        await InspeksiCoatingResultPointPeriode.create({
+        const coatingDefect = await InspeksiCoatingResultPointPeriode.create({
           id_inspeksi_coating_result_periode: resultPeriode.id,
           id_inspeksi_coating: id,
           kode: masterMasalah.data[i].e_kode_produksi,
@@ -347,14 +348,18 @@ const inspeksiCoatingController = {
         });
 
         //untuk department ketika sudah ada data di p1
-        // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
-        //   const depart = masterKodeCetak[i].department[ii];
-        //   await InspeksiCetakPeriodeDefectDepartment.create({
-        //     id_inspeksi_cetak_periode_point_defect: cetakPeriodeDefect.id,
-        //     id_department: depart.id,
-        //     nama_department: depart.name,
-        //   });
-        // }
+        for (
+          let ii = 0;
+          ii < masterMasalah.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterMasalah.data[i].target_department[ii];
+          await InspeksiCoatingPeriodeDefectDepartment.create({
+            id_inspeksi_coating_periode_point_defect: coatingDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
       }
 
       return res.status(200).json({ data: "update successfully", msg: "OK" });

@@ -2,6 +2,7 @@ const { Op, Sequelize, where } = require("sequelize");
 
 const InspeksiAmparLemPoint = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
 const InspeksiAmparLemDefect = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
+const InspeksiAmparLemDefectDepartment = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiAmparLempointController = {
@@ -97,7 +98,7 @@ const inspeksiAmparLempointController = {
       //   where: { id: id_defect },
       // });
 
-      await InspeksiAmparLemDefect.create({
+      const ampatLemDefect = await InspeksiAmparLemDefect.create({
         id_inspeksi_ampar_lem_point: id_inspeksi_ampar_lem_point,
         kode: MasterDefect.e_kode_produksi,
         masalah: MasterDefect.nama_kendala,
@@ -108,6 +109,14 @@ const inspeksiAmparLempointController = {
       });
 
       // untuk department ketika data udah dari p1
+      for (let ii = 0; ii < MasterDefect.target_department.length; ii++) {
+        const depart = MasterDefect.target_department[ii];
+        await InspeksiAmparLemDefectDepartment.create({
+          id_inspeksi_ampar_lem_periode_point_defect: ampatLemDefect.id,
+          id_department: parseInt(depart.id_department),
+          nama_department: depart.nama_department,
+        });
+      }
       // for (let index = 0; index < MasterDefect.department.length; index++) {
       //   const element = array[index];
 

@@ -5,6 +5,7 @@ const InspeksiPondPeriode = require("../../../../model/qc/inspeksi/pond/inspeksi
 const InspeksiPondPeriodePoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
 const InspeksiPondPeriodeDefect = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
 const MasterKodeMasalahpond = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahPondModel");
+const InspeksiPondPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectDepartmentModel");
 const User = require("../../../../model/userModel");
 const axios = require("axios");
 
@@ -100,7 +101,7 @@ const inspeksiPondPeriodepointController = {
       });
 
       for (let i = 0; i < masterKodePond.data.length; i++) {
-        await InspeksiPondPeriodeDefect.create({
+        const pondDefect = await InspeksiPondPeriodeDefect.create({
           id_inspeksi_pond_periode_point: pondPeriodePoint.id,
           id_inspeksi_pond: pondPeriode.id_inspeksi_pond,
           kode: masterKodePond.data[i].e_kode_produksi,
@@ -109,6 +110,19 @@ const inspeksiPondPeriodepointController = {
           persen_kriteria: masterKodePond.data[i].criteria_percent,
           sumber_masalah: masterKodePond.data[i].kategori_kendala,
         });
+
+        for (
+          let ii = 0;
+          ii < masterKodePond.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodePond.data[i].target_department[ii];
+          await InspeksiPondPeriodeDefectDepartment.create({
+            id_inspeksi_pond_periode_point_defect: pondDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
 
         // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
         //   const depart = masterKodeCetak[i].department[ii];

@@ -1,17 +1,22 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-const User = require("../../../userModel");
+const Users = require("../../../userModel");
 
-const InspeksiBarangRusak = db.define(
-  "cs_inspeksi_barang_rusak",
+const InspeksiKelengkapanPlate = db.define(
+  "cs_inspeksi_kelengkapan_plate",
   {
     id_inspektor: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
-        model: User,
+        model: Users,
         key: "id",
       },
+    },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     tanggal: {
       type: DataTypes.DATE,
@@ -25,20 +30,13 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    operator: {
+    mesin: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    waktu_sortir: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    waktu_selesai_sortir: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    qty_rusak: {
-      type: DataTypes.INTEGER,
+
+    jam: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     nama_produk: {
@@ -49,30 +47,38 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    lama_pengerjaan: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "incoming",
+    },
+    foto: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     catatan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status: {
+    keterangan: {
       type: DataTypes.STRING,
-      defaultValue: "incoming",
+      allowNull: true,
+    },
+    hasil_check: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
     freezeTableName: true,
   }
 );
-
-User.hasMany(InspeksiBarangRusak, {
+Users.hasMany(InspeksiKelengkapanPlate, {
   foreignKey: "id_inspektor",
 });
-InspeksiBarangRusak.belongsTo(User, {
+InspeksiKelengkapanPlate.belongsTo(Users, {
   foreignKey: "id_inspektor",
   as: "inspektor",
 });
 
-module.exports = InspeksiBarangRusak;
+module.exports = InspeksiKelengkapanPlate;

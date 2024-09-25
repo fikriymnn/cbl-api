@@ -7,76 +7,76 @@ const InspeksiCoating = db.define(
   {
     tanggal: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jumlah_druk: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0
-      },
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     jumlah_pcs: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     mata: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     coating: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     jenis_kertas: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-    jenis_gramatur: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: true,
     },
-      jam: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+    jenis_gramatur: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    jam: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_io: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     nama_produk: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      customer: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      shift: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    shift: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     mesin: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     operator: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
-    jumlah_pending : {
+    jumlah_pending: {
       type: DataTypes.INTEGER,
-      defaultValue: 0
+      defaultValue: 0,
     },
     status_jo: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",
-    }
+    },
   },
   {
     freezeTableName: true,

@@ -5,6 +5,7 @@ const InspeksiLemPeriode = require("../../../../model/qc/inspeksi/lem/inspeksiLe
 const InspeksiLemPeriodePoint = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
 const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
 const MasterKodeMasalahLem = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahLemModel");
+const InspeksiLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectDepartmentModel");
 const User = require("../../../../model/userModel");
 const axios = require("axios");
 
@@ -99,7 +100,7 @@ const inspeksiLemPeriodepointController = {
         id_inspeksi_lem_periode: id_inspeksi_lem_periode,
       });
       for (let i = 0; i < masterKodeLem.data.length; i++) {
-        await InspeksiLemPeriodeDefect.create({
+        const lemDefect = await InspeksiLemPeriodeDefect.create({
           id_inspeksi_lem_periode_point: lemPeriodePoint.id,
           id_inspeksi_lem: lemPeriode.id_inspeksi_lem,
           kode: masterKodeLem.data[i].e_kode_produksi,
@@ -108,6 +109,19 @@ const inspeksiLemPeriodepointController = {
           persen_kriteria: masterKodeLem.data[i].criteria_percent,
           sumber_masalah: masterKodeLem.data[i].kategori_kendala,
         });
+
+        for (
+          let ii = 0;
+          ii < masterKodeLem.data[i].target_department.length;
+          ii++
+        ) {
+          const depart = masterKodeLem.data[i].target_department[ii];
+          await InspeksiLemPeriodeDefectDepartment.create({
+            id_inspeksi_lem_periode_point_defect: lemDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          });
+        }
 
         // for (let ii = 0; ii < masterKodeCetak[i].department.length; ii++) {
         //   const depart = masterKodeCetak[i].department[ii];

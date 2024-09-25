@@ -36,7 +36,15 @@ const ticketController = {
                 model: Users,
                 as: "user_eksekutor",
               },
+              {
+                model: Users,
+                as: "user_qc",
+              },
             ],
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
           },
         ],
       };
