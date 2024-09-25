@@ -144,6 +144,21 @@ const inspeksiFinalController = {
       res.status(404).json({ msg: error.message });
     }
   },
+
+  startInspeksiFinal: async (req, res) => {
+    const id = req.params.id;
+    const date = new Date();
+    try {
+      await InspeksiFinal.update(
+        { waktu_mulai: date, inspektor: req.user.id },
+        { where: { id: id } }
+      ),
+        res.status(200).json({ msg: "start successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   updateInspeksiFinal: async (req, res) => {
     try {
       const { id } = req.params;
@@ -155,6 +170,7 @@ const inspeksiFinalController = {
         inspeksi_final_sub,
         status,
         catatan,
+        lama_pengerjaan,
       } = req.body;
       //parse bilanagn qty_packing
       const qtyPacking = parseInt(qty_packing);
@@ -219,6 +235,8 @@ const inspeksiFinalController = {
           qty_packing: qty_packing,
           jumlah_packing: JumlahPacking,
           status,
+          lama_pengerjaan,
+          waktu_selesai: new Date(),
           bagian_tiket: "history",
         },
         { where: { id } }

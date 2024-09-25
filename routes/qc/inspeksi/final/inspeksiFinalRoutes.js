@@ -13,6 +13,12 @@ router.post(
   inspeksiFinalController.createInspeksiFinal
 );
 
+router.get(
+  "/qc/cs/inspeksiFinal/start/:id",
+  auth,
+  inspeksiFinalController.startInspeksiFinal
+);
+
 router.put(
   "/qc/cs/inspeksiFinal/:id",
   auth,

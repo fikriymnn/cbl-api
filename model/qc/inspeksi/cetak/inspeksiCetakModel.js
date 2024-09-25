@@ -6,7 +6,7 @@ const InspeksiPotong = db.define(
   "cs_inspeksi_cetak",
   {
     tanggal: {
-      type: DataTypes.STRING,
+      type: DataTypes.DATE,
       allowNull: true,
     },
     no_jo: {
