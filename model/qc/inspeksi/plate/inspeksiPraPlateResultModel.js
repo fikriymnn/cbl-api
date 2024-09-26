@@ -1,16 +1,16 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-const InspeksiLipatPoint = require("./inspeksiLipatPointModel");
+const InspeksiPraPlatePoint = require("./inspeksiPraPlateModel");
 
-const InspeksiLipatResult = db.define(
-  "cs_inspeksi_lipat_result",
+const InspeksiPraPlateResult = db.define(
+  "cs_inspeksi_pra_plate_result",
   {
-    id_inspeksi_lipat_point: {
+    id_inspeksi_pra_plate: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: InspeksiLipatPoint,
+        model: InspeksiPraPlatePoint,
         key: "id",
       },
     },
@@ -44,13 +44,13 @@ const InspeksiLipatResult = db.define(
   }
 );
 
-InspeksiLipatPoint.hasMany(InspeksiLipatResult, {
-  foreignKey: "id_inspeksi_lipat_point",
-  as: "inspeksi_lipat_result",
+InspeksiPraPlatePoint.hasMany(InspeksiPraPlateResult, {
+  foreignKey: "id_inspeksi_pra_plate",
+  as: "inspeksi_pra_plate_result",
 });
-InspeksiLipatResult.belongsTo(InspeksiLipatPoint, {
-  foreignKey: "id_inspeksi_lipat_point",
-  as: "inspeksi_lipat_point",
+InspeksiPraPlateResult.belongsTo(InspeksiPraPlatePoint, {
+  foreignKey: "id_inspeksi_pra_plate",
+  as: "inspeksi_pra_plate_point",
 });
 
-module.exports = InspeksiLipatResult;
+module.exports = InspeksiPraPlateResult;

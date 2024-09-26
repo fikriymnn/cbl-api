@@ -1,16 +1,16 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
-const InspeksiLipatPoint = require("./inspeksiLipatPointModel");
+const IncomingOutsourcing = require("./incomingOutsourcingModel");
 
-const InspeksiLipatResult = db.define(
-  "cs_inspeksi_lipat_result",
+const IncomingOutsourcingResult = db.define(
+  "cs_incoming_outsourcing_result",
   {
-    id_inspeksi_lipat_point: {
+    id_incoming_outsourcing: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: InspeksiLipatPoint,
+        model: IncomingOutsourcing,
         key: "id",
       },
     },
@@ -22,7 +22,7 @@ const InspeksiLipatResult = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    acuan: {
+    standard: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -44,13 +44,13 @@ const InspeksiLipatResult = db.define(
   }
 );
 
-InspeksiLipatPoint.hasMany(InspeksiLipatResult, {
-  foreignKey: "id_inspeksi_lipat_point",
-  as: "inspeksi_lipat_result",
+IncomingOutsourcing.hasMany(IncomingOutsourcingResult, {
+  foreignKey: "id_incoming_outsourcing",
+  as: "incoming_outsourcing_result",
 });
-InspeksiLipatResult.belongsTo(InspeksiLipatPoint, {
-  foreignKey: "id_inspeksi_lipat_point",
-  as: "inspeksi_lipat_point",
+IncomingOutsourcingResult.belongsTo(IncomingOutsourcing, {
+  foreignKey: "id_incoming_outsourcing",
+  as: "incoming_outsourcing_point",
 });
 
-module.exports = InspeksiLipatResult;
+module.exports = IncomingOutsourcingResult;

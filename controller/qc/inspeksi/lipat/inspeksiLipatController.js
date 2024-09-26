@@ -1,6 +1,8 @@
 const InspeksiLipat = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatModel");
 const InspeksiLipatResult = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatResultModel");
+const InspeksiLipatPoint = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatPointModel");
 const { Op, Sequelize } = require("sequelize");
+const User = require("../../../../model/userModel");
 
 const inspeksiLipatController = {
   getInspeksiLipatMesin: async (req, res) => {
@@ -28,6 +30,7 @@ const inspeksiLipatController = {
         if (jenis_potong) obj.jenis_potong = jenis_potong;
         if (mesin) obj.mesin = mesin;
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -40,6 +43,7 @@ const inspeksiLipatController = {
         });
       } else if (page && limit) {
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           offset,
           limit: parseInt(limit),
@@ -55,6 +59,7 @@ const inspeksiLipatController = {
         if (mesin) obj.mesin = mesin;
 
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           where: obj,
         });
@@ -63,12 +68,19 @@ const inspeksiLipatController = {
           data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id && req.user.name) {
+      } else if (id) {
         const data = await InspeksiLipat.findByPk(id, {
-          include: {
-            model: InspeksiLipatResult,
-            as: "inspeksi_lipat_result",
-          },
+          include: [
+            { model: User, as: "inspektor" },
+            {
+              model: InspeksiLipatPoint,
+              as: "inspeksi_lipat_point",
+              include: {
+                model: InspeksiLipatResult,
+                as: "inspeksi_lipat_result",
+              },
+            },
+          ],
         });
 
         // if (data && !data?.inspector) {
@@ -133,9 +145,12 @@ const inspeksiLipatController = {
 
       if (data) {
         let array = [];
+        const inspeksiLipatPoint = await InspeksiLipatPoint.create({
+          id_inspeksi_lipat: data.id,
+        });
 
         master_data_fix.forEach((value) => {
-          value.id_inspeksi_lipat = data.id;
+          value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
           array.push(value);
         });
 
@@ -176,49 +191,52 @@ const inspeksiLipatController = {
     const id = req.params.id;
     const date = new Date();
     try {
-      await InspeksiLipat.update({ waktu_mulai: date }, { where: { id: id } }),
+      await InspeksiLipat.update(
+        { waktu_mulai: date, id_inspektor: req.user.id },
+        { where: { id: id } }
+      ),
         res.status(200).json({ msg: "start successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
-  stopInspeksiLipat: async (req, res) => {
+  tambahPointLipat: async (req, res) => {
     const id = req.params.id;
-    const lama_pengerjaan = req.body.lama_pengerjaan;
-    const date = new Date();
+
     try {
-      await InspeksiLipat.update(
-        { waktu_selesai: date, lama_pengerjaan },
-        { where: { id: id } }
-      ),
-        res.status(200).json({ msg: "stop successfuly" });
+      let array = [];
+      const inspeksiLipatPoint = await InspeksiLipatPoint.create({
+        id_inspeksi_lipat: id,
+      });
+
+      master_data_fix.forEach((value) => {
+        value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
+        array.push(value);
+      });
+
+      if (array.length == 5) {
+        await InspeksiLipatResult.bulkCreate(array);
+      }
+      res.status(200).json({ msg: "add successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
   },
-  doneInspeksiLipat: async (req, res) => {
+
+  saveInspeksiLipatPoint: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_check, lama_pengerjaan, catatan, merk } = req.body;
-      const date = new Date();
-      let obj = {
-        status: "history",
-        waktu_selesai: date,
-        lama_pengerjaan: lama_pengerjaan,
-        catatan: catatan,
-        merk: merk,
-      };
+      const { hasil_check } = req.body;
 
-      const inspeksi = await InspeksiLipat.update(obj, {
-        where: { id: id },
-      });
-
+      await InspeksiLipatPoint.update(
+        { status: "done" },
+        { where: { id: id } }
+      );
       for (let i = 0; i < hasil_check.length; i++) {
         await InspeksiLipatResult.update(
           {
             hasil_check: hasil_check[i].hasil_check,
             keterangan: hasil_check[i].keterangan,
-
             send: true,
           },
           {
@@ -226,6 +244,29 @@ const inspeksiLipatController = {
           }
         );
       }
+      return res.status(200).json({ msg: "Update successfully!" });
+    } catch (err) {
+      res.status(400).json({ msg: err.message });
+    }
+  },
+
+  doneInspeksiLipat: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { lama_pengerjaan, catatan } = req.body;
+      const date = new Date();
+      let obj = {
+        status: "history",
+        waktu_selesai: date,
+        lama_pengerjaan: lama_pengerjaan,
+        catatan: catatan,
+      };
+      console.log(req.body);
+
+      await InspeksiLipat.update(obj, {
+        where: { id: id },
+      });
+
       return res.status(200).json({ msg: "Update successfully!" });
     } catch (err) {
       res.status(400).json({ msg: err.message });

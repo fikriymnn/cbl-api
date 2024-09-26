@@ -7,45 +7,51 @@ const InspeksiFinal = require("./inspeksiFinalModel");
 const InspeksiFinalPoint = db.define(
   "cs_inspeksi_final_point",
   {
-      id_inspeksi_final : {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: InspeksiFinal
-        }
+    id_inspeksi_final: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: InspeksiFinal,
       },
-      point: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      standar: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      cara_periksa: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      hasil: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-      qty: {
-          type: DataTypes.STRING,
-          allowNull: true,
-      },
+    },
+    point: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    standar: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    cara_periksa: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    hasil: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_barcode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    qty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
   }
 );
 
-InspeksiFinal.hasMany(InspeksiFinalPoint,{
-    foreignKey: "id_inspeksi_final",as:"inspeksi_final_point"
-})
+InspeksiFinal.hasMany(InspeksiFinalPoint, {
+  foreignKey: "id_inspeksi_final",
+  as: "inspeksi_final_point",
+});
 
-InspeksiFinalPoint.belongsTo(InspeksiFinal,{
-    foreignKey: 'id_inspeksi_final',as : "inspeksi_final"
-})
+InspeksiFinalPoint.belongsTo(InspeksiFinal, {
+  foreignKey: "id_inspeksi_final",
+  as: "inspeksi_final",
+});
 
 module.exports = InspeksiFinalPoint;

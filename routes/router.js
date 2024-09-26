@@ -75,6 +75,12 @@ router.use("/", require("./qc/inspeksi/potong/inspeksiPotongRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
 router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatRoutes"));
 router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatResultRoutes"));
+router.use("/", require("./qc/inspeksi/plate/inspeksiPraPlateRoutes"));
+router.use("/", require("./qc/inspeksi/plate/inspeksiKelengkapanPlateRoutes"));
+router.use(
+  "/",
+  require("./qc/inspeksi/incomingOutsourcing/incomingOutsourcingRoutes")
+);
 
 // qc cetak
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakRoutes"));

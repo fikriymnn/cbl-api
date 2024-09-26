@@ -150,6 +150,21 @@ const inspeksiOutsourcingBJController = {
       res.status(404).json({ msg: error.message });
     }
   },
+
+  startInspeksiOutsourcingBj: async (req, res) => {
+    const id = req.params.id;
+    const date = new Date();
+    try {
+      await InspeksiOutsourcingBJ.update(
+        { waktu_mulai: date, inspektor: req.user.id },
+        { where: { id: id } }
+      ),
+        res.status(200).json({ msg: "start successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   updateInspeksiOutsourcingBJ: async (req, res) => {
     try {
       const { id } = req.params;
@@ -162,6 +177,7 @@ const inspeksiOutsourcingBJController = {
         outsource,
         status,
         catatan,
+        lama_pengerjaan,
       } = req.body;
       //parse bilanagn qty_packing
       const qtyPacking = parseInt(qty_packing);
@@ -236,6 +252,8 @@ const inspeksiOutsourcingBJController = {
           jumlah_packing: JumlahPacking,
           status,
           outsource,
+          lama_pengerjaan,
+          waktu_selesai: new Date(),
           bagian_tiket: "history",
         },
         { where: { id } }

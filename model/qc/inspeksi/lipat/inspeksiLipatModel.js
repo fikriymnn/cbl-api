@@ -1,10 +1,19 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
+const Users = require("../../../userModel");
 
 const InspeksiLipat = db.define(
   "cs_inspeksi_lipat",
   {
+    id_inspektor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -34,10 +43,6 @@ const InspeksiLipat = db.define(
       allowNull: true,
     },
     item: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    inspector: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -74,5 +79,13 @@ const InspeksiLipat = db.define(
     freezeTableName: true,
   }
 );
+
+Users.hasMany(InspeksiLipat, {
+  foreignKey: "id_inspektor",
+});
+InspeksiLipat.belongsTo(Users, {
+  foreignKey: "id_inspektor",
+  as: "inspektor",
+});
 
 module.exports = InspeksiLipat;

@@ -15,8 +15,17 @@ router.put(
   inspeksiLipat.updateInspeksiLipat
 );
 // start and stop
-router.get("/qc/cs/inspeksiLipat/start/:id", inspeksiLipat.startInspeksiLipat);
-router.put("/qc/cs/inspeksiLipat/stop/:id", inspeksiLipat.stopInspeksiLipat);
+router.get(
+  "/qc/cs/inspeksiLipat/start/:id",
+  auth,
+  inspeksiLipat.startInspeksiLipat
+);
+router.put(
+  "/qc/cs/inspeksiLipat/save/:id",
+  inspeksiLipat.saveInspeksiLipatPoint
+);
+//add point
+router.put("/qc/cs/inspeksiLipat/addPoint/:id", inspeksiLipat.tambahPointLipat);
 //done potong
 router.put("/qc/cs/inspeksiLipat/done/:id", inspeksiLipat.doneInspeksiLipat);
 
