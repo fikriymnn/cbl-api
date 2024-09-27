@@ -18,6 +18,10 @@ const InspeksiLipat = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,

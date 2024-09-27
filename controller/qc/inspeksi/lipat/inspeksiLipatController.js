@@ -103,11 +103,22 @@ const inspeksiLipatController = {
   },
   createInpeksiPotong: async (req, res) => {
     try {
-      const { tanggal, no_io, no_jo, operator, shift, jam, item, mesin } =
-        req.body;
+      const {
+        tanggal,
+        customer,
+        no_io,
+        no_jo,
+        operator,
+        shift,
+        jam,
+        item,
+        mesin,
+      } = req.body;
 
       if (!tanggal)
         return res.status(400).json({ msg: "Field tanggal kosong!" });
+      // if (!customer)
+      //   return res.status(400).json({ msg: "Field customer kosong!" });
       if (!no_io) return res.status(400).json({ msg: "Field no_io kosong!" });
       if (!no_jo) return res.status(400).json({ msg: "Field no_jo kosong!" });
       if (!mesin) return res.status(400).json({ msg: "Field mesin kosong!" });
@@ -134,6 +145,7 @@ const inspeksiLipatController = {
 
       const data = await InspeksiLipat.create({
         tanggal,
+        customer,
         no_io,
         no_jo,
         mesin,

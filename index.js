@@ -163,7 +163,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiOutsourcingBJSub.sync({ alter: true });
+//   await inspeksiLipat.sync({ alter: true });
 // })();
 
 // const ip100 = 75
