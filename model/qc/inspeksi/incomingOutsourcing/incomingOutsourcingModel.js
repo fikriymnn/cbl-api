@@ -48,6 +48,10 @@ const IncomingOutsourcing = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    isi_mata: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     jumlah_pcs: {
       type: DataTypes.INTEGER,
       allowNull: true,
