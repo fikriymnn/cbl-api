@@ -2,6 +2,7 @@ const InspeksiLipat = require("../../../../model/qc/inspeksi/lipat/inspeksiLipat
 const InspeksiLipatResult = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatResultModel");
 const InspeksiLipatPoint = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatPointModel");
 const { Op, Sequelize } = require("sequelize");
+const User = require("../../../../model/userModel");
 
 const inspeksiLipatController = {
   getInspeksiLipatMesin: async (req, res) => {
@@ -29,6 +30,7 @@ const inspeksiLipatController = {
         if (jenis_potong) obj.jenis_potong = jenis_potong;
         if (mesin) obj.mesin = mesin;
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -41,6 +43,7 @@ const inspeksiLipatController = {
         });
       } else if (page && limit) {
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           offset,
           limit: parseInt(limit),
@@ -56,6 +59,7 @@ const inspeksiLipatController = {
         if (mesin) obj.mesin = mesin;
 
         const data = await InspeksiLipat.findAll({
+          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           where: obj,
         });
@@ -66,14 +70,17 @@ const inspeksiLipatController = {
         });
       } else if (id) {
         const data = await InspeksiLipat.findByPk(id, {
-          include: {
-            model: InspeksiLipatPoint,
-            as: "inspeksi_lipat_point",
-            include: {
-              model: InspeksiLipatResult,
-              as: "inspeksi_lipat_result",
+          include: [
+            { model: User, as: "inspektor" },
+            {
+              model: InspeksiLipatPoint,
+              as: "inspeksi_lipat_point",
+              include: {
+                model: InspeksiLipatResult,
+                as: "inspeksi_lipat_result",
+              },
             },
-          },
+          ],
         });
 
         // if (data && !data?.inspector) {
@@ -96,11 +103,22 @@ const inspeksiLipatController = {
   },
   createInpeksiPotong: async (req, res) => {
     try {
-      const { tanggal, no_io, no_jo, operator, shift, jam, item, mesin } =
-        req.body;
+      const {
+        tanggal,
+        customer,
+        no_io,
+        no_jo,
+        operator,
+        shift,
+        jam,
+        item,
+        mesin,
+      } = req.body;
 
       if (!tanggal)
         return res.status(400).json({ msg: "Field tanggal kosong!" });
+      // if (!customer)
+      //   return res.status(400).json({ msg: "Field customer kosong!" });
       if (!no_io) return res.status(400).json({ msg: "Field no_io kosong!" });
       if (!no_jo) return res.status(400).json({ msg: "Field no_jo kosong!" });
       if (!mesin) return res.status(400).json({ msg: "Field mesin kosong!" });
@@ -127,6 +145,7 @@ const inspeksiLipatController = {
 
       const data = await InspeksiLipat.create({
         tanggal,
+        customer,
         no_io,
         no_jo,
         mesin,
