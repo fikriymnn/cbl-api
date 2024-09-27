@@ -111,6 +111,7 @@ const IncomingOutsourcingController = {
         tanggal,
         no_io,
         no_jo,
+        isi_mata,
         nama_produk,
         jam,
         customer,
@@ -139,6 +140,7 @@ const IncomingOutsourcingController = {
         customer,
         jumlah_druk,
         jumlah_pcs,
+        isi_mata,
       });
 
       if (data) {
