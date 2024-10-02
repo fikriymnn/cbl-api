@@ -1,6 +1,26 @@
 const InspeksiLipatResult = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatResultModel");
 
 const inspeksiLipatResultController = {
+  startLipatPoint: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const inspeksiLipatPoint = await InspeksiLipatResult.findByPk(_id);
+      if (inspeksiLipatPoint.id_inspektor != null)
+        return res.status(400).json({ msg: "sudah ada user yang mulai" });
+      await InspeksiLipatResult.update(
+        {
+          waktu_mulai: new Date(),
+          id_inspektor: req.user.id,
+          status: "on progress",
+        },
+        { where: { id: _id } }
+      );
+      res.status(200).json({ msg: "Start Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
   updateInspeksiLipatResult: async (req, res) => {
     try {
       const { id } = req.params;

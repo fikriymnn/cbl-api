@@ -3,8 +3,8 @@ const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
 const Users = require("../../../userModel");
 
-const InspeksiKelengkapanPlate = db.define(
-  "cs_inspeksi_kelengkapan_plate",
+const InspeksiPrePress = db.define(
+  "cs_inspeksi_pre_press",
   {
     id_inspektor: {
       type: DataTypes.INTEGER,
@@ -60,11 +60,23 @@ const InspeksiKelengkapanPlate = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    catatan: {
-      type: DataTypes.STRING,
+    waktu_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_pengerjaan: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    catatan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -77,12 +89,12 @@ const InspeksiKelengkapanPlate = db.define(
     freezeTableName: true,
   }
 );
-Users.hasMany(InspeksiKelengkapanPlate, {
+Users.hasMany(InspeksiPrePress, {
   foreignKey: "id_inspektor",
 });
-InspeksiKelengkapanPlate.belongsTo(Users, {
+InspeksiPrePress.belongsTo(Users, {
   foreignKey: "id_inspektor",
   as: "inspektor",
 });
 
-module.exports = InspeksiKelengkapanPlate;
+module.exports = InspeksiPrePress;

@@ -20,6 +20,7 @@ router.get(
   auth,
   inspeksiLipat.startInspeksiLipat
 );
+router.put("/qc/cs/inspeksiLipat/stop/:id", auth, inspeksiLipat.stopLipatPoint);
 router.put(
   "/qc/cs/inspeksiLipat/save/:id",
   inspeksiLipat.saveInspeksiLipatPoint

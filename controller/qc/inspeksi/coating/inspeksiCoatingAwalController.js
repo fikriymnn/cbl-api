@@ -8,6 +8,7 @@ const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/su
 const InspeksiCoatingSubPeriode = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
 const InspeksiCoatingPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingPeriodeDefectDeparmentMOdel");
+const User = require("../../../../model/userModel");
 const axios = require("axios");
 
 dotenv.config();
@@ -41,6 +42,10 @@ const inspeksiCoatingController = {
               {
                 model: InspeksiCoatingResultAwal,
                 as: "inspeksi_coating_result_awal",
+                include: {
+                  model: User,
+                  as: "inspektor",
+                },
               },
               {
                 model: InspeksiCoatingSubAwal,
@@ -48,36 +53,46 @@ const inspeksiCoatingController = {
               },
             ],
           });
-          if (req?.user?.nama && data && !data?.inspector) {
-            await InspeksiCoatingResultAwal.update(
-              { inspector: req.user.name },
-              { where: { id } }
-            );
-          }
-          return res.status(200).json({ data });
-        } else if (jenis_pengecekan == "periode") {
-          const data = await InspeksiCoating.findByPk(id, {
+          const checkInspeksiCoating = await InspeksiCoating.findOne({
             include: [
               {
                 model: InspeksiCoatingResultPeriode,
                 as: "inspeksi_coating_result_periode",
-                include: {
-                  model: InspeksiCoatingResultPointPeriode,
-                  as: "inspeksi_coating_result_point_periode",
-                },
+                include: [
+                  {
+                    model: InspeksiCoatingResultPointPeriode,
+                    as: "inspeksi_coating_result_point_periode",
+                  },
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                ],
               },
               {
                 model: InspeksiCoatingSubPeriode,
                 as: "inspeksi_coating_sub_periode",
               },
+              {
+                model: InspeksiCoatingResultAwal,
+                as: "inspeksi_coating_result_awal",
+                include: {
+                  model: User,
+                  as: "inspektor",
+                },
+              },
+              {
+                model: InspeksiCoatingSubAwal,
+                as: "inspeksi_coating_sub_awal",
+              },
             ],
+            where: {
+              no_jo: data.no_jo,
+              id: {
+                [Op.ne]: data.id,
+              },
+            },
           });
-          if (req?.user?.nama && data && !data?.inspector) {
-            await InspeksiCoatingResultPeriode.update(
-              { inspector: req.user.name },
-              { where: { id } }
-            );
-          }
           const data2 = await InspeksiCoatingResultPointPeriode.findAll({
             where: { id_inspeksi_coating: id, hasil: "not ok" },
             group: ["kode"],
@@ -93,17 +108,47 @@ const inspeksiCoatingController = {
               ],
             ],
           });
-          return res.status(200).json({ data: data, defect: data2 });
-        } else {
+          return res
+            .status(200)
+            .json({ data: data, history: checkInspeksiCoating, defect: data2 });
+        } else if (jenis_pengecekan == "periode") {
           const data = await InspeksiCoating.findByPk(id, {
             include: [
               {
                 model: InspeksiCoatingResultPeriode,
                 as: "inspeksi_coating_result_periode",
-                include: {
-                  model: InspeksiCoatingResultPointPeriode,
-                  as: "inspeksi_coating_result_point_periode",
-                },
+                include: [
+                  {
+                    model: InspeksiCoatingResultPointPeriode,
+                    as: "inspeksi_coating_result_point_periode",
+                  },
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                ],
+              },
+              {
+                model: InspeksiCoatingSubPeriode,
+                as: "inspeksi_coating_sub_periode",
+              },
+            ],
+          });
+          const checkInspeksiCoating = await InspeksiCoating.findOne({
+            include: [
+              {
+                model: InspeksiCoatingResultPeriode,
+                as: "inspeksi_coating_result_periode",
+                include: [
+                  {
+                    model: InspeksiCoatingResultPointPeriode,
+                    as: "inspeksi_coating_result_point_periode",
+                  },
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                ],
               },
               {
                 model: InspeksiCoatingSubPeriode,
@@ -112,6 +157,69 @@ const inspeksiCoatingController = {
               {
                 model: InspeksiCoatingResultAwal,
                 as: "inspeksi_coating_result_awal",
+                include: {
+                  model: User,
+                  as: "inspektor",
+                },
+              },
+              {
+                model: InspeksiCoatingSubAwal,
+                as: "inspeksi_coating_sub_awal",
+              },
+            ],
+            where: {
+              no_jo: data.no_jo,
+              id: {
+                [Op.ne]: data.id,
+              },
+            },
+          });
+          const data2 = await InspeksiCoatingResultPointPeriode.findAll({
+            where: { id_inspeksi_coating: id, hasil: "not ok" },
+            group: ["kode"],
+            attributes: [
+              "kode",
+              "sumber_masalah",
+              "persen_kriteria",
+              "kriteria",
+              "masalah",
+              [
+                Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+                "total_defect",
+              ],
+            ],
+          });
+          return res
+            .status(200)
+            .json({ data: data, history: checkInspeksiCoating, defect: data2 });
+        } else {
+          const data = await InspeksiCoating.findByPk(id, {
+            include: [
+              {
+                model: InspeksiCoatingResultPeriode,
+                as: "inspeksi_coating_result_periode",
+                include: [
+                  {
+                    model: InspeksiCoatingResultPointPeriode,
+                    as: "inspeksi_coating_result_point_periode",
+                  },
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                ],
+              },
+              {
+                model: InspeksiCoatingSubPeriode,
+                as: "inspeksi_coating_sub_periode",
+              },
+              {
+                model: InspeksiCoatingResultAwal,
+                as: "inspeksi_coating_result_awal",
+                include: {
+                  model: User,
+                  as: "inspektor",
+                },
               },
               {
                 model: InspeksiCoatingSubAwal,
@@ -125,10 +233,16 @@ const inspeksiCoatingController = {
               {
                 model: InspeksiCoatingResultPeriode,
                 as: "inspeksi_coating_result_periode",
-                include: {
-                  model: InspeksiCoatingResultPointPeriode,
-                  as: "inspeksi_coating_result_point_periode",
-                },
+                include: [
+                  {
+                    model: InspeksiCoatingResultPointPeriode,
+                    as: "inspeksi_coating_result_point_periode",
+                  },
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                ],
               },
               {
                 model: InspeksiCoatingSubPeriode,
@@ -137,6 +251,10 @@ const inspeksiCoatingController = {
               {
                 model: InspeksiCoatingResultAwal,
                 as: "inspeksi_coating_result_awal",
+                include: {
+                  model: User,
+                  as: "inspektor",
+                },
               },
               {
                 model: InspeksiCoatingSubAwal,

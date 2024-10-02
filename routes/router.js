@@ -14,6 +14,10 @@ router.use("/", require("./mtc/preventive/inspectionPm1Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm2Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm3Routes"));
 
+//master data
+router.use("/", require("./masterdata/masterBagianRoutes"));
+router.use("/", require("./masterdata/masterRoleRoutes"));
+
 //master data maintenance
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
 router.use("/", require("./masterdata/mtc/masterSparepartRoute"));
@@ -73,6 +77,7 @@ router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatRoutes"));
 router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatResultRoutes"));
 router.use("/", require("./qc/inspeksi/plate/inspeksiPraPlateRoutes"));
 router.use("/", require("./qc/inspeksi/plate/inspeksiKelengkapanPlateRoutes"));
+router.use("/", require("./qc/inspeksi/plate/inspeksiPrePressRoutes"));
 router.use(
   "/",
   require("./qc/inspeksi/incomingOutsourcing/incomingOutsourcingRoutes")

@@ -78,6 +78,14 @@ const InspeksiLipat = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    jumlah_periode: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    waktu_check: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
