@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../../config/database");
 const InspeksiCoating = require("../inspeksiCoatingModel");
+const Users = require("../../../../userModel");
 
 const InspeksiCoatingResultAwal = db.define(
   "cs_inspeksi_coating_result_awal",
@@ -14,9 +15,13 @@ const InspeksiCoatingResultAwal = db.define(
         key: "id",
       },
     },
-    inspector: {
-      type: DataTypes.STRING,
+    id_inspector: {
+      type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
     },
     waktu_mulai: {
       type: DataTypes.DATE,
@@ -84,6 +89,14 @@ InspeksiCoating.hasMany(InspeksiCoatingResultAwal, {
 InspeksiCoatingResultAwal.belongsTo(InspeksiCoating, {
   foreignKey: "id_inspeksi_coating",
   as: "inspeksi_coating",
+});
+
+Users.hasMany(InspeksiCoatingResultAwal, {
+  foreignKey: "id_inspector",
+});
+InspeksiCoatingResultAwal.belongsTo(Users, {
+  foreignKey: "id_inspector",
+  as: "inspektor",
 });
 
 module.exports = InspeksiCoatingResultAwal;

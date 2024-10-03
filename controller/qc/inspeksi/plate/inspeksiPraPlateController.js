@@ -1,3 +1,4 @@
+const InspeksiPrePress = require("../../../../model/qc/inspeksi/plate/inspeksiPrePressModel");
 const InspeksiPraPlate = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateModel");
 const InspeksiKelengkapanPlate = require("../../../../model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const InspeksiPraPlateResult = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
@@ -118,6 +119,7 @@ const inspeksiPraPlateController = {
         customer,
         mesin,
         keterangan,
+        total_warna,
       } = req.body;
 
       if (!status_jo)
@@ -147,45 +149,18 @@ const inspeksiPraPlateController = {
       //     { where: { id: data_exist[0].id } }
       //   );
       // }
-
-      if (status_jo == "REPEAT") {
-        await InspeksiKelengkapanPlate.create({
-          status_jo,
-          tanggal,
-          no_io,
-          no_jo,
-          nama_produk,
-          jam,
-          customer,
-          mesin,
-          keterangan,
-        });
-      } else {
-        const data = await InspeksiPraPlate.create({
-          status_jo,
-          tanggal,
-          no_io,
-          no_jo,
-          nama_produk,
-          jam,
-          customer,
-          mesin,
-          keterangan,
-        });
-
-        if (data) {
-          let array = [];
-
-          master_data_fix.forEach((value) => {
-            value.id_inspeksi_pra_plate = data.id;
-            array.push(value);
-          });
-
-          if (array.length == 5) {
-            await InspeksiPraPlateResult.bulkCreate(array);
-          }
-        }
-      }
+      await InspeksiPrePress.create({
+        status_jo,
+        tanggal,
+        no_io,
+        no_jo,
+        nama_produk,
+        jam,
+        customer,
+        mesin,
+        keterangan,
+        total_warna,
+      });
 
       res.status(200).json({ msg: "OK" });
     } catch (err) {

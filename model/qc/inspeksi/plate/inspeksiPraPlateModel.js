@@ -43,6 +43,10 @@ const InspeksiPraPlate = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    total_warna: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     customer: {
       type: DataTypes.STRING,
       allowNull: true,

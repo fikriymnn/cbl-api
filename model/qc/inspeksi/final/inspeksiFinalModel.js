@@ -62,6 +62,10 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_barcode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

@@ -61,6 +61,7 @@ const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResu
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
+const inspeksiPrePress = require("./model/qc/inspeksi/plate/inspeksiPrePressModel");
 const inspeksiPraPlate = require("./model/qc/inspeksi/plate/inspeksiPraPlateModel");
 const inspeksiKelengkapanPlate = require("./model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const inspeksiPraPlateResult = require("./model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
@@ -117,7 +118,6 @@ const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeM
 const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
-
 const msdepartment = require("./model/masterData/qc/department/masterDepartmentModel");
 
 const inspeksi_coating = require("./model/qc/inspeksi/coating/inspeksiCoatingModel");
@@ -146,6 +146,10 @@ const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
 const CapaTiket = require("./model/qc/capa/capaTiketmodel");
 const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
 
+const masterBagian = require("./model/masterData/masterBagian");
+const masterRole = require("./model/masterData/masterRoleModel");
+const masterAkses = require("./model/masterData/masterAksesModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -163,7 +167,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await incomingOutsourcing.sync({ alter: true });
+//   await masterAkses.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -13,7 +13,7 @@ const inspeksiCoatingPeriodeResultController = {
       const { id } = req.params;
       const timenow = new Date();
       await InspeksiCoatingResultPeriode.update(
-        { waktu_mulai: timenow, status: "on progress" },
+        { waktu_mulai: timenow, status: "on progress", inspector: req.user.id },
         { where: { id } }
       );
 

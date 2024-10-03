@@ -27,8 +27,8 @@ const inspeksiFinalController = {
           offset,
           where: obj,
           include: [
-            { model: InspeksiFinalSub, as: "id_inspeksi_sub" },
-            { model: InspeksiFinalPoint, as: "id_inspeksi_point" },
+            { model: InspeksiFinalSub, as: "inspeksi_final_sub" },
+            { model: InspeksiFinalPoint, as: "inspeksi_final_point" },
             { model: User, as: "data_inspector" },
           ],
         });
@@ -170,6 +170,7 @@ const inspeksiFinalController = {
         inspeksi_final_sub,
         status,
         catatan,
+        no_barcode,
         lama_pengerjaan,
       } = req.body;
       //parse bilanagn qty_packing
@@ -231,6 +232,7 @@ const inspeksiFinalController = {
           inspector: req.user.id,
           no_pallet,
           catatan,
+          no_barcode,
           no_packing,
           qty_packing: qty_packing,
           jumlah_packing: JumlahPacking,
