@@ -157,13 +157,11 @@ const inspeksiPondController = {
           where: { id_inspeksi_pond: id, hasil: "not ok" },
         });
 
-        return res
-          .status(200)
-          .json({
-            data: data,
-            history: checkInspeksiPond,
-            defect: pointDefect,
-          });
+        return res.status(200).json({
+          data: data,
+          history: checkInspeksiPond,
+          defect: pointDefect,
+        });
       } else {
         const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
@@ -194,12 +192,20 @@ const inspeksiPondController = {
     } = req.body;
 
     try {
+      const checkInspeksiIncoming = await InspeksiPond.findOne({
+        where: {
+          no_jo: no_jo,
+          status: "incoming",
+        },
+      });
+      if (checkInspeksiIncoming)
+        return res
+          .status(400)
+          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
       const checkInspeksipond = await InspeksiPond.findOne({
         where: {
           no_jo: no_jo,
-          status: {
-            [Op.ne]: "history",
-          },
+          status: "pending",
         },
       });
       if (checkInspeksipond) {

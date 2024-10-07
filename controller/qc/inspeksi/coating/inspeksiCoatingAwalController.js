@@ -361,12 +361,21 @@ const inspeksiCoatingController = {
       else if (!status_jo)
         return res.status(400).json({ msg: "Field status_jo kosong!" });
 
+      const checkInspeksiIncoming = await InspeksiCoating.findOne({
+        where: {
+          no_jo: no_jo,
+          status: "incoming",
+        },
+      });
+      if (checkInspeksiIncoming)
+        return res
+          .status(400)
+          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
+
       const checkInspeksiCoating = await InspeksiCoating.findOne({
         where: {
           no_jo: no_jo,
-          status: {
-            [Op.ne]: "history",
-          },
+          status: "pending",
         },
       });
 

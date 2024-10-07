@@ -593,9 +593,9 @@ const ProsessMtc = {
       const ticket = await Ticket.findByPk(_id);
 
       let status = "";
-      if (ticket.skor_mtc <= monitoring.minimal_skor) {
+      if (ticket.skor_mtc < monitoring.minimal_skor) {
         status = "temporary";
-      } else if (ticket.skor_mtc > monitoring.minimal_skor) {
+      } else if (ticket.skor_mtc >= monitoring.minimal_skor) {
         status = "monitoring";
       }
       await Ticket.update(
