@@ -253,42 +253,44 @@ const Pm3Controller = {
       for (let i = 0; i < masterMesin.length; i++) {
         const idMesin = masterMesin[i].id;
         const namaMesin = masterMesin[i].nama_mesin;
-        const ticket = await TicketPm3.create({
-          id_mesin: idMesin,
-          nama_mesin: namaMesin,
-          tgl: new Date(),
-        });
-        const masterPoint = await MasterPointPm3.findAll({
-          where: { id_mesin: idMesin },
-          include: [
-            {
-              model: MasterTaskPm3,
-            },
-          ],
-        });
-
-        for (let ii = 0; ii < masterPoint.length; ii++) {
-          const point = await PointPm3.create({
-            id_ticket: ticket.id,
-            inspection_point: masterPoint[ii].inspection_point,
-            category: masterPoint[ii].category,
+        if (namaMesin != "OPERASIONAL") {
+          const ticket = await TicketPm3.create({
+            id_mesin: idMesin,
+            nama_mesin: namaMesin,
             tgl: new Date(),
           });
+          const masterPoint = await MasterPointPm3.findAll({
+            where: { id_mesin: idMesin },
+            include: [
+              {
+                model: MasterTaskPm3,
+              },
+            ],
+          });
 
-          for (
-            let iii = 0;
-            iii < masterPoint[ii].ms_inspection_task_pm3s.length;
-            iii++
-          ) {
-            const task = await TaskPm3.create({
-              id_inspection_poin: point.id,
-              task: masterPoint[ii].ms_inspection_task_pm3s[iii].task,
-              acceptance_criteria:
-                masterPoint[ii].ms_inspection_task_pm3s[iii]
-                  .acceptance_criteria,
-              method: masterPoint[ii].ms_inspection_task_pm3s[iii].method,
-              tools: masterPoint[ii].ms_inspection_task_pm3s[iii].tools,
+          for (let ii = 0; ii < masterPoint.length; ii++) {
+            const point = await PointPm3.create({
+              id_ticket: ticket.id,
+              inspection_point: masterPoint[ii].inspection_point,
+              category: masterPoint[ii].category,
+              tgl: new Date(),
             });
+
+            for (
+              let iii = 0;
+              iii < masterPoint[ii].ms_inspection_task_pm3s.length;
+              iii++
+            ) {
+              const task = await TaskPm3.create({
+                id_inspection_poin: point.id,
+                task: masterPoint[ii].ms_inspection_task_pm3s[iii].task,
+                acceptance_criteria:
+                  masterPoint[ii].ms_inspection_task_pm3s[iii]
+                    .acceptance_criteria,
+                method: masterPoint[ii].ms_inspection_task_pm3s[iii].method,
+                tools: masterPoint[ii].ms_inspection_task_pm3s[iii].tools,
+              });
+            }
           }
         }
       }

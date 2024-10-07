@@ -204,12 +204,20 @@ const inspeksiCetakController = {
     } = req.body;
 
     try {
+      const checkInspeksiIncoming = await InspeksiCetak.findOne({
+        where: {
+          no_jo: no_jo,
+          status: "incoming",
+        },
+      });
+      if (checkInspeksiIncoming)
+        return res
+          .status(400)
+          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
       const checkInspeksiCetak = await InspeksiCetak.findOne({
         where: {
           no_jo: no_jo,
-          status: {
-            [Op.ne]: "history",
-          },
+          status: "pending",
         },
       });
       if (checkInspeksiCetak) {

@@ -19,6 +19,7 @@ const masterSparepartController = {
     try {
       if (page && limit) {
         const response = await masterSparepart.findAll({
+          order: [["kode", "ASC"]],
           limit,
           offset,
           where: obj,
@@ -30,6 +31,7 @@ const masterSparepartController = {
           .json({ data: response, total_page: Math.ceil(length_data / limit) });
       } else {
         const response = await masterSparepart.findAll({
+          order: [["kode", "ASC"]],
           where: obj,
           include: [{ model: masterMesin, as: "mesin" }],
         });
@@ -94,7 +96,6 @@ const masterSparepartController = {
         !kode ||
         !posisi_part ||
         !tgl_pasang ||
-        !tgl_rusak ||
         !sisa_umur
       )
         return res.status(404).json({ msg: "incomplete data!!" });

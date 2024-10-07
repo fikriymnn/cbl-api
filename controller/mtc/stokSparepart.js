@@ -32,7 +32,7 @@ const StokSparepartController = {
       if (page && limit) {
         const length_data = await StokSparepart.count({ where: obj });
         const response = await StokSparepart.findAll({
-          order: [["id", "DESC"]],
+          order: [["kode", "ASC"]],
           where: obj,
           include: [
             {
@@ -40,6 +40,7 @@ const StokSparepartController = {
               as: "mesin",
             },
           ],
+
           limit: parseInt(limit),
           offset: parseInt(offset),
         });
@@ -48,6 +49,7 @@ const StokSparepartController = {
           .json({ data: response, total_page: Math.ceil(length_data / limit) });
       } else {
         const response = await StokSparepart.findAll({
+          order: [["kode", "ASC"]],
           where: obj,
           include: [
             {
