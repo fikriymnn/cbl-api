@@ -367,60 +367,58 @@ const inspeksiCoatingController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiIncoming)
-        return res
-          .status(400)
-          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
-
-      const checkInspeksiCoating = await InspeksiCoating.findOne({
-        where: {
-          no_jo: no_jo,
-          status: "pending",
-        },
-      });
-
-      if (checkInspeksiCoating) {
-        await InspeksiCoating.update(
-          {
-            status: "history",
+      if (checkInspeksiIncoming) {
+        res.status(200).json({ msg: "OK" });
+      } else {
+        const checkInspeksiCoating = await InspeksiCoating.findOne({
+          where: {
+            no_jo: no_jo,
+            status: "pending",
           },
-          {
-            where: {
-              id: checkInspeksiCoating.id,
+        });
+
+        if (checkInspeksiCoating) {
+          await InspeksiCoating.update(
+            {
+              status: "history",
             },
-          }
-        );
-      }
+            {
+              where: {
+                id: checkInspeksiCoating.id,
+              },
+            }
+          );
+        }
 
-      const data = await InspeksiCoating.create({
-        tanggal,
-        jumlah,
-        jenis_kertas,
-        jenis_gramatur,
-        jam,
-        no_jo,
-        no_io,
-        jumlah_druk,
-        jumlah_pcs,
-        mata,
-        nama_produk,
-        customer,
-        shift,
-        mesin,
-        operator,
-        status_jo,
-        coating,
-      });
-      if (data?.id) {
-        await InspeksiCoatingResultAwal.create({
-          id_inspeksi_coating: data?.id,
+        const data = await InspeksiCoating.create({
+          tanggal,
+          jumlah,
+          jenis_kertas,
+          jenis_gramatur,
+          jam,
+          no_jo,
+          no_io,
+          jumlah_druk,
+          jumlah_pcs,
+          mata,
+          nama_produk,
+          customer,
+          shift,
+          mesin,
+          operator,
+          status_jo,
+          coating,
         });
-        await InspeksiCoatingSubAwal.create({
-          id_inspeksi_coating: data?.id,
-        });
+        if (data?.id) {
+          await InspeksiCoatingResultAwal.create({
+            id_inspeksi_coating: data?.id,
+          });
+          await InspeksiCoatingSubAwal.create({
+            id_inspeksi_coating: data?.id,
+          });
+        }
+        res.status(200).json({ data, msg: "OK" });
       }
-
-      return res.status(200).json({ data, msg: "OK" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
