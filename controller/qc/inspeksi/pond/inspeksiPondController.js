@@ -198,53 +198,53 @@ const inspeksiPondController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiIncoming)
-        return res
-          .status(400)
-          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
-      const checkInspeksipond = await InspeksiPond.findOne({
-        where: {
-          no_jo: no_jo,
-          status: "pending",
-        },
-      });
-      if (checkInspeksipond) {
-        await InspeksiPond.update(
-          {
-            status: "history",
+      if (checkInspeksiIncoming) {
+        res.status(200).json({ msg: "create Successful" });
+      } else {
+        const checkInspeksipond = await InspeksiPond.findOne({
+          where: {
+            no_jo: no_jo,
+            status: "pending",
           },
-          {
-            where: {
-              id: checkInspeksipond.id,
+        });
+        if (checkInspeksipond) {
+          await InspeksiPond.update(
+            {
+              status: "history",
             },
-          }
-        );
+            {
+              where: {
+                id: checkInspeksipond.id,
+              },
+            }
+          );
+        }
+        const inspeksiPond = await InspeksiPond.create({
+          tanggal,
+          no_jo,
+          no_io,
+          mesin,
+          operator,
+          shift,
+          jumlah_druk,
+          jumlah_pcs,
+          mata,
+          jenis_kertas,
+          jenis_gramatur,
+          ukuran_jadi,
+          nama_produk,
+          customer,
+        });
+
+        const inspeksiPondAwal = await InspeksiPondAwal.create({
+          id_inspeksi_pond: inspeksiPond.id,
+        });
+        const inspeksiPondAwalPoint = await InspeksiPondAwalPoint.create({
+          id_inspeksi_pond_awal: inspeksiPondAwal.id,
+        });
+
+        res.status(200).json({ msg: "create Successful" });
       }
-      const inspeksiPond = await InspeksiPond.create({
-        tanggal,
-        no_jo,
-        no_io,
-        mesin,
-        operator,
-        shift,
-        jumlah_druk,
-        jumlah_pcs,
-        mata,
-        jenis_kertas,
-        jenis_gramatur,
-        ukuran_jadi,
-        nama_produk,
-        customer,
-      });
-
-      const inspeksiPondAwal = await InspeksiPondAwal.create({
-        id_inspeksi_pond: inspeksiPond.id,
-      });
-      const inspeksiPondAwalPoint = await InspeksiPondAwalPoint.create({
-        id_inspeksi_pond_awal: inspeksiPondAwal.id,
-      });
-
-      res.status(200).json({ msg: "create Successful" });
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }

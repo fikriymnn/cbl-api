@@ -192,49 +192,49 @@ const inspeksiLemController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiIncoming)
-        return res
-          .status(400)
-          .json({ msg: "Tiket JO sudah ada, dan sedang di kerjakan!!" });
-      const checkInspeksiLem = await InspeksiLem.findOne({
-        where: {
-          no_jo: no_jo,
-          status: "pending",
-        },
-      });
-      if (checkInspeksiLem) {
-        await InspeksiLem.update(
-          {
-            status: "history",
+      if (checkInspeksiIncoming) {
+        res.status(200).json({ msg: "create Successful" });
+      } else {
+        const checkInspeksiLem = await InspeksiLem.findOne({
+          where: {
+            no_jo: no_jo,
+            status: "pending",
           },
-          {
-            where: {
-              id: checkInspeksiLem.id,
+        });
+        if (checkInspeksiLem) {
+          await InspeksiLem.update(
+            {
+              status: "history",
             },
-          }
-        );
+            {
+              where: {
+                id: checkInspeksiLem.id,
+              },
+            }
+          );
+        }
+        const inspeksiLem = await InspeksiLem.create({
+          tanggal,
+          no_jo,
+          no_io,
+          mesin,
+          operator,
+          shift,
+          jumlah,
+          jumlah_pcs,
+          nama_produk,
+          customer,
+        });
+
+        const inspeksiLemAwal = await InspeksiLemAwal.create({
+          id_inspeksi_lem: inspeksiLem.id,
+        });
+        const inspeksiLemAwalPoint = await InspeksiLemAwalPoint.create({
+          id_inspeksi_lem_awal: inspeksiLemAwal.id,
+        });
+
+        res.status(200).json({ msg: "create Successful" });
       }
-      const inspeksiLem = await InspeksiLem.create({
-        tanggal,
-        no_jo,
-        no_io,
-        mesin,
-        operator,
-        shift,
-        jumlah,
-        jumlah_pcs,
-        nama_produk,
-        customer,
-      });
-
-      const inspeksiLemAwal = await InspeksiLemAwal.create({
-        id_inspeksi_lem: inspeksiLem.id,
-      });
-      const inspeksiLemAwalPoint = await InspeksiLemAwalPoint.create({
-        id_inspeksi_lem_awal: inspeksiLemAwal.id,
-      });
-
-      res.status(200).json({ msg: "create Successful" });
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }
