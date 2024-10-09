@@ -131,49 +131,42 @@ const inspeksiLipatController = {
       if (!jam) return res.status(400).json({ msg: "Field jam kosong!" });
       if (!item) return res.status(400).json({ msg: "Field item kosong!" });
 
-      // const data_exist = await InspeksiLipat.findAll({
-      //   order: [["createdAt", "DESC"]],
-      //   limit: 1,
-      // });
-      // console.log(data_exist);
-      // if (
-      //   (data_exist || data_exist.length > 0) &&
-      //   mesin == data_exist[0].mesin
-      // ) {
-      //   await InspeksiLipat.update(
-      //     { status: "history" },
-      //     { where: { id: data_exist[0].id } }
-      //   );
-      // }
-
-      const data = await InspeksiLipat.create({
-        tanggal,
-        customer,
-        no_io,
-        no_jo,
-        mesin,
-        operator,
-        shift,
-        jam,
-        item,
+      const checkData = await InspeksiLipat.findOne({
+        where: { no_jo: no_jo },
       });
 
-      if (data) {
-        let array = [];
-        const inspeksiLipatPoint = await InspeksiLipatPoint.create({
-          id_inspeksi_lipat: data.id,
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        const data = await InspeksiLipat.create({
+          tanggal,
+          customer,
+          no_io,
+          no_jo,
+          mesin,
+          operator,
+          shift,
+          jam,
+          item,
         });
 
-        master_data_fix.forEach((value) => {
-          value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
-          array.push(value);
-        });
+        if (data) {
+          let array = [];
+          const inspeksiLipatPoint = await InspeksiLipatPoint.create({
+            id_inspeksi_lipat: data.id,
+          });
 
-        if (array.length == 5) {
-          await InspeksiLipatResult.bulkCreate(array);
+          master_data_fix.forEach((value) => {
+            value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
+            array.push(value);
+          });
+
+          if (array.length == 5) {
+            await InspeksiLipatResult.bulkCreate(array);
+          }
         }
+        res.status(200).json({ data, msg: "OK" });
       }
-      res.status(200).json({ data, msg: "OK" });
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }

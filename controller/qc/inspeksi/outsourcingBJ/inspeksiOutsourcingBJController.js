@@ -103,49 +103,59 @@ const inspeksiOutsourcingBJController = {
     const { tanggal, no_jo, no_io, quantity, jam, nama_produk, customer } =
       req.body;
     try {
-      const qtyFinal = parseInt(quantity);
-      const data = await InspeksiOutsourcingBJ.create({
-        tanggal,
-        no_jo,
-        no_io,
-        quantity,
-        jam,
-        nama_produk,
-        customer,
+      const checkData = await InspeksiOutsourcingBJ.findOne({
+        where: { no_jo: no_jo },
       });
 
-      const masterSubFinal = await InspeksiMasterSubFinal.findOne({
-        where: {
-          [Op.and]: [
-            { quantity_awal: { [Op.lte]: qtyFinal } },
-            { quantity_akhir: { [Op.gte]: qtyFinal } },
-          ],
-        },
-      });
-      const masterPointFinal = await InspeksiMasterOutsourcingBJFinal.findAll({
-        where: { status: "active" },
-      });
-      if (masterSubFinal) {
-        await InspeksiOutsourcingBJSub.create({
-          id_inspeksi_outsourcing_bj: data.id,
-          quantity_awal: masterSubFinal.quantity_awal,
-          quantity_akhir: masterSubFinal.quantity_akhir,
-          jumlah: masterSubFinal.jumlah,
-          kualitas_lulus: masterSubFinal.kualitas_lulus,
-          kualitas_tolak: masterSubFinal.kualitas_tolak,
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        const qtyFinal = parseInt(quantity);
+        const data = await InspeksiOutsourcingBJ.create({
+          tanggal,
+          no_jo,
+          no_io,
+          quantity,
+          jam,
+          nama_produk,
+          customer,
         });
-      }
 
-      for (let i = 0; i < masterPointFinal.length; i++) {
-        await InspeksiOutsourcingBJPoint.create({
-          id_inspeksi_outsourcing_bj: data.id,
-          point: masterPointFinal[i].point,
-          standar: masterPointFinal[i].standar,
-          cara_periksa: masterPointFinal[i].cara_periksa,
+        const masterSubFinal = await InspeksiMasterSubFinal.findOne({
+          where: {
+            [Op.and]: [
+              { quantity_awal: { [Op.lte]: qtyFinal } },
+              { quantity_akhir: { [Op.gte]: qtyFinal } },
+            ],
+          },
         });
-      }
+        const masterPointFinal = await InspeksiMasterOutsourcingBJFinal.findAll(
+          {
+            where: { status: "active" },
+          }
+        );
+        if (masterSubFinal) {
+          await InspeksiOutsourcingBJSub.create({
+            id_inspeksi_outsourcing_bj: data.id,
+            quantity_awal: masterSubFinal.quantity_awal,
+            quantity_akhir: masterSubFinal.quantity_akhir,
+            jumlah: masterSubFinal.jumlah,
+            kualitas_lulus: masterSubFinal.kualitas_lulus,
+            kualitas_tolak: masterSubFinal.kualitas_tolak,
+          });
+        }
 
-      res.status(200).json({ msg: "create Successful" });
+        for (let i = 0; i < masterPointFinal.length; i++) {
+          await InspeksiOutsourcingBJPoint.create({
+            id_inspeksi_outsourcing_bj: data.id,
+            point: masterPointFinal[i].point,
+            standar: masterPointFinal[i].standar,
+            cara_periksa: masterPointFinal[i].cara_periksa,
+          });
+        }
+
+        res.status(200).json({ msg: "create Successful" });
+      }
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }

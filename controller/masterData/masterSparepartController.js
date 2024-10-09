@@ -198,9 +198,9 @@ const masterSparepartController = {
 
       await masterSparepart.update(
         {
-          sisa_umur: Sequelize.literal(`sisa_umur - ${100}`),
+          sisa_umur: Sequelize.literal(`sisa_umur - ${jumlah}`),
         },
-        { where: {} }
+        { where: { id_mesin: mesin.id } }
       ),
         res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
     } catch (error) {

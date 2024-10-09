@@ -131,32 +131,40 @@ const IncomingOutsourcingController = {
       if (!customer)
         return res.status(400).json({ msg: "Field customer kosong!" });
 
-      const data = await IncomingOutsourcing.create({
-        tanggal,
-        no_io,
-        no_jo,
-        nama_produk,
-        jam,
-        customer,
-        jumlah_druk,
-        jumlah_pcs,
-        isi_mata,
+      const checkData = await IncomingOutsourcing.findOne({
+        where: { no_jo: no_jo },
       });
 
-      if (data) {
-        let array = [];
-
-        master_data_fix.forEach((value) => {
-          value.id_incoming_outsourcing = data.id;
-          array.push(value);
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        const data = await IncomingOutsourcing.create({
+          tanggal,
+          no_io,
+          no_jo,
+          nama_produk,
+          jam,
+          customer,
+          jumlah_druk,
+          jumlah_pcs,
+          isi_mata,
         });
 
-        if (array.length == 10) {
-          await IncomingOutsourcingResult.bulkCreate(array);
-        }
-      }
+        if (data) {
+          let array = [];
 
-      res.status(200).json({ msg: "OK" });
+          master_data_fix.forEach((value) => {
+            value.id_incoming_outsourcing = data.id;
+            array.push(value);
+          });
+
+          if (array.length == 10) {
+            await IncomingOutsourcingResult.bulkCreate(array);
+          }
+        }
+
+        res.status(200).json({ msg: "OK" });
+      }
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }

@@ -207,11 +207,11 @@ const inspeksiCetakController = {
       const checkInspeksiIncoming = await InspeksiCetak.findOne({
         where: {
           no_jo: no_jo,
-          status: "incoming",
+          status: { [Op.ne]: "pending" },
         },
       });
       if (checkInspeksiIncoming) {
-        res.status(200).json({ msg: "create Successful" });
+        res.status(200).json({ msg: "JO sudah ada" });
       } else {
         const checkInspeksiCetak = await InspeksiCetak.findOne({
           where: {

@@ -132,38 +132,44 @@ const inspeksiPotongController = {
       //   );
       // }
 
-      const data = await InspeksiPotong.create({
-        jenis_potong,
-        tanggal,
-        no_io,
-        no_jo,
-        mesin,
-        operator,
-        shift,
-        jam,
-        item,
-        merk,
+      const checkData = await InspeksiPotong.findOne({
+        where: { no_jo: no_jo },
       });
 
-      if (data) {
-        let array = [];
-        if (jenis_potong == "potong jadi") {
-          master_data_fix_jadi.forEach((value) => {
-            value.id_inspeksi_potong = data.id;
-            array.push(value);
-          });
-        } else {
-          master_data_fix.forEach((value) => {
-            value.id_inspeksi_potong = data.id;
-            array.push(value);
-          });
-        }
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        const data = await InspeksiPotong.create({
+          jenis_potong,
+          tanggal,
+          no_io,
+          no_jo,
+          mesin,
+          operator,
+          shift,
+          jam,
+          item,
+          merk,
+        });
 
-        if (array.length == 4) {
+        if (data) {
+          let array = [];
+          if (jenis_potong == "potong jadi") {
+            master_data_fix_jadi.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
+          } else {
+            master_data_fix.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
+          }
+
           await InspeksiPotongResult.bulkCreate(array);
         }
+        res.status(200).json({ data, msg: "OK" });
       }
-      res.status(200).json({ data, msg: "OK" });
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }
@@ -234,6 +240,18 @@ const inspeksiPotongController = {
       });
 
       for (let i = 0; i < hasil_check.length; i++) {
+        const sample1 = hasil_check[i].sample_1;
+        const sample2 = hasil_check[i].sample_2;
+        const sample3 = hasil_check[i].sample_3;
+
+        let hasilSample1 = 0;
+        let hasilSample2 = 0;
+        let hasilSample3 = 0;
+        if (sample1) {
+          hasilSample1 = (sample1 / 100) * 10000;
+          hasilSample2 = (sample2 / 100) * 10000;
+          hasilSample3 = (sample3 / 100) * 10000;
+        }
         await InspeksiPotongResult.update(
           {
             hasil_check: hasil_check[i].hasil_check,
@@ -241,6 +259,12 @@ const inspeksiPotongController = {
             standar: hasil_check[i].standar,
             hasil_panjang: hasil_check[i].hasil_panjang,
             hasil_lebar: hasil_check[i].hasil_lebar,
+            sample_1: hasil_check[i].sample_1,
+            sample_2: hasil_check[i].sample_2,
+            sample_3: hasil_check[i].sample_3,
+            hasil_sample_1: hasilSample1,
+            hasil_sample_2: hasilSample2,
+            hasil_sample_3: hasilSample3,
             send: true,
           },
           {
@@ -272,6 +296,10 @@ const master_data_fix = [
     no: 4,
     point_check: "Arah Serat",
     standar: "Mounting di BOM",
+  },
+  {
+    no: 5,
+    point_check: "Hasil Timbang (10 X 10 cm)",
   },
 ];
 const master_data_fix_jadi = [
