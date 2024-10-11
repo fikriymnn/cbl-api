@@ -9,6 +9,9 @@ router.use("/", require("./ticketOs3Routes"));
 //dashboard mtc
 router.use("/", require("./mtc/DashboardMtc"));
 
+//report mtc
+router.use("/", require("./mtc/reportMtc"));
+
 //pm
 router.use("/", require("./mtc/preventive/inspectionPm1Routes"));
 router.use("/", require("./mtc/preventive/inspentionPm2Routes"));
