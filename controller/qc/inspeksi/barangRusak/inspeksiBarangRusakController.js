@@ -99,6 +99,7 @@ const inspeksiBarangRusakController = {
       tanggal,
       no_jo,
       no_io,
+      status_jo,
       operator,
       nama_produk,
       customer,
@@ -120,6 +121,7 @@ const inspeksiBarangRusakController = {
           nama_produk,
           customer,
           qty_rusak,
+          status_jo,
         });
 
         //   const masterBarangRusakDefect = await MasterBarangRusakDefect.findAll({

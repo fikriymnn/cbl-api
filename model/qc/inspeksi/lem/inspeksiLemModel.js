@@ -54,6 +54,10 @@ const InspeksiLem = db.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

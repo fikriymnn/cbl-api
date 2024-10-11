@@ -183,6 +183,7 @@ const inspeksiLemController = {
       jumlah_pcs,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
@@ -224,6 +225,7 @@ const inspeksiLemController = {
           jumlah_pcs,
           nama_produk,
           customer,
+          status_jo,
         });
 
         const inspeksiLemAwal = await InspeksiLemAwal.create({

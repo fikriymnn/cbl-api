@@ -145,6 +145,7 @@ const inspeksiRabutController = {
       shift,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
@@ -166,6 +167,7 @@ const inspeksiRabutController = {
           shift,
           nama_produk,
           customer,
+          status_jo,
         });
 
         // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({

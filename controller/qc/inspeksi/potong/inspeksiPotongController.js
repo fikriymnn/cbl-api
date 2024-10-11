@@ -102,6 +102,7 @@ const inspeksiPotongController = {
         item,
         mesin,
         merk,
+        status_jo,
       } = req.body;
 
       if (!jenis_potong)
@@ -150,6 +151,7 @@ const inspeksiPotongController = {
           jam,
           item,
           merk,
+          status_jo,
         });
 
         if (data) {

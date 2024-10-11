@@ -100,8 +100,16 @@ const inspeksiOutsourcingBJController = {
   },
 
   createInspeksiOutsourcingBJ: async (req, res) => {
-    const { tanggal, no_jo, no_io, quantity, jam, nama_produk, customer } =
-      req.body;
+    const {
+      tanggal,
+      no_jo,
+      no_io,
+      quantity,
+      jam,
+      nama_produk,
+      customer,
+      status_jo,
+    } = req.body;
     try {
       const checkData = await InspeksiOutsourcingBJ.findOne({
         where: { no_jo: no_jo },
@@ -119,6 +127,7 @@ const inspeksiOutsourcingBJController = {
           jam,
           nama_produk,
           customer,
+          status_jo,
         });
 
         const masterSubFinal = await InspeksiMasterSubFinal.findOne({

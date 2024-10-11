@@ -116,6 +116,7 @@ const inspeksiLipatController = {
         jam,
         item,
         mesin,
+        status_jo,
       } = req.body;
 
       if (!tanggal)
@@ -143,6 +144,7 @@ const inspeksiLipatController = {
           customer,
           no_io,
           no_jo,
+          status_jo,
           mesin,
           operator,
           shift,
@@ -218,7 +220,7 @@ const inspeksiLipatController = {
 
   stopLipatPoint: async (req, res) => {
     const _id = req.params.id;
-    const { hasil_check, lama_pengerjaan } = req.body;
+    const { hasil_check, lama_pengerjaan, qty } = req.body;
 
     try {
       for (let i = 0; i < hasil_check.length; i++) {
@@ -232,6 +234,7 @@ const inspeksiLipatController = {
         {
           status: "done",
           lama_pengerjaan: lama_pengerjaan,
+          qty: qty,
           waktu_selesai: new Date(),
         },
         { where: { id: _id } }

@@ -22,6 +22,7 @@ const mspointm1 = require("./model/masterData/mtc/preventive/pm1/inspenctionPoin
 const mskpi = require("./model/masterData/mtc/kpi/masterKpiModel");
 const kpiActual = require("./model/mtc/kpi/kpiActual");
 const kpiTicket = require("./model/mtc/kpi/kpiTicket");
+const KurangUmur = require("./model/mtc/kurangUmurMesinModel");
 
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
@@ -167,7 +168,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiPotongResult.sync({ alter: true });
+//   await inspeksiLipatPoint.sync({ alter: true });
 // })();
 
 // const ip100 = 75

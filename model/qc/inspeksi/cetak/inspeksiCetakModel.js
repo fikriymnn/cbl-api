@@ -6,7 +6,7 @@ const InspeksiPotong = db.define(
   "cs_inspeksi_cetak",
   {
     tanggal: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     no_jo: {
@@ -68,6 +68,10 @@ const InspeksiPotong = db.define(
     jumlah_pending: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,

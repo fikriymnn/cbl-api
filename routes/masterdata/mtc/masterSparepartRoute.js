@@ -14,6 +14,6 @@ router.get("/master/sparepart/:id", getMasterSparepartById);
 router.post("/master/sparepart", auth, createMasterSparepart);
 router.put("/master/sparepart/:id", auth, updateMasterSparepart);
 router.delete("/master/sparepart/:id", auth, deleteMasterSparepart);
-router.put("/master/sparepartKurangUmur", auth, kurangUmurMasterSparepart);
+router.put("/master/sparepartKurangUmur", kurangUmurMasterSparepart);
 
 module.exports = router;

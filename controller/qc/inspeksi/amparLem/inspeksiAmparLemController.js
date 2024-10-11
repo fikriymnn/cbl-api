@@ -149,6 +149,7 @@ const inspeksiAmparLemController = {
       shift,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
@@ -173,6 +174,7 @@ const inspeksiAmparLemController = {
           shift,
           nama_produk,
           customer,
+          status_jo,
         });
 
         // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({

@@ -201,6 +201,7 @@ const inspeksiCetakController = {
       warna_belakang,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
@@ -247,6 +248,7 @@ const inspeksiCetakController = {
           warna_belakang,
           nama_produk,
           customer,
+          status_jo,
         });
 
         const inspeksiCetakAwal = await InspeksiCetakAwal.create({

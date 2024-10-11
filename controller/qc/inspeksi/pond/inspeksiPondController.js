@@ -189,6 +189,7 @@ const inspeksiPondController = {
       ukuran_jadi,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
@@ -234,6 +235,7 @@ const inspeksiPondController = {
           ukuran_jadi,
           nama_produk,
           customer,
+          status_jo,
         });
 
         const inspeksiPondAwal = await InspeksiPondAwal.create({
