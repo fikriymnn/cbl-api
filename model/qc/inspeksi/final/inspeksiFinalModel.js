@@ -66,6 +66,10 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

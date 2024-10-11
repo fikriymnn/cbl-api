@@ -135,34 +135,27 @@ const inspeksiPraPlateController = {
       if (!customer)
         return res.status(400).json({ msg: "Field customer kosong!" });
 
-      // const data_exist = await InspeksiPraPlate.findAll({
-      //   order: [["createdAt", "DESC"]],
-      //   limit: 1,
-      // });
-      // console.log(data_exist);
-      // if (
-      //   (data_exist || data_exist.length > 0) &&
-      //   mesin == data_exist[0].mesin
-      // ) {
-      //   await InspeksiPraPlate.update(
-      //     { status: "history" },
-      //     { where: { id: data_exist[0].id } }
-      //   );
-      // }
-      await InspeksiPrePress.create({
-        status_jo,
-        tanggal,
-        no_io,
-        no_jo,
-        nama_produk,
-        jam,
-        customer,
-        mesin,
-        keterangan,
-        total_warna,
+      const checkData = await InspeksiPrePress.findOne({
+        where: { no_jo: no_jo },
       });
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        await InspeksiPrePress.create({
+          status_jo,
+          tanggal,
+          no_io,
+          no_jo,
+          nama_produk,
+          jam,
+          customer,
+          mesin,
+          keterangan,
+          total_warna,
+        });
 
-      res.status(200).json({ msg: "OK" });
+        res.status(200).json({ msg: "OK" });
+      }
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }

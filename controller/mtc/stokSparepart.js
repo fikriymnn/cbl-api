@@ -98,7 +98,7 @@ const StokSparepartController = {
         kode,
         nama_sparepart,
         id_mesin,
-        stok: 0,
+        stok: !stok ? 0 : stok,
         part_number,
         lokasi,
         limit_stok,

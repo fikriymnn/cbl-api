@@ -364,11 +364,11 @@ const inspeksiCoatingController = {
       const checkInspeksiIncoming = await InspeksiCoating.findOne({
         where: {
           no_jo: no_jo,
-          status: "incoming",
+          status: { [Op.ne]: "pending" },
         },
       });
       if (checkInspeksiIncoming) {
-        res.status(200).json({ msg: "OK" });
+        res.status(200).json({ msg: "JO sudah ada" });
       } else {
         const checkInspeksiCoating = await InspeksiCoating.findOne({
           where: {

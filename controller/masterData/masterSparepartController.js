@@ -2,6 +2,7 @@ const { Op, Sequelize } = require("sequelize");
 const masterSparepart = require("../../model/masterData/masterSparepart");
 const masterMesin = require("../../model/masterData/masterMesinModel");
 const SparepartProblem = require("../../model/mtc/sparepartProblem");
+const KurangUmur = require("../../model/mtc/kurangUmurMesinModel");
 
 const masterSparepartController = {
   getMasterSparepart: async (req, res) => {
@@ -74,6 +75,7 @@ const masterSparepartController = {
       jenis_part,
       peruntukan,
     } = req.body;
+    console.log(req.body);
     if (jenis_part == "ganti") {
       if (
         !id_mesin ||
@@ -81,23 +83,14 @@ const masterSparepartController = {
         !kode ||
         !posisi_part ||
         !tgl_pasang ||
-        !tgl_rusak ||
         !umur_a ||
         !umur_grade ||
         !grade_2 ||
-        !actual_umur ||
-        !sisa_umur
+        !actual_umur
       )
         return res.status(404).json({ msg: "incomplete data!!" });
     } else {
-      if (
-        !id_mesin ||
-        !nama_sparepart ||
-        !kode ||
-        !posisi_part ||
-        !tgl_pasang ||
-        !sisa_umur
-      )
+      if (!id_mesin || !nama_sparepart || !kode || !posisi_part || !tgl_pasang)
         return res.status(404).json({ msg: "incomplete data!!" });
     }
 
@@ -110,7 +103,7 @@ const masterSparepartController = {
           nama_sparepart,
           posisi_part,
           tgl_pasang,
-          tgl_rusak,
+          tgl_rusak: !tgl_rusak ? null : tgl_rusak,
           jenis_part,
           umur_a,
           umur_grade,
@@ -129,7 +122,7 @@ const masterSparepartController = {
           nama_sparepart,
           posisi_part,
           tgl_pasang,
-          tgl_rusak,
+          tgl_rusak: !tgl_rusak ? null : tgl_rusak,
           jenis_part,
           umur_service: sisa_umur,
           keterangan,
@@ -196,13 +189,22 @@ const masterSparepartController = {
         where: { nama_mesin: nama_mesin },
       });
 
-      await masterSparepart.update(
-        {
-          sisa_umur: Sequelize.literal(`sisa_umur - ${100}`),
-        },
-        { where: {} }
-      ),
-        res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
+      if (!mesin) {
+        res.status(200).json({ msg: "Mesin Tidak ditemukan" });
+      } else {
+        await KurangUmur.create({
+          id_mesin: mesin.id,
+          jumlah_dikurangi: jumlah,
+        });
+
+        await masterSparepart.update(
+          {
+            sisa_umur: Sequelize.literal(`sisa_umur - ${jumlah}`),
+          },
+          { where: { id_mesin: mesin.id } }
+        ),
+          res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
+      }
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

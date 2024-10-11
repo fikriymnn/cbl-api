@@ -34,6 +34,10 @@ const InspeksiLipatPoint = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    qty: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

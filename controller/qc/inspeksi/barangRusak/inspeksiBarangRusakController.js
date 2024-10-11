@@ -99,6 +99,7 @@ const inspeksiBarangRusakController = {
       tanggal,
       no_jo,
       no_io,
+      status_jo,
       operator,
       nama_produk,
       customer,
@@ -106,32 +107,39 @@ const inspeksiBarangRusakController = {
     } = req.body;
 
     try {
-      const inspeksiBarangRusak = await InspeksiBarangRusak.create({
-        tanggal: new Date(),
-        no_jo,
-        no_io,
-        operator,
-        nama_produk,
-        customer,
-
-        qty_rusak,
+      const checkData = await InspeksiBarangRusak.findOne({
+        where: { no_jo: no_jo },
       });
+      if (checkData) {
+        res.status(200).json({ msg: "JO sudah ada" });
+      } else {
+        const inspeksiBarangRusak = await InspeksiBarangRusak.create({
+          tanggal: new Date(),
+          no_jo,
+          no_io,
+          operator,
+          nama_produk,
+          customer,
+          qty_rusak,
+          status_jo,
+        });
 
-      //   const masterBarangRusakDefect = await MasterBarangRusakDefect.findAll({
-      //     where: { status: "aktif" },
-      //   });
+        //   const masterBarangRusakDefect = await MasterBarangRusakDefect.findAll({
+        //     where: { status: "aktif" },
+        //   });
 
-      //   for (let index = 0; index < masterBarangRusakDefect.length; index++) {
-      //     const dataMaster = masterBarangRusakDefect[index];
-      //     await InspeksiBarangRusakDefect.create({
-      //       id_inspeksi_barang_rusak: inspeksiBarangRusak.id,
-      //       kode: dataMaster.kode,
-      //       masalah: dataMaster.masalah,
-      //       asal_temuan: dataMaster.asal_temuan,
-      //     });
-      //   }
+        //   for (let index = 0; index < masterBarangRusakDefect.length; index++) {
+        //     const dataMaster = masterBarangRusakDefect[index];
+        //     await InspeksiBarangRusakDefect.create({
+        //       id_inspeksi_barang_rusak: inspeksiBarangRusak.id,
+        //       kode: dataMaster.kode,
+        //       masalah: dataMaster.masalah,
+        //       asal_temuan: dataMaster.asal_temuan,
+        //     });
+        //   }
 
-      res.status(200).json({ msg: "create Successful" });
+        res.status(200).json({ msg: "create Successful" });
+      }
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }

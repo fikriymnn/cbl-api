@@ -183,17 +183,18 @@ const inspeksiLemController = {
       jumlah_pcs,
       nama_produk,
       customer,
+      status_jo,
     } = req.body;
 
     try {
       const checkInspeksiIncoming = await InspeksiLem.findOne({
         where: {
           no_jo: no_jo,
-          status: "incoming",
+          status: { [Op.ne]: "pending" },
         },
       });
       if (checkInspeksiIncoming) {
-        res.status(200).json({ msg: "create Successful" });
+        res.status(200).json({ msg: "JO sudah ada" });
       } else {
         const checkInspeksiLem = await InspeksiLem.findOne({
           where: {
@@ -224,6 +225,7 @@ const inspeksiLemController = {
           jumlah_pcs,
           nama_produk,
           customer,
+          status_jo,
         });
 
         const inspeksiLemAwal = await InspeksiLemAwal.create({
