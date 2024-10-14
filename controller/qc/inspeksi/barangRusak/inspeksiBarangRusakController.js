@@ -108,10 +108,14 @@ const inspeksiBarangRusakController = {
 
     try {
       const checkData = await InspeksiBarangRusak.findOne({
-        where: { no_jo: no_jo },
+        where: { no_jo: no_jo, status: "incoming" },
       });
       if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({
+            msg: "JO sedang di proses oleh QC pada proses Sorting barang RS",
+          });
       } else {
         const inspeksiBarangRusak = await InspeksiBarangRusak.create({
           tanggal: new Date(),

@@ -133,11 +133,13 @@ const inspeksiLipatController = {
       if (!item) return res.status(400).json({ msg: "Field item kosong!" });
 
       const checkData = await InspeksiLipat.findOne({
-        where: { no_jo: no_jo },
+        where: { no_jo: no_jo, status: "incoming" },
       });
 
       if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({ msg: "JO sedang di proses oleh QC pada proses Lipat" });
       } else {
         const data = await InspeksiLipat.create({
           tanggal,
