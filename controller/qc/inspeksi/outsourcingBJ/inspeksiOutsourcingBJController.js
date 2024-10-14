@@ -116,7 +116,11 @@ const inspeksiOutsourcingBJController = {
       });
 
       if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({
+            msg: "JO sedang di proses oleh QC pada Outsourcing Barang Jadi",
+          });
       } else {
         const qtyFinal = parseInt(quantity);
         const data = await InspeksiOutsourcingBJ.create({

@@ -190,11 +190,13 @@ const inspeksiLemController = {
       const checkInspeksiIncoming = await InspeksiLem.findOne({
         where: {
           no_jo: no_jo,
-          status: { [Op.ne]: "pending" },
+          status: "incoming",
         },
       });
       if (checkInspeksiIncoming) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({ msg: "JO sedang di proses oleh QC pada proses Lem" });
       } else {
         const checkInspeksiLem = await InspeksiLem.findOne({
           where: {

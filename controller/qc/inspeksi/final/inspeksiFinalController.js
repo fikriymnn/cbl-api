@@ -106,10 +106,14 @@ const inspeksiFinalController = {
     } = req.body;
     try {
       const checkdata = await InspeksiFinal.findOne({
-        where: { no_jo: no_jo },
+        where: { no_jo: no_jo, status: "incoming" },
       });
       if (checkdata) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({
+            msg: "JO sedang di proses oleh QC pada proses Final Inspection",
+          });
       } else {
         const qtyFinal = parseInt(quantity);
         const data = await InspeksiFinal.create({

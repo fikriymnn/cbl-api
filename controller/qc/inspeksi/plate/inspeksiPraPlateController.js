@@ -136,10 +136,12 @@ const inspeksiPraPlateController = {
         return res.status(400).json({ msg: "Field customer kosong!" });
 
       const checkData = await InspeksiPrePress.findOne({
-        where: { no_jo: no_jo },
+        where: { no_jo: no_jo, status: "incoming" },
       });
       if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({ msg: "JO sedang di proses oleh QC pada pre Press" });
       } else {
         await InspeksiPrePress.create({
           status_jo,

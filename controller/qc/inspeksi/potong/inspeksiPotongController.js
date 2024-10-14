@@ -133,44 +133,98 @@ const inspeksiPotongController = {
       //   );
       // }
 
-      const checkData = await InspeksiPotong.findOne({
-        where: { no_jo: no_jo },
-      });
-
-      if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
-      } else {
-        const data = await InspeksiPotong.create({
-          jenis_potong,
-          tanggal,
-          no_io,
-          no_jo,
-          mesin,
-          operator,
-          shift,
-          jam,
-          item,
-          merk,
-          status_jo,
+      if (jenis_potong == "potong jadi") {
+        const checkDataJadi = await InspeksiPotong.findOne({
+          where: {
+            no_jo: no_jo,
+            status: "incoming",
+            jenis_potong: "potong jadi",
+          },
         });
 
-        if (data) {
-          let array = [];
-          if (jenis_potong == "potong jadi") {
-            master_data_fix_jadi.forEach((value) => {
-              value.id_inspeksi_potong = data.id;
-              array.push(value);
-            });
-          } else {
-            master_data_fix.forEach((value) => {
-              value.id_inspeksi_potong = data.id;
-              array.push(value);
-            });
-          }
+        if (checkDataJadi) {
+          res.status(200).json({
+            msg: "JO sedang di proses oleh QC pada proses Potong Jadi",
+          });
+        } else {
+          const data = await InspeksiPotong.create({
+            jenis_potong,
+            tanggal,
+            no_io,
+            no_jo,
+            mesin,
+            operator,
+            shift,
+            jam,
+            item,
+            merk,
+            status_jo,
+          });
 
-          await InspeksiPotongResult.bulkCreate(array);
+          if (data) {
+            let array = [];
+            if (jenis_potong == "potong jadi") {
+              master_data_fix_jadi.forEach((value) => {
+                value.id_inspeksi_potong = data.id;
+                array.push(value);
+              });
+            } else {
+              master_data_fix.forEach((value) => {
+                value.id_inspeksi_potong = data.id;
+                array.push(value);
+              });
+            }
+
+            await InspeksiPotongResult.bulkCreate(array);
+          }
+          res.status(200).json({ data, msg: "OK" });
         }
-        res.status(200).json({ data, msg: "OK" });
+      } else {
+        const checkDataJadi = await InspeksiPotong.findOne({
+          where: {
+            no_jo: no_jo,
+            status: "incoming",
+            jenis_potong: "potong bahan",
+          },
+        });
+
+        if (checkDataJadi) {
+          res.status(200).json({
+            msg: "JO sedang di proses oleh QC pada proses Potong Bahan",
+          });
+        } else {
+          const data = await InspeksiPotong.create({
+            jenis_potong,
+            tanggal,
+            no_io,
+            no_jo,
+            mesin,
+            operator,
+            shift,
+            jam,
+            item,
+            merk,
+            status_jo,
+          });
+
+          if (data) {
+            let array = [];
+            if (jenis_potong == "potong jadi") {
+              master_data_fix_jadi.forEach((value) => {
+                value.id_inspeksi_potong = data.id;
+                array.push(value);
+              });
+            } else {
+              master_data_fix.forEach((value) => {
+                value.id_inspeksi_potong = data.id;
+                array.push(value);
+              });
+            }
+
+            await InspeksiPotongResult.bulkCreate(array);
+          }
+          res.status(200).json({ data, msg: "OK" });
+        }
       }
     } catch (err) {
       res.status(400).json({ msg: err.message });

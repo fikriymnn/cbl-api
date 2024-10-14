@@ -152,10 +152,13 @@ const inspeksiRabutController = {
       const checkInspeksiRabut = await InspeksiRabut.findOne({
         where: {
           no_jo: no_jo,
+          status: "incoming",
         },
       });
       if (checkInspeksiRabut) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res
+          .status(200)
+          .json({ msg: "JO sedang di proses oleh QC pada proses Rabut" });
       } else {
         const inspeksiRabut = await InspeksiRabut.create({
           tanggal,

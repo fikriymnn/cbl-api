@@ -132,11 +132,13 @@ const IncomingOutsourcingController = {
         return res.status(400).json({ msg: "Field customer kosong!" });
 
       const checkData = await IncomingOutsourcing.findOne({
-        where: { no_jo: no_jo },
+        where: { no_jo: no_jo, status: "incoming" },
       });
 
       if (checkData) {
-        res.status(200).json({ msg: "JO sudah ada" });
+        res.status(200).json({
+          msg: "JO sedang di proses oleh QC pada Incoming Outourcing",
+        });
       } else {
         const data = await IncomingOutsourcing.create({
           tanggal,
