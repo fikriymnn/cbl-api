@@ -79,6 +79,8 @@ const masterSparepartController = {
     } = req.body;
 
     const stokSparepart = await StokSparepart.findByPk(id_stok);
+    console.log(stokSparepart);
+    console.log(id_stok);
 
     if (!stokSparepart)
       return res.status(404).json({ msg: "Stok tidak ditemukan" });
@@ -122,7 +124,7 @@ const masterSparepartController = {
           umur_grade: UmurGrade,
           grade_2: stokSparepart.grade,
           actual_umur: actualUmur,
-          sisa_umur,
+          sisa_umur: actualUmur,
           keterangan,
           peruntukan,
         });
@@ -218,6 +220,21 @@ const masterSparepartController = {
         ),
           res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
       }
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  kurangUmurMasterSparepartPerhari: async (req, res) => {
+    const { nama_mesin, jumlah } = req.body;
+    try {
+      await masterSparepart.update(
+        {
+          sisa_umur: Sequelize.literal(`sisa_umur - ${365000}`),
+        },
+        { where: {} }
+      ),
+        res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
