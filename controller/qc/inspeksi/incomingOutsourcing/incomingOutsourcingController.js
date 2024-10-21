@@ -135,38 +135,64 @@ const IncomingOutsourcingController = {
         where: { no_jo: no_jo, status: "incoming" },
       });
 
-      if (checkData) {
-        res.status(200).json({
-          msg: "JO sedang di proses oleh QC pada Incoming Outourcing",
+      // if (checkData) {
+      //   res.status(200).json({
+      //     msg: "JO sedang di proses oleh QC pada Incoming Outourcing",
+      //   });
+      // } else {
+      //   const data = await IncomingOutsourcing.create({
+      //     tanggal,
+      //     no_io,
+      //     no_jo,
+      //     nama_produk,
+      //     jam,
+      //     customer,
+      //     jumlah_druk,
+      //     jumlah_pcs,
+      //     isi_mata,
+      //   });
+
+      //   if (data) {
+      //     let array = [];
+
+      //     master_data_fix.forEach((value) => {
+      //       value.id_incoming_outsourcing = data.id;
+      //       array.push(value);
+      //     });
+
+      //     if (array.length == 10) {
+      //       await IncomingOutsourcingResult.bulkCreate(array);
+      //     }
+      //   }
+
+      //   res.status(200).json({ msg: "OK" });
+      // }
+      const data = await IncomingOutsourcing.create({
+        tanggal,
+        no_io,
+        no_jo,
+        nama_produk,
+        jam,
+        customer,
+        jumlah_druk,
+        jumlah_pcs,
+        isi_mata,
+      });
+
+      if (data) {
+        let array = [];
+
+        master_data_fix.forEach((value) => {
+          value.id_incoming_outsourcing = data.id;
+          array.push(value);
         });
-      } else {
-        const data = await IncomingOutsourcing.create({
-          tanggal,
-          no_io,
-          no_jo,
-          nama_produk,
-          jam,
-          customer,
-          jumlah_druk,
-          jumlah_pcs,
-          isi_mata,
-        });
 
-        if (data) {
-          let array = [];
-
-          master_data_fix.forEach((value) => {
-            value.id_incoming_outsourcing = data.id;
-            array.push(value);
-          });
-
-          if (array.length == 10) {
-            await IncomingOutsourcingResult.bulkCreate(array);
-          }
+        if (array.length == 10) {
+          await IncomingOutsourcingResult.bulkCreate(array);
         }
-
-        res.status(200).json({ msg: "OK" });
       }
+
+      res.status(200).json({ msg: "OK" });
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }

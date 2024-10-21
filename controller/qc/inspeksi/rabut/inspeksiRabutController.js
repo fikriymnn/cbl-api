@@ -155,42 +155,72 @@ const inspeksiRabutController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiRabut) {
-        res
-          .status(200)
-          .json({ msg: "JO sedang di proses oleh QC pada proses Rabut" });
-      } else {
-        const inspeksiRabut = await InspeksiRabut.create({
-          tanggal,
-          no_jo,
-          no_io,
-          jumlah_pcs,
-          mesin,
-          operator,
-          shift,
-          nama_produk,
-          customer,
-          status_jo,
-        });
+      // if (checkInspeksiRabut) {
+      //   res
+      //     .status(200)
+      //     .json({ msg: "JO sedang di proses oleh QC pada proses Rabut" });
+      // } else {
+      //   const inspeksiRabut = await InspeksiRabut.create({
+      //     tanggal,
+      //     no_jo,
+      //     no_io,
+      //     jumlah_pcs,
+      //     mesin,
+      //     operator,
+      //     shift,
+      //     nama_produk,
+      //     customer,
+      //     status_jo,
+      //   });
 
-        // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
-        //   where: { status: "active" },
-        // });
+      //   // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
+      //   //   where: { status: "active" },
+      //   // });
 
-        const rabutPoint = await InspeksiRabutPoint.create({
-          id_inspeksi_rabut: inspeksiRabut.id,
-        });
-        // for (let i = 0; i < masterKodeRabut.length; i++) {
-        //   await InspeksiRabutDefect.create({
-        //     id_inspeksi_rabut_point: rabutPoint.id,
-        //     kode: masterKodeRabut[i].kode,
-        //     masalah: masterKodeRabut[i].masalah,
-        //     id_inspeksi_rabut: inspeksiRabut.id,
-        //   });
-        // }
+      //   const rabutPoint = await InspeksiRabutPoint.create({
+      //     id_inspeksi_rabut: inspeksiRabut.id,
+      //   });
+      //   // for (let i = 0; i < masterKodeRabut.length; i++) {
+      //   //   await InspeksiRabutDefect.create({
+      //   //     id_inspeksi_rabut_point: rabutPoint.id,
+      //   //     kode: masterKodeRabut[i].kode,
+      //   //     masalah: masterKodeRabut[i].masalah,
+      //   //     id_inspeksi_rabut: inspeksiRabut.id,
+      //   //   });
+      //   // }
 
-        res.status(200).json({ msg: "create Successful" });
-      }
+      //   res.status(200).json({ msg: "create Successful" });
+      // }
+      const inspeksiRabut = await InspeksiRabut.create({
+        tanggal,
+        no_jo,
+        no_io,
+        jumlah_pcs,
+        mesin,
+        operator,
+        shift,
+        nama_produk,
+        customer,
+        status_jo,
+      });
+
+      // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({
+      //   where: { status: "active" },
+      // });
+
+      const rabutPoint = await InspeksiRabutPoint.create({
+        id_inspeksi_rabut: inspeksiRabut.id,
+      });
+      // for (let i = 0; i < masterKodeRabut.length; i++) {
+      //   await InspeksiRabutDefect.create({
+      //     id_inspeksi_rabut_point: rabutPoint.id,
+      //     kode: masterKodeRabut[i].kode,
+      //     masalah: masterKodeRabut[i].masalah,
+      //     id_inspeksi_rabut: inspeksiRabut.id,
+      //   });
+      // }
+
+      res.status(200).json({ msg: "create Successful" });
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }

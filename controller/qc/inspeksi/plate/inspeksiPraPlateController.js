@@ -138,26 +138,41 @@ const inspeksiPraPlateController = {
       const checkData = await InspeksiPrePress.findOne({
         where: { no_jo: no_jo, status: "incoming" },
       });
-      if (checkData) {
-        res
-          .status(200)
-          .json({ msg: "JO sedang di proses oleh QC pada pre Press" });
-      } else {
-        await InspeksiPrePress.create({
-          status_jo,
-          tanggal,
-          no_io,
-          no_jo,
-          nama_produk,
-          jam,
-          customer,
-          mesin,
-          keterangan,
-          total_warna,
-        });
+      // if (checkData) {
+      //   res
+      //     .status(200)
+      //     .json({ msg: "JO sedang di proses oleh QC pada pre Press" });
+      // } else {
+      //   await InspeksiPrePress.create({
+      //     status_jo,
+      //     tanggal,
+      //     no_io,
+      //     no_jo,
+      //     nama_produk,
+      //     jam,
+      //     customer,
+      //     mesin,
+      //     keterangan,
+      //     total_warna,
+      //   });
 
-        res.status(200).json({ msg: "OK" });
-      }
+      //   res.status(200).json({ msg: "OK" });
+      // }
+
+      await InspeksiPrePress.create({
+        status_jo,
+        tanggal,
+        no_io,
+        no_jo,
+        nama_produk,
+        jam,
+        customer,
+        mesin,
+        keterangan,
+        total_warna,
+      });
+
+      res.status(200).json({ msg: "OK" });
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }

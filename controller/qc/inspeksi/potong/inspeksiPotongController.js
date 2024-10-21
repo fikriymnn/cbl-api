@@ -142,43 +142,75 @@ const inspeksiPotongController = {
           },
         });
 
-        if (checkDataJadi) {
-          res.status(200).json({
-            msg: "JO sedang di proses oleh QC pada proses Potong Jadi",
-          });
-        } else {
-          const data = await InspeksiPotong.create({
-            jenis_potong,
-            tanggal,
-            no_io,
-            no_jo,
-            mesin,
-            operator,
-            shift,
-            jam,
-            item,
-            merk,
-            status_jo,
-          });
+        // if (checkDataJadi) {
+        //   res.status(200).json({
+        //     msg: "JO sedang di proses oleh QC pada proses Potong Jadi",
+        //   });
+        // } else {
+        //   const data = await InspeksiPotong.create({
+        //     jenis_potong,
+        //     tanggal,
+        //     no_io,
+        //     no_jo,
+        //     mesin,
+        //     operator,
+        //     shift,
+        //     jam,
+        //     item,
+        //     merk,
+        //     status_jo,
+        //   });
 
-          if (data) {
-            let array = [];
-            if (jenis_potong == "potong jadi") {
-              master_data_fix_jadi.forEach((value) => {
-                value.id_inspeksi_potong = data.id;
-                array.push(value);
-              });
-            } else {
-              master_data_fix.forEach((value) => {
-                value.id_inspeksi_potong = data.id;
-                array.push(value);
-              });
-            }
+        //   if (data) {
+        //     let array = [];
+        //     if (jenis_potong == "potong jadi") {
+        //       master_data_fix_jadi.forEach((value) => {
+        //         value.id_inspeksi_potong = data.id;
+        //         array.push(value);
+        //       });
+        //     } else {
+        //       master_data_fix.forEach((value) => {
+        //         value.id_inspeksi_potong = data.id;
+        //         array.push(value);
+        //       });
+        //     }
 
-            await InspeksiPotongResult.bulkCreate(array);
+        //     await InspeksiPotongResult.bulkCreate(array);
+        //   }
+        //   res.status(200).json({ data, msg: "OK" });
+        // }
+
+        const data = await InspeksiPotong.create({
+          jenis_potong,
+          tanggal,
+          no_io,
+          no_jo,
+          mesin,
+          operator,
+          shift,
+          jam,
+          item,
+          merk,
+          status_jo,
+        });
+
+        if (data) {
+          let array = [];
+          if (jenis_potong == "potong jadi") {
+            master_data_fix_jadi.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
+          } else {
+            master_data_fix.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
           }
-          res.status(200).json({ data, msg: "OK" });
+
+          await InspeksiPotongResult.bulkCreate(array);
         }
+        res.status(200).json({ data, msg: "OK" });
       } else {
         const checkDataJadi = await InspeksiPotong.findOne({
           where: {
@@ -188,43 +220,75 @@ const inspeksiPotongController = {
           },
         });
 
-        if (checkDataJadi) {
-          res.status(200).json({
-            msg: "JO sedang di proses oleh QC pada proses Potong Bahan",
-          });
-        } else {
-          const data = await InspeksiPotong.create({
-            jenis_potong,
-            tanggal,
-            no_io,
-            no_jo,
-            mesin,
-            operator,
-            shift,
-            jam,
-            item,
-            merk,
-            status_jo,
-          });
+        // if (checkDataJadi) {
+        //   res.status(200).json({
+        //     msg: "JO sedang di proses oleh QC pada proses Potong Bahan",
+        //   });
+        // } else {
+        //   const data = await InspeksiPotong.create({
+        //     jenis_potong,
+        //     tanggal,
+        //     no_io,
+        //     no_jo,
+        //     mesin,
+        //     operator,
+        //     shift,
+        //     jam,
+        //     item,
+        //     merk,
+        //     status_jo,
+        //   });
 
-          if (data) {
-            let array = [];
-            if (jenis_potong == "potong jadi") {
-              master_data_fix_jadi.forEach((value) => {
-                value.id_inspeksi_potong = data.id;
-                array.push(value);
-              });
-            } else {
-              master_data_fix.forEach((value) => {
-                value.id_inspeksi_potong = data.id;
-                array.push(value);
-              });
-            }
+        //   if (data) {
+        //     let array = [];
+        //     if (jenis_potong == "potong jadi") {
+        //       master_data_fix_jadi.forEach((value) => {
+        //         value.id_inspeksi_potong = data.id;
+        //         array.push(value);
+        //       });
+        //     } else {
+        //       master_data_fix.forEach((value) => {
+        //         value.id_inspeksi_potong = data.id;
+        //         array.push(value);
+        //       });
+        //     }
 
-            await InspeksiPotongResult.bulkCreate(array);
+        //     await InspeksiPotongResult.bulkCreate(array);
+        //   }
+        //   res.status(200).json({ data, msg: "OK" });
+        // }
+
+        const data = await InspeksiPotong.create({
+          jenis_potong,
+          tanggal,
+          no_io,
+          no_jo,
+          mesin,
+          operator,
+          shift,
+          jam,
+          item,
+          merk,
+          status_jo,
+        });
+
+        if (data) {
+          let array = [];
+          if (jenis_potong == "potong jadi") {
+            master_data_fix_jadi.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
+          } else {
+            master_data_fix.forEach((value) => {
+              value.id_inspeksi_potong = data.id;
+              array.push(value);
+            });
           }
-          res.status(200).json({ data, msg: "OK" });
+
+          await InspeksiPotongResult.bulkCreate(array);
         }
+        res.status(200).json({ data, msg: "OK" });
       }
     } catch (err) {
       res.status(400).json({ msg: err.message });

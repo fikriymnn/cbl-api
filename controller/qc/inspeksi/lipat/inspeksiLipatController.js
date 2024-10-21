@@ -136,41 +136,70 @@ const inspeksiLipatController = {
         where: { no_jo: no_jo, status: "incoming" },
       });
 
-      if (checkData) {
-        res
-          .status(200)
-          .json({ msg: "JO sedang di proses oleh QC pada proses Lipat" });
-      } else {
-        const data = await InspeksiLipat.create({
-          tanggal,
-          customer,
-          no_io,
-          no_jo,
-          status_jo,
-          mesin,
-          operator,
-          shift,
-          jam,
-          item,
+      // if (checkData) {
+      //   res
+      //     .status(200)
+      //     .json({ msg: "JO sedang di proses oleh QC pada proses Lipat" });
+      // } else {
+      //   const data = await InspeksiLipat.create({
+      //     tanggal,
+      //     customer,
+      //     no_io,
+      //     no_jo,
+      //     status_jo,
+      //     mesin,
+      //     operator,
+      //     shift,
+      //     jam,
+      //     item,
+      //   });
+
+      //   if (data) {
+      //     let array = [];
+      //     const inspeksiLipatPoint = await InspeksiLipatPoint.create({
+      //       id_inspeksi_lipat: data.id,
+      //     });
+
+      //     master_data_fix.forEach((value) => {
+      //       value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
+      //       array.push(value);
+      //     });
+
+      //     if (array.length == 5) {
+      //       await InspeksiLipatResult.bulkCreate(array);
+      //     }
+      //   }
+      //   res.status(200).json({ data, msg: "OK" });
+      // }
+      const data = await InspeksiLipat.create({
+        tanggal,
+        customer,
+        no_io,
+        no_jo,
+        status_jo,
+        mesin,
+        operator,
+        shift,
+        jam,
+        item,
+      });
+
+      if (data) {
+        let array = [];
+        const inspeksiLipatPoint = await InspeksiLipatPoint.create({
+          id_inspeksi_lipat: data.id,
         });
 
-        if (data) {
-          let array = [];
-          const inspeksiLipatPoint = await InspeksiLipatPoint.create({
-            id_inspeksi_lipat: data.id,
-          });
+        master_data_fix.forEach((value) => {
+          value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
+          array.push(value);
+        });
 
-          master_data_fix.forEach((value) => {
-            value.id_inspeksi_lipat_point = inspeksiLipatPoint.id;
-            array.push(value);
-          });
-
-          if (array.length == 5) {
-            await InspeksiLipatResult.bulkCreate(array);
-          }
+        if (array.length == 5) {
+          await InspeksiLipatResult.bulkCreate(array);
         }
-        res.status(200).json({ data, msg: "OK" });
       }
+      res.status(200).json({ data, msg: "OK" });
     } catch (err) {
       res.status(400).json({ msg: err.message });
     }
