@@ -211,56 +211,100 @@ const inspeksiCetakController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiIncoming) {
-        res
-          .status(200)
-          .json({ msg: "JO sedang di proses oleh QC pada proses Cetak" });
-      } else {
-        const checkInspeksiCetak = await InspeksiCetak.findOne({
-          where: {
-            no_jo: no_jo,
-            status: "pending",
-          },
-        });
-        if (checkInspeksiCetak) {
-          await InspeksiCetak.update(
-            {
-              status: "history",
-            },
-            {
-              where: {
-                id: checkInspeksiCetak.id,
-              },
-            }
-          );
-        }
-        const inspeksicetak = await InspeksiCetak.create({
-          tanggal,
-          no_jo,
-          no_io,
-          mesin,
-          operator,
-          shift,
-          jumlah_druk,
-          jumlah_pcs,
-          mata,
-          jenis_kertas,
-          jenis_gramatur,
-          warna_depan,
-          warna_belakang,
-          nama_produk,
-          customer,
-          status_jo,
-        });
+      // if (checkInspeksiIncoming) {
+      //   res
+      //     .status(200)
+      //     .json({ msg: "JO sedang di proses oleh QC pada proses Cetak" });
+      // } else {
+      //   const checkInspeksiCetak = await InspeksiCetak.findOne({
+      //     where: {
+      //       no_jo: no_jo,
+      //       status: "pending",
+      //     },
+      //   });
+      //   if (checkInspeksiCetak) {
+      //     await InspeksiCetak.update(
+      //       {
+      //         status: "history",
+      //       },
+      //       {
+      //         where: {
+      //           id: checkInspeksiCetak.id,
+      //         },
+      //       }
+      //     );
+      //   }
+      //   const inspeksicetak = await InspeksiCetak.create({
+      //     tanggal,
+      //     no_jo,
+      //     no_io,
+      //     mesin,
+      //     operator,
+      //     shift,
+      //     jumlah_druk,
+      //     jumlah_pcs,
+      //     mata,
+      //     jenis_kertas,
+      //     jenis_gramatur,
+      //     warna_depan,
+      //     warna_belakang,
+      //     nama_produk,
+      //     customer,
+      //     status_jo,
+      //   });
 
-        const inspeksiCetakAwal = await InspeksiCetakAwal.create({
-          id_inspeksi_cetak: inspeksicetak.id,
-        });
-        const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.create({
-          id_inspeksi_cetak_awal: inspeksiCetakAwal.id,
-        });
-        res.status(200).json({ msg: "create Successful" });
+      //   const inspeksiCetakAwal = await InspeksiCetakAwal.create({
+      //     id_inspeksi_cetak: inspeksicetak.id,
+      //   });
+      //   const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.create({
+      //     id_inspeksi_cetak_awal: inspeksiCetakAwal.id,
+      //   });
+      //   res.status(200).json({ msg: "create Successful" });
+      // }
+      const checkInspeksiCetak = await InspeksiCetak.findOne({
+        where: {
+          no_jo: no_jo,
+          status: "pending",
+        },
+      });
+      if (checkInspeksiCetak) {
+        await InspeksiCetak.update(
+          {
+            status: "history",
+          },
+          {
+            where: {
+              id: checkInspeksiCetak.id,
+            },
+          }
+        );
       }
+      const inspeksicetak = await InspeksiCetak.create({
+        tanggal,
+        no_jo,
+        no_io,
+        mesin,
+        operator,
+        shift,
+        jumlah_druk,
+        jumlah_pcs,
+        mata,
+        jenis_kertas,
+        jenis_gramatur,
+        warna_depan,
+        warna_belakang,
+        nama_produk,
+        customer,
+        status_jo,
+      });
+
+      const inspeksiCetakAwal = await InspeksiCetakAwal.create({
+        id_inspeksi_cetak: inspeksicetak.id,
+      });
+      const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.create({
+        id_inspeksi_cetak_awal: inspeksiCetakAwal.id,
+      });
+      res.status(200).json({ msg: "create Successful" });
     } catch (error) {
       res.status(404).json({ msg: error.message });
     }

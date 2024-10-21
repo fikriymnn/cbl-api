@@ -3,6 +3,7 @@ const masterSparepart = require("../../model/masterData/masterSparepart");
 const masterMesin = require("../../model/masterData/masterMesinModel");
 const SparepartProblem = require("../../model/mtc/sparepartProblem");
 const KurangUmur = require("../../model/mtc/kurangUmurMesinModel");
+const StokSparepart = require("../../model/mtc/stokSparepart");
 
 const masterSparepartController = {
   getMasterSparepart: async (req, res) => {
@@ -60,6 +61,7 @@ const masterSparepartController = {
   createMasterSparepart: async (req, res) => {
     const {
       id_mesin,
+      id_stok,
       nama_mesin,
       kode,
       nama_sparepart,
@@ -75,51 +77,64 @@ const masterSparepartController = {
       jenis_part,
       peruntukan,
     } = req.body;
-    console.log(req.body);
+
+    const stokSparepart = await StokSparepart.findByPk(id_stok);
+    console.log(stokSparepart);
+    console.log(id_stok);
+
+    if (!stokSparepart)
+      return res.status(404).json({ msg: "Stok tidak ditemukan" });
     if (jenis_part == "ganti") {
-      if (
-        !id_mesin ||
-        !nama_sparepart ||
-        !kode ||
-        !posisi_part ||
-        !tgl_pasang ||
-        !umur_a ||
-        !umur_grade ||
-        !grade_2 ||
-        !actual_umur
-      )
+      if (!posisi_part || !tgl_pasang)
         return res.status(404).json({ msg: "incomplete data!!" });
     } else {
-      if (!id_mesin || !nama_sparepart || !kode || !posisi_part || !tgl_pasang)
+      if (!posisi_part || !tgl_pasang)
         return res.status(404).json({ msg: "incomplete data!!" });
     }
 
     try {
+      let UmurGrade = 0;
+      if (stokSparepart.grade == "A") {
+        UmurGrade = 100;
+      } else if (stokSparepart.grade == "B") {
+        UmurGrade = 80;
+      } else if (stokSparepart.grade == "C") {
+        UmurGrade = 60;
+      } else if (stokSparepart.grade == "D") {
+        UmurGrade = 40;
+      } else if (stokSparepart.grade == "E") {
+        UmurGrade = 20;
+      } else {
+        UmurGrade = 0;
+      }
+      const percent = UmurGrade / 100;
+      const actualUmur = stokSparepart.umur_sparepart * percent;
+      console.log(actualUmur, UmurGrade);
       if (jenis_part == "ganti") {
         const response = await masterSparepart.create({
-          id_mesin,
+          id_mesin: stokSparepart.id_mesin,
           nama_mesin,
-          kode,
-          nama_sparepart,
+          kode: stokSparepart.kode,
+          nama_sparepart: stokSparepart.nama_sparepart,
           posisi_part,
           tgl_pasang,
           tgl_rusak: !tgl_rusak ? null : tgl_rusak,
           jenis_part,
-          umur_a,
-          umur_grade,
-          grade_2,
-          actual_umur,
-          sisa_umur,
+          umur_a: stokSparepart.umur_sparepart,
+          umur_grade: UmurGrade,
+          grade_2: stokSparepart.grade,
+          actual_umur: actualUmur,
+          sisa_umur: actualUmur,
           keterangan,
           peruntukan,
         });
         res.status(200).json(response);
       } else {
         const response = await masterSparepart.create({
-          id_mesin,
+          id_mesin: stokSparepart.id_mesin,
           nama_mesin,
-          kode,
-          nama_sparepart,
+          kode: stokSparepart.kode,
+          nama_sparepart: stokSparepart.nama_sparepart,
           posisi_part,
           tgl_pasang,
           tgl_rusak: !tgl_rusak ? null : tgl_rusak,
@@ -205,6 +220,21 @@ const masterSparepartController = {
         ),
           res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
       }
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  kurangUmurMasterSparepartPerhari: async (req, res) => {
+    const { nama_mesin, jumlah } = req.body;
+    try {
+      await masterSparepart.update(
+        {
+          sisa_umur: Sequelize.literal(`sisa_umur - ${365000}`),
+        },
+        { where: {} }
+      ),
+        res.status(201).json({ msg: "Sparepart kurang umur Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

@@ -367,60 +367,108 @@ const inspeksiCoatingController = {
           status: "incoming",
         },
       });
-      if (checkInspeksiIncoming) {
-        res
-          .status(200)
-          .json({ msg: "JO sedang di proses oleh QC pada proses Coating" });
-      } else {
-        const checkInspeksiCoating = await InspeksiCoating.findOne({
-          where: {
-            no_jo: no_jo,
-            status: "pending",
+      // if (checkInspeksiIncoming) {
+      //   res
+      //     .status(200)
+      //     .json({ msg: "JO sedang di proses oleh QC pada proses Coating" });
+      // } else {
+      //   const checkInspeksiCoating = await InspeksiCoating.findOne({
+      //     where: {
+      //       no_jo: no_jo,
+      //       status: "pending",
+      //     },
+      //   });
+
+      //   if (checkInspeksiCoating) {
+      //     await InspeksiCoating.update(
+      //       {
+      //         status: "history",
+      //       },
+      //       {
+      //         where: {
+      //           id: checkInspeksiCoating.id,
+      //         },
+      //       }
+      //     );
+      //   }
+
+      //   const data = await InspeksiCoating.create({
+      //     tanggal,
+      //     jumlah,
+      //     jenis_kertas,
+      //     jenis_gramatur,
+      //     jam,
+      //     no_jo,
+      //     no_io,
+      //     jumlah_druk,
+      //     jumlah_pcs,
+      //     mata,
+      //     nama_produk,
+      //     customer,
+      //     shift,
+      //     mesin,
+      //     operator,
+      //     status_jo,
+      //     coating,
+      //   });
+      //   if (data?.id) {
+      //     await InspeksiCoatingResultAwal.create({
+      //       id_inspeksi_coating: data?.id,
+      //     });
+      //     await InspeksiCoatingSubAwal.create({
+      //       id_inspeksi_coating: data?.id,
+      //     });
+      //   }
+      //   res.status(200).json({ data, msg: "OK" });
+      // }
+      const checkInspeksiCoating = await InspeksiCoating.findOne({
+        where: {
+          no_jo: no_jo,
+          status: "pending",
+        },
+      });
+
+      if (checkInspeksiCoating) {
+        await InspeksiCoating.update(
+          {
+            status: "history",
           },
-        });
-
-        if (checkInspeksiCoating) {
-          await InspeksiCoating.update(
-            {
-              status: "history",
+          {
+            where: {
+              id: checkInspeksiCoating.id,
             },
-            {
-              where: {
-                id: checkInspeksiCoating.id,
-              },
-            }
-          );
-        }
-
-        const data = await InspeksiCoating.create({
-          tanggal,
-          jumlah,
-          jenis_kertas,
-          jenis_gramatur,
-          jam,
-          no_jo,
-          no_io,
-          jumlah_druk,
-          jumlah_pcs,
-          mata,
-          nama_produk,
-          customer,
-          shift,
-          mesin,
-          operator,
-          status_jo,
-          coating,
-        });
-        if (data?.id) {
-          await InspeksiCoatingResultAwal.create({
-            id_inspeksi_coating: data?.id,
-          });
-          await InspeksiCoatingSubAwal.create({
-            id_inspeksi_coating: data?.id,
-          });
-        }
-        res.status(200).json({ data, msg: "OK" });
+          }
+        );
       }
+
+      const data = await InspeksiCoating.create({
+        tanggal,
+        jumlah,
+        jenis_kertas,
+        jenis_gramatur,
+        jam,
+        no_jo,
+        no_io,
+        jumlah_druk,
+        jumlah_pcs,
+        mata,
+        nama_produk,
+        customer,
+        shift,
+        mesin,
+        operator,
+        status_jo,
+        coating,
+      });
+      if (data?.id) {
+        await InspeksiCoatingResultAwal.create({
+          id_inspeksi_coating: data?.id,
+        });
+        await InspeksiCoatingSubAwal.create({
+          id_inspeksi_coating: data?.id,
+        });
+      }
+      res.status(200).json({ data, msg: "OK" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
