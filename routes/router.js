@@ -145,6 +145,9 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));
 
+//HR
+router.use("/", require("./hr/absenRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;

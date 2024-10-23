@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
+const dbFinger = require("./config/databaseFinger");
 const tc = require("./model/maintenaceTicketModel");
 const tcos3 = require("./model/maintenanceTicketOs3Model");
 const user = require("./model/userModel");
