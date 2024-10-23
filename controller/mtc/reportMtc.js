@@ -221,6 +221,8 @@ const ReportMaintenance = {
         raw: true,
       });
 
+      //console.log(responTime);
+
       // Mengelompokkan data per mesin
       const groupedResults = responTime.reduce((acc, row) => {
         const mesin = row.mesin;
@@ -229,14 +231,16 @@ const ReportMaintenance = {
         if (!acc[mesin]) {
           acc[mesin] = {
             mesin: mesin,
-            data: [...defaultMonths], // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
+            data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
           };
         }
+        console.log([...defaultMonths]);
 
         // Temukan bulan yang sesuai dalam array default bulan
         const foundMonth = acc[mesin].data.find(
           (m) => m.month === row.month && m.year === row.year
         );
+
         if (foundMonth) {
           // Jika bulan ditemukan, update total
           foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;

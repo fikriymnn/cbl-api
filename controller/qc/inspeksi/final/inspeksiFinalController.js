@@ -5,6 +5,7 @@ const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksi
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
 const User = require("../../../../model/userModel");
 const { Op } = require("sequelize");
+const db = require("../../../../config/database");
 
 const axios = require("axios");
 const dotenv = require("dotenv");
@@ -104,6 +105,7 @@ const inspeksiFinalController = {
       customer,
       status_jo,
     } = req.body;
+    const t = await db.transaction();
     try {
       const checkdata = await InspeksiFinal.findOne({
         where: { no_jo: no_jo, status: "incoming" },
@@ -161,50 +163,72 @@ const inspeksiFinalController = {
       //   res.status(200).json({ msg: "create Successful" });
       // }
       const qtyFinal = parseInt(quantity);
-      const data = await InspeksiFinal.create({
-        tanggal,
-        no_jo,
-        no_io,
-        quantity,
-        jam,
-        nama_produk,
-        customer,
-        status_jo,
-      });
-
-      const masterSubFinal = await InspeksiMasterSubFinal.findOne({
-        where: {
-          [Op.and]: [
-            { quantity_awal: { [Op.lte]: qtyFinal } },
-            { quantity_akhir: { [Op.gte]: qtyFinal } },
-          ],
+      const data = await InspeksiFinal.create(
+        {
+          tanggal,
+          no_jo,
+          no_io,
+          quantity,
+          jam,
+          nama_produk,
+          customer,
+          status_jo,
         },
-      });
+        {
+          transaction: t,
+        }
+      );
+
+      const masterSubFinal = await InspeksiMasterSubFinal.findOne(
+        {
+          where: {
+            [Op.and]: [
+              { quantity_awal: { [Op.lte]: qtyFinal } },
+              { quantity_akhir: { [Op.gte]: qtyFinal } },
+            ],
+          },
+        },
+        {
+          transaction: t,
+        }
+      );
       const masterPointFinal = await InspeksiMasterPointFinal.findAll({
         where: { status: "active" },
       });
       if (masterSubFinal) {
-        await InspeksiFinalSub.create({
-          id_inspeksi_final: data.id,
-          quantity_awal: masterSubFinal.quantity_awal,
-          quantity_akhir: masterSubFinal.quantity_akhir,
-          jumlah: masterSubFinal.jumlah,
-          kualitas_lulus: masterSubFinal.kualitas_lulus,
-          kualitas_tolak: masterSubFinal.kualitas_tolak,
-        });
+        await InspeksiFinalSub.create(
+          {
+            id_inspeksi_final: data.id,
+            quantity_awal: masterSubFinal.quantity_awal,
+            quantity_akhir: masterSubFinal.quantity_akhir,
+            jumlah: masterSubFinal.jumlah,
+            kualitas_lulus: masterSubFinal.kualitas_lulus,
+            kualitas_tolak: masterSubFinal.kualitas_tolak,
+          },
+          {
+            transaction: t,
+          }
+        );
       }
 
       for (let i = 0; i < masterPointFinal.length; i++) {
-        await InspeksiFinalPoint.create({
-          id_inspeksi_final: data.id,
-          point: masterPointFinal[i].point,
-          standar: masterPointFinal[i].standar,
-          cara_periksa: masterPointFinal[i].cara_periksa,
-        });
+        await InspeksiFinalPoint.create(
+          {
+            id_inspeksi_final: data.id,
+            point: masterPointFinal[i].point,
+            standar: masterPointFinal[i].standar,
+            cara_periksa: masterPointFinal[i].cara_periksa,
+          },
+          {
+            transaction: t,
+          }
+        );
       }
 
+      await t.commit();
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
+      await t.rollback();
       res.status(404).json({ msg: error.message });
     }
   },
