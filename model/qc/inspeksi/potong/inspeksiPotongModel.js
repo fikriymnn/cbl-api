@@ -81,6 +81,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

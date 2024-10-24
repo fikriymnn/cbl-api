@@ -102,6 +102,7 @@ const inspeksiPotongController = {
         item,
         mesin,
         merk,
+        customer,
         status_jo,
       } = req.body;
 
@@ -191,6 +192,7 @@ const inspeksiPotongController = {
           jam,
           item,
           merk,
+          customer,
           status_jo,
         });
 
@@ -269,6 +271,7 @@ const inspeksiPotongController = {
           jam,
           item,
           merk,
+          customer,
           status_jo,
         });
 
