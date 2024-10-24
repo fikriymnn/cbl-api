@@ -152,6 +152,8 @@ const masterBagian = require("./model/masterData/masterBagian");
 const masterRole = require("./model/masterData/masterRoleModel");
 const masterAkses = require("./model/masterData/masterAksesModel");
 
+const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -169,7 +171,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await KurangUmur.sync({ alter: true });
+//   await inspeksiPotong.sync({ alter: true });
 // })();
 
 // const ip100 = 75
