@@ -13,10 +13,20 @@ const User = require("../../../../model/userModel");
 const inspeksiAmparLemController = {
   getInspeksiAmparLem: async (req, res) => {
     try {
-      const { status, tgl, mesin, page, limit } = req.query;
+      const { status, tgl, mesin, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
+
       if (page && limit && (status || tgl || mesin)) {
         if (status) obj.status = status;
         if (tgl) obj.tanggal = tgl;
@@ -30,6 +40,8 @@ const inspeksiAmparLemController = {
           where: obj,
         });
 
+        console.log(length);
+
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -39,8 +51,9 @@ const inspeksiAmparLemController = {
           order: [["createdAt", "DESC"]],
           offset,
           limit: parseInt(limit),
+          where: obj,
         });
-        const length = await InspeksiAmparLem.count();
+        const length = await InspeksiAmparLem.count({ where: obj });
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -130,6 +143,7 @@ const inspeksiAmparLemController = {
       } else {
         const data = await InspeksiAmparLem.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -150,6 +164,7 @@ const inspeksiAmparLemController = {
       nama_produk,
       customer,
       status_jo,
+      qty_jo,
     } = req.body;
 
     try {
@@ -206,6 +221,7 @@ const inspeksiAmparLemController = {
         nama_produk,
         customer,
         status_jo,
+        qty_jo,
       });
 
       // const masterKodeRabut = await MasterKodeMasalahRabut.findAll({

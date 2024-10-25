@@ -20,10 +20,19 @@ const IncomingOutsourcingController = {
 
   getIncomingOutsourcing: async (req, res) => {
     try {
-      const { status, no_jo, mesin, page, limit } = req.query;
+      const { status, no_jo, mesin, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || no_jo || mesin)) {
         if (status) obj.status = status;
         if (no_jo) obj.no_jo = no_jo;
@@ -117,6 +126,8 @@ const IncomingOutsourcingController = {
         customer,
         jumlah_druk,
         jumlah_pcs,
+        status_jo,
+        qty_jo,
       } = req.body;
 
       if (!tanggal)
@@ -177,6 +188,8 @@ const IncomingOutsourcingController = {
         jumlah_druk,
         jumlah_pcs,
         isi_mata,
+        status_jo,
+        qty_jo,
       });
 
       if (data) {

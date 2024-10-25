@@ -10,10 +10,19 @@ const User = require("../../../../model/userModel");
 const inspeksiPondController = {
   getInspeksiPond: async (req, res) => {
     try {
-      const { status, tgl, mesin, page, limit } = req.query;
+      const { status, tgl, mesin, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || tgl || mesin)) {
         if (status) obj.status = status;
         if (tgl) obj.tanggal = tgl;
@@ -190,6 +199,7 @@ const inspeksiPondController = {
       nama_produk,
       customer,
       status_jo,
+      qty_jo,
     } = req.body;
 
     try {
@@ -283,6 +293,7 @@ const inspeksiPondController = {
         nama_produk,
         customer,
         status_jo,
+        qty_jo,
       });
 
       const inspeksiPondAwal = await InspeksiPondAwal.create({

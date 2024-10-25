@@ -21,10 +21,19 @@ const inspeksiLipatController = {
 
   getInspeksiLipat: async (req, res) => {
     try {
-      const { status, jenis_potong, mesin, page, limit } = req.query;
+      const { status, jenis_potong, mesin, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || jenis_potong || mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
@@ -117,6 +126,7 @@ const inspeksiLipatController = {
         item,
         mesin,
         status_jo,
+        qty_jo,
       } = req.body;
 
       if (!tanggal)
@@ -182,6 +192,7 @@ const inspeksiLipatController = {
         shift,
         jam,
         item,
+        qty_jo,
       });
 
       if (data) {
@@ -378,7 +389,7 @@ const master_data_fix = [
   },
   {
     no: 2,
-    point_check: "Presisis Lipatan",
+    point_check: "Presisi Lipatan",
     acuan: "Sample / Dumy",
   },
   {
@@ -388,7 +399,7 @@ const master_data_fix = [
   },
   {
     no: 4,
-    point_check: "Karatan Hasil Lipatan",
+    point_check: "Kerataan Hasil Lipatan",
     acuan: "Sample / Dumy",
   },
   {

@@ -31,6 +31,7 @@ router.use("/", require("./masterdata/mtc/preventive/masterTaskPm1Route"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm2Route"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm3Route"));
 router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
+router.use("/", require("./masterdata/mtc/masterGradeRoute"));
 
 //master data qc
 router.use(

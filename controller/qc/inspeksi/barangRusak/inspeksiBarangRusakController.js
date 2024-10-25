@@ -8,10 +8,20 @@ const User = require("../../../../model/userModel");
 const inspeksiBarangRusakController = {
   getInspeksiBarangRusak: async (req, res) => {
     try {
-      const { status, tgl, page, limit } = req.query;
+      const { status, tgl, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || tgl || mesin)) {
         if (status) obj.status = status;
         if (tgl) obj.tanggal = tgl;
@@ -34,7 +44,7 @@ const inspeksiBarangRusakController = {
           offset,
           limit: parseInt(limit),
         });
-        const length = await InspeksiBarangRusak.count();
+        const length = await InspeksiBarangRusak.count({ where: obj });
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -104,6 +114,7 @@ const inspeksiBarangRusakController = {
       nama_produk,
       customer,
       qty_rusak,
+      qty_jo,
     } = req.body;
 
     try {
@@ -153,6 +164,7 @@ const inspeksiBarangRusakController = {
         customer,
         qty_rusak,
         status_jo,
+        qty_jo,
       });
 
       //   const masterBarangRusakDefect = await MasterBarangRusakDefect.findAll({

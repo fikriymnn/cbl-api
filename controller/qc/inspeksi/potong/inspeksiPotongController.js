@@ -19,10 +19,19 @@ const inspeksiPotongController = {
 
   getInspeksiPotong: async (req, res) => {
     try {
-      const { status, jenis_potong, mesin, page, limit } = req.query;
+      const { status, jenis_potong, mesin, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || jenis_potong || mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
@@ -104,6 +113,7 @@ const inspeksiPotongController = {
         merk,
         customer,
         status_jo,
+        qty_jo,
       } = req.body;
 
       if (!jenis_potong)
@@ -194,6 +204,7 @@ const inspeksiPotongController = {
           merk,
           customer,
           status_jo,
+          qty_jo,
         });
 
         if (data) {
@@ -273,6 +284,7 @@ const inspeksiPotongController = {
           merk,
           customer,
           status_jo,
+          qty_jo,
         });
 
         if (data) {

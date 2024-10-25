@@ -18,6 +18,10 @@ const InspeksiPraPlate = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     tanggal: {
       type: DataTypes.DATE,
       allowNull: true,
