@@ -12,10 +12,19 @@ const dotenv = require("dotenv");
 const inspeksiOutsourcingBJController = {
   getInspeksiOutsourcingBJ: async (req, res) => {
     try {
-      const { status, bagian_tiket, page, limit } = req.query;
+      const { status, bagian_tiket, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || bagian_tiket)) {
         if (status) obj.status = status;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
@@ -27,8 +36,14 @@ const inspeksiOutsourcingBJController = {
           offset,
           where: obj,
           include: [
-            { model: InspeksiOutsourcingBJSub, as: "id_inspeksi_sub" },
-            { model: InspeksiOutsourcingBJPoint, as: "id_inspeksi_point" },
+            {
+              model: InspeksiOutsourcingBJSub,
+              as: "inspeksi_outsourcing_bj_sub",
+            },
+            {
+              model: InspeksiOutsourcingBJPoint,
+              as: "inspeksi_outsourcing_bj_point",
+            },
             { model: User, as: "data_inspector" },
           ],
         });
@@ -109,6 +124,7 @@ const inspeksiOutsourcingBJController = {
       nama_produk,
       customer,
       status_jo,
+      qty_jo,
     } = req.body;
     try {
       const checkData = await InspeksiOutsourcingBJ.findOne({
@@ -179,6 +195,7 @@ const inspeksiOutsourcingBJController = {
         nama_produk,
         customer,
         status_jo,
+        qty_jo,
       });
 
       const masterSubFinal = await InspeksiMasterSubFinal.findOne({

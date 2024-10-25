@@ -13,10 +13,20 @@ const dotenv = require("dotenv");
 const inspeksiFinalController = {
   getInspeksiFinal: async (req, res) => {
     try {
-      const { status, bagian_tiket, page, limit } = req.query;
+      const { status, bagian_tiket, page, limit, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || bagian_tiket)) {
         if (status) obj.status = status;
         if (bagian_tiket) obj.bagian_tiket = bagian_tiket;

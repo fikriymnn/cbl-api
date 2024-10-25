@@ -8,6 +8,7 @@ const tcos3 = require("./model/maintenanceTicketOs3Model");
 const user = require("./model/userModel");
 const master = require("./model/masterData/masterMesinModel");
 const master2 = require("./model/masterData/masterSparepart");
+const masterGrade = require("./model/masterData/mtc/masterGradeModel");
 const mtc = require("./model/mtc/sparepartProblem");
 const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
@@ -171,7 +172,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiPotong.sync({ alter: true });
+//   await inspeksiBarangRusak.sync({ alter: true });
 // })();
 
 // const ip100 = 75

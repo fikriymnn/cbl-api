@@ -57,6 +57,10 @@ const InspeksiAmparLem = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

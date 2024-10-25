@@ -16,11 +16,20 @@ dotenv.config();
 const inspeksiCoatingController = {
   getInspeksiCoating: async (req, res) => {
     try {
-      const { status, page, limit, jenis_pengecekan } = req.query;
+      const { status, page, limit, jenis_pengecekan, search } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
 
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
       if (page && limit && (status || jenis_pengecekan)) {
         if (status) obj.status = status;
 
@@ -333,6 +342,7 @@ const inspeksiCoatingController = {
         mesin,
         operator,
         status_jo,
+        qty_jo,
       } = req.body;
 
       if (!tanggal)
@@ -458,6 +468,7 @@ const inspeksiCoatingController = {
         mesin,
         operator,
         status_jo,
+        qty_jo,
         coating,
       });
       if (data?.id) {
