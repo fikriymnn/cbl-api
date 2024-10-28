@@ -49,11 +49,11 @@ const MasterGradeController = {
     }
   },
 
-  deleteMasterKode: async (req, res) => {
+  deleteMasterGrade: async (req, res) => {
     const _id = req.params.id;
     try {
       await MasterGrade.destroy({ where: { id: _id } }),
-        res.status(201).json({ msg: "Machine delete Successfuly" });
+        res.status(201).json({ msg: "Grade delete Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

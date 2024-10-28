@@ -93,20 +93,20 @@ const masterSparepartController = {
     }
 
     try {
-      let UmurGrade = 0;
-      if (stokSparepart.grade == "A") {
-        UmurGrade = 100;
-      } else if (stokSparepart.grade == "B") {
-        UmurGrade = 80;
-      } else if (stokSparepart.grade == "C") {
-        UmurGrade = 60;
-      } else if (stokSparepart.grade == "D") {
-        UmurGrade = 40;
-      } else if (stokSparepart.grade == "E") {
-        UmurGrade = 20;
-      } else {
-        UmurGrade = 0;
-      }
+      const UmurGrade = stokSparepart.percent;
+      // if (stokSparepart.grade == "A") {
+      //   UmurGrade = 100;
+      // } else if (stokSparepart.grade == "B") {
+      //   UmurGrade = 80;
+      // } else if (stokSparepart.grade == "C") {
+      //   UmurGrade = 60;
+      // } else if (stokSparepart.grade == "D") {
+      //   UmurGrade = 40;
+      // } else if (stokSparepart.grade == "E") {
+      //   UmurGrade = 20;
+      // } else {
+      //   UmurGrade = 0;
+      // }
       const percent = UmurGrade / 100;
       const actualUmur = stokSparepart.umur_sparepart * percent;
       console.log(actualUmur, UmurGrade);
