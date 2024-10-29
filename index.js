@@ -155,6 +155,8 @@ const masterAkses = require("./model/masterData/masterAksesModel");
 
 const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
 
+const absenModel = require("./model/hr/absenModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -172,7 +174,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await stok.sync({ alter: true });
+//   await absenModel.sync({ alter: true });
 // })();
 
 // const ip100 = 75
