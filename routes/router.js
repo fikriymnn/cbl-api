@@ -149,6 +149,7 @@ router.use("/", require("./qc/capa/capaRoutes"));
 //HR
 router.use("/", require("./hr/absenRoute"));
 router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
+router.use("/", require("./masterdata/hr/masterShiftRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
