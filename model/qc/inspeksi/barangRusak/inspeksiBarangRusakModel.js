@@ -41,6 +41,10 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    barang_baik_aktual: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     nama_produk: {
       type: DataTypes.STRING,
       allowNull: true,

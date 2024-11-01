@@ -221,7 +221,7 @@ const ReportMaintenance = {
         raw: true,
       });
 
-      //console.log(responTime);
+      console.log(responTime);
 
       // Mengelompokkan data per mesin
       const groupedResults = responTime.reduce((acc, row) => {
@@ -419,6 +419,147 @@ const ReportMaintenance = {
           },
         });
       }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getCaseOneMesinProblem: async (req, res) => {
+    const { mesin_name, start_date, end_date } = req.query;
+    const fromDate = new Date(start_date);
+    const toDate = new Date(end_date);
+
+    // Array nama bulan dalam bahasa Indonesia
+    const monthNames = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+
+    // Fungsi untuk mengubah nomor bulan menjadi nama bulan
+    function getMonthName(monthNumber) {
+      return monthNames[monthNumber - 1]; // -1 karena array index dimulai dari 0
+    }
+
+    // Fungsi untuk menghasilkan array bulan antara startDate dan endDate
+    function generateMonthsRange(startDate, endDate) {
+      const months = [];
+      const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+      while (start <= end) {
+        months.push({
+          month: start.getMonth() + 1, // Mendapatkan bulan
+          nama_bulan: getMonthName(start.getMonth() + 1), //mendapatkan nama bulan
+          year: start.getFullYear(), // Mendapatkan tahun
+          mesin: mesin_name,
+          quality: 0, // Default rata rata
+          produksi: 0, //Default jumlah
+        });
+        start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
+      }
+
+      return months;
+    }
+
+    // Membuat array bulan dari rentang tanggal
+    const defaultMonths = generateMonthsRange(fromDate, toDate);
+    try {
+      const jenisMasalah = await TicketOs2.findAll({
+        attributes: [
+          "mesin",
+          [
+            Sequelize.literal(
+              'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)'
+            ),
+            "jenis_quality",
+          ],
+          [
+            Sequelize.literal(
+              'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)'
+            ),
+            "jenis_produksi",
+          ],
+          [Sequelize.fn("COUNT", Sequelize.col("jenis_analisis_mtc")), "count"],
+          [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"], // Mengambil bulan dari createdAt
+          [Sequelize.fn("YEAR", Sequelize.col("createdAt")), "year"],
+          [fn("MONTHNAME", col("createdAt")), "bulan"],
+        ],
+        group: ["mesin", "year", "month"],
+
+        raw: true,
+        where: {
+          jenis_analisis_mtc: { [Op.ne]: null },
+          createdAt: {
+            [Op.between]: [fromDate, toDate],
+          },
+          mesin: mesin_name,
+        },
+      });
+
+      // Temukan bulan yang sesuai dalam array default bulan
+      const groupedResults = jenisMasalah.reduce((acc, row) => {
+        const mesin = row.mesin;
+
+        if (!acc[mesin]) {
+          acc[mesin] = {
+            mesin: mesin,
+            data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
+          };
+        }
+
+        const foundMonth = acc[mesin].data.find(
+          (m) => m.month === row.month && m.year === row.year
+        );
+
+        if (foundMonth) {
+          // Jika bulan ditemukan, update total
+          foundMonth.quality = row.jenis_quality;
+          foundMonth.produksi = row.jenis_produksi;
+        }
+
+        return acc;
+      }, {});
+
+      // Konversi objek hasil grouping ke dalam array
+      const finalResult = Object.values(groupedResults);
+      const totalCountJenisMalasah = jenisMasalah.reduce(
+        (accumulator, currentValue) => {
+          return accumulator + currentValue.count;
+        },
+        0
+      );
+
+      const totalProduksiJenisMalasah = jenisMasalah.reduce(
+        (accumulator, currentValue) => {
+          return accumulator + parseInt(currentValue.jenis_produksi);
+        },
+        0
+      );
+      const totalQualityJenisMalasah = jenisMasalah.reduce(
+        (accumulator, currentValue) => {
+          return accumulator + parseInt(currentValue.jenis_quality);
+        },
+        0
+      );
+
+      res.status(200).json({
+        data_jenis_masalah: {
+          jenis_masalah: finalResult,
+          total_count: totalCountJenisMalasah,
+          total_quality: totalQualityJenisMalasah,
+          total_produksi: totalProduksiJenisMalasah,
+        },
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

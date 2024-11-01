@@ -25,6 +25,7 @@ const authController = {
     const email = users.email;
     const role = users.role;
     const no = users.no;
+    const bagian = users.bagian;
 
     const access_token = generate_access_token({
       id: id,
@@ -42,7 +43,7 @@ const authController = {
       path: "/",
     });
 
-    res.status(200).json({ uuid, name, email, role, no });
+    res.status(200).json({ uuid, name, email, role, no, bagian });
   },
 
   Me: async (req, res, next) => {
