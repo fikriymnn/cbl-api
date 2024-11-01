@@ -8,95 +8,30 @@ const userController = {
   getAbsensi: async (req, res) => {
     const { bagian, role } = req.query;
 
-    const query = `
-    SELECT 
-        a_masuk.USERID,
-        a_masuk.CHECKTIME AS waktu_masuk,
-        a_keluar.CHECKTIME AS waktu_keluar,
-        CASE
-            
-            WHEN ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), a_masuk.CHECKTIME)) 
-                < ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), a_masuk.CHECKTIME))
-            THEN 'Shift 1'
-            ELSE 'Shift 2'
-        END AS shift,
-        CASE
-           
-            WHEN ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), a_masuk.CHECKTIME)) 
-                < ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), a_masuk.CHECKTIME))
-            THEN
-                CASE
-                   
-                    WHEN a_masuk.CHECKTIME > ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), '00:10:00')
-                    THEN TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), '00:10:00'), a_masuk.CHECKTIME)
-                    ELSE 0
-                END
-            
-            ELSE
-                CASE
-                   
-                    WHEN a_masuk.CHECKTIME > ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), '00:10:00')
-                    THEN TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), '00:10:00'), a_masuk.CHECKTIME)
-                    ELSE 0
-                END
-        END AS menit_terlambat,
-        
-        CASE
-            WHEN 
-                CASE
-                    
-                    WHEN ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), a_masuk.CHECKTIME)) 
-                        < ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), a_masuk.CHECKTIME))
-                    THEN
-                        CASE
-                            WHEN a_masuk.CHECKTIME > ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), '00:10:00')
-                            THEN TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_1_masuk), '00:10:00'), a_masuk.CHECKTIME)
-                            ELSE 0
-                        END
-                    
-                    ELSE
-                        CASE
-                            WHEN a_masuk.CHECKTIME > ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), '00:10:00')
-                            THEN TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_masuk.CHECKTIME), ' ', s_harian.shift_2_masuk), '00:10:00'), a_masuk.CHECKTIME)
-                            ELSE 0
-                        END
-                END > 0
-            THEN 'Terlambat'
-            ELSE 'Tepat Waktu'
-        END AS status_kehadiran,
-        CASE
-           
-            WHEN ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_1_keluar), a_keluar.CHECKTIME)) 
-                < ABS(TIMESTAMPDIFF(MINUTE, CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_2_keluar), a_keluar.CHECKTIME))
-            THEN
-                CASE
-                    WHEN a_keluar.CHECKTIME > ADDTIME(CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_1_keluar), '01:00:00')
-                    THEN ROUND(TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_1_keluar), '01:00:00'), a_keluar.CHECKTIME) / 60, 2)
-                    ELSE 0
-                END
-           
-            ELSE
-                CASE
-                    WHEN a_keluar.CHECKTIME > ADDTIME(CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_2_keluar), '01:00:00')
-                    THEN ROUND(TIMESTAMPDIFF(MINUTE, ADDTIME(CONCAT(DATE(a_keluar.CHECKTIME), ' ', s_harian.shift_2_keluar), '01:00:00'), a_keluar.CHECKTIME) / 60, 2)
-                    ELSE 0
-                END
-        END AS jam_lembur
-    FROM 
-        CHECKINOUT a_masuk
-    JOIN 
-        CHECKINOUT a_keluar 
-        ON a_masuk.USERID = a_keluar.USERID 
-        AND a_masuk.CHECKTYPE = 'I'
-        AND a_keluar.CHECKTYPE = 'O'
-        AND a_keluar.CHECKTIME > a_masuk.CHECKTIME
-    
-    JOIN 
-        shift_harian s_harian 
-        ON DAYNAME(a_masuk.CHECKTIME) = s_harian.hari
-    WHERE 
-        a_masuk.CHECKTYPE = 'I';
-`;
+    function getMonthName(monthString) {
+      const months = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+      ];
+
+      const monthNumber = parseInt(monthString);
+
+      if (monthNumber < 1 || monthNumber > 12) {
+        return "Bulan tidak valid";
+      } else {
+        return months[monthNumber - 1];
+      }
+    }
 
     try {
       // const results = await dbFinger.query(query2, {
@@ -302,6 +237,11 @@ const userController = {
             }
           }
 
+          const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+          const monthKeluar = getMonthName(waktuKeluar.getUTCMonth() + 1);
+
+          const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+          const tglKeluar = `${waktuKeluar.getUTCDate()}-${monthKeluar}-${waktuKeluar.getFullYear()}`;
           const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
           const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
 
@@ -309,6 +249,8 @@ const userController = {
             USERID: masuk.USERID,
             waktu_masuk: masuk.CHECKTIME,
             waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            tgl_masuk: tglMasuk,
+            tgl_keluar: tglKeluar,
             jam_masuk: jamMasuk,
             jam_keluar: jamKeluar,
             menit_terlambat: menitTerlambat,
@@ -394,12 +336,17 @@ const userController = {
             statusMasuk = "Terlambat";
           }
 
+          const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+
+          const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
           const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
 
           return {
             USERID: masuk.USERID,
             waktu_masuk: masuk.CHECKTIME,
             waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            tgl_masuk: tglMasuk,
+            tgl_keluar: null,
             jam_masuk: jamMasuk,
             jam_keluar: null,
             menit_terlambat: menitTerlambat,
