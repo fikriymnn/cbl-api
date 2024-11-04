@@ -424,6 +424,18 @@ const ReportMaintenance = {
     }
   },
 
+  getMesinByTicket: async (req, res) => {
+    try {
+      const mesinName = await TicketOs2.findAll({
+        attributes: ["mesin"],
+        group: ["mesin"],
+      });
+      res.status(200).json(mesinName);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   getCaseOneMesinProblem: async (req, res) => {
     const { mesin_name, start_date, end_date } = req.query;
     const fromDate = new Date(start_date);
@@ -464,6 +476,7 @@ const ReportMaintenance = {
           mesin: mesin_name,
           quality: 0, // Default rata rata
           produksi: 0, //Default jumlah
+          total: 0,
         });
         start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
       }
@@ -523,8 +536,10 @@ const ReportMaintenance = {
 
         if (foundMonth) {
           // Jika bulan ditemukan, update total
-          foundMonth.quality = row.jenis_quality;
-          foundMonth.produksi = row.jenis_produksi;
+          foundMonth.quality = parseInt(row.jenis_quality);
+          foundMonth.produksi = parseInt(row.jenis_produksi);
+          foundMonth.total =
+            parseInt(row.jenis_quality) + parseInt(row.jenis_produksi);
         }
 
         return acc;
