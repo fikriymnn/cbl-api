@@ -102,6 +102,20 @@ const Pm3Controller = {
               model: MasterMesin,
               as: "mesin",
             },
+            {
+              model: PointPm3,
+              attributes: ["hasil"],
+            },
+            {
+              model: PointPm3,
+              as: "point_pm3",
+              attributes: ["hasil"],
+              where: {
+                hasil: {
+                  [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
+                },
+              },
+            },
           ],
           limit: parseInt(limit),
           offset: parseInt(offset),
@@ -123,6 +137,20 @@ const Pm3Controller = {
             {
               model: MasterMesin,
               as: "mesin",
+            },
+            {
+              model: PointPm3,
+              attributes: ["hasil"],
+            },
+            {
+              model: PointPm3,
+              as: "point_pm3",
+              attributes: ["hasil"],
+              where: {
+                hasil: {
+                  [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
+                },
+              },
             },
           ],
         });
