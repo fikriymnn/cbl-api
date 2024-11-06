@@ -153,9 +153,16 @@ const masterBagian = require("./model/masterData/masterBagian");
 const masterRole = require("./model/masterData/masterRoleModel");
 const masterAkses = require("./model/masterData/masterAksesModel");
 
+//master hr
 const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
-
+const masterCuti = require("./model/masterData/hr/masterCutiModel");
+const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
+const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
+const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const absenModel = require("./model/hr/absenModel");
+
+//karyawan
+const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -174,7 +181,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await pointpm2.sync({ alter: true });
+//   await karyawanBiodata.sync({ alter: true });
 // })();
 
 // const ip100 = 75

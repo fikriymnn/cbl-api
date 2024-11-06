@@ -146,10 +146,17 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));
 
-//HR
+//HR master
 router.use("/", require("./hr/absenRoute"));
 router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
 router.use("/", require("./masterdata/hr/masterShiftRoute"));
+router.use("/", require("./masterdata/hr/masterCutiRoute"));
+router.use("/", require("./masterdata/hr/masterDivisiRoute"));
+router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
+router.use("/", require("./masterdata/hr/masterBagianHrRoute"));
+
+//HR
+router.use("/", require("./hr/karyawan/karyawanRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

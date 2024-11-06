@@ -40,8 +40,6 @@ const inspeksiAmparLemController = {
           where: obj,
         });
 
-        console.log(length);
-
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
