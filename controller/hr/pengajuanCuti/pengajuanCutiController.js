@@ -1,0 +1,180 @@
+const { Op, Sequelize, where } = require("sequelize");
+const PengajuanCuti = require("../../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const db = require("../../../config/database");
+
+const PengajuanCutiController = {
+  getPengajuanCuti: async (req, res) => {
+    const _id = req.params.id;
+    const { page, limit, search } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    let obj = {};
+    // if (search)
+    //   obj = {
+    //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+    //   };
+    try {
+      if (page && limit) {
+        const length = await PengajuanCuti.count({ where: obj });
+        const data = await PengajuanCuti.findAll({
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit),
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+          ],
+          offset,
+          where: obj,
+        });
+        return res.status(200).json({
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (_id) {
+        const data = await PengajuanCuti.findByPk(_id, {
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+          ],
+        });
+        return res.status(200).json({
+          data: data,
+        });
+      } else {
+        const data = await PengajuanCuti.findAll({
+          order: [["createdAt", "DESC"]],
+
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+          ],
+        });
+        return res.status(200).json({
+          data: data,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  createPengajuanCuti: async (req, res) => {
+    const {
+      id_karyawan,
+      tipe_cuti,
+      dari,
+      sampai,
+      jumlah_hari,
+      alasan_cuti,
+      sisa_cuti,
+    } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanCuti = await PengajuanCuti.create(
+        {
+          id_karyawan,
+          id_pengaju: req.user.id_karyawan,
+          tipe_cuti,
+          dari,
+          sampai,
+          jumlah_hari,
+          alasan_cuti,
+          sisa_cuti,
+        },
+        { transaction: t }
+      );
+      await t.commit();
+      res.status(200).json({
+        data: dataPengajuanCuti,
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  approvePengajuanCuti: async (req, res) => {
+    const _id = req.params.id;
+    const { catatan_hr } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
+      if (!dataPengajuanCuti)
+        return res.status(404).json({ msg: "data tidak di temukan" });
+
+      await PengajuanCuti.update(
+        {
+          status: "approved",
+          status_tiket: "history",
+          id_hr: req.user.id_karyawan,
+          catatan_hr: catatan_hr,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      );
+
+      if (dataPengajuanCuti.tipe_cuti == "tahunan") {
+        await KaryawanBiodata.update(
+          {
+            sisa_cuti:
+              dataPengajuanCuti.sisa_cuti - dataPengajuanCuti.jumlah_hari,
+          },
+          {
+            where: { id_karyawan: dataPengajuanCuti.id_karyawan },
+            transaction: t,
+          }
+        );
+      }
+      await t.commit();
+
+      res.status(200).json({ msg: "Approve Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  rejectPengajuanCuti: async (req, res) => {
+    const _id = req.params.id;
+    const { catatan_hr } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
+      if (!dataPengajuanCuti)
+        return res.status(404).json({ msg: "data tidak di temukan" });
+
+      await PengajuanCuti.update(
+        {
+          status: "rejected",
+          status_tiket: "history",
+          id_hr: req.user.id_karyawan,
+          catatan_hr: catatan_hr,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      );
+
+      await t.commit();
+
+      res.status(200).json({ msg: "Reject Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+};
+
+module.exports = PengajuanCutiController;

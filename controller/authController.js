@@ -26,6 +26,7 @@ const authController = {
     const role = users.role;
     const no = users.no;
     const bagian = users.bagian;
+    const id_karyawan = users.id_karyawan;
 
     const access_token = generate_access_token({
       id: id,
@@ -34,6 +35,7 @@ const authController = {
       email: email,
       no: no,
       role: role,
+      id_karyawan: id_karyawan,
     });
 
     res.cookie("access_token", access_token, {
@@ -56,6 +58,7 @@ const authController = {
       attributes: [
         "id",
         "uuid",
+        "id_karyawan",
         "nama",
         "email",
         "role",

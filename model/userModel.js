@@ -1,6 +1,7 @@
 const { Sequelize } = require("sequelize");
 const db = require("../config/database");
-const maintenaceTicketModel = require("./maintenaceTicketModel")
+const maintenaceTicketModel = require("./maintenaceTicketModel");
+const KaryawanModel = require("../model/hr/karyawanModel");
 
 const { DataTypes } = Sequelize;
 
@@ -13,6 +14,14 @@ const Users = db.define(
       allowNull: false,
       validate: {
         notEmpty: true,
+      },
+    },
+    id_karyawan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: KaryawanModel,
+        key: "USERID",
       },
     },
     nama: {
@@ -62,7 +71,7 @@ const Users = db.define(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue:"aktif",
+      defaultValue: "aktif",
       validate: {
         notEmpty: true,
       },
@@ -73,6 +82,14 @@ const Users = db.define(
   }
 );
 
-
+//relasi karyawan
+KaryawanModel.hasMany(Users, {
+  foreignKey: "id_karyawan",
+  as: "data_karyawan",
+});
+Users.belongsTo(KaryawanModel, {
+  foreignKey: "id_karyawan",
+  as: "karyawan",
+});
 
 module.exports = Users;

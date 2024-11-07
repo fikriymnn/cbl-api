@@ -8,6 +8,7 @@ const PointPm1 = require("../../../model/mtc/preventive/pm1/pointPm1");
 const TaskPm1 = require("../../../model/mtc/preventive/pm1/taskPm1");
 const Users = require("../../../model/userModel");
 const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
+const moment = require("moment");
 
 const Pm1Controller = {
   getPm1: async (req, res) => {
@@ -27,17 +28,18 @@ const Pm1Controller = {
     let des = [["createdAt", "DESC"]];
     let offset = (page - 1) * limit;
 
-    const dateNow = new Date(tgl).setHours(0, 0, 0, 0);
-    console.log(dateNow);
-
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (status) obj.status = status;
     if (id_inspector) obj.id_inspector = id_inspector;
     if (tgl)
       obj.tgl = {
-        [Op.gte]: dateNow, // Mengambil data mulai dari awal hari
-        [Op.lte]: new Date(tgl).setHours(23, 59, 59, 999),
+        [Op.between]: [
+          new Date(tgl).setHours(0, 0, 0, 0),
+          new Date(tgl).setHours(23, 59, 59, 999),
+        ],
+
+        //[dateNow, dateNowEnd],
       };
     if (start_date && end_date) {
       obj.tgl = {
