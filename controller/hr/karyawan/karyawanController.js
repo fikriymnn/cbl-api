@@ -10,7 +10,7 @@ const db = require("../../../config/database");
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search } = req.query;
+    const { page, limit, search, id_department } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search)
@@ -73,6 +73,32 @@ const karyawanController = {
             },
           ],
         });
+        return res.status(200).json({
+          data: data,
+        });
+      } else if (id_department) {
+        const data = await KaryawanBiodata.findAll({
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+            {
+              model: MasterDivisi,
+              as: "divisi",
+            },
+            {
+              model: MasterDepartment,
+              as: "department",
+            },
+            {
+              model: MasterBagianHr,
+              as: "bagian",
+            },
+          ],
+          where: { id_department: id_department },
+        });
+
         return res.status(200).json({
           data: data,
         });
@@ -186,13 +212,13 @@ const karyawanController = {
       nama_karyawan,
       nik,
       jenis_kelamin,
-      divisi,
-      department,
+      id_divisi,
+      id_department,
+      id_bagian,
       grade,
       tgl_masuk,
       tgl_keluar,
-      type_penggajian,
-      bagian,
+      tipe_penggajian,
       jabatan,
       status_karyawan,
       status_pajak,
@@ -216,16 +242,15 @@ const karyawanController = {
       );
       const dataBiodata = await KaryawanBiodata.update(
         {
-          id_karyawan: dataKaryawan.USERID,
           nik,
           jenis_kelamin,
-          divisi,
-          department,
+          id_divisi,
+          id_department,
+          id_bagian,
           grade,
           tgl_masuk,
           tgl_keluar,
-          type_penggajian,
-          bagian,
+          tipe_penggajian,
           jabatan,
           status_karyawan,
           status_pajak,

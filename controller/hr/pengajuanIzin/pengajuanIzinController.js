@@ -1,25 +1,23 @@
 const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
-const PengajuanCuti = require("../../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const PengajuanIzin = require("../../../model/hr/pengajuanIzin/pengajuanIzinModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const db = require("../../../config/database");
 
-const PengajuanCutiController = {
-  getPengajuanCuti: async (req, res) => {
+const PengajuanIzinController = {
+  getPengajuanIzin: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status } = req.query;
+    const { page, limit, search } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
     //   obj = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
-
-    if (status) obj.status = status;
     try {
       if (page && limit) {
-        const length = await PengajuanCuti.count({ where: obj });
-        const data = await PengajuanCuti.findAll({
+        const length = await PengajuanIzin.count({ where: obj });
+        const data = await PengajuanIzin.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           include: [
@@ -44,7 +42,7 @@ const PengajuanCutiController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const data = await PengajuanCuti.findByPk(_id, {
+        const data = await PengajuanIzin.findByPk(_id, {
           include: [
             {
               model: Karyawan,
@@ -64,9 +62,9 @@ const PengajuanCutiController = {
           data: data,
         });
       } else {
-        const data = await PengajuanCuti.findAll({
+        const data = await PengajuanIzin.findAll({
           order: [["createdAt", "DESC"]],
-          where: obj,
+
           include: [
             {
               model: Karyawan,
@@ -91,36 +89,33 @@ const PengajuanCutiController = {
     }
   },
 
-  createPengajuanCuti: async (req, res) => {
+  createPengajuanIzin: async (req, res) => {
     const {
       id_karyawan,
       id_pengaju,
-      tipe_cuti,
+
       dari,
       sampai,
       jumlah_hari,
-      alasan_cuti,
-      sisa_cuti,
+      alasan_izin,
     } = req.body;
     const t = await db.transaction();
 
     try {
-      const dataPengajuanCuti = await PengajuanCuti.create(
+      const dataPengajuanIzin = await PengajuanIzin.create(
         {
           id_karyawan,
           id_pengaju: id_pengaju,
-          tipe_cuti,
           dari,
           sampai,
           jumlah_hari,
-          alasan_cuti,
-          sisa_cuti,
+          alasan_izin,
         },
         { transaction: t }
       );
       await t.commit();
       res.status(200).json({
-        data: dataPengajuanCuti,
+        data: dataPengajuanIzin,
       });
     } catch (error) {
       await t.rollback();
@@ -128,17 +123,17 @@ const PengajuanCutiController = {
     }
   },
 
-  approvePengajuanCuti: async (req, res) => {
+  approvePengajuanIzin: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr } = req.body;
     const t = await db.transaction();
 
     try {
-      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
-      if (!dataPengajuanCuti)
+      const dataPengajuanIzin = await PengajuanIzin.findByPk(_id);
+      if (!dataPengajuanIzin)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
-      await PengajuanCuti.update(
+      await PengajuanIzin.update(
         {
           status: "approved",
           status_tiket: "history",
@@ -151,20 +146,7 @@ const PengajuanCutiController = {
         }
       );
 
-      if (dataPengajuanCuti.tipe_cuti == "tahunan") {
-        await KaryawanBiodata.update(
-          {
-            sisa_cuti:
-              dataPengajuanCuti.sisa_cuti - dataPengajuanCuti.jumlah_hari,
-          },
-          {
-            where: { id_karyawan: dataPengajuanCuti.id_karyawan },
-            transaction: t,
-          }
-        );
-      }
       await t.commit();
-
       res.status(200).json({ msg: "Approve Successfully" });
     } catch (error) {
       await t.rollback();
@@ -172,17 +154,17 @@ const PengajuanCutiController = {
     }
   },
 
-  rejectPengajuanCuti: async (req, res) => {
+  rejectPengajuanIzin: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr } = req.body;
     const t = await db.transaction();
 
     try {
-      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
-      if (!dataPengajuanCuti)
+      const dataPengajuanIzin = await PengajuanIzin.findByPk(_id);
+      if (!dataPengajuanIzin)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
-      await PengajuanCuti.update(
+      await PengajuanIzin.update(
         {
           status: "rejected",
           status_tiket: "history",
@@ -205,4 +187,4 @@ const PengajuanCutiController = {
   },
 };
 
-module.exports = PengajuanCutiController;
+module.exports = PengajuanIzinController;

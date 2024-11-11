@@ -36,7 +36,7 @@ const masterShiftController = {
 
     try {
       await masterDepartment.update(obj, { where: { id: _id } }),
-        res.status(201).json({ msg: "Master Cuti update Successfuly" });
+        res.status(201).json({ msg: "Master Department update Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

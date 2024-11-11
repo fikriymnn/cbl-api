@@ -3,6 +3,8 @@ const { generate_access_token } = require("../utils/jwt");
 const authMiddlewares = require("../middlewares/authMiddlewares");
 const bcrypt = require("bcryptjs");
 const Notification = require("../model/notificationModel");
+const Karyawan = require("../model/hr/karyawanModel");
+const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 
 const authController = {
   Login: async (req, res) => {
@@ -72,6 +74,14 @@ const authController = {
       include: [
         {
           model: Notification,
+        },
+        {
+          model: Karyawan,
+          as: "karyawan",
+          include: {
+            model: KaryawanBiodata,
+            as: "biodata_karyawan",
+          },
         },
       ],
     });

@@ -4,8 +4,8 @@ const KaryawanModel = require("../karyawanModel");
 
 const { DataTypes } = Sequelize;
 
-const PengajuanCuti = db.define(
-  "pengajuan_cuti",
+const PengajuanSakit = db.define(
+  "pengajuan_sakit",
   {
     id_karyawan: {
       type: DataTypes.INTEGER,
@@ -31,10 +31,7 @@ const PengajuanCuti = db.define(
         key: "USERID",
       },
     },
-    tipe_cuti: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     dari: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -47,12 +44,8 @@ const PengajuanCuti = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    alasan_cuti: {
+    lampiran: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    sisa_cuti: {
-      type: DataTypes.INTEGER,
       allowNull: true,
     },
     catatan_hr: {
@@ -76,33 +69,33 @@ const PengajuanCuti = db.define(
 );
 
 //relasi karyawan
-KaryawanModel.hasMany(PengajuanCuti, {
+KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_karyawan",
-  as: "cuti_karyawan",
+  as: "sakit_karyawan",
 });
-PengajuanCuti.belongsTo(KaryawanModel, {
+PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_karyawan",
   as: "karyawan",
 });
 
 //relasi karyawan pengaju
-KaryawanModel.hasMany(PengajuanCuti, {
+KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_pengaju",
-  as: "pengaju_cuti_karyawan",
+  as: "pengaju_sakit_karyawan",
 });
-PengajuanCuti.belongsTo(KaryawanModel, {
+PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_pengaju",
   as: "karyawan_pengaju",
 });
 
 //relasi karyawan hr
-KaryawanModel.hasMany(PengajuanCuti, {
+KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_hr",
-  as: "hr_respon_karyawan",
+  as: "hr_respon_sakit_karyawan",
 });
-PengajuanCuti.belongsTo(KaryawanModel, {
+PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
   as: "karyawan_hr",
 });
 
-module.exports = PengajuanCuti;
+module.exports = PengajuanSakit;
