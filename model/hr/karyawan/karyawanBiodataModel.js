@@ -92,6 +92,19 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    limit_pinjaman: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    kontrak_dari: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    kontrak_sampai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

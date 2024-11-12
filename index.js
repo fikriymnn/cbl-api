@@ -167,6 +167,7 @@ const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
 const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
 const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
+const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -185,7 +186,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await masterCuti.sync({ alter: true });
+//   await pengajuanPinjaman.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -2,6 +2,8 @@ const Users = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const userActionMtc = require("../model/mtc/userActionMtc");
 const Ticket = require("../model/maintenaceTicketModel");
+const Karyawan = require("../model/hr/karyawanModel");
+const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 
 const userController = {
   getUsers: async (req, res) => {
@@ -13,7 +15,20 @@ const userController = {
 
     try {
       const response = await Users.findAll(
-        { where: obj, order: [["id", "DESC"]] },
+        {
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+              include: {
+                model: KaryawanBiodata,
+                as: "biodata_karyawan",
+              },
+            },
+          ],
+        },
         {
           attributes: [
             "id",
@@ -56,6 +71,14 @@ const userController = {
             //     as:"tiket"
             //   }
             // ]
+          },
+          {
+            model: Karyawan,
+            as: "karyawan",
+            include: {
+              model: KaryawanBiodata,
+              as: "biodata_karyawan",
+            },
           },
         ],
         where: {

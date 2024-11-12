@@ -3,6 +3,9 @@ const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const absensi = require("../../model/hr/absenModel");
 const Karyawan = require("../../model/hr/karyawanModel");
 const masterShift = require("../../model/masterData/hr/masterShiftModel");
+const DataCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const DataIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
+const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
 const userController = {
   getAbsensi: async (req, res) => {
@@ -34,18 +37,6 @@ const userController = {
     }
 
     try {
-      // const results = await dbFinger.query(query2, {
-      //   type: dbFinger.QueryTypes.SELECT,
-      // });
-      // const user = await dbFinger.query(
-      //   `
-      //   SELECT USERID, name, FROM USERINFO
-      //     `,
-      //   {
-      //     type: dbFinger.QueryTypes.SELECT,
-      //   }
-      // );
-
       const karyawan = await Karyawan.findAll();
 
       // Ambil semua data absensi masuk
@@ -59,6 +50,44 @@ const userController = {
         where: {
           CHECKTYPE: "O",
         },
+      });
+
+      const dataCuti = await DataCuti.findAll({
+        where: {
+          status: "approved",
+        },
+      });
+      const dataIzin = await DataIzin.findAll({
+        where: {
+          status: "approved",
+        },
+      });
+
+      const dataSakit = await DataSakit.findAll({
+        where: {
+          status: "approved",
+        },
+      });
+
+      // Memecah cuti menjadi entri harian
+      let cutiEntries = [];
+      dataCuti.forEach((cuti) => {
+        cutiEntries = [...cutiEntries, ...generateDailyCuti(cuti, karyawan)];
+      });
+
+      // Memecah izin menjadi entri harian
+      let izinEntries = [];
+      dataIzin.forEach((izin) => {
+        izinEntries = [...izinEntries, ...generateDailyIzin(izin, karyawan)];
+      });
+
+      // Memecah sakit menjadi entri harian
+      let sakitEntries = [];
+      dataSakit.forEach((sakit) => {
+        sakitEntries = [
+          ...sakitEntries,
+          ...generateDailySakit(sakit, karyawan),
+        ];
       });
 
       // Ambil shift untuk semua hari
@@ -260,6 +289,7 @@ const userController = {
             name: namaKaryawan,
             //status_keluar: statusKeluar,
             shift, // Menampilkan shift
+            status_absen: "masuk",
           };
         } else {
           // waktu masuk absen
@@ -359,12 +389,130 @@ const userController = {
           };
         }
       });
-      //console.log(results);
+
+      //masukan data cuti ke data absen
+      results.push(...cutiEntries);
+      //masukan data izin ke data absen
+      results.push(...izinEntries);
+      //masukan data sakit ke data absen
+      results.push(...sakitEntries);
+
+      // Sorting berdasarkan tanggal (terbaru ke terlama)
+      results.sort((a, b) => b.waktu_masuk - a.waktu_masuk);
+
       res.status(200).json({ data: results });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
   },
+};
+
+// Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
+const generateDailyCuti = (cuti, karyawan) => {
+  let dailycuti = [];
+  let startDate = new Date(cuti.dari);
+  let endDate = new Date(cuti.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.USERID === cuti.id_karyawan
+  );
+  const namaKaryawan = dataKaryawan.name;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    dailycuti.push({
+      USERID: cuti.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: null,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      //status_keluar: statusKeluar,
+      shift: null, // Menampilkan shift
+      status_absen: "cuti" + " " + cuti.tipe_cuti,
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailycuti;
+};
+
+// Fungsi untuk memecah rentang tanggal izin menjadi array tanggal harian
+const generateDailyIzin = (izin, karyawan) => {
+  let dailyIzin = [];
+  let startDate = new Date(izin.dari);
+  let endDate = new Date(izin.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.USERID === izin.id_karyawan
+  );
+  const namaKaryawan = dataKaryawan.name;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    dailyIzin.push({
+      USERID: izin.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: null,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      //status_keluar: statusKeluar,
+      shift: null, // Menampilkan shift
+      status_absen: "izin",
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailyIzin;
+};
+
+// Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
+const generateDailySakit = (sakit, karyawan) => {
+  let dailySakit = [];
+  let startDate = new Date(sakit.dari);
+  let endDate = new Date(sakit.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.USERID === sakit.id_karyawan
+  );
+  const namaKaryawan = dataKaryawan.name;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    dailySakit.push({
+      USERID: sakit.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: null,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      //status_keluar: statusKeluar,
+      shift: null, // Menampilkan shift
+      status_absen: "sakit",
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailySakit;
 };
 
 module.exports = userController;
