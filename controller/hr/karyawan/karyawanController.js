@@ -5,6 +5,7 @@ const MasterCuti = require("../../../model/masterData/hr/masterCutiModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -82,6 +83,16 @@ const karyawanController = {
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: PinjamanKaryawan,
+                  as: "pinjaman_karyawan",
+                  where: {
+                    status_pinjaman: "belum lunas",
+                  },
+                  required: false,
+                },
+              ],
             },
             {
               model: MasterDivisi,

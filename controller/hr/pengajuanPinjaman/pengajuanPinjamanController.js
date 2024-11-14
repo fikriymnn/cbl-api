@@ -2,18 +2,22 @@ const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
 const PengajuanPinjaman = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
+const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const db = require("../../../config/database");
 
 const PengajuanPinjamanController = {
   getPengajuanPinjaman: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search } = req.query;
+    const { page, limit, search, status_tiket } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
     //   obj = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
+    if (status_tiket) obj.status_tiket = status_tiket;
     try {
       if (page && limit) {
         const length = await PengajuanPinjaman.count({ where: obj });
@@ -28,6 +32,26 @@ const PengajuanPinjamanController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -51,6 +75,26 @@ const PengajuanPinjamanController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -64,7 +108,7 @@ const PengajuanPinjamanController = {
       } else {
         const data = await PengajuanPinjaman.findAll({
           order: [["createdAt", "DESC"]],
-
+          where: obj,
           include: [
             {
               model: Karyawan,
@@ -73,6 +117,26 @@ const PengajuanPinjamanController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -96,12 +160,9 @@ const PengajuanPinjamanController = {
       jumlah_pinjaman,
       jumlah_cicilan,
       tempo_cicilan,
-
       tipe_cicilan,
-      sisa_pinjaman,
       jaminan_pinjaman,
       keperluan_pinjaman,
-      sumber_pinjaman,
     } = req.body;
     const t = await db.transaction();
 
@@ -138,10 +199,9 @@ const PengajuanPinjamanController = {
           tempo_cicilan,
           sisa_tempo_cicilan: tempo_cicilan,
           tipe_cicilan,
-          sisa_pinjaman,
+          sisa_pinjaman: jumlah_pinjaman,
           jaminan_pinjaman,
           keperluan_pinjaman,
-          sumber_pinjaman,
         },
         { transaction: t }
       );
@@ -157,7 +217,7 @@ const PengajuanPinjamanController = {
 
   approvePengajuanPinjaman: async (req, res) => {
     const _id = req.params.id;
-    const { catatan_hr } = req.body;
+    const { catatan_hr, sumber_pinjaman } = req.body;
     const t = await db.transaction();
 
     try {
@@ -172,6 +232,7 @@ const PengajuanPinjamanController = {
           status_pinjaman: "belum lunas",
           id_hr: req.user.id_karyawan,
           catatan_hr: catatan_hr,
+          sumber_pinjaman: sumber_pinjaman,
         },
         {
           where: { id: _id },
@@ -201,6 +262,7 @@ const PengajuanPinjamanController = {
         {
           status: "rejected",
           status_tiket: "history",
+          status_pinjaman: "rejected",
           id_hr: req.user.id_karyawan,
           catatan_hr: catatan_hr,
         },

@@ -2,18 +2,22 @@ const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
 const PengajuanIzin = require("../../../model/hr/pengajuanIzin/pengajuanIzinModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
+const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const db = require("../../../config/database");
 
 const PengajuanIzinController = {
   getPengajuanIzin: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search } = req.query;
+    const { page, limit, search, status_tiket } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
     //   obj = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
+    if (status_tiket) obj.status_tiket = status_tiket;
     try {
       if (page && limit) {
         const length = await PengajuanIzin.count({ where: obj });
@@ -28,6 +32,26 @@ const PengajuanIzinController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -51,6 +75,26 @@ const PengajuanIzinController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -64,7 +108,7 @@ const PengajuanIzinController = {
       } else {
         const data = await PengajuanIzin.findAll({
           order: [["createdAt", "DESC"]],
-
+          where: obj,
           include: [
             {
               model: Karyawan,
@@ -73,6 +117,26 @@ const PengajuanIzinController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,

@@ -2,18 +2,22 @@ const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
 const PengajuanSakit = require("../../../model/hr/pengajuanSakit/pengajuanSakitModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
+const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const db = require("../../../config/database");
 
 const PengajuanSakitController = {
   getPengajuanSakit: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search } = req.query;
+    const { page, limit, search, status_tiket } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
     //   obj = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
+    if (status_tiket) obj.status_tiket = status_tiket;
     try {
       if (page && limit) {
         const length = await PengajuanSakit.count({ where: obj });
@@ -24,6 +28,26 @@ const PengajuanSakitController = {
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
@@ -64,11 +88,31 @@ const PengajuanSakitController = {
       } else {
         const data = await PengajuanSakit.findAll({
           order: [["createdAt", "DESC"]],
-
+          where: obj,
           include: [
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
             },
             {
               model: Karyawan,
