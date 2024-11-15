@@ -20,4 +20,10 @@ router.post(
   inspeksiCetakPeriodePoint.createInspeksiCetakPeriodePoint
 );
 
+router.delete(
+  "/qc/cs/inspeksiCetakPeriodePoint/delete/:id",
+  auth,
+  inspeksiCetakPeriodePoint.deleteInspeksiCetakPeriodePoint
+);
+
 module.exports = router;

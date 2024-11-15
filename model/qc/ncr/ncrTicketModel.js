@@ -79,6 +79,7 @@ const NcrTicket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     bagian_tiket: {
       type: DataTypes.STRING,
       allowNull: true,

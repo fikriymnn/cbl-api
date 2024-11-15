@@ -335,7 +335,7 @@ const inspeksiAmparLemController = {
             });
             await NcrKetidaksesuain.create({
               id_department: department.id,
-              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria}`,
+              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria} di Ampar Lem`,
             });
           }
         } else if (
