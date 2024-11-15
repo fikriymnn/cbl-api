@@ -105,6 +105,7 @@ const Pm3Controller = {
             {
               model: PointPm3,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm3,
@@ -115,6 +116,7 @@ const Pm3Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
           limit: parseInt(limit),
@@ -141,6 +143,7 @@ const Pm3Controller = {
             {
               model: PointPm3,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm3,
@@ -151,6 +154,7 @@ const Pm3Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
         });

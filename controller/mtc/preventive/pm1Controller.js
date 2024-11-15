@@ -88,6 +88,7 @@ const Pm1Controller = {
             {
               model: PointPm1,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm1,
@@ -98,6 +99,7 @@ const Pm1Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
           limit: parseInt(limit),
@@ -130,20 +132,22 @@ const Pm1Controller = {
               model: MasterMesin,
               as: "mesin",
             },
-            // {
-            //   model: PointPm1,
-            //   attributes: ["hasil"],
-            // },
-            // {
-            //   model: PointPm1,
-            //   as: "point_pm1",
-            //   attributes: ["hasil"],
-            //   where: {
-            //     hasil: {
-            //       [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
-            //     },
-            //   },
-            // },
+            {
+              model: PointPm1,
+              attributes: ["hasil"],
+              required: false,
+            },
+            {
+              model: PointPm1,
+              as: "point_pm1",
+              attributes: ["hasil"],
+              where: {
+                hasil: {
+                  [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
+                },
+              },
+              required: false,
+            },
           ],
           where: obj,
         });
