@@ -151,6 +151,7 @@ router.use("/", require("./hr/absenRoute"));
 router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
 router.use("/", require("./masterdata/hr/masterShiftRoute"));
 router.use("/", require("./masterdata/hr/masterCutiRoute"));
+router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
 router.use("/", require("./masterdata/hr/masterDivisiRoute"));
 router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
 router.use("/", require("./masterdata/hr/masterBagianHrRoute"));

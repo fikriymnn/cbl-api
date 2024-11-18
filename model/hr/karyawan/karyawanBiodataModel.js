@@ -105,6 +105,11 @@ const KaryawanBiodataModel = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    gaji: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
   },
   {
     freezeTableName: true,

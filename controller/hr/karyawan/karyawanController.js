@@ -166,6 +166,7 @@ const karyawanController = {
       status_pajak,
       level,
       sub_level,
+      gaji,
     } = req.body;
     const t = await db.transaction();
 
@@ -201,6 +202,7 @@ const karyawanController = {
           level,
           sub_level,
           sisa_cuti: jumlah_cuti,
+          gaji,
         },
         {
           transaction: t,
@@ -235,8 +237,26 @@ const karyawanController = {
       status_pajak,
       level,
       sub_level,
+      gaji,
     } = req.body;
     const t = await db.transaction();
+    let obj = {};
+
+    if (nik) obj.nik = nik;
+    if (jenis_kelamin) obj.jenis_kelamin = jenis_kelamin;
+    if (id_divisi) obj.id_divisi = id_divisi;
+    if (id_department) obj.id_department = id_department;
+    if (id_bagian) obj.id_bagian = id_bagian;
+    if (grade) obj.grade = grade;
+    if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
+    if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+    if (jabatan) obj.jabatan = jabatan;
+    if (status_karyawan) obj.status_karyawan = status_karyawan;
+    if (status_pajak) obj.status_pajak = status_pajak;
+    if (level) obj.level = level;
+    if (sub_level) obj.sub_level = sub_level;
+    if (gaji) obj.gaji = gaji;
 
     try {
       const dataKaryawan = await Karyawan.update(
@@ -251,30 +271,12 @@ const karyawanController = {
           transaction: t,
         }
       );
-      const dataBiodata = await KaryawanBiodata.update(
-        {
-          nik,
-          jenis_kelamin,
-          id_divisi,
-          id_department,
-          id_bagian,
-          grade,
-          tgl_masuk,
-          tgl_keluar,
-          tipe_penggajian,
-          jabatan,
-          status_karyawan,
-          status_pajak,
-          level,
-          sub_level,
+      await KaryawanBiodata.update(obj, {
+        where: {
+          id_karyawan: _id,
         },
-        {
-          where: {
-            id_karyawan: _id,
-          },
-          transaction: t,
-        }
-      );
+        transaction: t,
+      });
 
       await t.commit();
       res.status(200).json({

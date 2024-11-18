@@ -457,6 +457,14 @@ const ReportMaintenance = {
       "Desember",
     ];
 
+    //get master analisis produksi
+    const masterKodeAnalisaProduksi = await MasterKodeAnalisa.findAll({
+      attributes: ["kode_analisis"],
+      where: {
+        bagian_analisis: "produksi",
+      },
+    });
+
     // Fungsi untuk mengubah nomor bulan menjadi nama bulan
     function getMonthName(monthNumber) {
       return monthNames[monthNumber - 1]; // -1 karena array index dimulai dari 0
@@ -567,12 +575,50 @@ const ReportMaintenance = {
         0
       );
 
+      const produksiDefect = await TicketOs2.findAll({
+        attributes: [
+          "kode_analisis_mtc",
+          "nama_analisis_mtc",
+          "mesin",
+          [Sequelize.fn("COUNT", Sequelize.col("kode_analisis_mtc")), "count"],
+        ],
+        group: ["kode_analisis_mtc", "nama_analisis_mtc", "mesin"],
+        raw: true,
+        where: {
+          jenis_analisis_mtc: "produksi",
+          createdAt: {
+            [Op.between]: [fromDate, toDate],
+          },
+          mesin: mesin_name,
+        },
+      });
+
+      const qualityDefect = await TicketOs2.findAll({
+        attributes: [
+          "kode_analisis_mtc",
+          "nama_analisis_mtc",
+          "mesin",
+          [Sequelize.fn("COUNT", Sequelize.col("kode_analisis_mtc")), "count"],
+        ],
+        group: ["kode_analisis_mtc", "nama_analisis_mtc", "mesin"],
+        raw: true,
+        where: {
+          jenis_analisis_mtc: "quality",
+          createdAt: {
+            [Op.between]: [fromDate, toDate],
+          },
+          mesin: mesin_name,
+        },
+      });
+
       res.status(200).json({
         data_jenis_masalah: {
           jenis_masalah: finalResult,
           total_count: totalCountJenisMalasah,
           total_quality: totalQualityJenisMalasah,
           total_produksi: totalProduksiJenisMalasah,
+          kode_produksi: produksiDefect,
+          kode_quality: qualityDefect,
         },
       });
     } catch (error) {
