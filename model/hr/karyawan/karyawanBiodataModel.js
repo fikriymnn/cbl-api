@@ -15,7 +15,7 @@ const KaryawanBiodataModel = db.define(
       allowNull: false,
       references: {
         model: KaryawanModel,
-        key: "USERID",
+        key: "userid",
       },
     },
     nik: {

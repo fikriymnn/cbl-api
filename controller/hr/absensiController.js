@@ -11,44 +11,19 @@ const userController = {
   getAbsensi: async (req, res) => {
     const { bagian, role } = req.query;
 
-    function getMonthName(monthString) {
-      const months = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-      ];
-
-      const monthNumber = parseInt(monthString);
-
-      if (monthNumber < 1 || monthNumber > 12) {
-        return "Bulan tidak valid";
-      } else {
-        return months[monthNumber - 1];
-      }
-    }
-
     try {
       const karyawan = await Karyawan.findAll();
 
       // Ambil semua data absensi masuk
       const absensiMasuk = await absensi.findAll({
         where: {
-          CHECKTYPE: "I",
+          checktype: "0",
         },
       });
 
       const absensiKeluar = await absensi.findAll({
         where: {
-          CHECKTYPE: "O",
+          checktype: "1",
         },
       });
 
@@ -97,21 +72,22 @@ const userController = {
       const results = absensiMasuk.map((masuk) => {
         const keluar = absensiKeluar.find(
           (k) =>
-            k.USERID === masuk.USERID &&
-            (k.CHECKTIME > masuk.CHECKTIME ||
-              new Date(k.CHECKTIME).getDate() >
-                new Date(masuk.CHECKTIME).getDate())
+            k.userid === masuk.userid &&
+            (k.checktime > masuk.checktime ||
+              new Date(k.checktime).getDate() >
+                new Date(masuk.checktime).getDate())
         );
 
         // Dapatkan shift berdasarkan tanggal absensi masuk
-        const dayName = new Date(masuk.CHECKTIME).toLocaleDateString("id-ID", {
+        const dayName = new Date(masuk.checktime).toLocaleDateString("id-ID", {
           weekday: "long",
         });
         const shiftHariIni = shifts.find((shift) => shift.hari === dayName);
         const dataKaryawan = karyawan.find(
-          (data) => data.USERID === masuk.USERID
+          (data) => data.userid === masuk.userid
         );
-        const namaKaryawan = dataKaryawan.name;
+
+        const namaKaryawan = dataKaryawan?.name;
 
         // Ambil jam shift
         const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -130,8 +106,8 @@ const userController = {
         let shiftMasukTime, shiftKeluarTime;
 
         // Konversi waktu ke UTC untuk perbandingan
-        const waktuMasuk = new Date(masuk.CHECKTIME);
-        const waktuKeluar = !keluar ? null : new Date(keluar.CHECKTIME);
+        const waktuMasuk = new Date(masuk.checktime);
+        const waktuKeluar = !keluar ? null : new Date(keluar.checktime);
 
         if (keluar) {
           // waktu masuk absen
@@ -202,8 +178,6 @@ const userController = {
             )
           ).getTime();
 
-          console.log(waktuKeluarShift2UTC);
-
           // Tentukan shift berdasarkan waktu absensi masuk
           // Shift 1
           if (
@@ -231,7 +205,7 @@ const userController = {
             menitTerlambat = Math.floor(
               (waktuMasukUTC.getTime() - (shiftMasukTime + toleransi)) / 60000
             ); // Hitung selisih dalam menit
-            console.log(menitTerlambat);
+
             statusMasuk = "Terlambat";
           }
 
@@ -275,9 +249,9 @@ const userController = {
           const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
 
           return {
-            USERID: masuk.USERID,
-            waktu_masuk: masuk.CHECKTIME,
-            waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            userid: masuk.userid,
+            waktu_masuk: masuk.checktime,
+            waktu_keluar: keluar ? keluar.checktime : null,
             tgl_masuk: tglMasuk,
             tgl_keluar: tglKeluar,
             jam_masuk: jamMasuk,
@@ -372,9 +346,9 @@ const userController = {
           const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
 
           return {
-            USERID: masuk.USERID,
-            waktu_masuk: masuk.CHECKTIME,
-            waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            userid: masuk.userid,
+            waktu_masuk: masuk.checktime,
+            waktu_keluar: keluar ? keluar.checktime : null,
             tgl_masuk: tglMasuk,
             tgl_keluar: null,
             jam_masuk: jamMasuk,
@@ -386,6 +360,7 @@ const userController = {
             name: namaKaryawan,
             //status_keluar: statusKeluar,
             shift, // Menampilkan shift
+            status_absen: "masuk",
           };
         }
       });
@@ -413,17 +388,21 @@ const generateDailyCuti = (cuti, karyawan) => {
   let startDate = new Date(cuti.dari);
   let endDate = new Date(cuti.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.USERID === cuti.id_karyawan
+    (data) => data.userid === cuti.id_karyawan
   );
-  const namaKaryawan = dataKaryawan.name;
+
+  const namaKaryawan = dataKaryawan?.name;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
     dailycuti.push({
-      USERID: cuti.id_karyawan,
+      userid: cuti.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
-      tgl_masuk: null,
+      tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
       jam_keluar: null,
@@ -449,17 +428,20 @@ const generateDailyIzin = (izin, karyawan) => {
   let startDate = new Date(izin.dari);
   let endDate = new Date(izin.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.USERID === izin.id_karyawan
+    (data) => data.userid === izin.id_karyawan
   );
-  const namaKaryawan = dataKaryawan.name;
+  const namaKaryawan = dataKaryawan?.name;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
     dailyIzin.push({
-      USERID: izin.id_karyawan,
+      userid: izin.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
-      tgl_masuk: null,
+      tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
       jam_keluar: null,
@@ -485,17 +467,21 @@ const generateDailySakit = (sakit, karyawan) => {
   let startDate = new Date(sakit.dari);
   let endDate = new Date(sakit.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.USERID === sakit.id_karyawan
+    (data) => data.userid === sakit.id_karyawan
   );
-  const namaKaryawan = dataKaryawan.name;
+  const namaKaryawan = dataKaryawan?.name;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
     dailySakit.push({
-      USERID: sakit.id_karyawan,
+      userid: sakit.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
-      tgl_masuk: null,
+      tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
       jam_keluar: null,
@@ -514,5 +500,30 @@ const generateDailySakit = (sakit, karyawan) => {
 
   return dailySakit;
 };
+
+function getMonthName(monthString) {
+  const months = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+
+  const monthNumber = parseInt(monthString);
+
+  if (monthNumber < 1 || monthNumber > 12) {
+    return "Bulan tidak valid";
+  } else {
+    return months[monthNumber - 1];
+  }
+}
 
 module.exports = userController;

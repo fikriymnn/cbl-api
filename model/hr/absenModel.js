@@ -4,32 +4,32 @@ const db = require("../../config/databaseFinger");
 const { DataTypes } = Sequelize;
 
 const CheckInOut = db.define(
-  "CHECKINOUT",
+  "checkinout",
   {
-    USERID: {
+    userid: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    CHECKTIME: {
+    checktime: {
       type: DataTypes.DATE,
       allowNull: false,
       primaryKey: true,
     },
-    CHECKTYPE: {
+    checktype: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "I",
     },
-    VERIFYCODE: {
+    verifycode: {
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 0,
     },
-    SENSORID: {
+    SN: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    Memoinfo: {
+    sensorid: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -38,24 +38,9 @@ const CheckInOut = db.define(
       allowNull: true,
       defaultValue: "0",
     },
-    sn: {
+    Reserved: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    UserExtFmt: {
-      type: DataTypes.SMALLINT,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    mask_flag: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    temperature: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-      defaultValue: 0,
     },
   },
   {

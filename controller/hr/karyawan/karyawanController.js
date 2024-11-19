@@ -167,6 +167,8 @@ const karyawanController = {
       level,
       sub_level,
       gaji,
+      kontrak_dari,
+      kontrak_sampai,
     } = req.body;
     const t = await db.transaction();
 
@@ -186,7 +188,7 @@ const karyawanController = {
       );
       const dataBiodata = await KaryawanBiodata.create(
         {
-          id_karyawan: dataKaryawan.USERID,
+          id_karyawan: dataKaryawan.userid,
           nik,
           jenis_kelamin,
           id_divisi,
@@ -203,6 +205,8 @@ const karyawanController = {
           sub_level,
           sisa_cuti: jumlah_cuti,
           gaji,
+          kontrak_dari,
+          kontrak_sampai,
         },
         {
           transaction: t,

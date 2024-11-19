@@ -21,7 +21,7 @@ const Users = db.define(
       allowNull: true,
       references: {
         model: KaryawanModel,
-        key: "USERID",
+        key: "userid",
       },
     },
     nama: {

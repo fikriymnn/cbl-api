@@ -3,20 +3,20 @@ const masterCutiKhususController = require("../../../controller/masterData/hr/ma
 const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get(
-  "/master/cutiKhusus/:id?",
+  "/master/hr/cutiKhusus/:id?",
   masterCutiKhususController.getMasterCutiKhusus
 );
 router.post(
-  "/master/cutiKhusus",
+  "/master/hr/cutiKhusus",
   masterCutiKhususController.createMasterCutiKhusus
 );
 router.put(
-  "/master/cutiKhusus/:id",
+  "/master/hr/cutiKhusus/:id",
   auth,
   masterCutiKhususController.updateMasterCutiKhusus
 );
 router.delete(
-  "/master/cutiKhusus/:id",
+  "/master/hr/cutiKhusus/:id",
   auth,
   masterCutiKhususController.deleteMasterCutiKhusus
 );

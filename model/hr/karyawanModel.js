@@ -4,9 +4,9 @@ const db = require("../../config/database");
 const { DataTypes } = Sequelize;
 
 const KaryawanModel = db.define(
-  "USERINFO",
+  "userinfo",
   {
-    USERID: {
+    userid: {
       type: DataTypes.INTEGER,
       allowNull: true,
       primaryKey: true,
