@@ -155,6 +155,8 @@ router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
 router.use("/", require("./masterdata/hr/masterDivisiRoute"));
 router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
 router.use("/", require("./masterdata/hr/masterBagianHrRoute"));
+router.use("/", require("./masterdata/hr/masterGrade/masterGradeRoute"));
+router.use("/", require("./masterdata/hr/masterGrade/masterGradeColumnRoute"));
 
 //HR
 router.use("/", require("./hr/karyawan/karyawanRoute"));

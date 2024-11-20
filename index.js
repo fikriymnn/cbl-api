@@ -160,6 +160,11 @@ const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
 const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
+const masterGradeHr = require("./model/masterData/hr/masterGrade/masterGradeModel");
+const masterGradeHrColumn = require("./model/masterData/hr/masterGrade/masterGradeColumnModel");
+const masterGradeHrIsi = require("./model/masterData/hr/masterGrade/masterGradeIsiModel");
+
+// absen hr
 const absenModel = require("./model/hr/absenModel");
 
 //karyawan
@@ -187,7 +192,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await masterGradeHrIsi.sync({ alter: true });
 // })();
 
 // const ip100 = 75
