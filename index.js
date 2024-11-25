@@ -192,7 +192,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await masterGradeHrIsi.sync({ alter: true });
+//   await proses.sync({ alter: true });
 // })();
 
 // const ip100 = 75

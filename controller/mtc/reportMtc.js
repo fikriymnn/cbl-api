@@ -307,6 +307,7 @@ const ReportMaintenance = {
             createdAt: {
               [Op.between]: [fromDate, toDate],
             },
+            status_qc: "di validasi",
           },
         });
 
@@ -363,6 +364,7 @@ const ReportMaintenance = {
           raw: true,
           where: {
             jenis_analisis_mtc: { [Op.ne]: null },
+            status_qc: "di validasi",
           },
         });
 
@@ -524,6 +526,7 @@ const ReportMaintenance = {
             [Op.between]: [fromDate, toDate],
           },
           mesin: mesin_name,
+          status_qc: "di validasi",
         },
       });
 
@@ -590,6 +593,7 @@ const ReportMaintenance = {
             [Op.between]: [fromDate, toDate],
           },
           mesin: mesin_name,
+          status_qc: "di validasi",
         },
       });
 
@@ -659,6 +663,7 @@ const ReportMaintenance = {
             createdAt: {
               [Op.between]: [fromDate, toDate],
             },
+            status_qc: "di validasi",
           },
         });
         const totalCount = produksiDefect.reduce(
@@ -689,6 +694,7 @@ const ReportMaintenance = {
           where: {
             jenis_analisis_mtc: "produksi",
             kode_analisis_mtc: { [Op.ne]: null },
+            status_qc: "di validasi",
           },
         });
 
@@ -764,6 +770,7 @@ const ReportMaintenance = {
             createdAt: {
               [Op.between]: [fromDate, toDate],
             },
+            status_qc: "di validasi",
           },
         });
 
@@ -792,6 +799,7 @@ const ReportMaintenance = {
           where: {
             jenis_analisis_mtc: "quality",
             kode_analisis_mtc: { [Op.ne]: null },
+            status_qc: "di validasi",
           },
         });
         const totalCount = qualityDefect.reduce((accumulator, currentValue) => {

@@ -149,6 +149,8 @@ const StokSparepartController = {
       keterangan,
       umur_sparepart,
       vendor,
+      part_number,
+      lokasi,
     } = req.body;
 
     let obj = {};
@@ -162,6 +164,8 @@ const StokSparepartController = {
     if (stok) obj.stok = stok;
     if (keterangan) obj.keterangan = keterangan;
     if (vendor) obj.vendor = vendor;
+    if (part_number) obj.part_number = part_number;
+    if (lokasi) obj.lokasi = lokasi;
 
     try {
       await StokSparepart.update(obj, { where: { id: _id } }),

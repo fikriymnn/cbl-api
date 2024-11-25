@@ -358,6 +358,7 @@ const ProsessMtc = {
       return res.status(401).json({ msg: "incomplite data" });
 
     const monitoring = await MasterMonitoring.findByPk(1);
+    const prosesData = await ProsesMtc.findByPk(id_proses);
 
     let status = "";
     if (skor_mtc < monitoring.minimal_skor) {
@@ -366,15 +367,28 @@ const ProsessMtc = {
       status = "monitoring";
     }
 
-    let obj = {
-      status_tiket: "request to qc",
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-      jenis_analisis_mtc: jenis_analisis_mtc,
-      waktu_selesai_mtc: new Date(),
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-    };
+    let obj = {};
+    if (prosesData.is_rework == true) {
+      obj = {
+        status_tiket: "request to qc",
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+      };
+    } else {
+      obj = {
+        status_tiket: "request to qc",
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+        waktu_selesai_mtc: new Date(),
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+      };
+    }
 
     let obj_proses = {
       status_proses: status,
@@ -926,10 +940,11 @@ const ProsessMtc = {
       skor_mtc: ticket.skor_mtc,
       status_qc: "open",
       waktu_mulai_mtc: new Date(),
+      is_rework: true,
     };
     try {
-      await Ticket.update(obj, { where: { id: _id } }),
-        await ProsesMtc.create(prosesMtc);
+      //await Ticket.update(obj, { where: { id: _id } }),
+      await ProsesMtc.create(prosesMtc);
       await userActionMtc.create({
         id_mtc: id_eksekutor,
         id_tiket: _id,

@@ -12,7 +12,7 @@ const PengajuanCuti = db.define(
       allowNull: false,
       references: {
         model: KaryawanModel,
-        key: "USERID",
+        key: "userid",
       },
     },
     id_pengaju: {
@@ -20,7 +20,7 @@ const PengajuanCuti = db.define(
       allowNull: false,
       references: {
         model: KaryawanModel,
-        key: "USERID",
+        key: "userid",
       },
     },
     id_hr: {
@@ -28,7 +28,7 @@ const PengajuanCuti = db.define(
       allowNull: true,
       references: {
         model: KaryawanModel,
-        key: "USERID",
+        key: "userid",
       },
     },
     tipe_cuti: {

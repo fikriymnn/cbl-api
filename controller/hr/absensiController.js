@@ -2,6 +2,7 @@ const dbFinger = require("../../config/databaseFinger");
 const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const absensi = require("../../model/hr/absenModel");
 const Karyawan = require("../../model/hr/karyawanModel");
+const KaryawanBiodata = require("../../model/hr/karyawan/karyawanBiodataModel");
 const masterShift = require("../../model/masterData/hr/masterShiftModel");
 const DataCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
@@ -9,23 +10,59 @@ const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
 const userController = {
   getAbsensi: async (req, res) => {
-    const { bagian, role } = req.query;
+    const { department, role, startDate, endDate, endDateKeluar } = req.query;
+
+    const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
+    const toDateMasukUTC = new Date(`${endDate}T23:59:59.999Z`);
+    const dateKeluar = new Date(endDate);
+    dateKeluar.setDate(dateKeluar.getDate() + 1);
+    const nextDay = dateKeluar.toISOString().split("T")[0];
+    const toDateKeluarUTC = new Date(`${nextDay}T23:59:59.999Z`);
 
     try {
       const karyawan = await Karyawan.findAll();
+      const karyawanBiodata = await KaryawanBiodata.findAll();
 
-      // Ambil semua data absensi masuk
-      const absensiMasuk = await absensi.findAll({
-        where: {
-          checktype: "0",
-        },
-      });
+      let absensiMasuk = [];
+      let absensiKeluar = [];
 
-      const absensiKeluar = await absensi.findAll({
-        where: {
-          checktype: "1",
-        },
-      });
+      //jika ada range tanggal
+      if (startDate && endDate) {
+        // Ambil  data absensi masuk
+        absensiMasuk = await absensi.findAll({
+          where: {
+            checktype: "0",
+            checktime: {
+              [Op.between]: [fromDateUTC, toDateMasukUTC],
+            },
+          },
+        });
+
+        //ambil data absensi keluar
+        absensiKeluar = await absensi.findAll({
+          where: {
+            checktype: "1",
+            checktime: {
+              [Op.between]: [fromDateUTC, toDateKeluarUTC],
+            },
+          },
+        });
+        //console.log(absensiMasuk);
+      } else {
+        // Ambil  data absensi masuk
+        absensiMasuk = await absensi.findAll({
+          where: {
+            checktype: "0",
+          },
+        });
+
+        //ambil data absensi keluar
+        absensiKeluar = await absensi.findAll({
+          where: {
+            checktype: "1",
+          },
+        });
+      }
 
       const dataCuti = await DataCuti.findAll({
         where: {
@@ -47,13 +84,19 @@ const userController = {
       // Memecah cuti menjadi entri harian
       let cutiEntries = [];
       dataCuti.forEach((cuti) => {
-        cutiEntries = [...cutiEntries, ...generateDailyCuti(cuti, karyawan)];
+        cutiEntries = [
+          ...cutiEntries,
+          ...generateDailyCuti(cuti, karyawan, karyawanBiodata),
+        ];
       });
 
       // Memecah izin menjadi entri harian
       let izinEntries = [];
       dataIzin.forEach((izin) => {
-        izinEntries = [...izinEntries, ...generateDailyIzin(izin, karyawan)];
+        izinEntries = [
+          ...izinEntries,
+          ...generateDailyIzin(izin, karyawan, karyawanBiodata),
+        ];
       });
 
       // Memecah sakit menjadi entri harian
@@ -61,7 +104,7 @@ const userController = {
       dataSakit.forEach((sakit) => {
         sakitEntries = [
           ...sakitEntries,
-          ...generateDailySakit(sakit, karyawan),
+          ...generateDailySakit(sakit, karyawan, karyawanBiodata),
         ];
       });
 
@@ -83,11 +126,18 @@ const userController = {
           weekday: "long",
         });
         const shiftHariIni = shifts.find((shift) => shift.hari === dayName);
+
+        //get data karyawan
         const dataKaryawan = karyawan.find(
           (data) => data.userid === masuk.userid
         );
+        //get data karyawan biodata
+        const dataKaryawanBiodata = karyawanBiodata.find(
+          (data) => data.id_karyawan === masuk.userid
+        );
 
         const namaKaryawan = dataKaryawan?.name;
+        const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
 
         // Ambil jam shift
         const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -264,6 +314,7 @@ const userController = {
             //status_keluar: statusKeluar,
             shift, // Menampilkan shift
             status_absen: "masuk",
+            id_department: idDepartmentKaryawan,
           };
         } else {
           // waktu masuk absen
@@ -361,6 +412,7 @@ const userController = {
             //status_keluar: statusKeluar,
             shift, // Menampilkan shift
             status_absen: "masuk",
+            id_department: idDepartmentKaryawan,
           };
         }
       });
@@ -383,7 +435,7 @@ const userController = {
 };
 
 // Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
-const generateDailyCuti = (cuti, karyawan) => {
+const generateDailyCuti = (cuti, karyawan, karyawanBiodata) => {
   let dailycuti = [];
   let startDate = new Date(cuti.dari);
   let endDate = new Date(cuti.sampai);
@@ -391,7 +443,12 @@ const generateDailyCuti = (cuti, karyawan) => {
     (data) => data.userid === cuti.id_karyawan
   );
 
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === cuti.id_karyawan
+  );
+
   const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -414,6 +471,7 @@ const generateDailyCuti = (cuti, karyawan) => {
       //status_keluar: statusKeluar,
       shift: null, // Menampilkan shift
       status_absen: "cuti" + " " + cuti.tipe_cuti,
+      id_department: namaKaryawanBiodata,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -423,14 +481,19 @@ const generateDailyCuti = (cuti, karyawan) => {
 };
 
 // Fungsi untuk memecah rentang tanggal izin menjadi array tanggal harian
-const generateDailyIzin = (izin, karyawan) => {
+const generateDailyIzin = (izin, karyawan, karyawanBiodata) => {
   let dailyIzin = [];
   let startDate = new Date(izin.dari);
   let endDate = new Date(izin.sampai);
   const dataKaryawan = karyawan.find(
     (data) => data.userid === izin.id_karyawan
   );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === izin.id_karyawan
+  );
+
   const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -453,6 +516,7 @@ const generateDailyIzin = (izin, karyawan) => {
       //status_keluar: statusKeluar,
       shift: null, // Menampilkan shift
       status_absen: "izin",
+      id_department: namaKaryawanBiodata,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -462,14 +526,19 @@ const generateDailyIzin = (izin, karyawan) => {
 };
 
 // Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
-const generateDailySakit = (sakit, karyawan) => {
+const generateDailySakit = (sakit, karyawan, karyawanBiodata) => {
   let dailySakit = [];
   let startDate = new Date(sakit.dari);
   let endDate = new Date(sakit.sampai);
   const dataKaryawan = karyawan.find(
     (data) => data.userid === sakit.id_karyawan
   );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === sakit.id_karyawan
+  );
+
   const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -493,6 +562,7 @@ const generateDailySakit = (sakit, karyawan) => {
       //status_keluar: statusKeluar,
       shift: null, // Menampilkan shift
       status_absen: "sakit",
+      id_department: namaKaryawanBiodata,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);

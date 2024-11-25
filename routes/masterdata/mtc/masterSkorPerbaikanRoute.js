@@ -5,7 +5,7 @@ const {
   createSkorPerbaikan,
   updateSkorPerbaikan,
   deleteSkorPerbaikan,
-} = require("../../../controller/masterData/mtc/skorPerbaikan.Controller");
+} = require("../../../controller/masterData/mtc/skorPerbaikanController");
 const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get("/master/skorMtc", getMasterSkorPerbaikan);
