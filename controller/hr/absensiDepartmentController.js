@@ -4,20 +4,18 @@ const absensi = require("../../model/hr/absenModel");
 const Karyawan = require("../../model/hr/karyawanModel");
 const KaryawanBiodata = require("../../model/hr/karyawan/karyawanBiodataModel");
 const masterShift = require("../../model/masterData/hr/masterShiftModel");
-const MasterDepartment = require("../../model/masterData/hr/masterDeprtmentModel");
 const DataCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
 const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
-const AbsensiController = {
-  getAbsensi: async (req, res) => {
-    const { idDepartment, startDate, endDate } = req.query;
+const AbsensiDepartmentController = {
+  getAbsensiDepartment: async (req, res) => {
+    const { id_department, startDate, endDate } = req.query;
 
     let obj = {};
-    if (idDepartment) obj.id_department = idDepartment;
+    if (id_department) obj.id_department = id_department;
 
     try {
-      const masterDepartment = await MasterDepartment.findAll();
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
@@ -204,12 +202,7 @@ const AbsensiController = {
       dataCuti.forEach((cuti) => {
         cutiEntries = [
           ...cutiEntries,
-          ...generateDailyCuti(
-            cuti,
-            karyawan,
-            karyawanBiodata,
-            masterDepartment
-          ),
+          ...generateDailyCuti(cuti, karyawan, karyawanBiodata),
         ];
       });
 
@@ -218,12 +211,7 @@ const AbsensiController = {
       dataIzin.forEach((izin) => {
         izinEntries = [
           ...izinEntries,
-          ...generateDailyIzin(
-            izin,
-            karyawan,
-            karyawanBiodata,
-            masterDepartment
-          ),
+          ...generateDailyIzin(izin, karyawan, karyawanBiodata),
         ];
       });
 
@@ -232,12 +220,7 @@ const AbsensiController = {
       dataSakit.forEach((sakit) => {
         sakitEntries = [
           ...sakitEntries,
-          ...generateDailySakit(
-            sakit,
-            karyawan,
-            karyawanBiodata,
-            masterDepartment
-          ),
+          ...generateDailySakit(sakit, karyawan, karyawanBiodata),
         ];
       });
 
@@ -268,14 +251,9 @@ const AbsensiController = {
         const dataKaryawanBiodata = karyawanBiodata.find(
           (data) => data.id_karyawan === masuk.userid
         );
-        //get data master department
-        const dataMasterDepartment = masterDepartment.find(
-          (data) => data.id === dataKaryawanBiodata?.id_department
-        );
 
         const namaKaryawan = dataKaryawan?.name;
         const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
-        const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
         // Ambil jam shift
         const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -453,7 +431,6 @@ const AbsensiController = {
             shift, // Menampilkan shift
             status_absen: "masuk",
             id_department: idDepartmentKaryawan,
-            nama_department: namaDepartmentKaryawan,
           };
         } else {
           // waktu masuk absen
@@ -552,7 +529,6 @@ const AbsensiController = {
             shift, // Menampilkan shift
             status_absen: "masuk",
             id_department: idDepartmentKaryawan,
-            nama_department: namaDepartmentKaryawan,
           };
         }
       });
@@ -575,12 +551,7 @@ const AbsensiController = {
 };
 
 // Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
-const generateDailyCuti = (
-  cuti,
-  karyawan,
-  karyawanBiodata,
-  masterDepartment
-) => {
+const generateDailyCuti = (cuti, karyawan, karyawanBiodata) => {
   let dailycuti = [];
   let startDate = new Date(cuti.dari);
   let endDate = new Date(cuti.sampai);
@@ -591,14 +562,9 @@ const generateDailyCuti = (
   const dataKaryawanBiodata = karyawanBiodata.find(
     (data) => data.id_karyawan === cuti.id_karyawan
   );
-  //get data master department
-  const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
-  );
 
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
-  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -622,7 +588,6 @@ const generateDailyCuti = (
       shift: null, // Menampilkan shift
       status_absen: "cuti" + " " + cuti.tipe_cuti,
       id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -632,12 +597,7 @@ const generateDailyCuti = (
 };
 
 // Fungsi untuk memecah rentang tanggal izin menjadi array tanggal harian
-const generateDailyIzin = (
-  izin,
-  karyawan,
-  karyawanBiodata,
-  masterDepartment
-) => {
+const generateDailyIzin = (izin, karyawan, karyawanBiodata) => {
   let dailyIzin = [];
   let startDate = new Date(izin.dari);
   let endDate = new Date(izin.sampai);
@@ -648,14 +608,8 @@ const generateDailyIzin = (
     (data) => data.id_karyawan === izin.id_karyawan
   );
 
-  //get data master department
-  const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
-  );
-
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
-  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -679,7 +633,6 @@ const generateDailyIzin = (
       shift: null, // Menampilkan shift
       status_absen: "izin",
       id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -689,12 +642,7 @@ const generateDailyIzin = (
 };
 
 // Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
-const generateDailySakit = (
-  sakit,
-  karyawan,
-  karyawanBiodata,
-  masterDepartment
-) => {
+const generateDailySakit = (sakit, karyawan, karyawanBiodata) => {
   let dailySakit = [];
   let startDate = new Date(sakit.dari);
   let endDate = new Date(sakit.sampai);
@@ -705,14 +653,8 @@ const generateDailySakit = (
     (data) => data.id_karyawan === sakit.id_karyawan
   );
 
-  //get data master department
-  const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
-  );
-
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
-  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -737,7 +679,6 @@ const generateDailySakit = (
       shift: null, // Menampilkan shift
       status_absen: "sakit",
       id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -771,4 +712,4 @@ function getMonthName(monthString) {
   }
 }
 
-module.exports = AbsensiController;
+module.exports = AbsensiDepartmentController;

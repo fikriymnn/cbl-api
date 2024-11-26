@@ -186,6 +186,17 @@ const karyawanController = {
         },
         { transaction: t }
       );
+      // Setelah entitas dibuat, kita set badgenumber secara manual
+      const formattedBadgeNumber = String(dataKaryawan.userid).padStart(9, "0");
+      console.log(formattedBadgeNumber);
+
+      // Simpan perubahan
+      const dataKaryawanupdate = await Karyawan.update(
+        {
+          badgenumber: formattedBadgeNumber,
+        },
+        { where: { userid: dataKaryawan.userid }, transaction: t }
+      );
       const dataBiodata = await KaryawanBiodata.create(
         {
           id_karyawan: dataKaryawan.userid,
@@ -270,7 +281,7 @@ const karyawanController = {
 
         {
           where: {
-            USERID: _id,
+            userid: _id,
           },
           transaction: t,
         }

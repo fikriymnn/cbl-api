@@ -147,7 +147,6 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 router.use("/", require("./qc/capa/capaRoutes"));
 
 //HR master
-router.use("/", require("./hr/absenRoute"));
 router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
 router.use("/", require("./masterdata/hr/masterShiftRoute"));
 router.use("/", require("./masterdata/hr/masterCutiRoute"));
@@ -159,6 +158,8 @@ router.use("/", require("./masterdata/hr/masterGrade/masterGradeRoute"));
 router.use("/", require("./masterdata/hr/masterGrade/masterGradeColumnRoute"));
 
 //HR
+router.use("/", require("./hr/absenRoute"));
+router.use("/", require("./hr/absenDepartmentRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));

@@ -16,6 +16,10 @@ const KaryawanModel = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    badgenumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
