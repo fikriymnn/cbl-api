@@ -26,4 +26,16 @@ router.post(
   inspeksiRabutPoint.createInspeksiRabutPointDefect
 );
 
+router.put(
+  "/qc/cs/inspeksiRabutPoint/istirahat/:id",
+  auth,
+  inspeksiRabutPoint.istirahatRabutPoint
+);
+
+router.put(
+  "/qc/cs/inspeksiRabutPoint/istirahatMasuk/:id",
+  auth,
+  inspeksiRabutPoint.istirahatMasukRabutPoint
+);
+
 module.exports = router;

@@ -259,6 +259,43 @@ const inspeksiBarangRusakController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  istirahatBarangRusak: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiBarangRusak.update(
+        {
+          status: "istirahat",
+          waktu_istirahat: new Date(),
+        },
+        {
+          where: { id: _id },
+        }
+      );
+      res.status(200).json({ msg: "Istirahat Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+  masukIstirahatBarangRusak: async (req, res) => {
+    const _id = req.params.id;
+    const { lama_istirahat } = req.body;
+    try {
+      await InspeksiBarangRusak.update(
+        {
+          status: "incoming",
+          waktu_masuk_istirahat: new Date(),
+          lama_istirahat: lama_istirahat,
+        },
+        {
+          where: { id: _id },
+        }
+      );
+      res.status(200).json({ msg: "Istirahat masuk Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiBarangRusakController;

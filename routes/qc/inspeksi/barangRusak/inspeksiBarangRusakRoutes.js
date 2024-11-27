@@ -24,4 +24,16 @@ router.put(
   inspeksiBarangrusak.doneBarangRusak
 );
 
+router.put(
+  "/qc/cs/inspeksiBarangrusak/istirahat/:id",
+  auth,
+  inspeksiBarangrusak.istirahatBarangRusak
+);
+
+router.put(
+  "/qc/cs/inspeksiBarangrusak/istirahatMasuk/:id",
+  auth,
+  inspeksiBarangrusak.masukIstirahatBarangRusak
+);
+
 module.exports = router;
