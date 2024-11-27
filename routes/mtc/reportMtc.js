@@ -5,6 +5,11 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get("/reportMtc/mesinTicket", reportMtc.getMesinByTicket);
 router.get("/reportMtc/responTime", reportMtc.getDataResponTimeRange);
 router.get("/reportMtc/responTimeMinggu", reportMtc.getDataResponTimeMinggu);
+router.get("/reportMtc/breakdownTime", reportMtc.getDataBreakdownTimeRange);
+router.get(
+  "/reportMtc/breakdownTimeMinggu",
+  reportMtc.getDataBreakdownTimeMinggu
+);
 router.get("/reportMtc/mesinProblem", reportMtc.getCaseMesinProblem);
 router.get("/reportMtc/oneMesinProblem", reportMtc.getCaseOneMesinProblem);
 router.get("/reportMtc/produksiDefect", reportMtc.getProduksiDefect);

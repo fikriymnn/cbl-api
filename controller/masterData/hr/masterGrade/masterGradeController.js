@@ -1,7 +1,4 @@
 const masterGrade = require("../../../../model/masterData/hr/masterGrade/masterGradeModel");
-const masterGradeColumn = require("../../../../model/masterData/hr/masterGrade/masterGradeColumnModel");
-const masterGradeIsi = require("../../../../model/masterData/hr/masterGrade/masterGradeIsiModel");
-
 const db = require("../../../../config/database");
 
 const masterGradeModel = {
@@ -9,36 +6,10 @@ const masterGradeModel = {
     const _id = req.params.id;
     try {
       if (_id) {
-        const response = await masterGrade.findByPk(_id, {
-          include: [
-            {
-              model: masterGradeIsi,
-              as: "isi_grade",
-              include: [
-                {
-                  model: masterGradeColumn,
-                  as: "grade_column",
-                },
-              ],
-            },
-          ],
-        });
+        const response = await masterGrade.findByPk(_id);
         res.status(200).json(response);
       } else {
-        const response = await masterGrade.findAll({
-          include: [
-            {
-              model: masterGradeIsi,
-              as: "isi_grade",
-              include: [
-                {
-                  model: masterGradeColumn,
-                  as: "grade_column",
-                },
-              ],
-            },
-          ],
-        });
+        const response = await masterGrade.findAll();
         res.status(200).json({ data: response });
       }
     } catch (error) {
@@ -47,28 +18,42 @@ const masterGradeModel = {
   },
 
   createMasterGradeHr: async (req, res) => {
-    const { kategori, grade_isi } = req.body;
+    const {
+      kategori,
+      lembur_biasa,
+      lembur_libur,
+      tunjangan_jabatan,
+      uang_hadir,
+      uang_makan_lembur,
+      tunjangan_kopi,
+      tunjangan_kerja_malam,
+      uang_dinas,
+      uang_kawal,
+      uang_ongkos_pulang,
+      insentif,
+    } = req.body;
     const t = await db.transaction();
 
     try {
       const grade = await masterGrade.create(
-        { kategori },
+        {
+          kategori,
+          lembur_biasa,
+          lembur_libur,
+          tunjangan_jabatan,
+          uang_hadir,
+          uang_makan_lembur,
+          tunjangan_kopi,
+          tunjangan_kerja_malam,
+          uang_dinas,
+          uang_kawal,
+          uang_ongkos_pulang,
+          insentif,
+        },
         {
           transaction: t,
         }
       );
-      for (let i = 0; i < grade_isi.length; i++) {
-        await masterGradeIsi.create(
-          {
-            id_grade: grade.id,
-            id_grade_column: grade_isi[i].id,
-            bayaran: grade_isi[i].bayaran,
-          },
-          {
-            transaction: t,
-          }
-        );
-      }
 
       await t.commit();
       res.status(201).json({ msg: "Master Grade create Successfuly" });
@@ -80,29 +65,44 @@ const masterGradeModel = {
 
   updateMasterGradeHr: async (req, res) => {
     const _id = req.params.id;
-    const { kategori, grade_isi } = req.body;
+    const {
+      kategori,
+      lembur_biasa,
+      lembur_libur,
+      tunjangan_jabatan,
+      uang_hadir,
+      uang_makan_lembur,
+      tunjangan_kopi,
+      tunjangan_kerja_malam,
+      uang_dinas,
+      uang_kawal,
+      uang_ongkos_pulang,
+      insentif,
+    } = req.body;
     const t = await db.transaction();
 
     try {
       const grade = await masterGrade.update(
-        { kategori },
+        {
+          kategori,
+          lembur_biasa,
+          lembur_libur,
+          tunjangan_jabatan,
+          uang_hadir,
+          uang_makan_lembur,
+          tunjangan_kopi,
+          tunjangan_kerja_malam,
+          uang_dinas,
+          uang_kawal,
+          uang_ongkos_pulang,
+          insentif,
+        },
         {
           where: { id: _id },
           transaction: t,
         }
       );
 
-      for (let i = 0; i < grade_isi.length; i++) {
-        await masterGradeIsi.update(
-          {
-            bayaran: grade_isi[i].bayaran,
-          },
-          {
-            where: { id: grade_isi[i].id },
-            transaction: t,
-          }
-        );
-      }
       await t.commit();
       res.status(201).json({ msg: "Master Grade update Successfuly" });
     } catch (error) {

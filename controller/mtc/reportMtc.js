@@ -264,6 +264,264 @@ const ReportMaintenance = {
     }
   },
 
+  getDataBreakdownTimeMinggu: async (req, res) => {
+    const { tahun, bulan } = req.query;
+    console.log(req.query);
+    try {
+      const breakdownTime = await TicketOs2.findAll({
+        group: ["mesin", "Minggu_ke"],
+        attributes: [
+          "mesin",
+          [fn("MONTHNAME", col("createdAt")), "bulan"],
+          [
+            fn(
+              "SUM",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("waktu_mulai_mtc"),
+                col("waktu_selesai_mtc")
+              )
+            ),
+            "jumlah_waktu_menit",
+          ], // Menghitung jumlah waktu dalam menit
+          [
+            fn(
+              "AVG",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("waktu_mulai_mtc"),
+                col("waktu_selesai_mtc")
+              )
+            ),
+            "rata_rata_waktu_menit",
+          ], // Menghitung rata-rata waktu
+          [
+            literal(
+              `(DAY(createdAt) - 1 + WEEKDAY(DATE_SUB(createdAt, INTERVAL DAY(createdAt) - 1 DAY))) DIV 7 + 1`
+            ),
+            "Minggu_ke",
+          ],
+        ],
+        where: {
+          waktu_mulai_mtc: {
+            [Op.ne]: null,
+          },
+          waktu_selesai_mtc: {
+            [Op.ne]: null,
+          },
+          createdAt: {
+            [Op.between]: [
+              new Date(parseInt(tahun), parseInt(bulan) - 1, 1), // Awal bulan
+              new Date(parseInt(tahun), parseInt(bulan), 0), // Akhir bulan
+            ],
+          },
+        },
+        order: [
+          ["mesin", "ASC"],
+          ["Minggu_ke", "ASC"],
+        ],
+      });
+
+      // Mengelompokkan data sesuai format JSON yang diinginkan dengan 5 minggu per bulan
+      const data = breakdownTime.reduce((acc, result) => {
+        const mesin = result.mesin;
+        const bulan = result.dataValues.bulan;
+        const mingguKe = result.dataValues.Minggu_ke;
+        const jumlahWaktuMenit = result.dataValues.jumlah_waktu_menit || 0;
+        const rataRataWaktuMenit = result.dataValues.rata_rata_waktu_menit || 0;
+
+        // Cari mesin dalam hasil yang sudah diproses
+        let mesinData = acc.find((item) => item.mesin === mesin);
+
+        // Jika tidak ditemukan, buat data baru untuk mesin tersebut
+        if (!mesinData) {
+          mesinData = {
+            mesin: mesin,
+            bulan: bulan,
+            jumlah_waktu_menit: 0,
+            rata_rata_waktu_menit: 0,
+            minggu: Array.from({ length: 5 }, (_, index) => ({
+              Minggu_ke: index + 1,
+              jumlah_waktu_menit: 0,
+              rata_rata_waktu_menit: 0,
+            })),
+          };
+          acc.push(mesinData);
+        }
+
+        // Update minggu yang sesuai
+        if (mingguKe >= 1 && mingguKe <= 5) {
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit = jumlahWaktuMenit;
+          mesinData.minggu[mingguKe - 1].rata_rata_waktu_menit =
+            rataRataWaktuMenit;
+        }
+
+        // Update jumlah total waktu dan rata-rata waktu untuk mesin
+        mesinData.jumlah_waktu_menit = mesinData.minggu.reduce(
+          (sum, m) => sum + parseFloat(m.jumlah_waktu_menit),
+          0
+        );
+        mesinData.rata_rata_waktu_menit =
+          mesinData.minggu.reduce(
+            (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit),
+            0
+          ) / 5;
+
+        return acc;
+      }, []);
+
+      res.status(200).json({ data: data });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  getDataBreakdownTimeRange: async (req, res) => {
+    const { fromDate, toDate } = req.query;
+    console.log(req.query);
+
+    // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
+    const startDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+
+    // Array nama bulan dalam bahasa Indonesia
+    const monthNames = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+
+    // Fungsi untuk mengubah nomor bulan menjadi nama bulan
+    function getMonthName(monthNumber) {
+      return monthNames[monthNumber - 1]; // -1 karena array index dimulai dari 0
+    }
+
+    // Fungsi untuk menghasilkan array bulan antara startDate dan endDate
+    function generateMonthsRange(startDate, endDate) {
+      const months = [];
+      const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+      while (start <= end) {
+        months.push({
+          month: start.getMonth() + 1, // Mendapatkan bulan
+          nama_bulan: getMonthName(start.getMonth() + 1), //mendapatkan nama bulan
+          year: start.getFullYear(), // Mendapatkan tahun
+          rata_rata_waktu_menit: 0, // Default rata rata
+          jumlah_waktu_menit: 0, //Default jumlah
+        });
+        start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
+      }
+
+      return months;
+    }
+
+    // Membuat array bulan dari rentang tanggal
+    const defaultMonths = generateMonthsRange(startDate, endDate);
+    try {
+      const bereakdownTime = await TicketOs2.findAll({
+        group: [
+          "mesin",
+          Sequelize.fn("YEAR", Sequelize.col("createdAt")),
+          Sequelize.fn("MONTH", Sequelize.col("createdAt")),
+        ],
+        attributes: [
+          "mesin",
+          [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"], // Mengambil bulan dari createdAt
+          [Sequelize.fn("YEAR", Sequelize.col("createdAt")), "year"],
+          [fn("MONTHNAME", col("createdAt")), "bulan"],
+          [
+            fn(
+              "SUM",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("waktu_mulai_mtc"),
+                col("waktu_selesai_mtc")
+              )
+            ),
+            "jumlah_waktu_menit",
+          ], // Menghitung jumlah waktu dalam menit
+          [
+            fn(
+              "AVG",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("waktu_mulai_mtc"),
+                col("waktu_selesai_mtc")
+              )
+            ),
+            "rata_rata_waktu_menit",
+          ], // Menghitung rata-rata waktu
+        ],
+        where: {
+          waktu_mulai_mtc: {
+            [Op.ne]: null,
+          },
+          waktu_selesai_mtc: {
+            [Op.ne]: null,
+          },
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+        order: [["mesin", "ASC"]],
+        raw: true,
+      });
+
+      // Mengelompokkan data per mesin
+      const groupedResults = bereakdownTime.reduce((acc, row) => {
+        const mesin = row.mesin;
+
+        // Jika mesin belum ada di objek, buat entry baru dengan key mesin
+        if (!acc[mesin]) {
+          acc[mesin] = {
+            mesin: mesin,
+            data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
+          };
+        }
+        console.log([...defaultMonths]);
+
+        // Temukan bulan yang sesuai dalam array default bulan
+        const foundMonth = acc[mesin].data.find(
+          (m) => m.month === row.month && m.year === row.year
+        );
+
+        if (foundMonth) {
+          // Jika bulan ditemukan, update total
+          foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;
+          foundMonth.rata_rata_waktu_menit = row.rata_rata_waktu_menit;
+        }
+
+        return acc;
+      }, {});
+
+      // Konversi objek hasil grouping ke dalam array
+      const finalResult = Object.values(groupedResults);
+
+      res.status(200).json({
+        queryDari: startDate,
+        querySampai: endDate,
+        data: finalResult,
+        listBulan: defaultMonths,
+      });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   getCaseMesinProblem: async (req, res) => {
     const { start_date, end_date } = req.query;
     const fromDate = new Date(start_date);
