@@ -160,9 +160,7 @@ const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
 const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
-const masterGradeHr = require("./model/masterData/hr/masterGrade/masterGradeModel");
-const masterGradeHrColumn = require("./model/masterData/hr/masterGrade/masterGradeColumnModel");
-const masterGradeHrIsi = require("./model/masterData/hr/masterGrade/masterGradeIsiModel");
+const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");

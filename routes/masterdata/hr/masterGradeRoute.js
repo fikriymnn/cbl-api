@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const masterGradeHrHrController = require("../../../../controller/masterData/hr/masterGrade/masterGradeController");
-const { auth } = require("../../../../middlewares/authMiddlewares");
+const masterGradeHrHrController = require("../../../controller/masterData/hr/masterGradeController");
+const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get("/master/hr/grade/:id?", masterGradeHrHrController.getMasterGradeHr);
 router.post("/master/hr/grade", masterGradeHrHrController.createMasterGradeHr);

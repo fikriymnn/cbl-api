@@ -1,5 +1,5 @@
-const masterGrade = require("../../../../model/masterData/hr/masterGrade/masterGradeModel");
-const db = require("../../../../config/database");
+const masterGrade = require("../../../model/masterData/hr/masterGradeModel");
+const db = require("../../../config/database");
 
 const masterGradeModel = {
   getMasterGradeHr: async (req, res) => {
