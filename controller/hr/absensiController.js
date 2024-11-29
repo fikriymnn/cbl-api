@@ -284,6 +284,7 @@ const AbsensiController = {
         const shiftKeluar2 = shiftHariIni.shift_2_keluar; // Jam keluar shift 2
 
         let menitTerlambat = 0;
+        let menitPulangCepat = 0;
         let jamLembur = 0;
         let statusMasuk = "Tepat Waktu";
         let statusKeluar = "Tepat Waktu";
@@ -400,10 +401,12 @@ const AbsensiController = {
           // Hitung pulang cepat
           //const toleransi = 5 * 60 * 1000; // Toleransi 5 menit dalam milidetik
           if (waktuKeluarUTC.getTime() < shiftKeluarTime) {
-            // menitTerlambat = Math.floor(
-            //   (waktuKeluarUTC.getTime() - (shiftMasukTime )) / 60000
-            // ); // Hitung selisih dalam menit
+            menitPulangCepat = Math.floor(
+              (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000
+            ); // Hitung selisih dalam menit
             statusKeluar = "Pulang Cepat";
+          } else {
+            statusKeluar = "Keluar";
           }
 
           // Hitung lembur
@@ -449,7 +452,8 @@ const AbsensiController = {
             status_lembur: statusLembur,
             status_masuk: statusMasuk,
             name: namaKaryawan,
-            //status_keluar: statusKeluar,
+            status_keluar: statusKeluar,
+            menit_pulang_cepat: menitPulangCepat,
             shift, // Menampilkan shift
             status_absen: "masuk",
             id_department: idDepartmentKaryawan,
@@ -548,7 +552,8 @@ const AbsensiController = {
             status_lembur: "Belum Keluar",
             status_masuk: statusMasuk,
             name: namaKaryawan,
-            //status_keluar: statusKeluar,
+            status_keluar: "Belum Keluar",
+            menit_pulang_cepat: 0,
             shift, // Menampilkan shift
             status_absen: "masuk",
             id_department: idDepartmentKaryawan,

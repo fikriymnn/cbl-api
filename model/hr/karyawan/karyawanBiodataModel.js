@@ -4,6 +4,7 @@ const KaryawanModel = require("../karyawanModel");
 const MasterDivisiModel = require("../../masterData/hr/masterDivisiModel");
 const MasterDepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 const MasterBagianHrModel = require("../../masterData/hr/masterBagianModel");
+const MasterGradeHrModel = require("../../masterData/hr/masterGradeModel");
 
 const { DataTypes } = Sequelize;
 
@@ -50,9 +51,13 @@ const KaryawanBiodataModel = db.define(
         key: "id",
       },
     },
-    grade: {
-      type: DataTypes.STRING,
+    id_grade: {
+      type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: MasterGradeHrModel,
+        key: "id",
+      },
     },
     tgl_masuk: {
       type: DataTypes.DATE,
@@ -154,6 +159,16 @@ MasterBagianHrModel.hasMany(KaryawanBiodataModel, {
 KaryawanBiodataModel.belongsTo(MasterBagianHrModel, {
   foreignKey: "id_bagian",
   as: "bagian",
+});
+
+//relasi grade
+MasterGradeHrModel.hasMany(KaryawanBiodataModel, {
+  foreignKey: "id_grade",
+  as: "karyawan_grade",
+});
+KaryawanBiodataModel.belongsTo(MasterGradeHrModel, {
+  foreignKey: "id_grade",
+  as: "grade",
 });
 
 module.exports = KaryawanBiodataModel;

@@ -5,6 +5,7 @@ const MasterCuti = require("../../../model/masterData/hr/masterCutiModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const db = require("../../../config/database");
 
@@ -41,6 +42,10 @@ const karyawanController = {
                   model: MasterBagianHr,
                   as: "bagian",
                 },
+                {
+                  model: MasterGradeHr,
+                  as: "grade",
+                },
               ],
             },
           ],
@@ -69,6 +74,10 @@ const karyawanController = {
                 {
                   model: MasterBagianHr,
                   as: "bagian",
+                },
+                {
+                  model: MasterGradeHr,
+                  as: "grade",
                 },
               ],
             },
@@ -106,6 +115,10 @@ const karyawanController = {
               model: MasterBagianHr,
               as: "bagian",
             },
+            {
+              model: MasterGradeHr,
+              as: "grade",
+            },
           ],
           where: { id_department: id_department },
         });
@@ -134,6 +147,10 @@ const karyawanController = {
                   model: MasterBagianHr,
                   as: "bagian",
                 },
+                {
+                  model: MasterGradeHr,
+                  as: "grade",
+                },
               ],
             },
           ],
@@ -157,7 +174,7 @@ const karyawanController = {
       id_divisi,
       id_department,
       id_bagian,
-      grade,
+      id_grade,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
@@ -205,7 +222,7 @@ const karyawanController = {
           id_divisi,
           id_department,
           id_bagian,
-          grade,
+          id_grade,
           tgl_masuk,
           tgl_keluar,
           tipe_penggajian,
@@ -243,7 +260,7 @@ const karyawanController = {
       id_divisi,
       id_department,
       id_bagian,
-      grade,
+      id_grade,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
@@ -262,7 +279,7 @@ const karyawanController = {
     if (id_divisi) obj.id_divisi = id_divisi;
     if (id_department) obj.id_department = id_department;
     if (id_bagian) obj.id_bagian = id_bagian;
-    if (grade) obj.grade = grade;
+    if (id_grade) obj.id_grade = id_grade;
     if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
     if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
