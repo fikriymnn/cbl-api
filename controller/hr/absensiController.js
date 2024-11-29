@@ -388,10 +388,10 @@ const AbsensiController = {
           }
 
           // Hitung keterlambatan
-          const toleransi = 15 * 60 * 1000; // Toleransi 15 menit dalam milidetik
+          const toleransi = 5 * 60 * 1000; // Toleransi 15 menit dalam milidetik
           if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
             menitTerlambat = Math.floor(
-              (waktuMasukUTC.getTime() - (shiftMasukTime + toleransi)) / 60000
+              (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
             ); // Hitung selisih dalam menit
 
             statusMasuk = "Terlambat";
