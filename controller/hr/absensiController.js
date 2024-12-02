@@ -15,7 +15,6 @@ const AbsensiController = {
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
-
     try {
       const masterDepartment = await MasterDepartment.findAll();
       const karyawanBiodata = await KaryawanBiodata.findAll({
@@ -212,6 +211,13 @@ const AbsensiController = {
           ),
         ];
       });
+
+      const dataKaryawanGenerete = generatekaryawanList(
+        karyawan,
+        karyawanBiodata,
+        masterDepartment
+      );
+      console.log(dataKaryawanGenerete);
 
       // Memecah izin menjadi entri harian
       let izinEntries = [];
@@ -749,6 +755,46 @@ const generateDailySakit = (
   }
 
   return dailySakit;
+};
+
+// Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
+const generatekaryawanList = (karyawan, karyawanBiodata, masterDepartment) => {
+  let dataKaryawan = [];
+
+  for (let i = 0; i < karyawan.length; i++) {
+    //get biodataKaryawan
+    const dataKaryawanBiodata = karyawanBiodata.find(
+      (data) => data.id_karyawan === karyawan[i].userid
+    );
+    //get data master department
+    const dataMasterDepartment = masterDepartment.find(
+      (data) => data.id === dataKaryawanBiodata?.id_department
+    );
+
+    const idDepartment = dataKaryawanBiodata?.id_department;
+    const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+    dataKaryawan.push({
+      userid: karyawan[i].userid,
+      waktu_masuk: null,
+      waktu_keluar: null,
+      tgl_masuk: null,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: karyawan[i].name,
+      status_keluar: "Belum Keluar",
+      shift: null, // Menampilkan shift
+      status_absen: "Belum Masuk",
+      id_department: idDepartment,
+      nama_department: namaDepartmentKaryawan,
+    });
+  }
+
+  return dataKaryawan;
 };
 
 function getMonthName(monthString) {

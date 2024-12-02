@@ -167,11 +167,18 @@ const absenModel = require("./model/hr/absenModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
+//jadwal
+const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
 //pengajuan
 const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
 const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
+
+//kendala lkh
+const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
+const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
+const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -190,7 +197,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await karyawanBiodata.sync({ alter: true });
+//   await KendalaLkhTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75

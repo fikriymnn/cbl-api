@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const absenDepartmentController = require("../../controller/hr/absensiDepartmentController");
+const absenDepartmentController = require("../../controller/hr/absensiPayrollController");
 
 router.get(
   "/hr/absensiDepartment",

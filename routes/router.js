@@ -158,12 +158,17 @@ router.use("/", require("./masterdata/hr/masterGradeRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
-router.use("/", require("./hr/absenDepartmentRoute"));
+router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
 router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
 router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
+router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
+
+//kendala lkh
+router.use("/", require("./kendalaLkh/kendalaLkhRoute"));
+router.use("/", require("./kendalaLkh/kendalaLkhTiketRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
