@@ -108,6 +108,18 @@ const KendalaLkhTiket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    maksimal_waktu_pengerjaan: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    start: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    stop: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
 
   {

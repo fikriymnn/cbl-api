@@ -164,6 +164,7 @@ router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
 router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
 router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
+router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
 
 //kendala lkh

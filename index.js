@@ -174,6 +174,7 @@ const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
 const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
+const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");

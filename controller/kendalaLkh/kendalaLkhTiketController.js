@@ -1,6 +1,9 @@
 const { Op, Sequelize } = require("sequelize");
 const KendalaLkh = require("../../model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("../../model/kendalaLkh/kendalaLkhDepartmentModel");
+const NcrTicket = require("../../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../../model/qc/ncr/ncrKetidaksesuaianModel");
 const KendalaLkhTiket = require("../../model/kendalaLkh/kendalaLkhTiketModel");
 const Users = require("../../model/userModel");
 const db = require("../../config/database");
@@ -104,13 +107,57 @@ const KendalaLkhTiketController = {
       analisa_penyebab: analisa_penyebab,
       tindakan: tindakan,
       nama_inspektor: nama_inspektor,
+      stop: new Date(),
     };
     const t = await db.transaction();
     try {
+      const dataKendalaLkhTiket = await KendalaLkhTiket.findByPk(_id);
+
+      // Perbedaan dalam milidetik
+      const diffInMs = Math.abs(new Date() - dataKendalaLkhTiket.start);
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); //dalam menit
+      //const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60)); // Dalam jam
+      console.log(diffInMinutes);
+
       await KendalaLkhTiket.update(obj, { where: { id: _id }, transaction: t });
 
+      if (diffInMinutes > dataKendalaLkhTiket.maksimal_waktu_pengerjaan) {
+        console.log("masuk ncr");
+        const data = await NcrTicket.create(
+          {
+            id_pelapor: dataKendalaLkhTiket.id_inspektor,
+            id_pelapor_p1: dataKendalaLkhTiket.id_inspektor_p1,
+            tanggal: new Date(),
+            kategori_laporan: dataKendalaLkhTiket.jenis_kendala,
+            nama_pelapor: dataKendalaLkhTiket.nama_inspektor,
+            department_pelapor: dataKendalaLkhTiket.id_department,
+            no_jo: dataKendalaLkhTiket.no_jo,
+            no_io: dataKendalaLkhTiket.no_io,
+            nama_produk: dataKendalaLkhTiket.nama_produk,
+          },
+          { transaction: t }
+        );
+
+        const department = await NcrDepartment.create(
+          {
+            id_ncr_tiket: data.id,
+            id_department: dataKendalaLkhTiket.id_department,
+            department: dataKendalaLkhTiket.department,
+          },
+          { transaction: t }
+        );
+
+        await NcrKetidaksesuain.create(
+          {
+            id_department: department.id,
+            ketidaksesuaian: `Melebihi batas waktu penanganan masalah ${dataKendalaLkhTiket.kode_kendala} ${dataKendalaLkhTiket.nama_kendala} pada jo ${dataKendalaLkhTiket.no_jo}`,
+          },
+          { transaction: t }
+        );
+      }
+
       await t.commit();
-      res.status(201).json({ msg: "Ticket validasi Successfuly" });
+      res.status(201).json({ msg: "Ticket respon Successfuly" });
     } catch (error) {
       await t.rollback();
       res.status(400).json({ msg: error.message });

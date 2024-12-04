@@ -2,6 +2,9 @@ const { Op, Sequelize } = require("sequelize");
 const KendalaLkh = require("../../model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("../../model/kendalaLkh/kendalaLkhDepartmentModel");
 const KendalaLkhTiket = require("../../model/kendalaLkh/kendalaLkhTiketModel");
+const NcrTicket = require("../../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../../model/qc/ncr/ncrKetidaksesuaianModel");
 const Users = require("../../model/userModel");
 const db = require("../../config/database");
 
@@ -216,6 +219,7 @@ const KendalaLkhController = {
       note_qc: note_qc,
     };
     const t = await db.transaction();
+    const t2 = await db.transaction();
     try {
       const kendalaLkh = await KendalaLkh.findByPk(_id, {
         include: [
@@ -246,14 +250,64 @@ const KendalaLkhController = {
             note_qc: note_qc,
             id_department: kendalaLkh.data_department[i].id_department,
             department: kendalaLkh.data_department[i].department,
+            maksimal_waktu_pengerjaan: kendalaLkh.maksimal_waktu_pengerjaan,
+            start: new Date(),
           },
           {
             transaction: t,
           }
         );
       }
-
       await t.commit();
+
+      const dateRange = getDateRange(
+        kendalaLkh.maksimal_periode_kedatangan_tiket
+      );
+
+      //cek jumlah tiket
+      const jumlahKendalaLkh = await KendalaLkh.findAll({
+        where: {
+          createdAt: dateRange,
+          status_tiket: "di validasi",
+          kode_kendala: kendalaLkh.kode_kendala,
+        },
+      });
+
+      console.log(jumlahKendalaLkh.length);
+
+      if (jumlahKendalaLkh.length > kendalaLkh.maksimal_kedatangan_tiket) {
+        console.log("masuk ncr");
+
+        const userQc = await Users.findByPk(kendalaLkh.id_qc);
+        const data = await NcrTicket.create({
+          id_pelapor: kendalaLkh.id_qc,
+          tanggal: new Date(),
+          kategori_laporan: kendalaLkh.jenis_kendala,
+          nama_pelapor: userQc.nama,
+          department_pelapor: 10,
+          no_jo: kendalaLkh.no_jo,
+          no_io: kendalaLkh.no_io,
+          nama_produk: kendalaLkh.nama_produk,
+        });
+
+        for (
+          let index = 0;
+          index < kendalaLkh.data_department.length;
+          index++
+        ) {
+          const department = await NcrDepartment.create({
+            id_ncr_tiket: data.id,
+            id_department: kendalaLkh.data_department[index].id_department,
+            department: kendalaLkh.data_department[index].department,
+          });
+
+          await NcrKetidaksesuain.create({
+            id_department: department.id,
+            ketidaksesuaian: `Kendala ${kendalaLkh.kode_kendala} ${kendalaLkh.nama_kendala} telah melebihi batas maksimal`,
+          });
+        }
+      }
+
       res.status(201).json({ msg: "Ticket validasi Successfuly" });
     } catch (error) {
       await t.rollback();
@@ -280,13 +334,24 @@ const KendalaLkhController = {
   },
 };
 
-// cron.schedule("* * * * *", async () => {
-//   // Tugas Anda yang akan dijalankan di sini
-//   const proses = await ProsesMtc.findAll({
-//     where: { status_proses: "monitoring" },
-//   });
-//   console.log("Tugas ini berjalan setiap menit!");
-//   console.log(proses);
-// });
+// Fungsi untuk menentukan range tanggal berdasarkan periode
+const getDateRange = (periode) => {
+  const now = new Date();
+  if (periode === "Month") {
+    // Range satu bulan terakhir
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      [Op.between]: [startOfMonth, now],
+    };
+  } else if (periode === "Week") {
+    // Range satu minggu terakhir
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - 7);
+    return {
+      [Op.between]: [startOfWeek, now],
+    };
+  }
+  throw new Error("Periode tidak valid");
+};
 
 module.exports = KendalaLkhController;

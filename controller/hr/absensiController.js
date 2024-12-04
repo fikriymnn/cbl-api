@@ -212,12 +212,7 @@ const AbsensiController = {
         ];
       });
 
-      const dataKaryawanGenerete = generatekaryawanList(
-        karyawan,
-        karyawanBiodata,
-        masterDepartment
-      );
-      console.log(dataKaryawanGenerete);
+      //console.log(dataKaryawanGenerete);
 
       // Memecah izin menjadi entri harian
       let izinEntries = [];
@@ -578,7 +573,46 @@ const AbsensiController = {
       // Sorting berdasarkan tanggal (terbaru ke terlama)
       results.sort((a, b) => b.waktu_masuk - a.waktu_masuk);
 
-      res.status(200).json({ data: results });
+      //cek apakah filter date hanya 1 hari (untuk menampilkan semua karyawan jika hanya satu hari)
+      if (startDate === endDate) {
+        const dataKaryawanGenerete = generatekaryawanList(
+          karyawan,
+          karyawanBiodata,
+          masterDepartment
+        );
+
+        results.forEach((absen) => {
+          const karyawanDitemukan = dataKaryawanGenerete.find(
+            (k) => k.userid === absen.userid
+          );
+
+          if (karyawanDitemukan) {
+            (karyawanDitemukan.userid = absen.userid),
+              (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
+              (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
+              (karyawanDitemukan.tgl_masuk = absen.tgl_masuk),
+              (karyawanDitemukan.tgl_keluar = absen.tgl_keluar),
+              (karyawanDitemukan.jam_masuk = absen.jam_masuk),
+              (karyawanDitemukan.jam_keluar = absen.jam_keluar),
+              (karyawanDitemukan.menit_terlambat = absen.menit_terlambat),
+              (karyawanDitemukan.jam_lembur = absen.jam_lembur),
+              (karyawanDitemukan.status_lembur = absen.status_lembur),
+              (karyawanDitemukan.status_masuk = absen.status_masuk),
+              (karyawanDitemukan.name = absen.name),
+              (karyawanDitemukan.status_keluar = absen.status_keluar),
+              (karyawanDitemukan.menit_pulang_cepat = absen.menit_pulang_cepat),
+              (karyawanDitemukan.shift = absen.shift), // Menampilkan shift
+              (karyawanDitemukan.status_absen = absen.status_absen),
+              (karyawanDitemukan.id_department = absen.id_department),
+              (karyawanDitemukan.nama_department = absen.nama_department);
+          }
+        });
+
+        // console.log(dataKaryawanGenerete);
+        res.status(200).json({ data: dataKaryawanGenerete });
+      } else {
+        res.status(200).json({ data: results });
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -629,7 +663,7 @@ const generateDailyCuti = (
       status_lembur: null,
       status_masuk: null,
       name: namaKaryawan,
-      //status_keluar: statusKeluar,
+      status_keluar: null,
       shift: null, // Menampilkan shift
       status_absen: "cuti" + " " + cuti.tipe_cuti,
       id_department: namaKaryawanBiodata,
