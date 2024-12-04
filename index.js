@@ -161,12 +161,14 @@ const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
+const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
+
 //jadwal
 const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
 //pengajuan
