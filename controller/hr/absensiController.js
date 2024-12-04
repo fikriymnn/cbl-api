@@ -5,6 +5,7 @@ const Karyawan = require("../../model/hr/karyawanModel");
 const KaryawanBiodata = require("../../model/hr/karyawan/karyawanBiodataModel");
 const masterShift = require("../../model/masterData/hr/masterShiftModel");
 const MasterDepartment = require("../../model/masterData/hr/masterDeprtmentModel");
+const MasterAbsensi = require("../../model/masterData/hr/masterAbsensiModel");
 const DataCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
 const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
@@ -12,10 +13,12 @@ const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 const AbsensiController = {
   getAbsensi: async (req, res) => {
     const { idDepartment, startDate, endDate } = req.query;
+    console.log(req.body);
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
     try {
+      const masterAbsensi = await MasterAbsensi.findByPk(1);
       const masterDepartment = await MasterDepartment.findAll();
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
@@ -390,7 +393,8 @@ const AbsensiController = {
           }
 
           // Hitung keterlambatan
-          const toleransi = 5 * 60 * 1000; // Toleransi 15 menit dalam milidetik
+          const toleransi =
+            masterAbsensi.toleransi_kedatangan_menit * 60 * 1000; // Toleransi 15 menit dalam milidetik
           if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
             menitTerlambat = Math.floor(
               (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
@@ -400,8 +404,9 @@ const AbsensiController = {
           }
 
           // Hitung pulang cepat
-          //const toleransi = 5 * 60 * 1000; // Toleransi 5 menit dalam milidetik
-          if (waktuKeluarUTC.getTime() < shiftKeluarTime) {
+          const toleransiKeluar =
+            masterAbsensi.toleransi_pulang_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
+          if (waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar) {
             menitPulangCepat = Math.floor(
               (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000
             ); // Hitung selisih dalam menit
@@ -527,10 +532,11 @@ const AbsensiController = {
           }
 
           // Hitung keterlambatan
-          const toleransi = 5 * 60 * 1000; // Toleransi 5 menit dalam milidetik
+          const toleransi =
+            masterAbsensi.toleransi_kedatangan_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
           if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
             menitTerlambat = Math.floor(
-              (waktuMasukUTC.getTime() - (shiftMasukTime + toleransi)) / 60000
+              (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
             ); // Hitung selisih dalam menit
             statusMasuk = "Terlambat";
           }
@@ -663,6 +669,7 @@ const generateDailyCuti = (
       status_masuk: null,
       name: namaKaryawan,
       status_keluar: null,
+      menit_pulang_cepat: null,
       shift: null, // Menampilkan shift
       status_absen: "cuti" + " " + cuti.tipe_cuti,
       id_department: namaKaryawanBiodata,
@@ -719,7 +726,8 @@ const generateDailyIzin = (
       status_lembur: null,
       status_masuk: null,
       name: namaKaryawan,
-      //status_keluar: statusKeluar,
+      status_keluar: null,
+      menit_pulang_cepat: null,
       shift: null, // Menampilkan shift
       status_absen: "izin",
       id_department: namaKaryawanBiodata,
@@ -777,7 +785,8 @@ const generateDailySakit = (
       status_lembur: null,
       status_masuk: null,
       name: namaKaryawan,
-      //status_keluar: statusKeluar,
+      status_keluar: null,
+      menit_pulang_cepat: null,
       shift: null, // Menampilkan shift
       status_absen: "sakit",
       id_department: namaKaryawanBiodata,
@@ -820,6 +829,7 @@ const generatekaryawanList = (karyawan, karyawanBiodata, masterDepartment) => {
       status_masuk: null,
       name: karyawan[i].name,
       status_keluar: "Belum Keluar",
+      menit_pulang_cepat: null,
       shift: null, // Menampilkan shift
       status_absen: "Belum Masuk",
       id_department: idDepartment,
