@@ -607,7 +607,6 @@ const AbsensiController = {
               (karyawanDitemukan.nama_department = absen.nama_department);
           }
         });
-
         // console.log(dataKaryawanGenerete);
         res.status(200).json({ data: dataKaryawanGenerete });
       } else {
