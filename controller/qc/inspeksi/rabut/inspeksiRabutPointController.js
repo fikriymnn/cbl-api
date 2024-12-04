@@ -128,6 +128,39 @@ const inspeksiRabutpointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  istirahatRabutPoint: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiRabutPoint.update(
+        {
+          waktu_istirahat: new Date(),
+          status: "istirahat",
+        },
+        { where: { id: _id } }
+      );
+      res.status(200).json({ msg: "Istirahat Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+  istirahatMasukRabutPoint: async (req, res) => {
+    const _id = req.params.id;
+    const { lama_istirahat } = req.body;
+    try {
+      await InspeksiRabutPoint.update(
+        {
+          waktu_masuk_istirahat: new Date(),
+          lama_istirahat: lama_istirahat,
+          status: "on progress",
+        },
+        { where: { id: _id } }
+      );
+      res.status(200).json({ msg: "Istirahat Masuk Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiRabutpointController;

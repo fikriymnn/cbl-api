@@ -3,6 +3,8 @@ const { generate_access_token } = require("../utils/jwt");
 const authMiddlewares = require("../middlewares/authMiddlewares");
 const bcrypt = require("bcryptjs");
 const Notification = require("../model/notificationModel");
+const Karyawan = require("../model/hr/karyawanModel");
+const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 
 const authController = {
   Login: async (req, res) => {
@@ -25,6 +27,8 @@ const authController = {
     const email = users.email;
     const role = users.role;
     const no = users.no;
+    const bagian = users.bagian;
+    const id_karyawan = users.id_karyawan;
 
     const access_token = generate_access_token({
       id: id,
@@ -33,6 +37,7 @@ const authController = {
       email: email,
       no: no,
       role: role,
+      id_karyawan: id_karyawan,
     });
 
     res.cookie("access_token", access_token, {
@@ -42,7 +47,7 @@ const authController = {
       path: "/",
     });
 
-    res.status(200).json({ uuid, name, email, role, no });
+    res.status(200).json({ uuid, name, email, role, no, bagian });
   },
 
   Me: async (req, res, next) => {
@@ -55,6 +60,7 @@ const authController = {
       attributes: [
         "id",
         "uuid",
+        "id_karyawan",
         "nama",
         "email",
         "role",
@@ -68,6 +74,14 @@ const authController = {
       include: [
         {
           model: Notification,
+        },
+        {
+          model: Karyawan,
+          as: "karyawan",
+          include: {
+            model: KaryawanBiodata,
+            as: "biodata_karyawan",
+          },
         },
       ],
     });

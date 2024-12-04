@@ -157,6 +157,17 @@ const inspeksiCetakPeriodepointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  deleteInspeksiCetakPeriodePoint: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiCetakPeriodePoint.destroy({ where: { id: _id } });
+
+      res.status(200).json({ msg: "Delete Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiCetakPeriodepointController;

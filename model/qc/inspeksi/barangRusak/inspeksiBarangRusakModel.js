@@ -37,7 +37,23 @@ const InspeksiBarangRusak = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    waktu_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_masuk_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_istirahat: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     qty_rusak: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    barang_baik_aktual: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },

@@ -146,9 +146,31 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));
 
+//HR master
+router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
+router.use("/", require("./masterdata/hr/masterShiftRoute"));
+router.use("/", require("./masterdata/hr/masterCutiRoute"));
+router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
+router.use("/", require("./masterdata/hr/masterDivisiRoute"));
+router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
+router.use("/", require("./masterdata/hr/masterBagianHrRoute"));
+router.use("/", require("./masterdata/hr/masterGradeRoute"));
+router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
+
 //HR
 router.use("/", require("./hr/absenRoute"));
-router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
+router.use("/", require("./hr/absenPayrollRoute"));
+router.use("/", require("./hr/karyawan/karyawanRoute"));
+router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
+router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
+router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
+router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
+router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
+router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
+
+//kendala lkh
+router.use("/", require("./kendalaLkh/kendalaLkhRoute"));
+router.use("/", require("./kendalaLkh/kendalaLkhTiketRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

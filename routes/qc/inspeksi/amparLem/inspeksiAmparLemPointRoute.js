@@ -26,4 +26,15 @@ router.post(
   inspeksiAmparLemPoint.createInspeksiAmparLemPointDefect
 );
 
+router.put(
+  "/qc/cs/inspeksiAmparLemPoint/istirahat/:id",
+  auth,
+  inspeksiAmparLemPoint.istirahatAmparLemPoint
+);
+router.put(
+  "/qc/cs/inspeksiAmparLemPoint/istirahatMasuk/:id",
+  auth,
+  inspeksiAmparLemPoint.istirahatMasukAmparLemPoint
+);
+
 module.exports = router;

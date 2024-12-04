@@ -125,6 +125,11 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_rework: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   },
 
   {

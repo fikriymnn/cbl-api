@@ -2,7 +2,7 @@ const { Sequelize, where } = require("sequelize");
 const StokSparepart = require("../../model/mtc/stokSparepart");
 const RequestStokSparepart = require("../../model/mtc/spbStokSparepart");
 const MasterMesin = require("../../model/masterData/masterMesinModel");
-
+const MasterGrade = require("../../model/masterData/mtc/masterGradeModel");
 const StokSparepartController = {
   getStokSparepart: async (req, res) => {
     const {
@@ -84,14 +84,21 @@ const StokSparepartController = {
       lokasi,
       limit_stok,
       grade,
+      percent,
       type_part,
       foto,
       keterangan,
       umur_sparepart,
+      id_grade,
     } = req.body;
 
     if (!nama_sparepart || !id_mesin || !umur_sparepart)
       return res.status(404).json({ msg: "incomplete data!!" });
+
+    const masterGrade = await MasterGrade.findByPk(parseInt(id_grade));
+
+    if (!masterGrade)
+      return res.status(404).json({ msg: "Master Grade not found" });
 
     try {
       const response = await StokSparepart.create({
@@ -102,7 +109,8 @@ const StokSparepartController = {
         part_number,
         lokasi,
         limit_stok,
-        grade,
+        grade: masterGrade.grade,
+        percent: masterGrade.percent,
         type_part,
         foto,
         keterangan,
@@ -141,6 +149,8 @@ const StokSparepartController = {
       keterangan,
       umur_sparepart,
       vendor,
+      part_number,
+      lokasi,
     } = req.body;
 
     let obj = {};
@@ -154,6 +164,8 @@ const StokSparepartController = {
     if (stok) obj.stok = stok;
     if (keterangan) obj.keterangan = keterangan;
     if (vendor) obj.vendor = vendor;
+    if (part_number) obj.part_number = part_number;
+    if (lokasi) obj.lokasi = lokasi;
 
     try {
       await StokSparepart.update(obj, { where: { id: _id } }),
