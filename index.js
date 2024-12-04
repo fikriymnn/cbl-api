@@ -153,7 +153,35 @@ const masterBagian = require("./model/masterData/masterBagian");
 const masterRole = require("./model/masterData/masterRoleModel");
 const masterAkses = require("./model/masterData/masterAksesModel");
 
+//master hr
 const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
+const masterCuti = require("./model/masterData/hr/masterCutiModel");
+const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
+const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
+const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
+const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
+const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
+const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
+
+// absen hr
+const absenModel = require("./model/hr/absenModel");
+
+//karyawan
+const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
+
+//jadwal
+const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
+//pengajuan
+const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
+const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
+const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
+const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
+const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
+
+//kendala lkh
+const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
+const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
+const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -172,7 +200,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiBarangRusak.sync({ alter: true });
+//   await KendalaLkhTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75

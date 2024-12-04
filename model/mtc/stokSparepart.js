@@ -52,6 +52,10 @@ const StokSparepart = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    percent: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     stok: {
       type: DataTypes.INTEGER,
       allowNull: true,

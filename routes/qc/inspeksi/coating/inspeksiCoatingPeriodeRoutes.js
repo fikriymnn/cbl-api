@@ -34,6 +34,14 @@ router.post(
   inspeksiCoatingPeriodeResult.addInspeksiCoatingPeriodeResult
 );
 
+//delete coating result periode id = inspeksi coating
+router.delete(
+  "/qc/cs/inspeksiCoatingResult/periode/delete/:id",
+  auth,
+
+  inspeksiCoatingPeriodeResult.deleteCoatingPeriodeResult
+);
+
 //add coating point periode id = inspeksi coating result
 // router.post(
 //   "/qc/cs/inspeksiCoatingPoint/periode/:id",

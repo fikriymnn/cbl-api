@@ -53,6 +53,10 @@ const inspectionPointPm3 = db.define("inspection_point_pm3", {
 Ticketpm3.hasMany(inspectionPointPm3, {
   foreignKey: "id_ticket",
 });
+Ticketpm3.hasMany(inspectionPointPm3, {
+  as: "point_pm3",
+  foreignKey: "id_ticket",
+});
 inspectionPointPm3.belongsTo(Ticketpm3, {
   foreignKey: "id_ticket",
 });

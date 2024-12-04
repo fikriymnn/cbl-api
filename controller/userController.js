@@ -2,6 +2,8 @@ const Users = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const userActionMtc = require("../model/mtc/userActionMtc");
 const Ticket = require("../model/maintenaceTicketModel");
+const Karyawan = require("../model/hr/karyawanModel");
+const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 
 const userController = {
   getUsers: async (req, res) => {
@@ -13,11 +15,25 @@ const userController = {
 
     try {
       const response = await Users.findAll(
-        { where: obj,order: [['id', 'DESC']] },
+        {
+          where: obj,
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+              include: {
+                model: KaryawanBiodata,
+                as: "biodata_karyawan",
+              },
+            },
+          ],
+        },
         {
           attributes: [
             "id",
             "uuid",
+            "id_karyawan",
             "nama",
             "bagian",
             "email",
@@ -36,7 +52,16 @@ const userController = {
   getUsersById: async (req, res) => {
     try {
       const response = await Users.findOne({
-        attributes: ["id", "uuid", "nama", "email", "role", "no", "status"],
+        attributes: [
+          "id",
+          "uuid",
+          "id_karyawan",
+          "nama",
+          "email",
+          "role",
+          "no",
+          "status",
+        ],
         include: [
           {
             model: userActionMtc,
@@ -46,6 +71,14 @@ const userController = {
             //     as:"tiket"
             //   }
             // ]
+          },
+          {
+            model: Karyawan,
+            as: "karyawan",
+            include: {
+              model: KaryawanBiodata,
+              as: "biodata_karyawan",
+            },
           },
         ],
         where: {
@@ -59,10 +92,20 @@ const userController = {
   },
 
   createUsers: async (req, res) => {
-    const { nama, email, password, no, confPassword, role, bagian } = req.body;
+    const {
+      nama,
+      email,
+      id_karyawan,
+      password,
+      no,
+      confPassword,
+      role,
+      bagian,
+    } = req.body;
 
     if (
       !nama ||
+      !id_karyawan ||
       !email ||
       !password ||
       !no ||
@@ -88,6 +131,7 @@ const userController = {
     try {
       await Users.create({
         nama: nama,
+        id_karyawan: id_karyawan,
         email: email,
         password: hasPassword,
         role: role,
@@ -108,8 +152,17 @@ const userController = {
     });
     if (!users) return res.status(404).json({ msg: "User Not Found" });
 
-    const { nama, email, password, confPassword, role, no, status, bagian } =
-      req.body;
+    const {
+      nama,
+      id_karyawan,
+      email,
+      password,
+      confPassword,
+      role,
+      no,
+      status,
+      bagian,
+    } = req.body;
     let hashPassword;
     if (password === "" || password === null) {
       hashPassword = users.password;
@@ -127,6 +180,7 @@ const userController = {
         {
           nama: nama,
           email: email,
+          id_karyawan: id_karyawan,
           password: hashPassword,
           role: role,
           no: no,

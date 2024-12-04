@@ -157,5 +157,16 @@ const inspeksiCoatingPeriodeResultController = {
       res.status(500).json({ msg: err.message });
     }
   },
+
+  deleteCoatingPeriodeResult: async (req, res) => {
+    try {
+      const { id } = req.params;
+      await InspeksiCoatingResultPeriode.destroy({ where: { id: id } });
+
+      res.status(200).json({ data: "Delete successfully", msg: "OK" });
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
 };
 module.exports = inspeksiCoatingPeriodeResultController;
