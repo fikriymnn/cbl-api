@@ -2,63 +2,244 @@ const dbFinger = require("../../config/databaseFinger");
 const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const absensi = require("../../model/hr/absenModel");
 const Karyawan = require("../../model/hr/karyawanModel");
+const KaryawanBiodata = require("../../model/hr/karyawan/karyawanBiodataModel");
 const masterShift = require("../../model/masterData/hr/masterShiftModel");
+const MasterDepartment = require("../../model/masterData/hr/masterDeprtmentModel");
+const DataCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const DataIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
+const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
-const userController = {
+const AbsensiController = {
   getAbsensi: async (req, res) => {
-    const { bagian, role } = req.query;
+    const { idDepartment, startDate, endDate } = req.query;
 
-    function getMonthName(monthString) {
-      const months = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-      ];
-
-      const monthNumber = parseInt(monthString);
-
-      if (monthNumber < 1 || monthNumber > 12) {
-        return "Bulan tidak valid";
-      } else {
-        return months[monthNumber - 1];
-      }
-    }
-
+    let obj = {};
+    if (idDepartment) obj.id_department = idDepartment;
     try {
-      // const results = await dbFinger.query(query2, {
-      //   type: dbFinger.QueryTypes.SELECT,
-      // });
-      // const user = await dbFinger.query(
-      //   `
-      //   SELECT USERID, name, FROM USERINFO
-      //     `,
-      //   {
-      //     type: dbFinger.QueryTypes.SELECT,
-      //   }
-      // );
+      const masterDepartment = await MasterDepartment.findAll();
+      const karyawanBiodata = await KaryawanBiodata.findAll({
+        where: obj,
+      });
 
-      const karyawan = await Karyawan.findAll();
-
-      // Ambil semua data absensi masuk
-      const absensiMasuk = await absensi.findAll({
+      // Ekstrak id_karyawan dari hasil query
+      const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+      const karyawan = await Karyawan.findAll({
         where: {
-          CHECKTYPE: "I",
+          userid: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
         },
       });
 
-      const absensiKeluar = await absensi.findAll({
-        where: {
-          CHECKTYPE: "O",
-        },
+      let absensiMasuk = [];
+      let absensiKeluar = [];
+      let dataCuti = [];
+      let dataIzin = [];
+      let dataSakit = [];
+
+      //jika ada range tanggal
+      if (startDate && endDate) {
+        const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
+        const toDateMasukUTC = new Date(`${endDate}T23:59:59.999Z`);
+        const dateKeluar = new Date(endDate);
+        dateKeluar.setDate(dateKeluar.getDate() + 1);
+        const nextDay = dateKeluar.toISOString().split("T")[0];
+        const toDateKeluarUTC = new Date(`${nextDay}T23:59:59.999Z`);
+        // Ambil  data absensi masuk
+        absensiMasuk = await absensi.findAll({
+          where: {
+            checktype: "0",
+            checktime: {
+              [Op.between]: [fromDateUTC, toDateMasukUTC],
+            },
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+
+        //ambil data absensi keluar
+        absensiKeluar = await absensi.findAll({
+          where: {
+            checktype: "1",
+            checktime: {
+              [Op.between]: [fromDateUTC, toDateKeluarUTC],
+            },
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+        dataCuti = await DataCuti.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+            [Op.or]: [
+              {
+                dari: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `from` berada dalam rentang
+              {
+                sampai: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `to` berada dalam rentang
+              {
+                [Op.and]: [
+                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
+                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                ],
+              },
+            ],
+          },
+        });
+        dataIzin = await DataIzin.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+            [Op.or]: [
+              {
+                dari: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `from` berada dalam rentang
+              {
+                sampai: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `to` berada dalam rentang
+              {
+                [Op.and]: [
+                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
+                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                ],
+              },
+            ],
+          },
+        });
+
+        dataSakit = await DataSakit.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+            [Op.or]: [
+              {
+                dari: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `from` berada dalam rentang
+              {
+                sampai: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                },
+              }, // `to` berada dalam rentang
+              {
+                [Op.and]: [
+                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
+                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                ],
+              },
+            ],
+          },
+        });
+        //console.log(absensiMasuk);
+      } else {
+        // Ambil  data absensi masuk
+        absensiMasuk = await absensi.findAll({
+          where: {
+            checktype: "0",
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+
+        //ambil data absensi keluar
+        absensiKeluar = await absensi.findAll({
+          where: {
+            checktype: "1",
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+
+        dataCuti = await DataCuti.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+        dataIzin = await DataIzin.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+
+        dataSakit = await DataSakit.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
+      }
+
+      // Memecah cuti menjadi entri harian
+      let cutiEntries = [];
+      dataCuti.forEach((cuti) => {
+        cutiEntries = [
+          ...cutiEntries,
+          ...generateDailyCuti(
+            cuti,
+            karyawan,
+            karyawanBiodata,
+            masterDepartment
+          ),
+        ];
+      });
+
+      //console.log(dataKaryawanGenerete);
+
+      // Memecah izin menjadi entri harian
+      let izinEntries = [];
+      dataIzin.forEach((izin) => {
+        izinEntries = [
+          ...izinEntries,
+          ...generateDailyIzin(
+            izin,
+            karyawan,
+            karyawanBiodata,
+            masterDepartment
+          ),
+        ];
+      });
+
+      // Memecah sakit menjadi entri harian
+      let sakitEntries = [];
+      dataSakit.forEach((sakit) => {
+        sakitEntries = [
+          ...sakitEntries,
+          ...generateDailySakit(
+            sakit,
+            karyawan,
+            karyawanBiodata,
+            masterDepartment
+          ),
+        ];
       });
 
       // Ambil shift untuk semua hari
@@ -68,21 +249,34 @@ const userController = {
       const results = absensiMasuk.map((masuk) => {
         const keluar = absensiKeluar.find(
           (k) =>
-            k.USERID === masuk.USERID &&
-            (k.CHECKTIME > masuk.CHECKTIME ||
-              new Date(k.CHECKTIME).getDate() >
-                new Date(masuk.CHECKTIME).getDate())
+            k.userid === masuk.userid &&
+            (k.checktime > masuk.checktime ||
+              new Date(k.checktime).getDate() >
+                new Date(masuk.checktime).getDate())
         );
 
         // Dapatkan shift berdasarkan tanggal absensi masuk
-        const dayName = new Date(masuk.CHECKTIME).toLocaleDateString("id-ID", {
+        const dayName = new Date(masuk.checktime).toLocaleDateString("id-ID", {
           weekday: "long",
         });
         const shiftHariIni = shifts.find((shift) => shift.hari === dayName);
+
+        //get data karyawan
         const dataKaryawan = karyawan.find(
-          (data) => data.USERID === masuk.USERID
+          (data) => data.userid === masuk.userid
         );
-        const namaKaryawan = dataKaryawan.name;
+        //get data karyawan biodata
+        const dataKaryawanBiodata = karyawanBiodata.find(
+          (data) => data.id_karyawan === masuk.userid
+        );
+        //get data master department
+        const dataMasterDepartment = masterDepartment.find(
+          (data) => data.id === dataKaryawanBiodata?.id_department
+        );
+
+        const namaKaryawan = dataKaryawan?.name;
+        const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
+        const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
         // Ambil jam shift
         const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -91,6 +285,7 @@ const userController = {
         const shiftKeluar2 = shiftHariIni.shift_2_keluar; // Jam keluar shift 2
 
         let menitTerlambat = 0;
+        let menitPulangCepat = 0;
         let jamLembur = 0;
         let statusMasuk = "Tepat Waktu";
         let statusKeluar = "Tepat Waktu";
@@ -101,8 +296,8 @@ const userController = {
         let shiftMasukTime, shiftKeluarTime;
 
         // Konversi waktu ke UTC untuk perbandingan
-        const waktuMasuk = new Date(masuk.CHECKTIME);
-        const waktuKeluar = !keluar ? null : new Date(keluar.CHECKTIME);
+        const waktuMasuk = new Date(masuk.checktime);
+        const waktuKeluar = !keluar ? null : new Date(keluar.checktime);
 
         if (keluar) {
           // waktu masuk absen
@@ -173,8 +368,6 @@ const userController = {
             )
           ).getTime();
 
-          console.log(waktuKeluarShift2UTC);
-
           // Tentukan shift berdasarkan waktu absensi masuk
           // Shift 1
           if (
@@ -197,22 +390,24 @@ const userController = {
           }
 
           // Hitung keterlambatan
-          const toleransi = 15 * 60 * 1000; // Toleransi 15 menit dalam milidetik
+          const toleransi = 5 * 60 * 1000; // Toleransi 15 menit dalam milidetik
           if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
             menitTerlambat = Math.floor(
-              (waktuMasukUTC.getTime() - (shiftMasukTime + toleransi)) / 60000
+              (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
             ); // Hitung selisih dalam menit
-            console.log(menitTerlambat);
+
             statusMasuk = "Terlambat";
           }
 
           // Hitung pulang cepat
           //const toleransi = 5 * 60 * 1000; // Toleransi 5 menit dalam milidetik
           if (waktuKeluarUTC.getTime() < shiftKeluarTime) {
-            // menitTerlambat = Math.floor(
-            //   (waktuKeluarUTC.getTime() - (shiftMasukTime )) / 60000
-            // ); // Hitung selisih dalam menit
+            menitPulangCepat = Math.floor(
+              (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000
+            ); // Hitung selisih dalam menit
             statusKeluar = "Pulang Cepat";
+          } else {
+            statusKeluar = "Keluar";
           }
 
           // Hitung lembur
@@ -246,9 +441,9 @@ const userController = {
           const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
 
           return {
-            USERID: masuk.USERID,
-            waktu_masuk: masuk.CHECKTIME,
-            waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            userid: masuk.userid,
+            waktu_masuk: masuk.checktime,
+            waktu_keluar: keluar ? keluar.checktime : null,
             tgl_masuk: tglMasuk,
             tgl_keluar: tglKeluar,
             jam_masuk: jamMasuk,
@@ -258,8 +453,12 @@ const userController = {
             status_lembur: statusLembur,
             status_masuk: statusMasuk,
             name: namaKaryawan,
-            //status_keluar: statusKeluar,
+            status_keluar: statusKeluar,
+            menit_pulang_cepat: menitPulangCepat,
             shift, // Menampilkan shift
+            status_absen: "masuk",
+            id_department: idDepartmentKaryawan,
+            nama_department: namaDepartmentKaryawan,
           };
         } else {
           // waktu masuk absen
@@ -342,9 +541,9 @@ const userController = {
           const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
 
           return {
-            USERID: masuk.USERID,
-            waktu_masuk: masuk.CHECKTIME,
-            waktu_keluar: keluar ? keluar.CHECKTIME : null,
+            userid: masuk.userid,
+            waktu_masuk: masuk.checktime,
+            waktu_keluar: keluar ? keluar.checktime : null,
             tgl_masuk: tglMasuk,
             tgl_keluar: null,
             jam_masuk: jamMasuk,
@@ -354,17 +553,306 @@ const userController = {
             status_lembur: "Belum Keluar",
             status_masuk: statusMasuk,
             name: namaKaryawan,
-            //status_keluar: statusKeluar,
+            status_keluar: "Belum Keluar",
+            menit_pulang_cepat: 0,
             shift, // Menampilkan shift
+            status_absen: "masuk",
+            id_department: idDepartmentKaryawan,
+            nama_department: namaDepartmentKaryawan,
           };
         }
       });
-      //console.log(results);
-      res.status(200).json({ data: results });
+
+      //masukan data cuti ke data absen
+      results.push(...cutiEntries);
+      //masukan data izin ke data absen
+      results.push(...izinEntries);
+      //masukan data sakit ke data absen
+      results.push(...sakitEntries);
+
+      // Sorting berdasarkan tanggal (terbaru ke terlama)
+      results.sort((a, b) => b.waktu_masuk - a.waktu_masuk);
+
+      //cek apakah filter date hanya 1 hari (untuk menampilkan semua karyawan jika hanya satu hari)
+      if (startDate === endDate) {
+        const dataKaryawanGenerete = generatekaryawanList(
+          karyawan,
+          karyawanBiodata,
+          masterDepartment
+        );
+
+        results.forEach((absen) => {
+          const karyawanDitemukan = dataKaryawanGenerete.find(
+            (k) => k.userid === absen.userid
+          );
+
+          if (karyawanDitemukan) {
+            (karyawanDitemukan.userid = absen.userid),
+              (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
+              (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
+              (karyawanDitemukan.tgl_masuk = absen.tgl_masuk),
+              (karyawanDitemukan.tgl_keluar = absen.tgl_keluar),
+              (karyawanDitemukan.jam_masuk = absen.jam_masuk),
+              (karyawanDitemukan.jam_keluar = absen.jam_keluar),
+              (karyawanDitemukan.menit_terlambat = absen.menit_terlambat),
+              (karyawanDitemukan.jam_lembur = absen.jam_lembur),
+              (karyawanDitemukan.status_lembur = absen.status_lembur),
+              (karyawanDitemukan.status_masuk = absen.status_masuk),
+              (karyawanDitemukan.name = absen.name),
+              (karyawanDitemukan.status_keluar = absen.status_keluar),
+              (karyawanDitemukan.menit_pulang_cepat = absen.menit_pulang_cepat),
+              (karyawanDitemukan.shift = absen.shift), // Menampilkan shift
+              (karyawanDitemukan.status_absen = absen.status_absen),
+              (karyawanDitemukan.id_department = absen.id_department),
+              (karyawanDitemukan.nama_department = absen.nama_department);
+          }
+        });
+        // console.log(dataKaryawanGenerete);
+        res.status(200).json({ data: dataKaryawanGenerete });
+      } else {
+        res.status(200).json({ data: results });
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
   },
 };
 
-module.exports = userController;
+// Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
+const generateDailyCuti = (
+  cuti,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment
+) => {
+  let dailycuti = [];
+  let startDate = new Date(cuti.dari);
+  let endDate = new Date(cuti.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === cuti.id_karyawan
+  );
+
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === cuti.id_karyawan
+  );
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+    dailycuti.push({
+      userid: cuti.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: tglMasuk,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      status_keluar: null,
+      shift: null, // Menampilkan shift
+      status_absen: "cuti" + " " + cuti.tipe_cuti,
+      id_department: namaKaryawanBiodata,
+      nama_department: namaDepartmentKaryawan,
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailycuti;
+};
+
+// Fungsi untuk memecah rentang tanggal izin menjadi array tanggal harian
+const generateDailyIzin = (
+  izin,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment
+) => {
+  let dailyIzin = [];
+  let startDate = new Date(izin.dari);
+  let endDate = new Date(izin.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === izin.id_karyawan
+  );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === izin.id_karyawan
+  );
+
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+    dailyIzin.push({
+      userid: izin.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: tglMasuk,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      //status_keluar: statusKeluar,
+      shift: null, // Menampilkan shift
+      status_absen: "izin",
+      id_department: namaKaryawanBiodata,
+      nama_department: namaDepartmentKaryawan,
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailyIzin;
+};
+
+// Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
+const generateDailySakit = (
+  sakit,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment
+) => {
+  let dailySakit = [];
+  let startDate = new Date(sakit.dari);
+  let endDate = new Date(sakit.sampai);
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === sakit.id_karyawan
+  );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === sakit.id_karyawan
+  );
+
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+  while (startDate <= endDate) {
+    const waktuMasuk = new Date(startDate);
+    const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+
+    const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+    dailySakit.push({
+      userid: sakit.id_karyawan,
+      waktu_masuk: new Date(startDate),
+      waktu_keluar: null,
+      tgl_masuk: tglMasuk,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: namaKaryawan,
+      //status_keluar: statusKeluar,
+      shift: null, // Menampilkan shift
+      status_absen: "sakit",
+      id_department: namaKaryawanBiodata,
+      nama_department: namaDepartmentKaryawan,
+    });
+    // Tambah 1 hari
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  return dailySakit;
+};
+
+// Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
+const generatekaryawanList = (karyawan, karyawanBiodata, masterDepartment) => {
+  let dataKaryawan = [];
+
+  for (let i = 0; i < karyawan.length; i++) {
+    //get biodataKaryawan
+    const dataKaryawanBiodata = karyawanBiodata.find(
+      (data) => data.id_karyawan === karyawan[i].userid
+    );
+    //get data master department
+    const dataMasterDepartment = masterDepartment.find(
+      (data) => data.id === dataKaryawanBiodata?.id_department
+    );
+
+    const idDepartment = dataKaryawanBiodata?.id_department;
+    const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+    dataKaryawan.push({
+      userid: karyawan[i].userid,
+      waktu_masuk: null,
+      waktu_keluar: null,
+      tgl_masuk: null,
+      tgl_keluar: null,
+      jam_masuk: null,
+      jam_keluar: null,
+      menit_terlambat: null,
+      jam_lembur: null,
+      status_lembur: null,
+      status_masuk: null,
+      name: karyawan[i].name,
+      status_keluar: "Belum Keluar",
+      shift: null, // Menampilkan shift
+      status_absen: "Belum Masuk",
+      id_department: idDepartment,
+      nama_department: namaDepartmentKaryawan,
+    });
+  }
+
+  return dataKaryawan;
+};
+
+function getMonthName(monthString) {
+  const months = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+
+  const monthNumber = parseInt(monthString);
+
+  if (monthNumber < 1 || monthNumber > 12) {
+    return "Bulan tidak valid";
+  } else {
+    return months[monthNumber - 1];
+  }
+}
+
+module.exports = AbsensiController;

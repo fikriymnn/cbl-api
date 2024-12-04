@@ -20,4 +20,10 @@ router.post(
   inspeksiLemPeriodePoint.createInspeksiLemPeriodePoint
 );
 
+router.delete(
+  "/qc/cs/inspeksiLemPeriodePoint/delete/:id",
+  auth,
+  inspeksiLemPeriodePoint.deleteLemPeriodePoint
+);
+
 module.exports = router;

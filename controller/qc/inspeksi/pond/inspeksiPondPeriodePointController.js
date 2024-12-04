@@ -139,6 +139,16 @@ const inspeksiPondPeriodepointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  deletePondPeriodePoint: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiPondPeriodePoint.destroy({ where: { id: _id } });
+      res.status(200).json({ msg: "Delete Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiPondPeriodepointController;

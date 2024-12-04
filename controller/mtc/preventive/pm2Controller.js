@@ -88,6 +88,7 @@ const Pm2Controller = {
             {
               model: PointPm2,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm2,
@@ -98,6 +99,7 @@ const Pm2Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
           limit: parseInt(limit),
@@ -123,6 +125,7 @@ const Pm2Controller = {
             {
               model: PointPm2,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm2,
@@ -133,6 +136,7 @@ const Pm2Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
         });

@@ -1,17 +1,22 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../config/databaseFinger");
+const db = require("../../config/database");
 
 const { DataTypes } = Sequelize;
 
 const KaryawanModel = db.define(
-  "USERINFO",
+  "userinfo",
   {
-    USERID: {
+    userid: {
       type: DataTypes.INTEGER,
       allowNull: true,
       primaryKey: true,
+      autoIncrement: true,
     },
     name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    badgenumber: {
       type: DataTypes.STRING,
       allowNull: true,
     },

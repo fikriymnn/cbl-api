@@ -8,6 +8,7 @@ const PointPm1 = require("../../../model/mtc/preventive/pm1/pointPm1");
 const TaskPm1 = require("../../../model/mtc/preventive/pm1/taskPm1");
 const Users = require("../../../model/userModel");
 const TicketOs3 = require("../../../model/maintenanceTicketOs3Model");
+const moment = require("moment");
 
 const Pm1Controller = {
   getPm1: async (req, res) => {
@@ -26,6 +27,7 @@ const Pm1Controller = {
     let obj = {};
     let des = [["createdAt", "DESC"]];
     let offset = (page - 1) * limit;
+
     if (id_mesin) obj.id_mesin = id_mesin;
     if (nama_mesin) obj.nama_mesin = nama_mesin;
     if (status) obj.status = status;
@@ -36,6 +38,8 @@ const Pm1Controller = {
           new Date(tgl).setHours(0, 0, 0, 0),
           new Date(tgl).setHours(23, 59, 59, 999),
         ],
+
+        //[dateNow, dateNowEnd],
       };
     if (start_date && end_date) {
       obj.tgl = {
@@ -84,6 +88,7 @@ const Pm1Controller = {
             {
               model: PointPm1,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm1,
@@ -94,6 +99,7 @@ const Pm1Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
           limit: parseInt(limit),
@@ -104,7 +110,6 @@ const Pm1Controller = {
           .json({ data: response, total_page: Math.ceil(length_data / limit) });
       } else {
         const response = await TicketPm1.findAll({
-          where: obj,
           order: des,
           include: [
             {
@@ -130,6 +135,7 @@ const Pm1Controller = {
             {
               model: PointPm1,
               attributes: ["hasil"],
+              required: false,
             },
             {
               model: PointPm1,
@@ -140,9 +146,12 @@ const Pm1Controller = {
                   [Op.in]: ["jelek", "warning", "tidak terpasang"], // Hanya sub tiket dengan status progress dan pending
                 },
               },
+              required: false,
             },
           ],
+          where: obj,
         });
+        console.log(obj);
         res.status(200).json(response);
       }
     } catch (error) {
@@ -208,6 +217,7 @@ const Pm1Controller = {
   createTicketPm1: async (req, res) => {
     try {
       const masterMesin = await MasterMesin.findAll();
+      console.log(masterMesin);
 
       for (let i = 0; i < masterMesin.length; i++) {
         const idMesin = masterMesin[i].id;
@@ -218,6 +228,7 @@ const Pm1Controller = {
             nama_mesin: namaMesin,
             tgl: new Date(),
           });
+          console.log(ticket);
           const masterPoint = await MasterPointPm1.findAll({
             where: { id_mesin: idMesin },
             include: [

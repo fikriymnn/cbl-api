@@ -10,6 +10,7 @@ const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel"
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const SpbService = require("../../model/mtc/spbServiceSparepart");
 const moment = require("moment");
+const db = require("../../config/database");
 
 const ProsessMtc = {
   getProsesMtcById: async (req, res) => {
@@ -358,6 +359,7 @@ const ProsessMtc = {
       return res.status(401).json({ msg: "incomplite data" });
 
     const monitoring = await MasterMonitoring.findByPk(1);
+    const prosesData = await ProsesMtc.findByPk(id_proses);
 
     let status = "";
     if (skor_mtc < monitoring.minimal_skor) {
@@ -366,15 +368,27 @@ const ProsessMtc = {
       status = "monitoring";
     }
 
-    let obj = {
-      status_tiket: "request to qc",
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-      jenis_analisis_mtc: jenis_analisis_mtc,
-      waktu_selesai_mtc: new Date(),
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-    };
+    let obj = {};
+    if (prosesData.is_rework == true) {
+      obj = {
+        status_tiket: "request to qc",
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+      };
+    } else {
+      obj = {
+        status_tiket: "request to qc",
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+        waktu_selesai_mtc: new Date(),
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+      };
+    }
 
     let obj_proses = {
       status_proses: status,
@@ -392,16 +406,21 @@ const ProsessMtc = {
       //image_url: image_url,
     };
 
+    const t = await db.transaction();
+
     try {
       if (
         !masalah_sparepart ||
         masalah_sparepart == [] ||
         masalah_sparepart.length == 0
       ) {
-        await Ticket.update(obj, { where: { id: _id } }),
+        await Ticket.update(obj, { where: { id: _id }, transaction: t }),
           // await MasalahSparepart.bulkCreate(masalah_sparepart);
 
-          await ProsesMtc.update(obj_proses, { where: { id: id_proses } }),
+          await ProsesMtc.update(obj_proses, {
+            where: { id: id_proses },
+            transaction: t,
+          }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -410,6 +429,7 @@ const ProsessMtc = {
                 action: "eksekutor",
                 status: "on progress",
               },
+              transaction: t,
             }
           );
 
@@ -448,12 +468,16 @@ const ProsessMtc = {
         //     }
         //   }
         // }
+        await t.commit();
 
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
-        await Ticket.update(obj, { where: { id: _id } }),
-          await ProsesMtc.update(obj_proses, { where: { id: id_proses } }),
+        await Ticket.update(obj, { where: { id: _id }, transaction: t }),
+          await ProsesMtc.update(obj_proses, {
+            where: { id: id_proses },
+            transaction: t,
+          }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -462,6 +486,7 @@ const ProsessMtc = {
                 action: "eksekutor",
                 status: "on progress",
               },
+              transaction: t,
             }
           );
 
@@ -576,10 +601,11 @@ const ProsessMtc = {
         //     }
         //   }
         // }
-
+        await t.commit();
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       }
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -926,10 +952,11 @@ const ProsessMtc = {
       skor_mtc: ticket.skor_mtc,
       status_qc: "open",
       waktu_mulai_mtc: new Date(),
+      is_rework: true,
     };
     try {
-      await Ticket.update(obj, { where: { id: _id } }),
-        await ProsesMtc.create(prosesMtc);
+      //await Ticket.update(obj, { where: { id: _id } }),
+      await ProsesMtc.create(prosesMtc);
       await userActionMtc.create({
         id_mtc: id_eksekutor,
         id_tiket: _id,

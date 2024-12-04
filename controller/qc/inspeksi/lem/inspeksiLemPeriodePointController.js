@@ -138,6 +138,16 @@ const inspeksiLemPeriodepointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  deleteLemPeriodePoint: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      await InspeksiLemPeriodePoint.destroy({ where: { id: _id } });
+      res.status(200).json({ msg: "Delete Successful" });
+    } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiLemPeriodepointController;

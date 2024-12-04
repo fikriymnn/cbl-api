@@ -33,6 +33,18 @@ const InspeksiRabutPoint = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    waktu_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_masuk_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    lama_istirahat: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     catatan: {
       type: DataTypes.STRING,
       allowNull: true,

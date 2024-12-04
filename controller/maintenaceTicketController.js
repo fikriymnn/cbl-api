@@ -53,6 +53,7 @@ const ticketController = {
       const offset = (page - 1) * limit;
 
       if (status_tiket) obj.status_tiket = status_tiket;
+
       if (type_mtc) obj.type_mtc = type_mtc;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;
@@ -64,7 +65,7 @@ const ticketController = {
           [Op.ne]: "qc",
         };
       if (start_date && end_date) {
-        obj.tgl = {
+        obj.createdAt = {
           [Op.between]: [
             new Date(start_date).setHours(0, 0, 0, 0),
             new Date(end_date).setHours(23, 59, 59, 999),
@@ -86,6 +87,7 @@ const ticketController = {
         des.push("createdAt", "DESC");
       }
       options.where = obj;
+      console.log(obj);
       options.order = [des];
 
       if (page && limit) {
