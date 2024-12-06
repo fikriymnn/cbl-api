@@ -18,7 +18,7 @@ const SubProjectMtc = db.define("project_mtc_sub",
             allowNull: false
         },
         lead: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false
         },
         qty : {
@@ -54,7 +54,8 @@ const SubProjectMtc = db.define("project_mtc_sub",
 })
 
 Project.hasMany(SubProjectMtc,{
-    foreignKey:"id_project"
+    foreignKey:"id_project",
+    as:"sub_project"
 })
 SubProjectMtc.belongsTo(Project,{
     foreignKey:"id_project",

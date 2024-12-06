@@ -5,7 +5,7 @@ const subProjectControllers = {
         const {id} = req.params;
         if(!id) res.status(400).json({msg:"Sub project id does not exist!"})
         try{
-            const data = await SubProject.findOne({ include: { model: Project }, where: { id } })
+            const data = await SubProject.findOne({ include: { model: Project,as:"project" }, where: { id } })
             res.json({ message: "OK", data })
         }catch(err){
             res.status(500).json({msg:err.message})
@@ -24,7 +24,7 @@ const subProjectControllers = {
     //     }
     // },
     deleteSubProject : async (req,res)=>{
-        const {id} = req.query
+        const {id} = req.params
         try{
             await SubProject.destroy({where:{id: id}}) 
             res.json({ message: "OK", data:"Delete sub project successfully!" })
