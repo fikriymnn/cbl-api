@@ -9,6 +9,10 @@ router.use("/", require("./ticketOs3Routes"));
 //dashboard mtc
 router.use("/", require("./mtc/DashboardMtc"));
 
+//project mtc
+router.use("/",require("./mtc/project/projectRoutes"))
+router.use("/",require("./mtc/project/subProjectRoutes"))
+
 //report mtc
 router.use("/", require("./mtc/reportMtc"));
 

@@ -183,6 +183,12 @@ const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
 const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
+
+//project mtc
+const Project = require("./model/mtc/project/projectModel");
+const SubProject = require("./model/mtc/project/subProjectModel");
+
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -200,7 +206,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await KendalaLkhTiket.sync({ alter: true });
+//   await SubProject.sync({ alter: true });
 // })();
 
 // const ip100 = 75
