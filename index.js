@@ -200,7 +200,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await KendalaLkhTiket.sync({ alter: true });
+//   await masterPerusahaan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -10,7 +10,7 @@ const db = require("../../../config/database");
 const PengajuanLemburController = {
   getPengajuanLembur: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket } = req.query;
+    const { page, limit, search, status_tiket, id_department } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -18,6 +18,7 @@ const PengajuanLemburController = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
+    if (id_department) obj.id_department = id_department;
     try {
       if (page && limit) {
         const length = await PengajuanLembur.count({ where: obj });
@@ -170,10 +171,17 @@ const PengajuanLemburController = {
     const t = await db.transaction();
 
     try {
+      const dataKaryawanBiodata = await KaryawanBiodata.findOne({
+        where: { id_karyawan: id_karyawan },
+      });
+
+      if (!dataKaryawanBiodata)
+        return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
       const dataPengajuanLembur = await PengajuanLembur.create(
         {
           id_karyawan,
           id_pengaju: id_pengaju,
+          id_department: dataKaryawanBiodata.id_department,
           jo_lembur,
           dari,
           sampai,

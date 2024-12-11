@@ -86,6 +86,7 @@ router.use(
   "/",
   require("./qc/inspeksi/incomingOutsourcing/incomingOutsourcingRoutes")
 );
+router.use("/", require("./qc/ValidasiRoute"));
 
 // qc cetak
 router.use("/", require("./qc/inspeksi/cetak/inspeksiCetakRoutes"));
@@ -142,6 +143,9 @@ router.use(
 
 //qc ncr
 router.use("/", require("./qc/ncr/ncrRoutes"));
+
+//qc report
+router.use("/", require("./qc/report/reportWasteRoute"));
 
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));

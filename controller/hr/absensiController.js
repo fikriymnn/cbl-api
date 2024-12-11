@@ -82,18 +82,32 @@ const AbsensiController = {
             [Op.or]: [
               {
                 dari: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `from` berada dalam rentang
               {
                 sampai: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `to` berada dalam rentang
               {
                 [Op.and]: [
-                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
-                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                  {
+                    dari: {
+                      [Op.lte]: new Date(startDate).setHours(0, 0, 0, 0),
+                    },
+                  }, // Rentang cuti mencakup startDate
+                  {
+                    sampai: {
+                      [Op.gte]: new Date(endDate).setHours(23, 59, 59, 999),
+                    },
+                  }, // Rentang cuti mencakup endDate
                 ],
               },
             ],
@@ -108,18 +122,32 @@ const AbsensiController = {
             [Op.or]: [
               {
                 dari: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `from` berada dalam rentang
               {
                 sampai: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `to` berada dalam rentang
               {
                 [Op.and]: [
-                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
-                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                  {
+                    dari: {
+                      [Op.lte]: new Date(startDate).setHours(0, 0, 0, 0),
+                    },
+                  }, // Rentang cuti mencakup startDate
+                  {
+                    sampai: {
+                      [Op.gte]: new Date(endDate).setHours(23, 59, 59, 999),
+                    },
+                  }, // Rentang cuti mencakup endDate
                 ],
               },
             ],
@@ -135,18 +163,32 @@ const AbsensiController = {
             [Op.or]: [
               {
                 dari: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `from` berada dalam rentang
               {
                 sampai: {
-                  [Op.between]: [new Date(startDate), new Date(endDate)],
+                  [Op.between]: [
+                    new Date(startDate).setHours(0, 0, 0, 0),
+                    new Date(endDate).setHours(23, 59, 59, 999),
+                  ],
                 },
               }, // `to` berada dalam rentang
               {
                 [Op.and]: [
-                  { dari: { [Op.lte]: new Date(startDate) } }, // Rentang cuti mencakup startDate
-                  { sampai: { [Op.gte]: new Date(endDate) } }, // Rentang cuti mencakup endDate
+                  {
+                    dari: {
+                      [Op.lte]: new Date(startDate).setHours(0, 0, 0, 0),
+                    },
+                  }, // Rentang cuti mencakup startDate
+                  {
+                    sampai: {
+                      [Op.gte]: new Date(endDate).setHours(23, 59, 59, 999),
+                    },
+                  }, // Rentang cuti mencakup endDate
                 ],
               },
             ],
@@ -446,6 +488,7 @@ const AbsensiController = {
           const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
 
           return {
+            tgl_absen: tglMasuk,
             userid: masuk.userid,
             waktu_masuk: masuk.checktime,
             waktu_keluar: keluar ? keluar.checktime : null,
@@ -547,6 +590,7 @@ const AbsensiController = {
           const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
 
           return {
+            tgl_absen: tglMasuk,
             userid: masuk.userid,
             waktu_masuk: masuk.checktime,
             waktu_keluar: keluar ? keluar.checktime : null,
@@ -584,7 +628,8 @@ const AbsensiController = {
         const dataKaryawanGenerete = generatekaryawanList(
           karyawan,
           karyawanBiodata,
-          masterDepartment
+          masterDepartment,
+          startDate
         );
 
         results.forEach((absen) => {
@@ -800,7 +845,12 @@ const generateDailySakit = (
 };
 
 // Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
-const generatekaryawanList = (karyawan, karyawanBiodata, masterDepartment) => {
+const generatekaryawanList = (
+  karyawan,
+  karyawanBiodata,
+  masterDepartment,
+  date
+) => {
   let dataKaryawan = [];
 
   for (let i = 0; i < karyawan.length; i++) {
@@ -816,6 +866,7 @@ const generatekaryawanList = (karyawan, karyawanBiodata, masterDepartment) => {
     const idDepartment = dataKaryawanBiodata?.id_department;
     const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
     dataKaryawan.push({
+      tgl_absen: date,
       userid: karyawan[i].userid,
       waktu_masuk: null,
       waktu_keluar: null,
