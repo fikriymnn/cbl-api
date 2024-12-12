@@ -109,6 +109,7 @@ const ReportWasterQc = {
             const data = result.get({ plain: true }); // Mengambil data bersih
             return data.inspeksi_defect.map((defect) => ({
               no_jo: data.no_jo,
+              mesin: data.mesin,
               total_defect: defect.hasil == null ? 0 : defect.hasil,
               ...defect,
             }));
@@ -154,10 +155,10 @@ const ReportWasterQc = {
         aggregateByKodeProduksiWithWaste(grupJoinWithMaster);
 
       res.status(200).json({
-        //data2: dataWasteGabungan,
+        data2: grupByJo,
 
-        dataWasteAll: jumlahAllData,
-        dataWasteByJo: grupJoinWithMaster,
+        // dataWasteAll: jumlahAllData,
+        // dataWasteByJo: grupJoinWithMaster,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -188,7 +189,7 @@ const groupedDataBerdasarkanJO = (data) => {
   }, {});
 
   // Konversi hasil ke array jika diperlukan
-  return Object.entries(groupedByNoJo).map(([no_jo, defects]) => ({
+  return Object.entries(groupedByNoJo).map(([no_jo, defects, mesin]) => ({
     no_jo,
     inspeksi_defect: defects,
   }));

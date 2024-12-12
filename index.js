@@ -162,6 +162,7 @@ const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
+const WaktuIstirahat = require("./model/masterData/hr/masterShift/masterIstirahatModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
@@ -200,7 +201,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await masterPerusahaan.sync({ alter: true });
+//   await WaktuIstirahat.sync({ alter: true });
 // })();
 
 // const ip100 = 75

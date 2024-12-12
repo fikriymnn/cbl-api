@@ -152,7 +152,8 @@ router.use("/", require("./qc/capa/capaRoutes"));
 
 //HR master
 router.use("/", require("./masterdata/hr/masterPerusahaanRoute"));
-router.use("/", require("./masterdata/hr/masterShiftRoute"));
+router.use("/", require("./masterdata/hr/masterShift/masterShiftRoute"));
+router.use("/", require("./masterdata/hr/masterShift/masterIstirahatRoute"));
 router.use("/", require("./masterdata/hr/masterCutiRoute"));
 router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
 router.use("/", require("./masterdata/hr/masterDivisiRoute"));
