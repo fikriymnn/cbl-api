@@ -40,27 +40,42 @@ const masterIstirahatController = {
 
   updateMasteristirahat: async (req, res) => {
     const _id = req.params.id;
-    const { dari, sampai, nama } = req.body;
+    const { data_istirahat, dari, sampai, nama } = req.body;
 
-    let obj = {};
-    if (dari) obj.dari = dari;
-    if (sampai) obj.sampai = sampai;
-    if (nama) obj.nama = nama;
+    for (let i = 0; i < data_istirahat.length; i++) {
+      const data = data_istirahat[i];
+      if ((!data.id, !data.dari, !data.sampai, !data.nama))
+        return res.status(400).json({ msg: "Incomplite data" });
+    }
+
+    const t = await db.transaction();
 
     try {
-      await masterIstirahat.update(obj, { where: { id: _id } }),
-        res.status(201).json({ msg: "istirahat update Successfuly" });
+      for (let i = 0; i < data_istirahat.length; i++) {
+        const data = data_istirahat[i];
+        await masterIstirahat.update(
+          { dari: data.dari, sampai: data.sampai, nama: data.nama },
+          { where: { id: data.id }, transaction: t }
+        );
+      }
+
+      await t.commit();
+      res.status(201).json({ msg: "istirahat update Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
 
   deleteMasteristirahat: async (req, res) => {
     const _id = req.params.id;
+    const t = await db.transaction();
     try {
-      await masterIstirahat.destroy({ where: { id: _id } }),
-        res.status(201).json({ msg: "istirahat update Successfuly" });
+      await masterIstirahat.destroy({ where: { id: _id }, transaction: t }),
+        await t.commit();
+      res.status(201).json({ msg: "istirahat update Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },

@@ -12,7 +12,7 @@ router.post(
   masterIstirahatController.createMasteristirahat
 );
 router.put(
-  "/master/shift/istirahat/:id",
+  "/master/shift/istirahat",
   auth,
   masterIstirahatController.updateMasteristirahat
 );

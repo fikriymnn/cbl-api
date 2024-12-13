@@ -155,10 +155,10 @@ const ReportWasterQc = {
         aggregateByKodeProduksiWithWaste(grupJoinWithMaster);
 
       res.status(200).json({
-        data2: grupByJo,
+        //data2: grupByJo,
 
-        // dataWasteAll: jumlahAllData,
-        // dataWasteByJo: grupJoinWithMaster,
+        dataWasteAll: jumlahAllData,
+        dataWasteByJo: grupJoinWithMaster,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });

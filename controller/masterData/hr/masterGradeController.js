@@ -80,28 +80,26 @@ const masterGradeModel = {
       insentif,
     } = req.body;
     const t = await db.transaction();
+    let obj = {};
+    if (kategori) obj.kategori = kategori;
+    if (lembur_biasa) obj.lembur_biasa = lembur_biasa;
+    if (lembur_libur) obj.lembur_libur = lembur_libur;
+    if (tunjangan_jabatan) obj.tunjangan_jabatan = tunjangan_jabatan;
+    if (uang_hadir) obj.uang_hadir = uang_hadir;
+    if (uang_makan_lembur) obj.uang_makan_lembur = uang_makan_lembur;
+    if (tunjangan_kopi) obj.tunjangan_kopi = tunjangan_kopi;
+    if (tunjangan_kerja_malam)
+      obj.tunjangan_kerja_malam = tunjangan_kerja_malam;
+    if (uang_dinas) obj.uang_dinas = uang_dinas;
+    if (uang_kawal) obj.uang_kawal = uang_kawal;
+    if (uang_ongkos_pulang) obj.uang_ongkos_pulang = uang_ongkos_pulang;
+    if (insentif) obj.insentif = insentif;
 
     try {
-      const grade = await masterGrade.update(
-        {
-          kategori,
-          lembur_biasa,
-          lembur_libur,
-          tunjangan_jabatan,
-          uang_hadir,
-          uang_makan_lembur,
-          tunjangan_kopi,
-          tunjangan_kerja_malam,
-          uang_dinas,
-          uang_kawal,
-          uang_ongkos_pulang,
-          insentif,
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      );
+      const grade = await masterGrade.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
 
       await t.commit();
       res.status(201).json({ msg: "Master Grade update Successfuly" });

@@ -16,6 +16,7 @@ const ticketController = {
         status_tiket,
         type_mtc,
         jenis_kendala,
+        no_jo,
         nama_customer,
         bagian_tiket,
         mesin,
@@ -58,6 +59,7 @@ const ticketController = {
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+      if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
       if (mesin) obj.mesin = mesin;
       if (tgl) obj.tgl = tgl;
       if (historiQc)
