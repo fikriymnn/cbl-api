@@ -56,6 +56,10 @@ const PengajuanLembur = db.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    lama_lembur_aktual: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
     alasan_lembur: {
       type: DataTypes.STRING,
       allowNull: true,

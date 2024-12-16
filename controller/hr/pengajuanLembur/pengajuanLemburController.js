@@ -186,6 +186,7 @@ const PengajuanLemburController = {
           dari,
           sampai,
           lama_lembur,
+          lama_lembut_aktual: lama_lembur,
           alasan_lembur,
           target_lembur,
           isIstirahat,

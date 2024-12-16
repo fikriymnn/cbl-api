@@ -164,6 +164,7 @@ router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
+router.use("/", require("./hr/payroll/payrollRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));

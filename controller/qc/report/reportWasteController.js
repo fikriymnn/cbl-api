@@ -17,14 +17,14 @@ const ReportWasterQc = {
       //     { timeout: 10000 }
       //   );
 
-      //   console.log(dataMasterWaste.data.waste);
+      //   //   console.log(dataMasterWaste.data.waste);
 
       //   const dataP1Waste = await axios.get(
       //     "https://erp.cbloffset.com/api/waste-lkh",
       //     { timeout: 10000 }
       //   );
 
-      console.log(data_waste_p1);
+      // console.log(data_waste_p1);
 
       const dataBarangRS = await BarangRusak.findAll({
         where: {
@@ -151,11 +151,13 @@ const ReportWasterQc = {
         data_waste_master
       );
 
-      const jumlahAllData =
-        aggregateByKodeProduksiWithWaste(grupJoinWithMaster);
+      const jumlahAllData = aggregateByKodeProduksiWithWaste(
+        dataWasteGabungan,
+        data_waste_master
+      );
 
       res.status(200).json({
-        //data2: grupByJo,
+        // data2: grupByJo,
 
         dataWasteAll: jumlahAllData,
         dataWasteByJo: grupJoinWithMaster,
@@ -196,130 +198,152 @@ const groupedDataBerdasarkanJO = (data) => {
 };
 
 // untuk mengelompokan dan menjumlahkan data berdasarkan no_jo
-const mapKodeToProduksi = (inspeksiData, produksiData) => {
-  // Kelompokkan data inspeksi berdasarkan no_jo
-  const groupedInspeksi = inspeksiData.reduce((acc, inspeksi) => {
-    if (!acc[inspeksi.no_jo]) {
-      acc[inspeksi.no_jo] = [];
-    }
-    acc[inspeksi.no_jo].push(...inspeksi.inspeksi_defect);
-    return acc;
-  }, {});
+const mapKodeToProduksi = (inspeksiData, masterData) => {
+  const masterMap = {};
 
-  // Proses produksi data dan gabungkan dengan data inspeksi berdasarkan no_jo
-  return Object.keys(groupedInspeksi).map((no_jo) => {
-    // Ambil semua produksi yang terkait dengan no_jo
-    const relatedProduksi = produksiData.map((produksi) => {
-      // Menggabungkan data waste dan menghitung sub_total untuk setiap kode
-      const wasteData = produksi.waste.map((wasteItem) => {
-        let sub_total = 0;
+  // Buat peta master berdasarkan kode_waste
+  masterData.forEach((master) => {
+    masterMap[master.kode_waste] = {
+      waste_desc: master.waste_desc,
+      kendala: master.waste,
+    };
+  });
 
-        // Cari kecocokan kode di semua kelompok inspeksi berdasarkan no_jo
-        groupedInspeksi[no_jo].forEach((defect) => {
-          if (defect.kode === wasteItem.kode_waste) {
-            sub_total += defect.total_defect; // Jumlahkan sub_total jika ada kecocokan
-          }
-        });
-        const bobotKode =
-          wasteItem.bobot == null || undefined ? 100 : wasteItem.bobot;
-        const totalPercent = (sub_total * bobotKode) / 100;
+  // Proses data jo
+  const result = inspeksiData.map((joItem) => {
+    const groupedDefects = {};
 
-        return {
-          kode: wasteItem.kode_waste,
-          nama_waste: wasteItem.waste_desc,
-          sub_total: sub_total, // Menampilkan hasil jumlah sub_total
-          sub_total_percent: totalPercent,
-          bobot: wasteItem.bobot,
-        };
-      });
+    joItem.inspeksi_defect.forEach((defect) => {
+      const kode = defect.kode;
 
-      // Menghitung total sub_total untuk setiap kelompok no_jo dalam produksi ini
-      const totalSubTotal = wasteData.reduce(
-        (total, waste) => total + waste.sub_total,
-        0
-      );
+      // Jika kode ada di master
+      if (masterMap[kode]) {
+        if (!groupedDefects[kode]) {
+          groupedDefects[kode] = {
+            kode_waste: kode,
+            waste_desc: masterMap[kode].waste_desc,
+            total_defect: 0,
+            kendala: masterMap[kode].kendala.map((kendala) => ({
+              ...kendala,
 
-      return {
-        e_kode_produksi: produksi.kode_kendala,
-        e_deskripsi: produksi.kendala_desc,
-        waste: wasteData,
-        total_sub_total: totalSubTotal,
-      };
+              calculated_defect: 0, // Inisialisasi hasil perhitungan defect * bobot
+            })),
+          };
+        }
+
+        // Tambahkan total_defect untuk kode ini
+        groupedDefects[kode].total_defect += defect.total_defect;
+      }
     });
 
-    // Menghitung total sub_total untuk seluruh no_jo
-    const totalJoSubTotal = groupedInspeksi[no_jo].reduce(
-      (sum, defect) => sum + defect.sub_total,
+    // Distribusi defect ke kendala
+    Object.values(groupedDefects).forEach((defectGroup) => {
+      const totalDefect = defectGroup.total_defect;
+
+      if (totalDefect > 0) {
+        let remainingDefect = totalDefect;
+
+        // Hitung defect dengan pembulatan awal
+        defectGroup.kendala.forEach((kendala) => {
+          kendala.calculated_defect = Math.round(
+            (kendala.bobot * totalDefect) / 100
+          );
+          remainingDefect -= kendala.calculated_defect;
+        });
+
+        // Jika ada sisa, distribusikan secara merata
+        if (remainingDefect !== 0) {
+          defectGroup.kendala.sort((a, b) => b.bobot - a.bobot); // Urutkan berdasarkan bobot (desc)
+          for (let i = 0; i < Math.abs(remainingDefect); i++) {
+            const index = i % defectGroup.kendala.length;
+            defectGroup.kendala[index].calculated_defect +=
+              remainingDefect > 0 ? 1 : -1;
+          }
+        }
+      }
+    });
+
+    // Hitung total keseluruhan defects
+    const total_defect = Object.values(groupedDefects).reduce(
+      (sum, defect) => sum + defect.total_defect,
       0
     );
 
-    // Mengembalikan data yang sudah digabung
+    // Kembalikan data jo dengan defects (mungkin kosong jika tidak ada kecocokan)
     return {
-      no_jo: no_jo,
-      total_jo_sub_total: totalJoSubTotal,
-      produksi: relatedProduksi,
+      no_jo: joItem.no_jo,
+      total_defect,
+      defects: Object.values(groupedDefects),
     };
   });
+
+  return result;
 };
 
-function aggregateByKodeProduksiWithWaste(inspeksiData) {
-  const kodeProduksiSummary = {};
+function aggregateByKodeProduksiWithWaste(inspeksiData, masterData) {
+  const masterMap = {};
 
-  // Iterasi melalui semua data inspeksi menggunakan for loop
-  for (let i = 0; i < inspeksiData.length; i++) {
-    const inspeksi = inspeksiData[i];
+  // Buat peta master berdasarkan kode_waste
+  masterData.forEach((master) => {
+    masterMap[master.kode_waste] = {
+      kode_waste: master.kode_waste,
+      waste_desc: master.waste_desc,
+      kendala: master.waste.map((kendala) => ({
+        ...kendala,
+        total_defect: 0, // Inisialisasi total_defect di kendala
+        calculated_defect: 0, // Inisialisasi hasil perhitungan defect * bobot
+      })),
+      total_defect: 0,
+    };
+  });
 
-    for (let j = 0; j < inspeksi.produksi.length; j++) {
-      const produksi = inspeksi.produksi[j];
-      const kodeProduksi = produksi.e_kode_produksi;
+  // Proses data dari semua JO
+  inspeksiData.forEach((joItem) => {
+    joItem.inspeksi_defect.forEach((defect) => {
+      const kode = defect.kode;
 
-      // Pastikan objek untuk kode produksi sudah ada dalam summary
-      if (!kodeProduksiSummary[kodeProduksi]) {
-        kodeProduksiSummary[kodeProduksi] = {
-          e_kode_produksi: kodeProduksi,
-          e_deskripsi: produksi.e_deskripsi,
-          waste: [], // Mengubah struktur waste menjadi array
-          total_sub_total: 0, // Total sub_total per kode produksi
-        };
+      // Jika kode ada di master
+      if (masterMap[kode]) {
+        // Tambahkan total_defect untuk kode ini
+        masterMap[kode].total_defect += defect.total_defect;
       }
+    });
+  });
 
-      // Iterasi waste menggunakan for loop
-      for (let k = 0; k < produksi.waste.length; k++) {
-        const waste = produksi.waste[k];
+  // Distribusi defect ke kendala dalam setiap master kode_waste
+  Object.values(masterMap).forEach((defectGroup) => {
+    const totalDefect = defectGroup.total_defect;
 
-        const bobotKode = waste.bobot == null || undefined ? 100 : waste.bobot;
+    if (totalDefect > 0) {
+      let remainingDefect = totalDefect;
 
-        // Cari waste berdasarkan kode, jika belum ada, tambahkan baru
-        let existingWaste = kodeProduksiSummary[kodeProduksi].waste.find(
-          (w) => w.kode === waste.kode
+      // Hitung defect dengan pembulatan awal
+      defectGroup.kendala.forEach((kendala) => {
+        kendala.calculated_defect = Math.round(
+          (kendala.bobot * totalDefect) / 100
         );
+        remainingDefect -= kendala.calculated_defect;
+      });
 
-        if (!existingWaste) {
-          existingWaste = {
-            kode: waste.kode,
-            nama_waste: waste.nama_waste,
-            sub_total: 0,
-            sub_total_percent: 0,
-            bobot: bobotKode,
-          };
-          kodeProduksiSummary[kodeProduksi].waste.push(existingWaste);
+      // Jika ada sisa, distribusikan secara merata
+      if (remainingDefect !== 0) {
+        defectGroup.kendala.sort((a, b) => b.bobot - a.bobot); // Urutkan berdasarkan bobot (desc)
+        for (let i = 0; i < Math.abs(remainingDefect); i++) {
+          const index = i % defectGroup.kendala.length;
+          defectGroup.kendala[index].calculated_defect +=
+            remainingDefect > 0 ? 1 : -1;
         }
-
-        // Jumlahkan sub_total waste untuk kode produksi yang sama
-        existingWaste.sub_total += waste.sub_total;
-
-        // Bagi berdasarkan bobot
-        existingWaste.sub_total_percent =
-          (existingWaste.sub_total * bobotKode) / 100;
-
-        // Jumlahkan total sub_total untuk kode produksi
-        kodeProduksiSummary[kodeProduksi].total_sub_total += waste.sub_total;
       }
     }
-  }
+  });
 
-  // Mengubah summary menjadi array dan mengembalikannya
-  return Object.values(kodeProduksiSummary);
+  // Kembalikan hasil agregasi
+  return Object.values(masterMap).map((master) => ({
+    kode_waste: master.kode_waste,
+    waste_desc: master.waste_desc,
+    total_defect: master.total_defect,
+    kendala: master.kendala,
+  }));
 }
 
 module.exports = ReportWasterQc;

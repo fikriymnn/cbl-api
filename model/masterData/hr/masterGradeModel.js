@@ -30,6 +30,11 @@ const MasterGrade = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    uang_makan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     uang_makan_lembur: {
       type: DataTypes.INTEGER,
       allowNull: true,
