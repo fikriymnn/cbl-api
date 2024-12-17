@@ -1,5 +1,10 @@
 const { getAbsensiFunction } = require("../../../helper/absenFunction");
+const Karyawan = require("../../../model/hr/karyawanModel");
+const PengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
+const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const MasterPayroll = require("../../../model/masterData/hr/masterPayrollModel");
 const pengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
@@ -8,13 +13,46 @@ const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const payrollController = {
   getPayroll: async (req, res) => {
     const { id_karyawan, startDate, endDate } = req.query;
-    console.log(req.body);
 
     let obj = {};
     if (id_karyawan) obj.id_karyawan = id_karyawan;
 
     try {
       const pengajuanLemburData = await pengajuanLembur.findAll({
+        include: [
+          {
+            model: Karyawan,
+            as: "karyawan",
+          },
+          {
+            model: Karyawan,
+            as: "karyawan_pengaju",
+            include: [
+              {
+                model: KaryawanBiodata,
+                as: "biodata_karyawan",
+                include: [
+                  // {
+                  //   model: MasterDivisi,
+                  //   as: "divisi",
+                  // },
+                  {
+                    model: MasterDepartment,
+                    as: "department",
+                  },
+                  // {
+                  //   model: MasterBagianHr,
+                  //   as: "bagian",
+                  // },
+                ],
+              },
+            ],
+          },
+          {
+            model: Karyawan,
+            as: "karyawan_hr",
+          },
+        ],
         where: {
           id_karyawan: id_karyawan,
           dari: {
@@ -47,7 +85,7 @@ const payrollController = {
         const day = datePengajuan.getDate();
         const month = getMonthName((datePengajuan.getMonth() + 1).toString());
         const year = datePengajuan.getFullYear();
-        console.log(`${day}-${month}-${year}`);
+
         return {
           tanggal_lembur: `${day}-${month}-${year}`,
           ...pengajuan.toJSON(),
@@ -63,7 +101,10 @@ const payrollController = {
         karyawanData,
         resultPengajuanLebur
       );
-      res.status(200).json({ data: payroll, lembur: resultPengajuanLebur });
+      res.status(200).json({
+        data: payroll,
+        //  lembur: resultPengajuanLebur
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -71,14 +112,17 @@ const payrollController = {
 };
 
 // Fungsi untuk menghitung lembur dengan memperhitungkan istirahat
-const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
-  const uangHadir = dataGrade.grade.uang_hadir;
-  const uangMakan = dataGrade.grade.uang_makan;
-  const upahPerHari = dataGrade.gaji;
-  const uangLemburBiasa = dataGrade.grade.lembur_biasa;
-  const uangLemburLibur = dataGrade.grade.lembur_libur;
-  const uangMakanLembur = dataGrade.grade.uang_makan_lembur;
-  const tunjanganKerjaMalam = dataGrade.grade.tunjangan_kerja_malam;
+const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
+  const uangHadir = dataKaryawan.grade.uang_hadir;
+  const uangMakan = dataKaryawan.grade.uang_makan;
+  const upahPerHari = dataKaryawan.gaji;
+  const uangLemburBiasa = dataKaryawan.grade.lembur_biasa;
+  const uangLemburLibur = dataKaryawan.grade.lembur_libur;
+  const uangMakanLembur = dataKaryawan.grade.uang_makan_lembur;
+  const tunjanganKerjaMalam = dataKaryawan.grade.tunjangan_kerja_malam;
+  const tunjanganKopi = dataKaryawan.grade.tunjangan_kopi;
+
+  const typePenggajianKaryawan = dataKaryawan.tipe_penggajian;
 
   const masterPayrollData = await MasterPayroll.findByPk(1);
 
@@ -87,10 +131,10 @@ const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
       let payroll = {
         rincian: [],
         total: 0,
-        data_pengajuan_lembur: {},
+        data_pengajuan_lembur: null,
       };
 
-      const groupedData = await pengajuanLembur.reduce((acc, curr) => {
+      const groupedData = await pengajuanLembur.map((curr) => {
         const tanggal = curr.tanggal_lembur;
 
         if (tanggal == absen.tgl_keluar) {
@@ -116,8 +160,8 @@ const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
       const jamKeluarShift = new Date(`2024-11-19T${absen.jam_keluar_shift}`);
       const jamKeluar = new Date(absen.waktu_keluar);
       // jamLembur = (jamKeluar - jamKeluarShift) / (1000 * 60 * 60); // Hasil dalam jam
-      jamLembur = payroll.data_pengajuan_lembur.lama_lembur_aktual;
-      console.log(payroll);
+      //   jamLembur = payroll.data_pengajuan_lembur.lama_lembur_aktual;
+      jamLembur = absen.jam_lembur;
 
       // // Jika ada waktu istirahat, kita akan kurangi durasi lembur dengan jam istirahat
       // istirahat.forEach((rest) => {
@@ -142,8 +186,20 @@ const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
         );
         payroll.total += banyakmakan * uangMakan;
 
-        payroll.rincian.push(`upahHarian: 1 x ${upahPerHari} = ${upahPerHari}`);
-        payroll.total += upahPerHari;
+        //hanya untuk karyawan mingguan
+        if (typePenggajianKaryawan === "mingguan") {
+          payroll.rincian.push(
+            `upahHarian: 1 x ${upahPerHari} = ${upahPerHari}`
+          );
+          payroll.total += upahPerHari;
+        }
+        //perhitungan tunjangan uang kopi untuk karyawan bulanan
+        if (typePenggajianKaryawan === "bulanan") {
+          payroll.rincian.push(
+            `tunjanganKopi: 1 x ${upahPerHari} = ${upahPerHari}`
+          );
+          payroll.total += upahPerHari;
+        }
 
         payroll.rincian.push(`uangHadir: 1 x ${uangHadir} =  ${uangHadir}`);
         payroll.total += uangHadir;
@@ -170,7 +226,11 @@ const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
         payroll.total += banyakMakanLembur * uangMakanLembur;
       }
 
-      if (absen.status_absen === "sakit") {
+      // Perhitungan sakit khusus untuk karyawan mingguan
+      if (
+        absen.status_absen === "sakit" &&
+        typePenggajianKaryawan === "mingguan"
+      ) {
         payroll.rincian.push(
           `upahHarianSakit: ${
             masterPayrollData.upah_sakit
@@ -181,8 +241,8 @@ const hitungPayroll = async (data, dataGrade, pengajuanLembur) => {
         payroll.total += (masterPayrollData.upah_sakit * upahPerHari) / 100;
       }
 
-      // Perhitungan payroll
-      if (absen.shift === "Shift 2") {
+      // Perhitungan tunjangan kerja malam khusus untuk karyawan mingguan
+      if (absen.shift === "Shift 2" && typePenggajianKaryawan === "mingguan") {
         payroll.rincian.push(`tunjanganKerjaMalam: ${tunjanganKerjaMalam} `);
         payroll.total += tunjanganKerjaMalam;
       }

@@ -9,6 +9,7 @@ const MasterAbsensi = require("../model/masterData/hr/masterAbsensiModel");
 const DataCuti = require("../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../model/hr/pengajuanIzin/pengajuanIzinModel");
 const DataSakit = require("../model/hr/pengajuanSakit/pengajuanSakitModel");
+const DataMangkir = require("../model/hr/pengajuanMangkir/pengajuanMangkirModel");
 
 const absenFunction = {
   getAbsensiFunction: async (startDate, endDate, obj) => {
@@ -33,6 +34,7 @@ const absenFunction = {
     let dataCuti = [];
     let dataIzin = [];
     let dataSakit = [];
+    let dataMangkir = [];
 
     //jika ada range tanggal
     if (startDate && endDate) {
@@ -188,6 +190,21 @@ const absenFunction = {
           ],
         },
       });
+
+      dataMangkir = await DataMangkir.findAll({
+        where: {
+          status: "approved",
+          id_karyawan: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+          tanggal: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
       //console.log(absensiMasuk);
     } else {
       // Ambil  data absensi masuk
@@ -235,6 +252,15 @@ const absenFunction = {
           },
         },
       });
+
+      dataMangkir = await DataMangkir.findAll({
+        where: {
+          status: "approved",
+          id_karyawan: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+        },
+      });
     }
 
     // Memecah cuti menjadi entri harian
@@ -264,6 +290,20 @@ const absenFunction = {
         ...sakitEntries,
         ...generateDailySakit(
           sakit,
+          karyawan,
+          karyawanBiodata,
+          masterDepartment
+        ),
+      ];
+    });
+
+    // Memecah mangkir menjadi entri harian
+    let mangkirEntries = [];
+    dataMangkir.forEach((mangkir) => {
+      mangkirEntries = [
+        ...mangkirEntries,
+        ...generateDailyMangkir(
+          mangkir,
           karyawan,
           karyawanBiodata,
           masterDepartment
@@ -617,6 +657,8 @@ const absenFunction = {
     results.push(...izinEntries);
     //masukan data sakit ke data absen
     results.push(...sakitEntries);
+    //masukan data mangkir ke data absen
+    results.push(...mangkirEntries);
 
     // Sorting berdasarkan tanggal (terbaru ke terlama)
     results.sort((a, b) => b.waktu_masuk - a.waktu_masuk);
@@ -837,6 +879,62 @@ const generateDailySakit = (
   }
 
   return dailySakit;
+};
+
+// Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
+const generateDailyMangkir = (
+  mangkir,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment
+) => {
+  let dailyMangkir = [];
+  let startDate = new Date(mangkir.tanggal);
+
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === mangkir.id_karyawan
+  );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === mangkir.id_karyawan
+  );
+
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+
+  const waktuMasuk = new Date(startDate);
+  const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+
+  const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+  dailyMangkir.push({
+    userid: mangkir.id_karyawan,
+    waktu_masuk: new Date(startDate),
+    waktu_keluar: null,
+    tgl_masuk: tglMasuk,
+    tgl_keluar: null,
+    jam_masuk: null,
+    jam_keluar: null,
+    menit_terlambat: null,
+    jam_lembur: null,
+    status_lembur: null,
+    status_masuk: null,
+    name: namaKaryawan,
+    status_keluar: null,
+    menit_pulang_cepat: null,
+    shift: null, // Menampilkan shift
+    status_absen: "Mangkir",
+    id_department: namaKaryawanBiodata,
+    nama_department: namaDepartmentKaryawan,
+  });
+
+  return dailyMangkir;
 };
 
 // Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian

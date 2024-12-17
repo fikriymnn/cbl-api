@@ -179,6 +179,7 @@ const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
+const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -200,9 +201,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// model sync to table (pancingan)
+// // // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanLembur.sync({ alter: true });
+//   await pengajuanMangkir.sync({ alter: true });
 // })();
 
 // const ip100 = 75
