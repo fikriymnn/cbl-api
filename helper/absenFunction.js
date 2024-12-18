@@ -324,10 +324,21 @@ const absenFunction = {
               new Date(masuk.checktime).getDate())
       );
 
+      // Konversi waktu ke UTC untuk perbandingan
+      const waktuMasuk = new Date(masuk.checktime);
+      const waktuKeluar = !keluar ? null : new Date(keluar.checktime);
+
       // Dapatkan shift berdasarkan tanggal absensi masuk
-      const dayName = new Date(masuk.checktime).toLocaleDateString("id-ID", {
+      const dayName = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
+
       const shiftHariIni = shifts.find((shift) => shift.hari === dayName);
 
       //get data karyawan
@@ -363,10 +374,6 @@ const absenFunction = {
 
       // Tentukan shift berdasarkan waktu absensi masuk
       let shiftMasukTime, shiftKeluarTime;
-
-      // Konversi waktu ke UTC untuk perbandingan
-      const waktuMasuk = new Date(masuk.checktime);
-      const waktuKeluar = !keluar ? null : new Date(keluar.checktime);
 
       if (keluar) {
         // waktu masuk absen
@@ -480,11 +487,11 @@ const absenFunction = {
           statusKeluar = "Keluar";
         }
 
-        // Hitung lembur
+        // Hitung lembur (kode 30 * 60 * 1000 berarti tabahan setengah jam)
         if (keluar) {
           if (
             shift === "Shift 1" &&
-            waktuKeluarUTC > waktuKeluarShift1UTC + 60 * 60 * 1000
+            waktuKeluarUTC > waktuKeluarShift1UTC + 30 * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift1UTC) / 3600000;
@@ -494,7 +501,7 @@ const absenFunction = {
             statusLembur = "Lembur";
           } else if (
             shift === "Shift 2" &&
-            waktuKeluarUTC > waktuKeluarShift2UTC + 60 * 60 * 1000
+            waktuKeluarUTC > waktuKeluarShift2UTC + 30 * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift2UTC) / 3600000;

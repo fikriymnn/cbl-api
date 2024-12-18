@@ -109,10 +109,42 @@ const payrollController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  getPayrollBulanan: async (req, res) => {
+    const { id_karyawan, startDate, endDate } = req.query;
+
+    let obj = {};
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
+
+    try {
+      const karyawanData = await KaryawanBiodata.findOne({
+        where: { id_karyawan: id_karyawan },
+        include: [
+          {
+            model: MasterGradeHr,
+            as: "grade",
+          },
+        ],
+      });
+
+      //ambil data dari absensi
+      const absenResult = await getAbsensiFunction(startDate, endDate, obj);
+
+      //hitung payroll berdasarkan data absensi dan pengajuan lembur
+      const payroll = await hitungPayrollBulanan(absenResult, karyawanData);
+      res.status(200).json({
+        data: payroll,
+        //  lembur: resultPengajuanLebur
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 // Fungsi untuk menghitung lembur dengan memperhitungkan istirahat
 const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
+  //data dari grade
   const uangHadir = dataKaryawan.grade.uang_hadir;
   const uangMakan = dataKaryawan.grade.uang_makan;
   const upahPerHari = dataKaryawan.gaji;
@@ -122,11 +154,18 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   const tunjanganKerjaMalam = dataKaryawan.grade.tunjangan_kerja_malam;
   const tunjanganKopi = dataKaryawan.grade.tunjangan_kopi;
 
+  //data dari karyawan
   const typePenggajianKaryawan = dataKaryawan.tipe_penggajian;
+  const typeKaryawan = dataKaryawan.tipe_karyawan;
 
   const masterPayrollData = await MasterPayroll.findByPk(1);
+  let summaryPayroll = {
+    rincian: [],
+    upahHarianSakit: [],
+    total: 0,
+  };
 
-  return await Promise.all(
+  const detailAbsensi = await Promise.all(
     data.map(async (absen) => {
       let payroll = {
         rincian: [],
@@ -181,27 +220,45 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       // Perhitungan payroll
       if (absen.status_absen === "masuk") {
         const banyakmakan = 1;
-        payroll.rincian.push(
-          `uangMakan: 1 x ${uangMakan} = ${banyakmakan * uangMakan}`
-        );
+        payroll.rincian.push({
+          label: "uangMakan",
+          jumlah: banyakmakan,
+          nilai: uangMakan,
+          total: banyakmakan * uangMakan,
+        });
+
         payroll.total += banyakmakan * uangMakan;
 
         //hanya untuk karyawan mingguan
         if (typePenggajianKaryawan === "mingguan") {
-          payroll.rincian.push(
-            `upahHarian: 1 x ${upahPerHari} = ${upahPerHari}`
-          );
+          payroll.rincian.push({
+            label: "upahHarian",
+            jumlah: 1,
+            nilai: upahPerHari,
+            total: upahPerHari,
+          });
+
           payroll.total += upahPerHari;
         }
         //perhitungan tunjangan uang kopi untuk karyawan bulanan
         if (typePenggajianKaryawan === "bulanan") {
-          payroll.rincian.push(
-            `tunjanganKopi: 1 x ${upahPerHari} = ${upahPerHari}`
-          );
-          payroll.total += upahPerHari;
+          payroll.rincian.push({
+            label: "tunjanganKopi",
+            jumlah: 1,
+            nilai: tunjanganKopi,
+            total: tunjanganKopi,
+          });
+
+          payroll.total += tunjanganKopi;
         }
 
-        payroll.rincian.push(`uangHadir: 1 x ${uangHadir} =  ${uangHadir}`);
+        payroll.rincian.push({
+          label: "uangHadir",
+          jumlah: 1,
+          nilai: uangHadir,
+          total: uangHadir,
+        });
+
         payroll.total += uangHadir;
       }
 
@@ -211,18 +268,55 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           jamLembur / masterPayrollData.uang_makan_lembur_per
         );
 
-        payroll.rincian.push(
-          `uangLembur: ${jamLembur} x ${uangLemburBiasa} = ${
-            jamLembur * uangLemburBiasa
-          }`
-        );
-        payroll.total += jamLembur * uangLemburBiasa;
+        // menghitung uang lembur karyawan bulanan, jika type karyawan staff maka lembur di hari sabtu di hitung lembur libur jika karyawan tidak
+        if (typePenggajianKaryawan === "bulanan" && typeKaryawan === "staff") {
+          if (absen.hari === "Sabtu") {
+            payroll.rincian.push({
+              label: "uangLemburLibur",
+              jumlah: jamLembur,
+              nilai: uangLemburLibur,
+              total: jamLembur * uangLemburLibur,
+            });
+            payroll.total += jamLembur * uangLemburLibur;
+          } else {
+            payroll.rincian.push({
+              label: "uangLembur",
+              jumlah: jamLembur,
+              nilai: uangLemburBiasa,
+              total: jamLembur * uangLemburBiasa,
+            });
+            payroll.total += jamLembur * uangLemburBiasa;
+          }
+        } else if (
+          typePenggajianKaryawan === "bulanan" &&
+          typeKaryawan === "produksi"
+        ) {
+          payroll.rincian.push({
+            label: "uangLembur",
+            jumlah: jamLembur,
+            nilai: uangLemburBiasa,
+            total: jamLembur * uangLemburBiasa,
+          });
+          payroll.total += jamLembur * uangLemburBiasa;
+        }
 
-        payroll.rincian.push(
-          `uangMakanLembur: ${banyakMakanLembur} x ${uangMakanLembur} = ${
-            banyakMakanLembur * uangMakanLembur
-          }`
-        );
+        if (typePenggajianKaryawan === "mingguan") {
+          payroll.rincian.push({
+            label: "uangLembur",
+            jumlah: jamLembur,
+            nilai: uangLemburBiasa,
+            total: jamLembur * uangLemburBiasa,
+          });
+          payroll.total += jamLembur * uangLemburBiasa;
+        }
+
+        payroll.rincian.push({
+          label: "uangMakanLembur",
+          jumlah: banyakMakanLembur,
+          nilai: uangMakanLembur,
+          total: banyakMakanLembur * uangMakanLembur,
+        });
+
         payroll.total += banyakMakanLembur * uangMakanLembur;
       }
 
@@ -231,26 +325,148 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
         absen.status_absen === "sakit" &&
         typePenggajianKaryawan === "mingguan"
       ) {
-        payroll.rincian.push(
-          `upahHarianSakit: ${
-            masterPayrollData.upah_sakit
-          }% x ${upahPerHari} = ${
-            (masterPayrollData.upah_sakit * upahPerHari) / 100
-          } `
-        );
+        summaryPayroll.upahHarianSakit.push({
+          label: "upahHarianSakit",
+          jumlah: `${masterPayrollData.upah_sakit}%`,
+          nilai: upahPerHari,
+          total: (masterPayrollData.upah_sakit * upahPerHari) / 100,
+        });
+        payroll.rincian.push({
+          label: "upahHarianSakit",
+          jumlah: 1,
+          nilai: upahPerHari,
+          total: (masterPayrollData.upah_sakit * upahPerHari) / 100,
+        });
+
         payroll.total += (masterPayrollData.upah_sakit * upahPerHari) / 100;
       }
 
       // Perhitungan tunjangan kerja malam khusus untuk karyawan mingguan
       if (absen.shift === "Shift 2" && typePenggajianKaryawan === "mingguan") {
-        payroll.rincian.push(`tunjanganKerjaMalam: ${tunjanganKerjaMalam} `);
+        payroll.rincian.push({
+          label: "tunjanganKerjaMalam",
+          jumlah: 1,
+          nilai: tunjanganKerjaMalam,
+          total: tunjanganKerjaMalam,
+        });
         payroll.total += tunjanganKerjaMalam;
+      }
+      // Gabungkan rincian payroll ke summaryPayroll
+      payroll.rincian.forEach((item) => {
+        if (item.label != "upahHarianSakit") {
+          if (!summaryPayroll.rincian[item.label]) {
+            summaryPayroll.rincian[item.label] = {
+              jumlah: 0,
+              nilai: item.nilai,
+              total: 0,
+            };
+          }
+          summaryPayroll.rincian[item.label].jumlah += item.jumlah;
+          summaryPayroll.rincian[item.label].nilai = item.nilai;
+          summaryPayroll.rincian[item.label].total =
+            summaryPayroll.rincian[item.label].jumlah * item.nilai;
+          summaryPayroll.total += item.total;
+        }
+      });
+
+      // Gabungkan rincian sakit payroll ke summaryPayroll
+      summaryPayroll.upahHarianSakit.map((item) => {
+        summaryPayroll.total += item.total;
+      });
+
+      // Tambahkan payroll ke dalam data absen
+      return { ...absen, payroll };
+    })
+  );
+  // Ubah rincian summaryPayroll menjadi array
+  summaryPayroll.rincian = Object.entries(summaryPayroll.rincian).map(
+    ([label, { jumlah, nilai, total }]) => ({ label, jumlah, nilai, total })
+  );
+
+  return { summaryPayroll, detailAbsensi };
+};
+
+// Fungsi untuk menghitung lembur dengan memperhitungkan istirahat
+const hitungPayrollBulanan = async (data, dataKaryawan) => {
+  const gajiBulanan = dataKaryawan.gaji;
+  const masterPayrollData = await MasterPayroll.findByPk(1);
+  let summaryPayroll = {
+    gaji: gajiBulanan,
+    rincian: [],
+    potonganSakit: [],
+    potonganIzin: [],
+    potonganMangkir: [],
+    total_potongan: 0,
+    tmk: 0,
+    total: gajiBulanan,
+  };
+
+  const detailAbsensi = await Promise.all(
+    data.map(async (absen) => {
+      let payroll = {
+        rincian: [],
+        total: 0,
+      };
+
+      // Perhitungan sakit
+      if (absen.status_absen === "sakit") {
+        summaryPayroll.potonganSakit.push({
+          label: "potonganSakit",
+          jumlah: `${masterPayrollData.upah_sakit}%`,
+          nilai: `${masterPayrollData.upah_sakit}% x ${gajiBulanan} / 26 `,
+          total: Math.floor(
+            (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
+          ),
+        });
+
+        //penambahan nilai ke total potongan
+        summaryPayroll.total_potongan += Math.floor(
+          (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
+        );
+
+        //pengurangan nilai ke total gaji
+        summaryPayroll.total -= Math.floor(
+          (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
+        );
+      }
+      // Perhitungan izin
+      if (absen.status_absen === "izin") {
+        summaryPayroll.potonganIzin.push({
+          label: "potonganIzin",
+          jumlah: 1,
+          nilai: `${gajiBulanan} / 26`,
+          total: Math.floor(gajiBulanan / 26),
+        });
+
+        summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
+
+        summaryPayroll.total -= Math.floor(gajiBulanan / 26);
+      }
+
+      // Perhitungan izin
+      if (absen.status_absen === "mangkir") {
+        summaryPayroll.potonganMangkir.push({
+          label: "potonganMangkir",
+          jumlah: 1,
+          nilai: `${gajiBulanan} / 26`,
+          total: Math.floor(gajiBulanan / 26),
+        });
+
+        summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
+
+        summaryPayroll.total -= Math.floor(gajiBulanan / 26);
       }
 
       // Tambahkan payroll ke dalam data absen
       return { ...absen, payroll };
     })
   );
+  //   // Ubah rincian summaryPayroll menjadi array
+  //   summaryPayroll.rincian = Object.entries(summaryPayroll.rincian).map(
+  //     ([label, { jumlah, nilai, total }]) => ({ label, jumlah, nilai, total })
+  //   );
+
+  return { summaryPayroll, detailAbsensi };
 };
 
 function getMonthName(monthString) {

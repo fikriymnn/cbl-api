@@ -178,6 +178,7 @@ const karyawanController = {
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
+      tipe_karyawan,
       jabatan,
       status_karyawan,
       status_pajak,
@@ -226,6 +227,7 @@ const karyawanController = {
           tgl_masuk,
           tgl_keluar,
           tipe_penggajian,
+          tipe_karyawan,
           jabatan,
           status_karyawan,
           status_pajak,
@@ -264,6 +266,7 @@ const karyawanController = {
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
+      tipe_karyawan,
       jabatan,
       status_karyawan,
       status_pajak,
@@ -283,6 +286,7 @@ const karyawanController = {
     if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
     if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+    if (tipe_karyawan) obj.tipe_karyawan = tipe_karyawan;
     if (jabatan) obj.jabatan = jabatan;
     if (status_karyawan) obj.status_karyawan = status_karyawan;
     if (status_pajak) obj.status_pajak = status_pajak;
