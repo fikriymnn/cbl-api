@@ -8,6 +8,7 @@ const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel")
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const MasterPayroll = require("../../../model/masterData/hr/masterPayrollModel");
 const pengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
+const PengajuanPinjaman = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const { Op, fn, col, literal, Sequelize } = require("sequelize");
 
 const payrollController = {
@@ -159,11 +160,26 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   const typeKaryawan = dataKaryawan.tipe_karyawan;
 
   const masterPayrollData = await MasterPayroll.findByPk(1);
+  const pengajuanPinjaman = await PengajuanPinjaman.findOne({
+    where: {
+      id_karyawan: dataKaryawan.id_karyawan,
+      status_pinjaman: "belum lunas",
+    },
+  });
+
   let summaryPayroll = {
     rincian: [],
     upahHarianSakit: [],
+    potonganPinjaman: null,
     total: 0,
   };
+
+  if (pengajuanPinjaman && typePenggajianKaryawan == "mingguan") {
+    summaryPayroll.potonganPinjaman = pengajuanPinjaman;
+
+    //pengurangan nilai ke total gaji
+    summaryPayroll.total -= pengajuanPinjaman.jumlah_cicilan;
+  }
 
   const detailAbsensi = await Promise.all(
     data.map(async (absen) => {
@@ -333,7 +349,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
         });
         payroll.rincian.push({
           label: "upahHarianSakit",
-          jumlah: 1,
+          jumlah: `${masterPayrollData.upah_sakit}%`,
           nilai: upahPerHari,
           total: (masterPayrollData.upah_sakit * upahPerHari) / 100,
         });
@@ -390,16 +406,35 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 const hitungPayrollBulanan = async (data, dataKaryawan) => {
   const gajiBulanan = dataKaryawan.gaji;
   const masterPayrollData = await MasterPayroll.findByPk(1);
+  const pengajuanPinjaman = await PengajuanPinjaman.findOne({
+    where: {
+      id_karyawan: dataKaryawan.id_karyawan,
+      status_pinjaman: "belum lunas",
+    },
+  });
+
+  const lamaKerja = hitungTahunDari(dataKaryawan.tgl_masuk);
+
   let summaryPayroll = {
     gaji: gajiBulanan,
-    rincian: [],
+    potonganPinjaman: null,
     potonganSakit: [],
     potonganIzin: [],
     potonganMangkir: [],
     total_potongan: 0,
-    tmk: 0,
-    total: gajiBulanan,
+    tmk: lamaKerja * 10000,
+    total: gajiBulanan + lamaKerja * 10000,
   };
+
+  if (pengajuanPinjaman) {
+    summaryPayroll.potonganPinjaman = pengajuanPinjaman;
+
+    //penambahan nilai ke total potongan
+    summaryPayroll.total_potongan += pengajuanPinjaman.jumlah_cicilan;
+
+    //pengurangan nilai ke total gaji
+    summaryPayroll.total -= pengajuanPinjaman.jumlah_cicilan;
+  }
 
   const detailAbsensi = await Promise.all(
     data.map(async (absen) => {
@@ -492,6 +527,21 @@ function getMonthName(monthString) {
   } else {
     return months[monthNumber - 1];
   }
+}
+
+function hitungTahunDari(tanggal) {
+  const sekarang = new Date(); // Tanggal hari ini
+  const tanggalTertentu = new Date(tanggal); // Format tanggal: YYYY-MM-DD
+
+  const selisihTahun = sekarang.getFullYear() - tanggalTertentu.getFullYear();
+
+  // Periksa apakah bulan dan hari sudah dilewati tahun ini
+  const belumLewat =
+    sekarang.getMonth() < tanggalTertentu.getMonth() ||
+    (sekarang.getMonth() === tanggalTertentu.getMonth() &&
+      sekarang.getDate() < tanggalTertentu.getDate());
+
+  return belumLewat ? 0 : selisihTahun;
 }
 
 module.exports = payrollController;

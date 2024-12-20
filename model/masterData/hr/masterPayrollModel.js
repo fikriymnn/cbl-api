@@ -14,6 +14,10 @@ const MasterDivisi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    upah_tmk: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

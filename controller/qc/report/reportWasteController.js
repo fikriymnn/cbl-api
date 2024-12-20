@@ -21,9 +21,10 @@ const ReportWasterQc = {
 
       //   const dataP1Waste = await axios.get(
       //     "https://erp.cbloffset.com/api/waste-lkh",
+
       //     { timeout: 10000 }
       //   );
-
+      //console.log(dataP1Waste.data);
       // console.log(data_waste_p1);
 
       const dataBarangRS = await BarangRusak.findAll({
@@ -156,11 +157,31 @@ const ReportWasterQc = {
         data_waste_master
       );
 
+      // Filter data grup jo gabungan berdasarkan total_defect > 0
+      const filterGrupJoinWithMaster = grupJoinWithMaster.filter(
+        (item) => item.total_defect > 0
+      );
+
+      // Filter data allWaste berdasarkan total_defect > 0
+      const filterJumlahAllData = jumlahAllData.filter(
+        (item) => item.total_defect > 0
+      );
+
+      // Urutkan data berdasarkan total_defect dari besar ke kecil
+      const resultGrupJoinWithMaster = filterGrupJoinWithMaster.sort(
+        (a, b) => b.total_defect - a.total_defect
+      );
+
+      // Urutkan data allWaste berdasarkan total_defect dari besar ke kecil
+      const resultJumlahAllData = filterJumlahAllData.sort(
+        (a, b) => b.total_defect - a.total_defect
+      );
+
       res.status(200).json({
         // data2: grupByJo,
 
-        dataWasteAll: jumlahAllData,
-        dataWasteByJo: grupJoinWithMaster,
+        dataWasteAll: resultJumlahAllData,
+        dataWasteByJo: resultGrupJoinWithMaster,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });

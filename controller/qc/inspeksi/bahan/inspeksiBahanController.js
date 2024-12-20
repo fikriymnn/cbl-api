@@ -80,6 +80,7 @@ const inspeksiBahanController = {
         ukuran,
         jam,
         jumlah,
+        jumlah_pallet,
       } = req.body;
 
       if (!tanggal)
@@ -104,6 +105,7 @@ const inspeksiBahanController = {
         ukuran,
         jam,
         jumlah,
+        jumlah_pallet,
       });
 
       if (data) {

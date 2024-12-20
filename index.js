@@ -186,6 +186,12 @@ const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
 const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
+//payroll
+const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
+const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
+const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
+const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -201,9 +207,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// // // model sync to table (pancingan)
+// model sync to table (pancingan)
 // (async () => {
-//   await karyawanBiodata.sync({ alter: true });
+//   await inspeksiBahan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

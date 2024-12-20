@@ -24,6 +24,7 @@ const masterGradeModel = {
       lembur_libur,
       tunjangan_jabatan,
       uang_hadir,
+      uang_makan,
       uang_makan_lembur,
       tunjangan_kopi,
       tunjangan_kerja_malam,
@@ -42,6 +43,7 @@ const masterGradeModel = {
           lembur_libur,
           tunjangan_jabatan,
           uang_hadir,
+          uang_makan,
           uang_makan_lembur,
           tunjangan_kopi,
           tunjangan_kerja_malam,
@@ -71,6 +73,7 @@ const masterGradeModel = {
       lembur_libur,
       tunjangan_jabatan,
       uang_hadir,
+      uang_makan,
       uang_makan_lembur,
       tunjangan_kopi,
       tunjangan_kerja_malam,
@@ -86,6 +89,7 @@ const masterGradeModel = {
     if (lembur_libur) obj.lembur_libur = lembur_libur;
     if (tunjangan_jabatan) obj.tunjangan_jabatan = tunjangan_jabatan;
     if (uang_hadir) obj.uang_hadir = uang_hadir;
+    if (uang_makan) obj.uang_makan = uang_makan;
     if (uang_makan_lembur) obj.uang_makan_lembur = uang_makan_lembur;
     if (tunjangan_kopi) obj.tunjangan_kopi = tunjangan_kopi;
     if (tunjangan_kerja_malam)

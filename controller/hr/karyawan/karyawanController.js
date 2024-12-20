@@ -12,16 +12,28 @@ const db = require("../../../config/database");
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, id_department } = req.query;
+    const { page, limit, search, id_department, tipe_penggajian } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search)
       obj = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
       };
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
     try {
+      const karyawanBiodata = await KaryawanBiodata.findAll({
+        where: obj,
+      });
+      const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+      console.log(karyawanIds);
       if (page && limit) {
-        const length = await Karyawan.count({ where: obj });
+        const length = await Karyawan.count({
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
         const data = await Karyawan.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
@@ -50,7 +62,11 @@ const karyawanController = {
             },
           ],
           offset,
-          where: obj,
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
         });
         return res.status(200).json({
           data: data,
@@ -155,7 +171,11 @@ const karyawanController = {
             },
           ],
 
-          where: obj,
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
         });
         return res.status(200).json({
           data: data,
