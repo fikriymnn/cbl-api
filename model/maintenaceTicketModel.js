@@ -176,6 +176,21 @@ const Ticket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    maksimal_kedatangan_tiket: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 100,
+    },
+    maksimal_periode_kedatangan_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "Month",
+    },
+    maksimal_waktu_pengerjaan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 99999,
+    },
   },
 
   {

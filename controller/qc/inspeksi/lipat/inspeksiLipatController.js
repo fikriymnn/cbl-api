@@ -30,7 +30,7 @@ const inspeksiLipatController = {
           [Op.or]: [
             { no_jo: { [Op.like]: `%${search}%` } },
             { no_io: { [Op.like]: `%${search}%` } },
-            { nama_produk: { [Op.like]: `%${search}%` } },
+            { item: { [Op.like]: `%${search}%` } },
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };

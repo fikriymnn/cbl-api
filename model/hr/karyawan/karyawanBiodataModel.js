@@ -71,6 +71,10 @@ const KaryawanBiodataModel = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tipe_karyawan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
 
     jabatan: {
       type: DataTypes.STRING,

@@ -1,5 +1,6 @@
 const { Op, where } = require("sequelize");
 const Ticket = require("../../model/maintenaceTicketModel");
+const TicketDepartment = require("../../model/maintenanceTicketDepartmentModel");
 const Users = require("../../model/userModel");
 const userActionMtc = require("../../model/mtc/userActionMtc");
 const MasalahSparepart = require("../../model/mtc/sparepartProblem");
@@ -9,6 +10,9 @@ const ProsesMtc = require("../../model/mtc/prosesMtc");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const SpbService = require("../../model/mtc/spbServiceSparepart");
+const NcrTicket = require("../../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../../model/qc/ncr/ncrKetidaksesuaianModel");
 const moment = require("moment");
 const db = require("../../config/database");
 
@@ -360,6 +364,14 @@ const ProsessMtc = {
 
     const monitoring = await MasterMonitoring.findByPk(1);
     const prosesData = await ProsesMtc.findByPk(id_proses);
+    const tiketData = await Ticket.findByPk(_id, {
+      include: [
+        {
+          model: TicketDepartment,
+          as: "data_department",
+        },
+      ],
+    });
 
     let status = "";
     if (skor_mtc < monitoring.minimal_skor) {
@@ -409,6 +421,53 @@ const ProsessMtc = {
     const t = await db.transaction();
 
     try {
+      if (prosesData.is_rework == false) {
+        // Perbedaan dalam milidetik
+        const diffInMs = Math.abs(new Date() - prosesData.waktu_mulai_mtc);
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); //dalam menit
+        //const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60)); // Dalam jam
+        console.log(diffInMinutes);
+
+        if (diffInMinutes > tiketData.maksimal_waktu_pengerjaan) {
+          console.log("masuk ncr");
+          const userAnalisis = await Users.findByPk(req.user.id);
+          console.log(userAnalisis);
+          const data = await NcrTicket.create(
+            {
+              id_pelapor: req.user.id,
+              tanggal: new Date(),
+              kategori_laporan: tiketData.jenis_kendala,
+              nama_pelapor: userAnalisis.nama,
+              department_pelapor: userAnalisis.bagian,
+              no_jo: tiketData.no_jo,
+              no_io: tiketData.no_io,
+              nama_produk: tiketData.nama_produk,
+            },
+            { transaction: t }
+          );
+
+          for (let i = 0; i < tiketData.data_department.length; i++) {
+            const elementdata = tiketData.data_department[i];
+
+            const department = await NcrDepartment.create(
+              {
+                id_ncr_tiket: data.id,
+                id_department: elementdata.id_department,
+                department: elementdata.department,
+              },
+              { transaction: t }
+            );
+
+            await NcrKetidaksesuain.create(
+              {
+                id_department: department.id,
+                ketidaksesuaian: `Melebihi batas waktu penanganan masalah ${tiketData.kode_lkh} ${tiketData.nama_kendala} pada jo ${tiketData.no_jo}`,
+              },
+              { transaction: t }
+            );
+          }
+        }
+      }
       if (
         !masalah_sparepart ||
         masalah_sparepart == [] ||

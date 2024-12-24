@@ -1,6 +1,7 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const KaryawanModel = require("../karyawanModel");
+const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 
 const { DataTypes } = Sequelize;
 
@@ -31,7 +32,14 @@ const PengajuanIzin = db.define(
         key: "userid",
       },
     },
-
+    id_department: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: DepartmentModel,
+        key: "id",
+      },
+    },
     dari: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -96,6 +104,16 @@ KaryawanModel.hasMany(PengajuanIzin, {
 PengajuanIzin.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
   as: "karyawan_hr",
+});
+
+//relasi master department
+DepartmentModel.hasMany(PengajuanIzin, {
+  foreignKey: "id_department",
+  as: "hr_pengajuan_izin",
+});
+PengajuanIzin.belongsTo(DepartmentModel, {
+  foreignKey: "id_department",
+  as: "department",
 });
 
 module.exports = PengajuanIzin;

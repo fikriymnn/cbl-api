@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const Ticket = require("../model/maintenaceTicketModel");
+const TicketDepartment = require("../model/maintenanceTicketDepartmentModel");
 const Users = require("../model/userModel");
 const userActionMtc = require("../model/mtc/userActionMtc");
 const { createMasalahSparepart } = require("./mtc/sparepartProblem");
@@ -7,8 +8,13 @@ const MasalahSparepart = require("../model/mtc/sparepartProblem");
 const StokSparepart = require("../model/mtc/stokSparepart");
 const MasterSparepart = require("../model/masterData/masterSparepart");
 const ProsesMtc = require("../model/mtc/prosesMtc");
+const NcrTicket = require("../model/qc/ncr/ncrTicketModel");
+const NcrDepartment = require("../model/qc/ncr/ncrDepartmentModel");
+const NcrKetidaksesuain = require("../model/qc/ncr/ncrKetidaksesuaianModel");
 const Sequelize = require("sequelize");
 const { createNotification } = require("./notificationController");
+const db = require("../config/database");
+
 const ticketController = {
   getTicket: async (req, res) => {
     try {
@@ -16,6 +22,7 @@ const ticketController = {
         status_tiket,
         type_mtc,
         jenis_kendala,
+        no_jo,
         nama_customer,
         bagian_tiket,
         mesin,
@@ -58,6 +65,7 @@ const ticketController = {
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+      if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
       if (mesin) obj.mesin = mesin;
       if (tgl) obj.tgl = tgl;
       if (historiQc)
@@ -191,7 +199,13 @@ const ticketController = {
       nama_kendala,
       unit,
       bagian_mesin,
+      maksimal_kedatangan_tiket,
+      maksimal_periode_kedatangan_tiket,
+      maksimal_waktu_pengerjaan,
+      data_department,
     } = req.body;
+
+    const t = await db.transaction();
 
     try {
       const monthNames = [
@@ -237,37 +251,56 @@ const ticketController = {
       const kodeTicket =
         paddedNumber + "/" + "MR" + "/" + monthName + "/" + year;
 
-      await Ticket.create({
-        id_jo: id_jo,
-        no_jo: no_jo,
-        nama_produk: nama_produk,
-        no_io: no_io,
-        no_so: no_so,
-        kode_lkh: kode_lkh,
-        nama_customer: nama_customer,
-        qty: qty,
-        qty_druk: qty_druk,
-        spek: spek,
-        proses: proses,
-        mesin: mesin,
-        bagian: bagian,
-        operator: operator,
-        tgl: tgl,
-        jenis_kendala: jenis_kendala,
-        id_kendala: id_kendala,
-        nama_kendala: nama_kendala,
-        kode_ticket: kodeTicket,
-        unit: unit,
-        bagian_mesin: bagian_mesin,
-      }),
-        createNotification(
-          "maintenance",
-          "os2",
-          "Tiket Os2 Baru",
-          `tiket os2 baru dengan kendala ${nama_kendala} di mesin ${mesin}`
+      const dataTicket = await Ticket.create(
+        {
+          id_jo: id_jo,
+          no_jo: no_jo,
+          nama_produk: nama_produk,
+          no_io: no_io,
+          no_so: no_so,
+          kode_lkh: kode_lkh,
+          nama_customer: nama_customer,
+          qty: qty,
+          qty_druk: qty_druk,
+          spek: spek,
+          proses: proses,
+          mesin: mesin,
+          bagian: bagian,
+          operator: operator,
+          tgl: tgl,
+          jenis_kendala: jenis_kendala,
+          id_kendala: id_kendala,
+          nama_kendala: nama_kendala,
+          kode_ticket: kodeTicket,
+          unit: unit,
+          bagian_mesin: bagian_mesin,
+          maksimal_kedatangan_tiket,
+          maksimal_periode_kedatangan_tiket,
+          maksimal_waktu_pengerjaan,
+        },
+        { transaction: t }
+      );
+
+      for (let index = 0; index < data_department.length; index++) {
+        const department = await TicketDepartment.create(
+          {
+            id_ticket: dataTicket.id,
+            id_department: data_department[index].id_department,
+            department: data_department[index].department,
+          },
+          { transaction: t }
         );
+      }
+      createNotification(
+        "maintenance",
+        "os2",
+        "Tiket Os2 Baru",
+        `tiket os2 baru dengan kendala ${nama_kendala} di mesin ${mesin}`
+      );
+      await t.commit();
       res.status(201).json({ msg: "Ticket create Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -310,10 +343,75 @@ const ticketController = {
       waktu_respon_qc: new Date(),
       note_qc: note_qc,
     };
+    const t = await db.transaction();
     try {
-      await Ticket.update(obj, { where: { id: _id } }),
-        res.status(201).json({ msg: "Ticket update Successfuly" });
+      const tiketMtc = await Ticket.findByPk(_id, {
+        include: [
+          {
+            model: TicketDepartment,
+            as: "data_department",
+          },
+        ],
+      });
+      await Ticket.update(obj, { where: { id: _id }, transaction: t });
+
+      const dateRange = getDateRange(
+        tiketMtc.maksimal_periode_kedatangan_tiket
+      );
+
+      //cek jumlah tiket
+      const jumlahTicketMtc = await Ticket.findAll({
+        where: {
+          createdAt: dateRange,
+          status_qc: "di validasi",
+          kode_lkh: tiketMtc.kode_lkh,
+        },
+      });
+
+      if (jumlahTicketMtc.length + 1 > tiketMtc.maksimal_kedatangan_tiket) {
+        console.log("masuk ncr");
+
+        const userQc = await Users.findByPk(req.user.id);
+        const dataNcr = await NcrTicket.create(
+          {
+            id_pelapor: req.user.id,
+            tanggal: new Date(),
+            kategori_laporan: tiketMtc.jenis_kendala,
+            nama_pelapor: userQc.nama,
+            department_pelapor: "QUALITY CONTROL",
+            no_jo: tiketMtc.no_jo,
+            no_io: tiketMtc.no_io,
+            nama_produk: tiketMtc.nama_produk,
+          },
+          { transaction: t }
+        );
+
+        for (let index = 0; index < tiketMtc.data_department.length; index++) {
+          const department = await NcrDepartment.create(
+            {
+              id_ncr_tiket: dataNcr.id,
+              id_department: tiketMtc.data_department[index].id_department,
+              department: tiketMtc.data_department[index].department,
+            },
+            { transaction: t }
+          );
+
+          await NcrKetidaksesuain.create(
+            {
+              id_department: department.id,
+              ketidaksesuaian: `Kendala ${tiketMtc.kode_lkh} ${tiketMtc.nama_kendala} telah melebihi batas maksimal`,
+            },
+            { transaction: t }
+          );
+        }
+      } else {
+        console.log("tidak masuk ncr");
+      }
+
+      t.commit();
+      res.status(201).json({ msg: "Ticket update Successfuly" });
     } catch (error) {
+      t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -489,5 +587,25 @@ const ticketController = {
 //   console.log("Tugas ini berjalan setiap menit!");
 //   console.log(proses);
 // });
+
+// Fungsi untuk menentukan range tanggal berdasarkan periode
+const getDateRange = (periode) => {
+  const now = new Date();
+  if (periode === "Month") {
+    // Range satu bulan terakhir
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      [Op.between]: [startOfMonth, now],
+    };
+  } else if (periode === "Week") {
+    // Range satu minggu terakhir
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - 7);
+    return {
+      [Op.between]: [startOfWeek, now],
+    };
+  }
+  throw new Error("Periode tidak valid");
+};
 
 module.exports = ticketController;

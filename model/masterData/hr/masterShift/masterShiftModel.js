@@ -1,5 +1,5 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../../config/database");
+const db = require("../../../../config/database");
 
 const { DataTypes } = Sequelize;
 
@@ -14,7 +14,8 @@ const MasterPerusahaan = db.define(
         "Kamis",
         "Jumat",
         "Sabtu",
-        "Minggu"
+        "Minggu",
+        "Libur"
       ),
       allowNull: true,
       primaryKey: true,
