@@ -7,21 +7,34 @@ const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentMo
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
+const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, id_department } = req.query;
+    const { page, limit, search, id_department, tipe_penggajian } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search)
       obj = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
       };
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
     try {
+      const karyawanBiodata = await KaryawanBiodata.findAll({
+        where: obj,
+      });
+      const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+      console.log(karyawanIds);
       if (page && limit) {
-        const length = await Karyawan.count({ where: obj });
+        const length = await Karyawan.count({
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
+        });
         const data = await Karyawan.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
@@ -50,7 +63,11 @@ const karyawanController = {
             },
           ],
           offset,
-          where: obj,
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
         });
         return res.status(200).json({
           data: data,
@@ -63,6 +80,10 @@ const karyawanController = {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
               include: [
+                {
+                  model: KaryawanPotongan,
+                  as: "potongan_karyawan",
+                },
                 {
                   model: MasterDivisi,
                   as: "divisi",
@@ -155,7 +176,11 @@ const karyawanController = {
             },
           ],
 
-          where: obj,
+          where: {
+            userid: {
+              [Op.in]: karyawanIds, // Gunakan array id_karyawan
+            },
+          },
         });
         return res.status(200).json({
           data: data,
@@ -178,6 +203,7 @@ const karyawanController = {
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
+      tipe_karyawan,
       jabatan,
       status_karyawan,
       status_pajak,
@@ -226,6 +252,7 @@ const karyawanController = {
           tgl_masuk,
           tgl_keluar,
           tipe_penggajian,
+          tipe_karyawan,
           jabatan,
           status_karyawan,
           status_pajak,
@@ -264,6 +291,7 @@ const karyawanController = {
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
+      tipe_karyawan,
       jabatan,
       status_karyawan,
       status_pajak,
@@ -283,6 +311,7 @@ const karyawanController = {
     if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
     if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+    if (tipe_karyawan) obj.tipe_karyawan = tipe_karyawan;
     if (jabatan) obj.jabatan = jabatan;
     if (status_karyawan) obj.status_karyawan = status_karyawan;
     if (status_pajak) obj.status_pajak = status_pajak;

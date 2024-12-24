@@ -130,7 +130,7 @@ const KendalaLkhTiketController = {
             tanggal: new Date(),
             kategori_laporan: dataKendalaLkhTiket.jenis_kendala,
             nama_pelapor: dataKendalaLkhTiket.nama_inspektor,
-            department_pelapor: dataKendalaLkhTiket.id_department,
+            department_pelapor: dataKendalaLkhTiket.department,
             no_jo: dataKendalaLkhTiket.no_jo,
             no_io: dataKendalaLkhTiket.no_io,
             nama_produk: dataKendalaLkhTiket.nama_produk,

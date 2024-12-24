@@ -24,7 +24,7 @@ router.get("/prosessMtcHistoryQc", getProsesHistoryQcMtc);
 router.get("/prosessMtcById/:id", getProsesMtcById);
 router.get("/prosessMtcByIdTicket/:id", getProsesMtcByTicket);
 router.get("/ticket/respon/:id", auth, responseMtc);
-router.put("/ticket/analisis/:id", analisisMtc);
+router.put("/ticket/analisis/:id", auth, analisisMtc);
 router.put("/ticket/verifikasiQc/:id", verifikasiQc);
 router.put("/ticket/rejectQc/:id", rejectQcTicket);
 router.put("/ticket/delete/:id", deleteProses);

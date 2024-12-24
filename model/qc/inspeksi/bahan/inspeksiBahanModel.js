@@ -41,6 +41,10 @@ const InspeksiBahan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    jumlah_pallet: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     hasil_rumus: {
       type: DataTypes.STRING,
       allowNull: true,

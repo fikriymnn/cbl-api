@@ -258,7 +258,6 @@ const KendalaLkhController = {
           }
         );
       }
-      await t.commit();
 
       const dateRange = getDateRange(
         kendalaLkh.maksimal_periode_kedatangan_tiket
@@ -275,42 +274,52 @@ const KendalaLkhController = {
 
       console.log(jumlahKendalaLkh.length);
 
-      if (jumlahKendalaLkh.length > kendalaLkh.maksimal_kedatangan_tiket) {
+      if (jumlahKendalaLkh.length + 1 > kendalaLkh.maksimal_kedatangan_tiket) {
         console.log("masuk ncr");
 
-        const userQc = await Users.findByPk(kendalaLkh.id_qc);
-        const data = await NcrTicket.create({
-          id_pelapor: kendalaLkh.id_qc,
-          tanggal: new Date(),
-          kategori_laporan: kendalaLkh.jenis_kendala,
-          nama_pelapor: userQc.nama,
-          department_pelapor: 10,
-          no_jo: kendalaLkh.no_jo,
-          no_io: kendalaLkh.no_io,
-          nama_produk: kendalaLkh.nama_produk,
-        });
+        const userQc = await Users.findByPk(req.user.id);
+        const data = await NcrTicket.create(
+          {
+            id_pelapor: kendalaLkh.id_qc,
+            tanggal: new Date(),
+            kategori_laporan: kendalaLkh.jenis_kendala,
+            nama_pelapor: userQc.nama,
+            department_pelapor: "QUALITY CONTROL",
+            no_jo: kendalaLkh.no_jo,
+            no_io: kendalaLkh.no_io,
+            nama_produk: kendalaLkh.nama_produk,
+          },
+          { transaction: t }
+        );
 
         for (
           let index = 0;
           index < kendalaLkh.data_department.length;
           index++
         ) {
-          const department = await NcrDepartment.create({
-            id_ncr_tiket: data.id,
-            id_department: kendalaLkh.data_department[index].id_department,
-            department: kendalaLkh.data_department[index].department,
-          });
+          const department = await NcrDepartment.create(
+            {
+              id_ncr_tiket: data.id,
+              id_department: kendalaLkh.data_department[index].id_department,
+              department: kendalaLkh.data_department[index].department,
+            },
+            { transaction: t }
+          );
 
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian: `Kendala ${kendalaLkh.kode_kendala} ${kendalaLkh.nama_kendala} telah melebihi batas maksimal`,
-          });
+          await NcrKetidaksesuain.create(
+            {
+              id_department: department.id,
+              ketidaksesuaian: `Kendala ${kendalaLkh.kode_kendala} ${kendalaLkh.nama_kendala} telah melebihi batas maksimal`,
+            },
+            { transaction: t }
+          );
         }
       }
-
+      await t.commit();
       res.status(201).json({ msg: "Ticket validasi Successfuly" });
     } catch (error) {
       await t.rollback();
+
       res.status(400).json({ msg: error.message });
     }
   },

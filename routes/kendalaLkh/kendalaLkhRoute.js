@@ -5,7 +5,7 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get("/kendalaLkh/:id?", KendalaLkhController.getKendalaLkh);
 router.post("/kendalaLkh", KendalaLkhController.createTiket);
 router.put(
-  "/kendalaLkh/validasi/:id",
+  "/kendalaLkh/validate/:id",
   auth,
   KendalaLkhController.validasiQcKendalaLkh
 );

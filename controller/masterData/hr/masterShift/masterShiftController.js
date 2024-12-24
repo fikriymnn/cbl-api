@@ -1,14 +1,29 @@
-const masterShift = require("../../../model/masterData/hr/masterShiftModel");
+const masterShift = require("../../../../model/masterData/hr/masterShift/masterShiftModel");
+const masterIstirahat = require("../../../../model/masterData/hr/masterShift/masterIstirahatModel");
 
 const masterShiftController = {
   getMasterShift: async (req, res) => {
     const _id = req.params.id;
     try {
       if (_id) {
-        const response = await masterShift.findByPk(_id);
+        const response = await masterShift.findByPk(_id, {
+          include: [
+            {
+              model: masterIstirahat,
+              as: "istirahat",
+            },
+          ],
+        });
         res.status(200).json(response);
       } else {
-        const response = await masterShift.findAll();
+        const response = await masterShift.findAll({
+          include: [
+            {
+              model: masterIstirahat,
+              as: "istirahat",
+            },
+          ],
+        });
         res.status(200).json({ data: response });
       }
     } catch (error) {
