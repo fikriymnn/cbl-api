@@ -300,8 +300,6 @@ const absenFunction = {
       ];
     });
 
-    //console.log(dataKaryawanGenerete);
-
     // Memecah izin menjadi entri harian
     let izinEntries = [];
     dataIzin.forEach((izin) => {
