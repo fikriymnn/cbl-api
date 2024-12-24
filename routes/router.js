@@ -167,6 +167,7 @@ router.use("/", require("./masterdata/hr/masterPayrollRoute"));
 router.use("/", require("./hr/absenRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
+router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
 router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
@@ -182,6 +183,13 @@ router.use("/", require("./hr/payroll/payrollBayarRoute"));
 //kendala lkh
 router.use("/", require("./kendalaLkh/kendalaLkhRoute"));
 router.use("/", require("./kendalaLkh/kendalaLkhTiketRoute"));
+
+//master ppic
+router.use(
+  "/",
+  require("./masterdata/ppic/masterKategoriSettingKapasitasRoute")
+);
+router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

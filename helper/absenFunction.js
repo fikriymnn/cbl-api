@@ -10,6 +10,7 @@ const DataCuti = require("../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../model/hr/pengajuanIzin/pengajuanIzinModel");
 const DataSakit = require("../model/hr/pengajuanSakit/pengajuanSakitModel");
 const DataMangkir = require("../model/hr/pengajuanMangkir/pengajuanMangkirModel");
+const JadwalKaryawan = require("../model/hr/jadwalKaryawan/jadwalKaryawanModel");
 
 const absenFunction = {
   getAbsensiFunction: async (startDate, endDate, obj) => {
@@ -36,6 +37,32 @@ const absenFunction = {
     let dataSakit = [];
     let dataMangkir = [];
 
+    const dataJadwalKaryawan = await JadwalKaryawan.findAll({
+      order: [["createdAt", "DESC"]],
+      where: {
+        tanggal: {
+          [Op.between]: [
+            new Date(startDate).setHours(0, 0, 0, 0),
+            new Date(endDate).setHours(23, 59, 59, 999),
+          ],
+        },
+      },
+    });
+
+    // buat tanggal sesuai format
+    const resultJadwalKaryawan = dataJadwalKaryawan.map((jadwal) => {
+      const dateJadwal = new Date(jadwal.tanggal);
+      const day = dateJadwal.getDate();
+      const month = getMonthName((dateJadwal.getMonth() + 1).toString());
+      const year = dateJadwal.getFullYear();
+
+      return {
+        tanggal_libur: `${day}-${month}-${year}`,
+        ...jadwal.toJSON(),
+      };
+    });
+    console.log(resultJadwalKaryawan);
+
     //jika ada range tanggal
     if (startDate && endDate) {
       const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
@@ -44,6 +71,7 @@ const absenFunction = {
       dateKeluar.setDate(dateKeluar.getDate() + 1);
       const nextDay = dateKeluar.toISOString().split("T")[0];
       const toDateKeluarUTC = new Date(`${nextDay}T23:59:59.999Z`);
+
       // Ambil  data absensi masuk
       absensiMasuk = await absensi.findAll({
         where: {
@@ -328,8 +356,49 @@ const absenFunction = {
       const waktuMasuk = new Date(masuk.checktime);
       const waktuKeluar = !keluar ? null : new Date(keluar.checktime);
 
+      // Dapatkan tanggal berdasarkan tanggal absensi masuk
+      const tglMasukUtc = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      );
+      const hariIni = tglMasukUtc.getDate();
+      const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+      const tahunIni = tglMasukUtc.getFullYear();
+      const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+
+      let jenisHariMasuk = "Biasa";
       // Dapatkan shift berdasarkan tanggal absensi masuk
-      const dayName = new Date(
+      let dayName = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      ).toLocaleDateString("id-ID", {
+        weekday: "long",
+      });
+
+      // Cari data biodata berdasarkan id_karyawan
+      const resultFindBiodata = karyawanBiodata.find(
+        (data) => data.id_karyawan === masuk.userid
+      );
+
+      const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+        (data) => data.jenis_karyawan == resultFindBiodata.tipe_karyawan
+      );
+
+      // Cek apakah tanggal hari ini ada di data lembur
+      const isTodayOvertime = filterJadwalKaryawan.some(
+        (data) => data.tanggal_libur == tglHariini
+      );
+      if (isTodayOvertime == true) {
+        jenisHariMasuk = "Libur";
+        dayName = "Libur";
+      }
+      const dayName2 = new Date(
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
@@ -546,7 +615,8 @@ const absenFunction = {
           nama_department: namaDepartmentKaryawan,
           jam_masuk_shift: jamMasukShift,
           jam_keluar_shift: jamKeluarShift,
-          hari: dayName,
+          hari: dayName2,
+          jenis_hari_masuk: jenisHariMasuk,
         };
       } else {
         // waktu masuk absen
@@ -653,7 +723,8 @@ const absenFunction = {
           nama_department: namaDepartmentKaryawan,
           jam_masuk_shift: jamMasukShift,
           jam_keluar_shift: jamKeluarShift,
-          hari: dayName,
+          hari: dayName2,
+          jenis_hari_masuk: jenisHariMasuk,
         };
       }
     });

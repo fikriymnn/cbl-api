@@ -7,6 +7,7 @@ const InspeksiCetakPeriodeDefectDepartment = require("../../../../model/qc/inspe
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const User = require("../../../../model/userModel");
 
 const inspeksiCetakPeriodeController = {
   doneCetakPeriode: async (req, res) => {
@@ -86,6 +87,7 @@ const inspeksiCetakPeriodeController = {
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
+          const userQc = await User.findByPk(req.user.id);
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
 
@@ -95,6 +97,8 @@ const inspeksiCetakPeriodeController = {
             no_io: inspeksiCetak.no_io,
             qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiCetak.nama_produk,
+            department_pelapor: "QUALITY CONTROL",
+            nama_pelapor: userQc.nama,
           });
 
           for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {

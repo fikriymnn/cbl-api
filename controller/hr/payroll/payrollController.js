@@ -235,15 +235,15 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 
       // Perhitungan payroll
       if (absen.status_absen === "masuk") {
-        const banyakmakan = 1;
-        payroll.rincian.push({
-          label: "uangMakan",
-          jumlah: banyakmakan,
-          nilai: uangMakan,
-          total: banyakmakan * uangMakan,
-        });
+        // const banyakmakan = 1;
+        // payroll.rincian.push({
+        //   label: "uangMakan",
+        //   jumlah: banyakmakan,
+        //   nilai: uangMakan,
+        //   total: banyakmakan * uangMakan,
+        // });
 
-        payroll.total += banyakmakan * uangMakan;
+        // payroll.total += banyakmakan * uangMakan;
 
         //hanya untuk karyawan mingguan
         if (typePenggajianKaryawan === "mingguan") {

@@ -7,6 +7,7 @@ const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentMo
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
+const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -79,6 +80,10 @@ const karyawanController = {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
               include: [
+                {
+                  model: KaryawanPotongan,
+                  as: "potongan_karyawan",
+                },
                 {
                   model: MasterDivisi,
                   as: "divisi",

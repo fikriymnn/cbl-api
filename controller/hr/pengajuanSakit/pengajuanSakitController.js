@@ -135,15 +135,8 @@ const PengajuanSakitController = {
   },
 
   createPengajuanSakit: async (req, res) => {
-    const {
-      id_karyawan,
-      id_pengaju,
-
-      dari,
-      sampai,
-      jumlah_hari,
-      lampiran,
-    } = req.body;
+    const { id_karyawan, id_pengaju, dari, sampai, jumlah_hari, lampiran } =
+      req.body;
     const t = await db.transaction();
 
     try {

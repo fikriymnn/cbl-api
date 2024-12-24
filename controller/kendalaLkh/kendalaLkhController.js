@@ -284,7 +284,7 @@ const KendalaLkhController = {
             tanggal: new Date(),
             kategori_laporan: kendalaLkh.jenis_kendala,
             nama_pelapor: userQc.nama,
-            department_pelapor: 10,
+            department_pelapor: "QUALITY CONTROL",
             no_jo: kendalaLkh.no_jo,
             no_io: kendalaLkh.no_io,
             nama_produk: kendalaLkh.nama_produk,

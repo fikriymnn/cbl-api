@@ -14,7 +14,8 @@ const MasterPerusahaan = db.define(
         "Kamis",
         "Jumat",
         "Sabtu",
-        "Minggu"
+        "Minggu",
+        "Libur"
       ),
       allowNull: true,
       primaryKey: true,

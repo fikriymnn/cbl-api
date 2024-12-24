@@ -310,6 +310,7 @@ const inspeksiRabutController = {
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
+          const userQc = await User.findByPk(req.user.id);
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
             tanggal: new Date(),
@@ -318,6 +319,8 @@ const inspeksiRabutController = {
             no_io: inspeksiRabut.no_io,
             qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiRabut.nama_produk,
+            department_pelapor: "QUALITY CONTROL",
+            nama_pelapor: userQc.nama,
           });
 
           for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
