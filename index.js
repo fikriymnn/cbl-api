@@ -189,8 +189,6 @@ const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
 const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
-
-
 //project mtc
 const Project = require("./model/mtc/project/projectModel");
 const SubProject = require("./model/mtc/project/subProjectModel");
@@ -204,7 +202,6 @@ const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailMod
 //master ppic
 const MasterKategoriSettingKapasitas = require("./model/masterData/ppic/masterKategoriSettingKapasitasModel");
 const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel");
-
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");

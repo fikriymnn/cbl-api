@@ -3,12 +3,12 @@ const {
   getProject,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
 } = require("../../../controller/mtc/project/project");
 
-router.get("/projectMtc/:id?", getProject);
-router.post("/projectMtc", createProject);
-router.put("/projectMtc/:id", updateProject);
-router.delete("/projectMtc/:id", deleteProject);
+router.get("/mtc/projectMtc/:id?", getProject);
+router.post("/mtc/projectMtc", createProject);
+router.put("/mtc/projectMtc/:id", updateProject);
+router.delete("/mtc/projectMtc/:id", deleteProject);
 
 module.exports = router;

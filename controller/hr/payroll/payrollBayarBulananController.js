@@ -213,6 +213,21 @@ const PayrollBayarController = {
         );
       }
 
+      for (let i = 0; i < data_payroll.potongan.length; i++) {
+        const data = data_payroll.potongan[i];
+        await PayrollBulananDetail.create(
+          {
+            id_payroll_bulanan: dataPayrollbayar.id,
+            label: data.label,
+            jumlah: data.jumlah,
+            nilai: data.nilai,
+            total: data.total,
+            tipe: "potongan",
+          },
+          { transaction: t }
+        );
+      }
+
       if (data_payroll.potonganPinjaman) {
         await PayrollBulananDetail.create(
           {
