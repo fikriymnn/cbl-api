@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const db = require("./config/database");
 const dbFinger = require("./config/databaseFinger");
 const tc = require("./model/maintenaceTicketModel");
+const tcDepartment = require("./model/maintenanceTicketDepartmentModel");
 const tcos3 = require("./model/maintenanceTicketOs3Model");
 const user = require("./model/userModel");
 const master = require("./model/masterData/masterMesinModel");
@@ -162,12 +163,16 @@ const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
+const WaktuShift = require("./model/masterData/hr/masterShift/masterShiftModel");
+const WaktuIstirahat = require("./model/masterData/hr/masterShift/masterIstirahatModel");
+const masterPayroll = require("./model/masterData/hr/masterPayrollModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
+const karyawanPotongan = require("./model/hr/karyawan/karyawanPotonganModel");
 
 //jadwal
 const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
@@ -177,6 +182,7 @@ const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
+const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -184,9 +190,20 @@ const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentMod
 const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
 
+
 //project mtc
 const Project = require("./model/mtc/project/projectModel");
 const SubProject = require("./model/mtc/project/subProjectModel");
+
+//payroll
+const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
+const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
+const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
+const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailModel");
+
+//master ppic
+const MasterKategoriSettingKapasitas = require("./model/masterData/ppic/masterKategoriSettingKapasitasModel");
+const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel");
 
 
 const cookieParser = require("cookie-parser");

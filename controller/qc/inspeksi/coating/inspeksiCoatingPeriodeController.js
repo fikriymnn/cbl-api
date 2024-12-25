@@ -8,6 +8,7 @@ const InspeksiCoatingResultPointPeriodeDepartment = require("../../../../model/q
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuaian = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
+const User = require("../../../../model/userModel");
 const { Sequelize } = require("sequelize");
 
 const inspeksiCoatingController = {
@@ -80,6 +81,7 @@ const inspeksiCoatingController = {
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
           console.log("masuk ncr");
+          const userQc = await User.findByPk(req.user.id);
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
             tanggal: new Date(),
@@ -87,6 +89,8 @@ const inspeksiCoatingController = {
             no_jo: inspeksiCoating.no_jo,
             no_io: inspeksiCoating.no_io,
             nama_produk: inspeksiCoating.nama_produk,
+            department_pelapor: "QUALITY CONTROL",
+            nama_pelapor: userQc.nama,
           });
 
           for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {

@@ -316,6 +316,7 @@ const inspeksiAmparLemController = {
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
+          const userQc = await User.findByPk(req.user.id);
           console.log("masuk ncr");
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
@@ -325,6 +326,8 @@ const inspeksiAmparLemController = {
             no_io: inspeksiAmparLem.no_io,
             qty_defect: pointDefect.jumlah_defect,
             nama_produk: inspeksiAmparLem.nama_produk,
+            department_pelapor: "QUALITY CONTROL",
+            nama_pelapor: userQc.nama,
           });
 
           for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {

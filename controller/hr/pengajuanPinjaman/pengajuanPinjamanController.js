@@ -10,7 +10,7 @@ const db = require("../../../config/database");
 const PengajuanPinjamanController = {
   getPengajuanPinjaman: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket } = req.query;
+    const { page, limit, search, status_tiket, id_department } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -18,6 +18,7 @@ const PengajuanPinjamanController = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
+    if (id_department) obj.id_department = id_department;
     try {
       if (page && limit) {
         const length = await PengajuanPinjaman.count({ where: obj });
@@ -180,6 +181,9 @@ const PengajuanPinjamanController = {
         },
       });
 
+      if (!checkLimitPinjaman)
+        return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
+
       if (jumlah_pinjaman > checkLimitPinjaman.limit_pinjaman)
         return res
           .status(500)
@@ -194,6 +198,7 @@ const PengajuanPinjamanController = {
         {
           id_karyawan,
           id_pengaju: id_pengaju,
+          id_department: checkLimitPinjaman.id_department,
           jumlah_pinjaman,
           jumlah_cicilan,
           tempo_cicilan,
