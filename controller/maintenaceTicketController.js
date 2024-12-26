@@ -281,16 +281,19 @@ const ticketController = {
         { transaction: t }
       );
 
-      for (let index = 0; index < data_department.length; index++) {
-        const department = await TicketDepartment.create(
-          {
-            id_ticket: dataTicket.id,
-            id_department: data_department[index].id_department,
-            department: data_department[index].department,
-          },
-          { transaction: t }
-        );
+      if (data_department) {
+        for (let index = 0; index < data_department.length; index++) {
+          const department = await TicketDepartment.create(
+            {
+              id_ticket: dataTicket.id,
+              id_department: data_department[index].id_department,
+              department: data_department[index].department,
+            },
+            { transaction: t }
+          );
+        }
       }
+
       createNotification(
         "maintenance",
         "os2",

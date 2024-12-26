@@ -161,12 +161,9 @@ const PayrollBayarController = {
           id_department: dataKaryawanBiodata.id_department,
           periode_dari,
           periode_sampai,
-          total_upah: parseInt(data_payroll.total) + parseInt(insentifData),
+          total_upah: parseInt(data_payroll.total),
           insentif: insentifData,
-          total_potongan:
-            data_payroll.potonganPinjaman == null
-              ? 0
-              : data_payroll.potonganPinjaman.jumlah_cicilan,
+          total_potongan: data_payroll.total_potongan,
           tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
         },
         { transaction: t }
@@ -196,6 +193,21 @@ const PayrollBayarController = {
             nilai: data.nilai,
             total: data.total,
             tipe: "bayaran",
+          },
+          { transaction: t }
+        );
+      }
+
+      for (let i = 0; i < data_payroll.potongan.length; i++) {
+        const data = data_payroll.potongan[i];
+        await PayrollMingguanDetail.create(
+          {
+            id_payroll_mingguan: dataPayrollbayar.id,
+            label: data.label,
+            jumlah: data.jumlah,
+            nilai: data.nilai,
+            total: data.total,
+            tipe: "potongan",
           },
           { transaction: t }
         );
