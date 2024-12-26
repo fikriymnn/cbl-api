@@ -189,6 +189,10 @@ const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
 const KendalaLkhDepartment = require("./model/kendalaLkh/kendalaLkhDepartmentModel");
 const KendalaLkhTiket = require("./model/kendalaLkh/kendalaLkhTiketModel");
 
+//project mtc
+const Project = require("./model/mtc/project/projectModel");
+const SubProject = require("./model/mtc/project/subProjectModel");
+
 //payroll
 const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
 const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
@@ -216,7 +220,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await tc.sync({ alter: true });
+//   await SubProject.sync({ alter: true });
 // })();
 
 // const ip100 = 75

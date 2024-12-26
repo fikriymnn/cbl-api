@@ -128,20 +128,20 @@ const ReportWasterQc = {
       const grupByJo = groupedDataBerdasarkanJO(resultGabung);
 
       //update data waste p1 menyesuaikan dengan data p2
-      const updatedDataP1 = data_waste_p1.map((item) => ({
-        ...item,
-        inspeksi_defect: item.waste.map((defect) => ({
-          ...defect,
-          total_defect: defect.total,
-        })),
-        waste: undefined, // Menghapus properti "waste"
-      }));
+      // const updatedDataP1 = data_waste_p1.map((item) => ({
+      //   ...item,
+      //   inspeksi_defect: item.waste.map((defect) => ({
+      //     ...defect,
+      //     total_defect: defect.total,
+      //   })),
+      //   waste: undefined, // Menghapus properti "waste"
+      // }));
 
       //array untuk menggabungkan data p1 dan p2
       let dataWasteGabungan = [];
 
       //masukan data p1 ke array
-      dataWasteGabungan.push(...updatedDataP1);
+      //dataWasteGabungan.push(...updatedDataP1);
 
       //masukan data p2 ke array
       dataWasteGabungan.push(...grupByJo);
@@ -168,20 +168,23 @@ const ReportWasterQc = {
       );
 
       // Urutkan data berdasarkan total_defect dari besar ke kecil
-      const resultGrupJoinWithMaster = filterGrupJoinWithMaster.sort(
-        (a, b) => b.total_defect - a.total_defect
-      );
+      // const resultGrupJoinWithMaster = filterGrupJoinWithMaster.sort(
+      //   (a, b) => b.total_defect - a.total_defect
+      // );
 
       // Urutkan data allWaste berdasarkan total_defect dari besar ke kecil
       const resultJumlahAllData = filterJumlahAllData.sort(
         (a, b) => b.total_defect - a.total_defect
       );
+      const resultJumlahAllDataReplace =
+        replaceKodeProduksiWithWaste(resultJumlahAllData);
 
       res.status(200).json({
         // data2: grupByJo,
-
+        dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
-        dataWasteByJo: resultGrupJoinWithMaster,
+
+        //dataWasteByJo: resultGrupJoinWithMaster,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -367,4 +370,42 @@ function aggregateByKodeProduksiWithWaste(inspeksiData, masterData) {
   }));
 }
 
+function replaceKodeProduksiWithWaste(inspeksiData) {
+  const kendalaMap = {};
+
+  inspeksiData.forEach((waste) => {
+    waste.kendala.forEach((kendala) => {
+      if (!kendalaMap[kendala.kode_kendala]) {
+        kendalaMap[kendala.kode_kendala] = {
+          kode_kendala: kendala.kode_kendala,
+          kendala_desc: kendala.kendala_desc,
+          bobot: kendala.bobot,
+          total_defect: kendala.calculated_defect,
+          kode_waste: [
+            {
+              kode_waste: waste.kode_waste,
+              waste_desc: waste.waste_desc,
+              total_defect: kendala.calculated_defect,
+            },
+          ],
+        };
+      } else {
+        kendalaMap[kendala.kode_kendala].total_defect +=
+          kendala.calculated_defect;
+        kendalaMap[kendala.kode_kendala].kode_waste.push({
+          kode_waste: waste.kode_waste,
+          waste_desc: waste.waste_desc,
+          total_defect: kendala.calculated_defect,
+        });
+      }
+    });
+  });
+
+  const result = Object.values(kendalaMap);
+
+  const resultSortir = result.sort((a, b) => b.total_defect - a.total_defect);
+
+  // Kembalikan hasil agregasi
+  return resultSortir;
+}
 module.exports = ReportWasterQc;
