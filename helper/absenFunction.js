@@ -774,10 +774,16 @@ const absenFunction = {
             (karyawanDitemukan.nama_department = absen.nama_department);
         }
       });
+      const resultAbsen = dataKaryawanGenerete.sort(
+        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
+      );
       // console.log(dataKaryawanGenerete);
-      return dataKaryawanGenerete;
+      return resultAbsen;
     } else {
-      return results;
+      const resultAbsen = results.sort(
+        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
+      );
+      return resultAbsen;
     }
   },
 };

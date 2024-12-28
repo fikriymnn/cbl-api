@@ -128,20 +128,20 @@ const ReportWasterQc = {
       const grupByJo = groupedDataBerdasarkanJO(resultGabung);
 
       //update data waste p1 menyesuaikan dengan data p2
-      // const updatedDataP1 = data_waste_p1.map((item) => ({
-      //   ...item,
-      //   inspeksi_defect: item.waste.map((defect) => ({
-      //     ...defect,
-      //     total_defect: defect.total,
-      //   })),
-      //   waste: undefined, // Menghapus properti "waste"
-      // }));
+      const updatedDataP1 = data_waste_p1.map((item) => ({
+        ...item,
+        inspeksi_defect: item.waste.map((defect) => ({
+          ...defect,
+          total_defect: defect.total,
+        })),
+        waste: undefined, // Menghapus properti "waste"
+      }));
 
       //array untuk menggabungkan data p1 dan p2
       let dataWasteGabungan = [];
 
       //masukan data p1 ke array
-      //dataWasteGabungan.push(...updatedDataP1);
+      dataWasteGabungan.push(...updatedDataP1);
 
       //masukan data p2 ke array
       dataWasteGabungan.push(...grupByJo);
@@ -167,10 +167,10 @@ const ReportWasterQc = {
         (item) => item.total_defect > 0
       );
 
-      // Urutkan data berdasarkan total_defect dari besar ke kecil
-      // const resultGrupJoinWithMaster = filterGrupJoinWithMaster.sort(
-      //   (a, b) => b.total_defect - a.total_defect
-      // );
+      //Urutkan data berdasarkan total_defect dari besar ke kecil
+      const resultGrupJoinWithMaster = filterGrupJoinWithMaster.sort(
+        (a, b) => b.total_defect - a.total_defect
+      );
 
       // Urutkan data allWaste berdasarkan total_defect dari besar ke kecil
       const resultJumlahAllData = filterJumlahAllData.sort(
@@ -183,8 +183,7 @@ const ReportWasterQc = {
         // data2: grupByJo,
         dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
-
-        //dataWasteByJo: resultGrupJoinWithMaster,
+        dataWasteByJo: resultGrupJoinWithMaster,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
