@@ -127,6 +127,7 @@ const inspeksiBahanController = {
     try {
       const { id } = req.params;
       const { hasil_rumus, no_lot, verifikasi, catatan, total_skor } = req.body;
+      console.log(req.body);
       let obj = {
         status: "history",
       };

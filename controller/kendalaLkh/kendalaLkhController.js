@@ -13,6 +13,7 @@ const KendalaLkhController = {
     const _id = req.params.id;
     const {
       status_tiket,
+      bagian_tiket,
       jenis_kendala,
       nama_customer,
       mesin,
@@ -39,7 +40,7 @@ const KendalaLkhController = {
       const offset = (page - 1) * limit;
 
       if (status_tiket) obj.status_tiket = status_tiket;
-
+      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;
 

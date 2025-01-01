@@ -10,8 +10,8 @@ router.use("/", require("./ticketOs3Routes"));
 router.use("/", require("./mtc/DashboardMtc"));
 
 //project mtc
-router.use("/",require("./mtc/project/projectRoutes"))
-router.use("/",require("./mtc/project/subProjectRoutes"))
+router.use("/", require("./mtc/project/projectRoutes"));
+router.use("/", require("./mtc/project/subProjectRoutes"));
 
 //report mtc
 router.use("/", require("./mtc/reportMtc"));
@@ -194,6 +194,9 @@ router.use(
   require("./masterdata/ppic/masterKategoriSettingKapasitasRoute")
 );
 router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
+
+//ppic
+router.use("/", require("./ppic/jadwalProduksiRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

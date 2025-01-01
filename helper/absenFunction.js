@@ -342,13 +342,15 @@ const absenFunction = {
 
     // Proses data untuk menghitung keterlambatan dan lembur
     const results = absensiMasuk.map((masuk) => {
-      const keluar = absensiKeluar.find(
-        (k) =>
-          k.userid === masuk.userid &&
-          (k.checktime > masuk.checktime ||
-            new Date(k.checktime).getDate() >
-              new Date(masuk.checktime).getDate())
-      );
+      const keluar = absensiKeluar
+        .filter(
+          (k) =>
+            k.userid === masuk.userid &&
+            (k.checktime > masuk.checktime ||
+              new Date(k.checktime).getDate() >
+                new Date(masuk.checktime).getDate())
+        )
+        .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
 
       // Konversi waktu ke UTC untuk perbandingan
       const waktuMasuk = new Date(masuk.checktime);
@@ -534,7 +536,10 @@ const absenFunction = {
 
         // Hitung keterlambatan
         const toleransi = masterAbsensi.toleransi_kedatangan_menit * 60 * 1000; // Toleransi 15 menit dalam milidetik
-        if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
+        if (
+          waktuMasukUTC.getTime() > shiftMasukTime + toleransi &&
+          jenisHariMasuk == "Biasa"
+        ) {
           menitTerlambat = Math.floor(
             (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
           ); // Hitung selisih dalam menit
@@ -545,7 +550,10 @@ const absenFunction = {
         // Hitung pulang cepat
         const toleransiKeluar =
           masterAbsensi.toleransi_pulang_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
-        if (waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar) {
+        if (
+          waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar &&
+          jenisHariMasuk == "Biasa"
+        ) {
           menitPulangCepat = Math.floor(
             (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000
           ); // Hitung selisih dalam menit
@@ -554,8 +562,8 @@ const absenFunction = {
           statusKeluar = "Keluar";
         }
 
-        // Hitung lembur (kode 30 * 60 * 1000 berarti tabahan setengah jam)
-        if (keluar) {
+        // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
+        if (keluar && jenisHariMasuk == "Biasa") {
           if (
             shift === "Shift 1" &&
             waktuKeluarUTC > waktuKeluarShift1UTC + 30 * 60 * 1000
@@ -577,6 +585,26 @@ const absenFunction = {
             jamLembur = Math.floor(jamLemburMentah * 2) / 2;
 
             statusLembur = "Lembur";
+          }
+        }
+
+        // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
+        if (keluar && jenisHariMasuk == "Libur") {
+          if (shift === "Shift 1") {
+            const jamLemburMentah =
+              (waktuMasukUTC.getTime() - waktuKeluarUTC) / 3600000;
+
+            // Pembulatan ke bawah ke kelipatan 0.5
+            jamLembur = Math.floor(jamLemburMentah * 2) / 2;
+            statusLembur = "Lembur Libur";
+          } else if (shift === "Shift 2") {
+            const jamLemburMentah =
+              (waktuMasukUTC.getTime() - waktuKeluarUTC) / 3600000;
+
+            // Pembulatan ke bawah ke kelipatan 0.5
+            jamLembur = Math.floor(jamLemburMentah * 2) / 2;
+
+            statusLembur = "Lembur Libur";
           }
         }
 
