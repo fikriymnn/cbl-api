@@ -40,6 +40,7 @@ const inspeksiCetakPeriodepointController = {
       lama_pengerjaan,
       numerator,
       jumlah_sampling,
+      eye_c,
       data_defect,
     } = req.body;
     if (
@@ -75,6 +76,7 @@ const inspeksiCetakPeriodepointController = {
           catatan,
           numerator,
           jumlah_sampling,
+          eye_c,
         },
         { where: { id: _id } }
       );

@@ -166,6 +166,7 @@ router.use("/", require("./masterdata/hr/masterBagianHrRoute"));
 router.use("/", require("./masterdata/hr/masterGradeRoute"));
 router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
 router.use("/", require("./masterdata/hr/masterPayrollRoute"));
+router.use("/", require("./masterdata/hr/masterStatusKaryawanRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
@@ -178,6 +179,10 @@ router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
 router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
 router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
 router.use("/", require("./hr/pengajuanMangkir/pengajuanMangkirRoute"));
+router.use(
+  "/",
+  require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
+);
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
 
 //payroll

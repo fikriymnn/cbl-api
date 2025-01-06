@@ -166,6 +166,7 @@ const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
 const WaktuShift = require("./model/masterData/hr/masterShift/masterShiftModel");
 const WaktuIstirahat = require("./model/masterData/hr/masterShift/masterIstirahatModel");
 const masterPayroll = require("./model/masterData/hr/masterPayrollModel");
+const masterStatusKaryawan = require("./model/masterData/hr/masterStatusKaryawanModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
@@ -183,6 +184,9 @@ const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
+const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
+const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
+const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -220,7 +224,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await SubProject.sync({ alter: true });
+//   await historiPengajuanPromosiStatusKaryawan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

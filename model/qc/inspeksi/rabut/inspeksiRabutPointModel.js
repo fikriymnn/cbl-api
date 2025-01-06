@@ -53,6 +53,10 @@ const InspeksiRabutPoint = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    eye_c: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

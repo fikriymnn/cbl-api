@@ -8,12 +8,15 @@ const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel")
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
+const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
+const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, id_department, tipe_penggajian } = req.query;
+    const { page, limit, search, id_department, tipe_penggajian, is_active } =
+      req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search)
@@ -21,6 +24,7 @@ const karyawanController = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
       };
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+    if (is_active) obj.is_active = is_active;
     try {
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
@@ -46,6 +50,10 @@ const karyawanController = {
                 {
                   model: MasterDivisi,
                   as: "divisi",
+                },
+                {
+                  model: MasterStatusKaryawan,
+                  as: "status",
                 },
                 {
                   model: MasterDepartment,
@@ -83,6 +91,24 @@ const karyawanController = {
                 {
                   model: KaryawanPotongan,
                   as: "potongan_karyawan",
+                },
+                {
+                  model: HistoriPromosiStatusKaryawan,
+                  as: "histori_promosi_status_karyawan",
+                  include: [
+                    {
+                      model: MasterStatusKaryawan,
+                      as: "status_karyawan_awal",
+                    },
+                    {
+                      model: MasterStatusKaryawan,
+                      as: "status_karyawan_pengajuan",
+                    },
+                  ],
+                },
+                {
+                  model: MasterStatusKaryawan,
+                  as: "status",
                 },
                 {
                   model: MasterDivisi,
@@ -125,6 +151,10 @@ const karyawanController = {
               ],
             },
             {
+              model: MasterStatusKaryawan,
+              as: "status",
+            },
+            {
               model: MasterDivisi,
               as: "divisi",
             },
@@ -159,6 +189,10 @@ const karyawanController = {
                 {
                   model: MasterDivisi,
                   as: "divisi",
+                },
+                {
+                  model: MasterStatusKaryawan,
+                  as: "status",
                 },
                 {
                   model: MasterDepartment,
@@ -200,6 +234,7 @@ const karyawanController = {
       id_department,
       id_bagian,
       id_grade,
+      id_status_karyawan,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
@@ -249,6 +284,7 @@ const karyawanController = {
           id_department,
           id_bagian,
           id_grade,
+          id_status_karyawan,
           tgl_masuk,
           tgl_keluar,
           tipe_penggajian,
@@ -288,6 +324,7 @@ const karyawanController = {
       id_department,
       id_bagian,
       id_grade,
+      id_status_karyawan,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
@@ -308,6 +345,7 @@ const karyawanController = {
     if (id_department) obj.id_department = id_department;
     if (id_bagian) obj.id_bagian = id_bagian;
     if (id_grade) obj.id_grade = id_grade;
+    if (id_status_karyawan) obj.id_status_karyawan = id_status_karyawan;
     if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
     if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;

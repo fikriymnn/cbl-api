@@ -5,6 +5,7 @@ const MasterDivisiModel = require("../../masterData/hr/masterDivisiModel");
 const MasterDepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 const MasterBagianHrModel = require("../../masterData/hr/masterBagianModel");
 const MasterGradeHrModel = require("../../masterData/hr/masterGradeModel");
+const MasterStatusKaryawanModel = require("../../masterData/hr/masterStatusKaryawanModel");
 
 const { DataTypes } = Sequelize;
 
@@ -56,6 +57,14 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
       references: {
         model: MasterGradeHrModel,
+        key: "id",
+      },
+    },
+    id_status_karyawan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterStatusKaryawanModel,
         key: "id",
       },
     },
@@ -119,6 +128,11 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
   },
   {
     freezeTableName: true,
@@ -173,6 +187,16 @@ MasterGradeHrModel.hasMany(KaryawanBiodataModel, {
 KaryawanBiodataModel.belongsTo(MasterGradeHrModel, {
   foreignKey: "id_grade",
   as: "grade",
+});
+
+//relasi grade
+MasterStatusKaryawanModel.hasMany(KaryawanBiodataModel, {
+  foreignKey: "id_status_karyawan",
+  as: "karyawan_status",
+});
+KaryawanBiodataModel.belongsTo(MasterStatusKaryawanModel, {
+  foreignKey: "id_status_karyawan",
+  as: "status",
 });
 
 module.exports = KaryawanBiodataModel;

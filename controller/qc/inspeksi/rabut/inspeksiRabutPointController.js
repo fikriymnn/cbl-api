@@ -29,7 +29,8 @@ const inspeksiRabutpointController = {
 
   stopRabutPoint: async (req, res) => {
     const _id = req.params.id;
-    const { catatan, lama_pengerjaan, qty_pallet, data_defect } = req.body;
+    const { catatan, lama_pengerjaan, qty_pallet, eye_c, data_defect } =
+      req.body;
     if (!qty_pallet)
       return res.status(400).json({ msg: "Qty Pallet Wajib di Isi" });
 
@@ -56,6 +57,7 @@ const inspeksiRabutpointController = {
           lama_pengerjaan,
           catatan,
           qty_pallet,
+          eye_c,
         },
         { where: { id: _id } }
       );

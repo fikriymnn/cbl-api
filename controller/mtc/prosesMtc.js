@@ -673,9 +673,11 @@ const ProsessMtc = {
     const _id = req.params.id;
     const { id_proses, note_qc, id_qc } = req.body;
     if (!id_proses) return res.status(404).json({ msg: "incomplite data" });
+    const t = await db.transaction();
     try {
       const monitoring = await MasterMonitoring.findByPk(1);
       const ticket = await Ticket.findByPk(_id);
+      const prosesData = await ProsesMtc.findByPk(id_proses);
 
       let status = "";
       if (ticket.skor_mtc < monitoring.minimal_skor) {
@@ -683,13 +685,23 @@ const ProsessMtc = {
       } else if (ticket.skor_mtc >= monitoring.minimal_skor) {
         status = "monitoring";
       }
-      await Ticket.update(
-        {
-          status_tiket: status,
-          waktu_selesai: new Date(),
-        },
-        { where: { id: _id } }
-      );
+
+      if (prosesData.is_rework == true) {
+        await Ticket.update(
+          {
+            status_tiket: status,
+          },
+          { where: { id: _id }, transaction: t }
+        );
+      } else {
+        await Ticket.update(
+          {
+            status_tiket: status,
+            waktu_selesai: new Date(),
+          },
+          { where: { id: _id }, transaction: t }
+        );
+      }
 
       await ProsesMtc.update(
         {
@@ -702,6 +714,7 @@ const ProsessMtc = {
           where: {
             id: id_proses,
           },
+          transaction: t,
         }
       );
 
@@ -749,11 +762,14 @@ const ProsessMtc = {
                 tgl_rusak: ticket.createdAt,
                 jenis_part: "ganti",
               },
-              { where: { id: masalahSparepart[i].id_ms_sparepart } }
+              {
+                where: { id: masalahSparepart[i].id_ms_sparepart },
+                transaction: t,
+              }
             );
             await StokSparepart.update(
               { stok: stok },
-              { where: { id: stokSparepart.id } }
+              { where: { id: stokSparepart.id }, transaction: t }
             );
           });
         }
@@ -784,14 +800,17 @@ const ProsessMtc = {
                 where: {
                   id: requestSpbService[indexService].id_master_sparepart,
                 },
+                transaction: t,
               }
             );
           }
         }
       }
+      await t.commit();
 
       res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },

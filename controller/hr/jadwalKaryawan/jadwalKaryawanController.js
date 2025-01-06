@@ -163,6 +163,23 @@ const JadwalKaryawanController = {
       res.status(500).json({ msg: error.message });
     }
   },
+  deleteJadwalKaryawan: async (req, res) => {
+    const _id = req.params.id;
+
+    const t = await db.transaction();
+
+    try {
+      await JadwalKaryawan.destroy({ where: { id: _id }, transaction: t });
+
+      await t.commit();
+      res.status(200).json({
+        msg: "update successfully",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 const generateDatesInYear = (year) => {
