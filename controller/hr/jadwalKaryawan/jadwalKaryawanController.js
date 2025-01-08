@@ -6,13 +6,20 @@ const db = require("../../../config/database");
 const JadwalKaryawanController = {
   getJadwalKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, jenis_karyawan } = req.query;
+    const { page, limit, start_date, end_date, jenis_karyawan, libur_1_tahun } =
+      req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
     //   obj = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
+
+    if (libur_1_tahun == "false") {
+      obj.nama_jadwal = {
+        [Op.notIn]: ["Sabtu", "Minggu"],
+      };
+    }
 
     if (start_date && end_date) {
       obj.tanggal = {
