@@ -248,11 +248,12 @@ const karyawanController = {
       kontrak_dari,
       kontrak_sampai,
     } = req.body;
+    console.log(req.body);
     const t = await db.transaction();
 
     let jumlah_cuti = 0;
 
-    if (status_karyawan == "tetap") {
+    if (id_status_karyawan == 1) {
       const masterCuti = await MasterCuti.findByPk(1);
       jumlah_cuti = masterCuti.jumlah_hari;
     }

@@ -170,6 +170,7 @@ const masterStatusKaryawan = require("./model/masterData/hr/masterStatusKaryawan
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
+const outstandingAbsen = require("./model/hr/outstanding/outstandingAbsen/outstandingAbsenModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
@@ -198,6 +199,7 @@ const Project = require("./model/mtc/project/projectModel");
 const SubProject = require("./model/mtc/project/subProjectModel");
 
 //payroll
+const payrollMingguanPeriode = require("./model/hr/payroll/payrollMingguanPeriodeModel");
 const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
 const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
 const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
@@ -224,7 +226,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await historiPengajuanPromosiStatusKaryawan.sync({ alter: true });
+//   await outstandingAbsen.sync({ alter: true });
 // })();
 
 // const ip100 = 75

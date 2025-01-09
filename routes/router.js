@@ -184,6 +184,11 @@ router.use(
   require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
 );
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
+router.use("/", require("./hr/incomingTaskRoute"));
+router.use(
+  "/",
+  require("./hr/outstanding/outstandingAbsen/outstandingAbsenRoute")
+);
 
 //payroll
 router.use("/", require("./hr/payroll/payrollRoute"));

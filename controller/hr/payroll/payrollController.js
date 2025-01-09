@@ -315,6 +315,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   let summaryPayroll = {
     nama_karyawan: dataKaryawan.karyawan.name,
     nik: dataKaryawan.nik,
+    id_karyawan: dataKaryawan.id_karyawan,
     rincian: [],
     upahHarianSakit: [],
     potonganPinjaman: null,

@@ -296,7 +296,13 @@ const absenFunction = {
     dataCuti.forEach((cuti) => {
       cutiEntries = [
         ...cutiEntries,
-        ...generateDailyCuti(cuti, karyawan, karyawanBiodata, masterDepartment),
+        ...generateDailyCuti(
+          cuti,
+          karyawan,
+          karyawanBiodata,
+          masterDepartment,
+          resultJadwalKaryawan
+        ),
       ];
     });
 
@@ -305,7 +311,13 @@ const absenFunction = {
     dataIzin.forEach((izin) => {
       izinEntries = [
         ...izinEntries,
-        ...generateDailyIzin(izin, karyawan, karyawanBiodata, masterDepartment),
+        ...generateDailyIzin(
+          izin,
+          karyawan,
+          karyawanBiodata,
+          masterDepartment,
+          resultJadwalKaryawan
+        ),
       ];
     });
 
@@ -318,7 +330,8 @@ const absenFunction = {
           sakit,
           karyawan,
           karyawanBiodata,
-          masterDepartment
+          masterDepartment,
+          resultJadwalKaryawan
         ),
       ];
     });
@@ -332,7 +345,8 @@ const absenFunction = {
           mangkir,
           karyawan,
           karyawanBiodata,
-          masterDepartment
+          masterDepartment,
+          resultJadwalKaryawan
         ),
       ];
     });
@@ -424,6 +438,7 @@ const absenFunction = {
       );
 
       const namaKaryawan = dataKaryawan?.name;
+      const typeKaryawan = dataKaryawanBiodata?.tipe_karyawan;
       const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
@@ -643,6 +658,7 @@ const absenFunction = {
           jam_keluar_shift: jamKeluarShift,
           hari: dayName2,
           jenis_hari_masuk: jenisHariMasuk,
+          tipe_karyawan: typeKaryawan,
         };
       } else {
         // waktu masuk absen
@@ -751,6 +767,7 @@ const absenFunction = {
           jam_keluar_shift: jamKeluarShift,
           hari: dayName2,
           jenis_hari_masuk: jenisHariMasuk,
+          tipe_karyawan: typeKaryawan,
         };
       }
     });
@@ -800,6 +817,8 @@ const absenFunction = {
             (karyawanDitemukan.status_absen = absen.status_absen),
             (karyawanDitemukan.id_department = absen.id_department),
             (karyawanDitemukan.nama_department = absen.nama_department);
+          (karyawanDitemukan.hari = absen.hari),
+            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk);
         }
       });
       const resultAbsen = dataKaryawanGenerete.sort(
@@ -821,7 +840,8 @@ const generateDailyCuti = (
   cuti,
   karyawan,
   karyawanBiodata,
-  masterDepartment
+  masterDepartment,
+  resultJadwalKaryawan
 ) => {
   let dailycuti = [];
   let startDate = new Date(cuti.dari);
@@ -847,6 +867,43 @@ const generateDailyCuti = (
     const waktuMasuk = new Date(startDate);
     const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
     const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+    // Dapatkan tanggal berdasarkan tanggal absensi masuk
+    const tglMasukUtc = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    );
+    const hariIni = tglMasukUtc.getDate();
+    const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+    const tahunIni = tglMasukUtc.getFullYear();
+    const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+
+    let jenisHariMasuk = "Biasa";
+
+    const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    );
+
+    // Cek apakah tanggal hari ini ada di data lembur
+    const isTodayOvertime = filterJadwalKaryawan.some(
+      (data) => data.tanggal_libur == tglHariini
+    );
+    if (isTodayOvertime == true) {
+      jenisHariMasuk = "Libur";
+    }
+    const dayName2 = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    ).toLocaleDateString("id-ID", {
+      weekday: "long",
+    });
+
     dailycuti.push({
       userid: cuti.id_karyawan,
       waktu_masuk: new Date(startDate),
@@ -866,6 +923,8 @@ const generateDailyCuti = (
       status_absen: "cuti" + " " + cuti.tipe_cuti,
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      hari: dayName2,
+      jenis_hari_masuk: jenisHariMasuk,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -879,7 +938,8 @@ const generateDailyIzin = (
   izin,
   karyawan,
   karyawanBiodata,
-  masterDepartment
+  masterDepartment,
+  resultJadwalKaryawan
 ) => {
   let dailyIzin = [];
   let startDate = new Date(izin.dari);
@@ -905,6 +965,42 @@ const generateDailyIzin = (
     const waktuMasuk = new Date(startDate);
     const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
     const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+    // Dapatkan tanggal berdasarkan tanggal absensi masuk
+    const tglMasukUtc = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    );
+    const hariIni = tglMasukUtc.getDate();
+    const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+    const tahunIni = tglMasukUtc.getFullYear();
+    const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+
+    let jenisHariMasuk = "Biasa";
+
+    const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    );
+
+    // Cek apakah tanggal hari ini ada di data lembur
+    const isTodayOvertime = filterJadwalKaryawan.some(
+      (data) => data.tanggal_libur == tglHariini
+    );
+    if (isTodayOvertime == true) {
+      jenisHariMasuk = "Libur";
+    }
+    const dayName2 = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    ).toLocaleDateString("id-ID", {
+      weekday: "long",
+    });
     dailyIzin.push({
       userid: izin.id_karyawan,
       waktu_masuk: new Date(startDate),
@@ -924,6 +1020,8 @@ const generateDailyIzin = (
       status_absen: "izin",
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      hari: dayName2,
+      jenis_hari_masuk: jenisHariMasuk,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -937,7 +1035,8 @@ const generateDailySakit = (
   sakit,
   karyawan,
   karyawanBiodata,
-  masterDepartment
+  masterDepartment,
+  resultJadwalKaryawan
 ) => {
   let dailySakit = [];
   let startDate = new Date(sakit.dari);
@@ -962,8 +1061,42 @@ const generateDailySakit = (
   while (startDate <= endDate) {
     const waktuMasuk = new Date(startDate);
     const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
-
     const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+    // Dapatkan tanggal berdasarkan tanggal absensi masuk
+    const tglMasukUtc = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    );
+    const hariIni = tglMasukUtc.getDate();
+    const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+    const tahunIni = tglMasukUtc.getFullYear();
+    const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+    let jenisHariMasuk = "Biasa";
+
+    const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    );
+
+    // Cek apakah tanggal hari ini ada di data lembur
+    const isTodayOvertime = filterJadwalKaryawan.some(
+      (data) => data.tanggal_libur == tglHariini
+    );
+    if (isTodayOvertime == true) {
+      jenisHariMasuk = "Libur";
+    }
+    const dayName2 = new Date(
+      Date.UTC(
+        waktuMasuk.getUTCFullYear(),
+        waktuMasuk.getUTCMonth(),
+        waktuMasuk.getUTCDate()
+      )
+    ).toLocaleDateString("id-ID", {
+      weekday: "long",
+    });
     dailySakit.push({
       userid: sakit.id_karyawan,
       waktu_masuk: new Date(startDate),
@@ -983,6 +1116,8 @@ const generateDailySakit = (
       status_absen: "sakit",
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      hari: dayName2,
+      jenis_hari_masuk: jenisHariMasuk,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -996,7 +1131,8 @@ const generateDailyMangkir = (
   mangkir,
   karyawan,
   karyawanBiodata,
-  masterDepartment
+  masterDepartment,
+  resultJadwalKaryawan
 ) => {
   let dailyMangkir = [];
   let startDate = new Date(mangkir.tanggal);
@@ -1021,8 +1157,44 @@ const generateDailyMangkir = (
 
   const waktuMasuk = new Date(startDate);
   const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
-
   const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+  // Dapatkan tanggal berdasarkan tanggal absensi masuk
+  const tglMasukUtc = new Date(
+    Date.UTC(
+      waktuMasuk.getUTCFullYear(),
+      waktuMasuk.getUTCMonth(),
+      waktuMasuk.getUTCDate()
+    )
+  );
+  const hariIni = tglMasukUtc.getDate();
+  const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+  const tahunIni = tglMasukUtc.getFullYear();
+  const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+
+  let jenisHariMasuk = "Biasa";
+
+  const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+  );
+
+  // Cek apakah tanggal hari ini ada di data lembur
+  const isTodayOvertime = filterJadwalKaryawan.some(
+    (data) => data.tanggal_libur == tglHariini
+  );
+  if (isTodayOvertime == true) {
+    jenisHariMasuk = "Libur";
+  }
+  const dayName2 = new Date(
+    Date.UTC(
+      waktuMasuk.getUTCFullYear(),
+      waktuMasuk.getUTCMonth(),
+      waktuMasuk.getUTCDate()
+    )
+  ).toLocaleDateString("id-ID", {
+    weekday: "long",
+  });
+
   dailyMangkir.push({
     userid: mangkir.id_karyawan,
     waktu_masuk: new Date(startDate),
@@ -1042,6 +1214,8 @@ const generateDailyMangkir = (
     status_absen: "Mangkir",
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
+    hari: dayName2,
+    jenis_hari_masuk: jenisHariMasuk,
   });
 
   return dailyMangkir;
@@ -1088,6 +1262,9 @@ const generatekaryawanList = (
       status_absen: "Belum Masuk",
       id_department: idDepartment,
       nama_department: namaDepartmentKaryawan,
+      hari: null,
+      jenis_hari_masuk: null,
+      tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
     });
   }
 
