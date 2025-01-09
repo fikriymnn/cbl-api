@@ -5,7 +5,9 @@ const PengajuanStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatu
 const HistoriPengajuanStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 const PengajuanStatusKaryawanPenilaian = require("../../../model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const db = require("../../../config/database");
 
 const PengajuanStatusKaryawanController = {
@@ -30,6 +32,12 @@ const PengajuanStatusKaryawanController = {
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                },
+              ],
             },
             {
               model: PengajuanStatusKaryawanPenilaian,
@@ -77,6 +85,12 @@ const PengajuanStatusKaryawanController = {
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                },
+              ],
             },
             {
               model: PengajuanStatusKaryawanPenilaian,
@@ -123,6 +137,12 @@ const PengajuanStatusKaryawanController = {
             {
               model: Karyawan,
               as: "karyawan",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                },
+              ],
             },
             {
               model: PengajuanStatusKaryawanPenilaian,
@@ -185,10 +205,26 @@ const PengajuanStatusKaryawanController = {
       kesan_penilai,
       penilaian,
     } = req.body;
+
     const t = await db.transaction();
 
     try {
       const dataKaryawanBiodata = await KaryawanBiodata.findOne({
+        include: [
+          {
+            model: MasterDivisi,
+            as: "divisi",
+          },
+          {
+            model: MasterDepartment,
+            as: "department",
+          },
+          {
+            model: MasterBagianHr,
+            as: "bagian",
+          },
+        ],
+
         where: { id_karyawan: id_karyawan },
       });
 
@@ -200,7 +236,9 @@ const PengajuanStatusKaryawanController = {
           id_pengaju: id_pengaju,
           id_department: dataKaryawanBiodata.id_department,
           id_status_karyawan_awal: dataKaryawanBiodata.id_status_karyawan,
-          department: "",
+          department: dataKaryawanBiodata.department.nama_department,
+          bagian: dataKaryawanBiodata.bagian.nama_bagian,
+          divisi: dataKaryawanBiodata.divisi.nama_divisi,
           jabatan: dataKaryawanBiodata.jabatan,
           tgl_masuk_kerja: dataKaryawanBiodata.tgl_masuk,
           periode_awal,
@@ -247,6 +285,7 @@ const PengajuanStatusKaryawanController = {
   approvePengajuanStatusKaryawan: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr, id_status_karyawan_pengajuan, tgl_keluar } = req.body;
+
     const t = await db.transaction();
 
     try {
@@ -277,7 +316,7 @@ const PengajuanStatusKaryawanController = {
         await KaryawanBiodata.update(
           {
             id_status_karyawan: id_status_karyawan_pengajuan,
-            tgl_keluar: tgl_keluar,
+            tgl_keluar: null,
             sisa_cuti: 12,
           },
           {

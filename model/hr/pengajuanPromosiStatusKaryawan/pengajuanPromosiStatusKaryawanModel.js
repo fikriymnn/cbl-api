@@ -65,6 +65,14 @@ const PengajuanStatusKaryawan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    bagian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    divisi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     tgl_masuk_kerja: {
       type: DataTypes.DATE,
       allowNull: true,
