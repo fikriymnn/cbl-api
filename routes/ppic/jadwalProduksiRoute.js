@@ -12,4 +12,9 @@ router.get(
   jadwalProduksiController.calculateTiketJadwalProduksi
 );
 
+router.get(
+  "/ppic/calculateJadwalProduksiDua/:id",
+  jadwalProduksiController.calculateTiketJadwalProduksiDua
+);
+
 module.exports = router;

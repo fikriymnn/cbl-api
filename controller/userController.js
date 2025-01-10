@@ -7,11 +7,12 @@ const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 
 const userController = {
   getUsers: async (req, res) => {
-    const { bagian, role } = req.query;
+    const { bagian, role, status } = req.query;
 
     let obj = {};
     if (role) obj.role = role;
     if (bagian) obj.bagian = bagian;
+    if (status) obj.status = status;
 
     try {
       const response = await Users.findAll(
@@ -208,11 +209,14 @@ const userController = {
     if (!users) return res.status(404).json({ msg: "User Not Found" });
 
     try {
-      await Users.destroy({
-        where: {
-          id: users.id,
-        },
-      }),
+      await Users.update(
+        { status: "in_aktif" },
+        {
+          where: {
+            id: users.id,
+          },
+        }
+      ),
         res.status(200).json({ msg: "User Delete Successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });

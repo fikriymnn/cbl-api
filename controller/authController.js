@@ -12,6 +12,7 @@ const authController = {
       return res.status(400).json({ msg: "Incomplete input data!" });
 
     const users = await Users.findOne({
+      status: "aktif",
       where: {
         email: req.body.email,
       },
