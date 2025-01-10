@@ -187,6 +187,33 @@ const JadwalKaryawanController = {
       res.status(500).json({ msg: error.message });
     }
   },
+  deleteJadwalKaryawanSatuTahun: async (req, res) => {
+    const { tahun, nama_jadwal, jenis_karyawan } = req.body;
+
+    const t = await db.transaction();
+
+    try {
+      await JadwalKaryawan.destroy({
+        where: {
+          tanggal: Sequelize.where(
+            Sequelize.fn("YEAR", Sequelize.col("tanggal")),
+            tahun
+          ),
+          nama_jadwal: nama_jadwal,
+          jenis_karyawan: jenis_karyawan,
+        },
+        transaction: t,
+      });
+
+      await t.commit();
+      res.status(200).json({
+        msg: "delete successfully",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 const generateDatesInYear = (year) => {

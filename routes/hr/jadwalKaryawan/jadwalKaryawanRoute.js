@@ -26,4 +26,9 @@ router.delete(
   jadwalKaryawanController.deleteJadwalKaryawan
 );
 
+router.delete(
+  "/hr/jadwalKaryawanSatuTahun",
+  jadwalKaryawanController.deleteJadwalKaryawanSatuTahun
+);
+
 module.exports = router;
