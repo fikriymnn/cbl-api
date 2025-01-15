@@ -32,22 +32,25 @@ const inspeksiAmparLempointController = {
     if (!qty_pallet)
       return res.status(400).json({ msg: "Qty Pallet Wajib di Isi" });
 
-    if (!lama_pengerjaan || !data_defect || data_defect.length == 0)
+    if (!lama_pengerjaan)
       return res.status(400).json({ msg: "Incomplite Data" });
     try {
-      for (let i = 0; i < data_defect.length; i++) {
-        if (data_defect[i].hasil == null)
-          return res.status(400).json({
-            msg: `data defect dengan kode ${data_defect[i].kode} wajib di isi`,
-          });
+      if (data_defect.length > 0) {
+        for (let i = 0; i < data_defect.length; i++) {
+          if (data_defect[i].hasil == null)
+            return res.status(400).json({
+              msg: `data defect dengan kode ${data_defect[i].kode} wajib di isi`,
+            });
+        }
+
+        for (let index = 0; index < data_defect.length; index++) {
+          await InspeksiAmparLemDefect.update(
+            { hasil: data_defect[index].hasil },
+            { where: { id: data_defect[index].id } }
+          );
+        }
       }
 
-      for (let index = 0; index < data_defect.length; index++) {
-        await InspeksiAmparLemDefect.update(
-          { hasil: data_defect[index].hasil },
-          { where: { id: data_defect[index].id } }
-        );
-      }
       await InspeksiAmparLemPoint.update(
         {
           waktu_selesai: new Date(),

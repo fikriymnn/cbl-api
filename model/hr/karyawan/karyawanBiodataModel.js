@@ -4,6 +4,7 @@ const KaryawanModel = require("../karyawanModel");
 const MasterDivisiModel = require("../../masterData/hr/masterDivisiModel");
 const MasterDepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 const MasterBagianHrModel = require("../../masterData/hr/masterBagianModel");
+const MasterJabatanModel = require("../../masterData/hr/masterJabatanModel");
 const MasterGradeHrModel = require("../../masterData/hr/masterGradeModel");
 const MasterStatusKaryawanModel = require("../../masterData/hr/masterStatusKaryawanModel");
 
@@ -52,6 +53,14 @@ const KaryawanBiodataModel = db.define(
         key: "id",
       },
     },
+    id_jabatan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterJabatanModel,
+        key: "id",
+      },
+    },
     id_grade: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -85,7 +94,7 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
     },
 
-    jabatan: {
+    nama_jabatan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -177,6 +186,16 @@ MasterBagianHrModel.hasMany(KaryawanBiodataModel, {
 KaryawanBiodataModel.belongsTo(MasterBagianHrModel, {
   foreignKey: "id_bagian",
   as: "bagian",
+});
+
+//relasi jabatan
+MasterJabatanModel.hasMany(KaryawanBiodataModel, {
+  foreignKey: "id_jabatan",
+  as: "karyawan_jabatan",
+});
+KaryawanBiodataModel.belongsTo(MasterJabatanModel, {
+  foreignKey: "id_jabatan",
+  as: "jabatan",
 });
 
 //relasi grade

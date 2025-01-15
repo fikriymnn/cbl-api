@@ -3,17 +3,12 @@ const db = require("../../../config/database");
 
 const { DataTypes } = Sequelize;
 
-const MasterDepartment = db.define(
-  "ms_department",
+const MasterJabatan = db.define(
+  "ms_jabatan",
   {
-    nama_department: {
+    nama_jabatan: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    is_active: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
     },
   },
   {
@@ -21,4 +16,4 @@ const MasterDepartment = db.define(
   }
 );
 
-module.exports = MasterDepartment;
+module.exports = MasterJabatan;

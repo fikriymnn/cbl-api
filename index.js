@@ -160,6 +160,7 @@ const masterCuti = require("./model/masterData/hr/masterCutiModel");
 const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
 const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
+const masterJabatan = require("./model/masterData/hr/masterJabatanModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
@@ -171,10 +172,12 @@ const masterStatusKaryawan = require("./model/masterData/hr/masterStatusKaryawan
 // absen hr
 const absenModel = require("./model/hr/absenModel");
 const outstandingAbsen = require("./model/hr/outstanding/outstandingAbsen/outstandingAbsenModel");
+const outstandingKaryawan = require("./model/hr/outstanding/outstandingKaryawan/outstandingKaryawanModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
 const karyawanPotongan = require("./model/hr/karyawan/karyawanPotonganModel");
+const KaryawanBagianMesin = require("./model/hr/karyawan/karyawanBagianMesinModel");
 
 //jadwal
 const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
@@ -209,6 +212,9 @@ const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailMod
 const MasterKategoriSettingKapasitas = require("./model/masterData/ppic/masterKategoriSettingKapasitasModel");
 const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel");
 
+//ppic
+const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -224,9 +230,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// model sync to table (pancingan)
+// // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await JadwalProduksi.sync({ alter: true });
 // })();
 
 // const ip100 = 75

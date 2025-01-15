@@ -15,5 +15,10 @@ router.put(
   auth,
   masterDepartmentController.updateMasterDepartment
 );
+router.delete(
+  "/master/hr/department/:id",
+  auth,
+  masterDepartmentController.deleteMasterDepartment
+);
 
 module.exports = router;

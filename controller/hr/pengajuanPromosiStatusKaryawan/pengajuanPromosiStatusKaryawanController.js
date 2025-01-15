@@ -237,7 +237,6 @@ const PengajuanStatusKaryawanController = {
           id_department: dataKaryawanBiodata.id_department,
           id_status_karyawan_awal: dataKaryawanBiodata.id_status_karyawan,
           department: dataKaryawanBiodata.department.nama_department,
-          bagian: dataKaryawanBiodata.bagian.nama_bagian,
           divisi: dataKaryawanBiodata.divisi.nama_divisi,
           jabatan: dataKaryawanBiodata.jabatan,
           tgl_masuk_kerja: dataKaryawanBiodata.tgl_masuk,

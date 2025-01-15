@@ -7,7 +7,11 @@ const AbsensiController = {
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
-    if (is_active) obj.is_active = is_active;
+    if (is_active && is_active == "true") {
+      obj.is_active = true;
+    } else if (is_active && is_active == "false") {
+      obj.is_active = false;
+    }
     try {
       const absenResult = await getAbsensiFunction(startDate, endDate, obj);
       res.status(200).json({ data: absenResult });

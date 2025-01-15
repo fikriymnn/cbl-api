@@ -5,5 +5,6 @@ const karyawanController = require("../../../controller/hr/karyawan/karyawanCont
 router.get("/hr/karyawan/:id?", karyawanController.getKaryawan);
 router.post("/hr/karyawan", karyawanController.createKaryawan);
 router.put("/hr/karyawan/:id", karyawanController.updateKaryawan);
+router.delete("/hr/karyawan/:id", karyawanController.deleteKaryawan);
 
 module.exports = router;
