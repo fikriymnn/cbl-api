@@ -754,10 +754,10 @@ const absenFunction = {
           jam_keluar: null,
           menit_terlambat: menitTerlambat,
           jam_lembur: 0,
-          status_lembur: "Belum Keluar",
+          status_lembur: "Belum Pulang",
           status_masuk: statusMasuk,
           name: namaKaryawan,
-          status_keluar: "Belum Keluar",
+          status_keluar: "Belum Pulang",
           menit_pulang_cepat: 0,
           shift, // Menampilkan shift
           status_absen: "masuk",
