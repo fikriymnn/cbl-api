@@ -16,7 +16,10 @@ const KendalaLkhController = {
       bagian_tiket,
       jenis_kendala,
       nama_customer,
+      nama_produk,
+      no_jo,
       mesin,
+      kode_kendala,
       start_date,
       end_date,
       limit,
@@ -42,10 +45,12 @@ const KendalaLkhController = {
       if (status_tiket) obj.status_tiket = status_tiket;
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
-      if (nama_customer) obj.nama_customer = nama_customer;
-
+      if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
+      if (nama_produk) obj.nama_produk = { [Op.like]: `%${nama_produk}%` };
+      if (nama_customer)
+        obj.nama_customer = { [Op.like]: `%${nama_customer}%` };
+      if (kode_kendala) obj.kode_kendala = { [Op.like]: `%${kode_kendala}%` };
       if (mesin) obj.mesin = mesin;
-
       if (start_date && end_date) {
         obj.createdAt = {
           [Op.between]: [
@@ -76,15 +81,15 @@ const KendalaLkhController = {
         res.status(200).json({
           data: response,
         });
-      } else if (page & limit) {
+      } else if (page && limit) {
         const data = await KendalaLkh.count({ where: obj });
         const response = await KendalaLkh.findAll(options);
 
         res.status(200).json({
           total_page: Math.ceil(data / limit),
-          data: response,
           offset: page,
           limit: limit,
+          data: response,
         });
       } else {
         const response = await KendalaLkh.findAll(options);

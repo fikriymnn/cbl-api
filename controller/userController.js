@@ -106,7 +106,6 @@ const userController = {
 
     if (
       !nama ||
-      !id_karyawan ||
       !email ||
       !password ||
       !no ||

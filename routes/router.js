@@ -171,6 +171,7 @@ router.use("/", require("./masterdata/hr/masterStatusKaryawanRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
+router.use("/", require("./hr/absenCheckInOutRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));

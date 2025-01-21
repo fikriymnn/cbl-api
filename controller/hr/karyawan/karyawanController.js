@@ -32,12 +32,14 @@ const karyawanController = {
     } else if (is_active && is_active == "false") {
       obj.is_active = false;
     }
+
     try {
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
+
       const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
-      console.log(karyawanIds);
+
       if (page && limit) {
         const length = await Karyawan.count({
           where: {
