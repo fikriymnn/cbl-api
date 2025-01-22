@@ -1,6 +1,6 @@
 const masterRole = require("../../model/masterData/masterRoleModel");
 const masterBagian = require("../../model/masterData/masterBagian");
-const masterAkses = require("../../model/masterData/masterAksesModel");
+const masterAkses = require("../../model/masterData/masterAkses/masterAksesModel");
 
 const masterRoleController = {
   getMasterRole: async (req, res) => {
@@ -90,7 +90,6 @@ const masterRoleController = {
             if (data1.parent != null || data1.parent.length > 0) {
               for (let ii = 0; ii < data1.parent.length; ii++) {
                 const data2 = data1.parent[ii];
-                console.log(data2);
                 const akses2 = await masterAkses.create({
                   id_role: data1.id_role,
                   nama: data2.nama,
@@ -204,7 +203,6 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: false,
-
     parent: [
       {
         nama: "PM 1",

@@ -152,7 +152,7 @@ const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
 
 const masterBagian = require("./model/masterData/masterBagian");
 const masterRole = require("./model/masterData/masterRoleModel");
-const masterAkses = require("./model/masterData/masterAksesModel");
+const masterAkses = require("./model/masterData/masterAkses/masterAksesModel");
 
 //master hr
 const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
@@ -215,6 +215,13 @@ const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel"
 //ppic
 const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
 
+//hak akses
+const MasterRole = require("./model/masterData/masterRoleModel");
+const MasterAksesMain = require("./model/masterData/masterAkses/masterAksesModel");
+const MasterAksesParent1 = require("./model/masterData/masterAkses/masterAksesParent1Model");
+const MasterAksesParent2 = require("./model/masterData/masterAkses/masterAksesParent2Model");
+const MasterAksesParent3 = require("./model/masterData/masterAkses/masterAksesParent3Model");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -232,7 +239,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await JadwalProduksi.sync({ alter: true });
+//   await MasterAksesParent3.sync({ alter: true });
 // })();
 
 // const ip100 = 75

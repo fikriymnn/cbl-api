@@ -1,6 +1,6 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../config/database");
-const masterRole = require("./masterRoleModel");
+const db = require("../../../config/database");
+const masterRole = require("../masterRoleModel");
 
 const { DataTypes } = Sequelize;
 
