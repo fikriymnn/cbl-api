@@ -165,6 +165,7 @@ const PayrollBayarPeriodeController = {
           periode_sampai: data_payroll.periode_sampai,
           tgl_bayar: new Date(),
           total: data_payroll.total,
+          status: "incoming approved",
         },
         { transaction: t }
       );
@@ -263,6 +264,51 @@ const PayrollBayarPeriodeController = {
           );
         }
       }
+
+      await t.commit();
+      res.status(200).json({
+        msg: "pembayaran berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  approvePayrollBayarMingguanPeriode: async (req, res) => {
+    const _id = req.params.id;
+
+    const t = await db.transaction();
+
+    try {
+      const dataPayrollPeriode = await PayrollMingguanPeriode.update(
+        {
+          status: "incoming pay",
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      await t.commit();
+      res.status(200).json({
+        msg: "pembayaran berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+  bayarPayrollBayarMingguanPeriode: async (req, res) => {
+    const _id = req.params.id;
+
+    const t = await db.transaction();
+
+    try {
+      const dataPayrollPeriode = await PayrollMingguanPeriode.update(
+        {
+          status: "done",
+        },
+        { where: { id: _id }, transaction: t }
+      );
 
       await t.commit();
       res.status(200).json({

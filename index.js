@@ -221,6 +221,7 @@ const MasterAksesMain = require("./model/masterData/masterAkses/masterAksesModel
 const MasterAksesParent1 = require("./model/masterData/masterAkses/masterAksesParent1Model");
 const MasterAksesParent2 = require("./model/masterData/masterAkses/masterAksesParent2Model");
 const MasterAksesParent3 = require("./model/masterData/masterAkses/masterAksesParent3Model");
+const MasterAksesParent4 = require("./model/masterData/masterAkses/masterAksesParent4Model");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -237,9 +238,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// // model sync to table (pancingan)
+// model sync to table (pancingan)
 // (async () => {
-//   await MasterAksesParent3.sync({ alter: true });
+//   await inspeksiRabutDefect.sync({ alter: true });
 // })();
 
 // const ip100 = 75

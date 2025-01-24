@@ -33,7 +33,7 @@ const MasterAksesParent3 = db.define(
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
-      defaultValue: false,
+      defaultValue: true,
     },
     path_name: {
       type: DataTypes.STRING,

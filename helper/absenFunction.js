@@ -61,7 +61,7 @@ const absenFunction = {
         ...jadwal.toJSON(),
       };
     });
-    console.log(resultJadwalKaryawan);
+    // console.log(resultJadwalKaryawan);
 
     //jika ada range tanggal
     if (startDate && endDate) {
@@ -357,13 +357,15 @@ const absenFunction = {
     // Proses data untuk menghitung keterlambatan dan lembur
     const results = absensiMasuk.map((masuk) => {
       const keluar = absensiKeluar
-        .filter(
-          (k) =>
-            k.userid === masuk.userid &&
-            (k.checktime > masuk.checktime ||
-              new Date(k.checktime).getDate() >
-                new Date(masuk.checktime).getDate())
-        )
+        .filter((k) => {
+          const masukTime = new Date(masuk.checktime);
+          const keluarTime = new Date(k.checktime);
+          const isSameUser = k.userid === masuk.userid;
+          const isAfterMasuk = keluarTime > masukTime;
+          const isWithin12Hours = keluarTime - masukTime <= 16 * 60 * 60 * 1000; // 12 jam dalam milidetik
+
+          return isSameUser && isAfterMasuk && isWithin12Hours;
+        })
         .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
 
       // Konversi waktu ke UTC untuk perbandingan

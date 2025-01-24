@@ -126,7 +126,14 @@ const inspeksiBahanController = {
   updateInspeksiBahan: async (req, res) => {
     try {
       const { id } = req.params;
-      const { hasil_rumus, no_lot, verifikasi, catatan, total_skor } = req.body;
+      const {
+        hasil_rumus,
+        no_lot,
+        verifikasi,
+        catatan,
+        total_skor,
+        jumlah_pallet,
+      } = req.body;
       console.log(req.body);
       let obj = {
         status: "history",
@@ -136,6 +143,7 @@ const inspeksiBahanController = {
       if (verifikasi) obj.verifikasi = verifikasi;
       if (catatan) obj.catatan = catatan;
       if (total_skor) obj.total_skor = total_skor;
+      if (jumlah_pallet) obj.jumlah_pallet = jumlah_pallet;
 
       await InspeksiBahan.update(obj, {
         where: { id: id },

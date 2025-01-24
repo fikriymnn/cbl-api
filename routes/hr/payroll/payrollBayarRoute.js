@@ -25,6 +25,17 @@ router.post(
   auth,
   payrollBayarMingguanPeriodeController.createPayrollBayarMingguanPeriode
 );
+router.put(
+  "/hr/payroll/bayarMingguanPeriode/approve/:id",
+  auth,
+  payrollBayarMingguanPeriodeController.approvePayrollBayarMingguanPeriode
+);
+
+router.put(
+  "/hr/payroll/bayarMingguanPeriode/bayar/:id",
+  auth,
+  payrollBayarMingguanPeriodeController.bayarPayrollBayarMingguanPeriode
+);
 
 router.get(
   "/hr/payroll/bayarBulanan",

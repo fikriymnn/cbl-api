@@ -33,7 +33,7 @@ const MasterAkses = db.define(
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
-      defaultValue: false,
+      defaultValue: true,
     },
     path_name: {
       type: DataTypes.STRING,

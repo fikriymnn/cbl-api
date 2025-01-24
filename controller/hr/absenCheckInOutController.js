@@ -100,22 +100,23 @@ const AbsensiCheckInOutController = {
   updateAbsensiCheckinOut: async (req, res) => {
     const { id_karyawan, checktime, type_check, date, jam } = req.body;
 
-    const dateCheck = new Date(`${date}T${jam}Z`);
+    let obj = {};
+    if (type_check != null) obj.checktype = type_check;
+    if (date && jam) {
+      const dateCheck = new Date(`${date}T${jam}Z`);
+      console.log(dateCheck);
+      obj.checktime = dateCheck;
+    }
+
     const t = await db.transaction();
     try {
-      await absensi.update(
-        {
-          checktype: type_check,
-          checktime: dateCheck,
+      const update = await absensi.update(obj, {
+        where: {
+          userid: id_karyawan,
+          checktime: checktime,
         },
-        {
-          where: {
-            userid: id_karyawan,
-            checktime: checktime,
-          },
-          transaction: t,
-        }
-      );
+        transaction: t,
+      });
 
       await t.commit();
       res.status(200).json({ msg: "update success" });

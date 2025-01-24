@@ -1,17 +1,17 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const MasterAksesMain = require("./masterAksesModel");
+const MasterAksesParent3 = require("./masterAksesParent3Model");
 
 const { DataTypes } = Sequelize;
 
-const MasterAksesParent1 = db.define(
-  "ms_akses_parent_1",
+const MasterAksesParent4 = db.define(
+  "ms_akses_parent_4",
   {
-    id_akses_main: {
+    id_akses_parent_3: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: MasterAksesMain,
+        model: MasterAksesParent3,
         key: "id",
       },
     },
@@ -53,13 +53,13 @@ const MasterAksesParent1 = db.define(
   }
 );
 
-MasterAksesMain.hasMany(MasterAksesParent1, {
-  foreignKey: "id_akses_main",
-  as: "parent_1",
+MasterAksesParent3.hasMany(MasterAksesParent4, {
+  foreignKey: "id_akses_parent_3",
+  as: "parent_4",
 }),
-  MasterAksesParent1.belongsTo(MasterAksesMain, {
-    foreignKey: "id_akses_main",
-    as: "akses_main",
+  MasterAksesParent4.belongsTo(MasterAksesParent3, {
+    foreignKey: "id_akses_parent_3",
+    as: "parent_3",
   });
 
-module.exports = MasterAksesParent1;
+module.exports = MasterAksesParent4;

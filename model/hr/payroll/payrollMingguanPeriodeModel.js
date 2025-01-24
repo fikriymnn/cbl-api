@@ -31,6 +31,10 @@ const Payroll = db.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

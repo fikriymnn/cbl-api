@@ -5,6 +5,7 @@ const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeks
 const InspeksiRabutDefectDepartment = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahSamplingHasilRabutModel");
 const User = require("../../../../model/userModel");
+const db = require("../../../../config/database");
 
 const inspeksiRabutpointController = {
   startRabutPoint: async (req, res) => {
@@ -71,6 +72,7 @@ const inspeksiRabutpointController = {
 
   createInspeksiRabutPoint: async (req, res) => {
     const { id_inspeksi_rabut } = req.body;
+
     try {
       //const masterKodepond = await MasterKodeMasalahRabut.findAll();
 
@@ -96,39 +98,52 @@ const inspeksiRabutpointController = {
       id_inspeksi_rabut_point,
       id_defect,
       MasterDefect,
+      kode_lkh,
+      masalah_lkh,
     } = req.body;
+    console.log(req.body);
+    const t = await db.transaction();
 
     try {
       // const MasterDefect = await MasterKodeMasalahRabut.findOne({
       //   where: { id: id_defect },
       // });
 
-      const rabutDefect = await InspeksiRabutDefect.create({
-        id_inspeksi_rabut_point: id_inspeksi_rabut_point,
-        kode: MasterDefect.e_kode_produksi,
-        masalah: MasterDefect.nama_kendala,
-        kriteria: MasterDefect.criteria,
-        persen_kriteria: MasterDefect.criteria_percent,
-        sumber_masalah: MasterDefect.kategori_kendala,
-        id_inspeksi_rabut: id_inspeksi_rabut,
-      });
+      const rabutDefect = await InspeksiRabutDefect.create(
+        {
+          id_inspeksi_rabut_point: id_inspeksi_rabut_point,
+          kode: MasterDefect.e_kode_produksi,
+          masalah: MasterDefect.nama_kendala,
+          kode_lkh: kode_lkh,
+          masalah_lkh: masalah_lkh,
+          kriteria: MasterDefect.criteria,
+          persen_kriteria: MasterDefect.criteria_percent,
+          sumber_masalah: MasterDefect.kategori_kendala,
+          id_inspeksi_rabut: id_inspeksi_rabut,
+        },
+        { transaction: t }
+      );
 
       // untuk department ketika data udah dari p1
       for (let ii = 0; ii < MasterDefect.target_department.length; ii++) {
         const depart = MasterDefect.target_department[ii];
-        await InspeksiRabutDefectDepartment.create({
-          id_inspeksi_rabut_periode_point_defect: rabutDefect.id,
-          id_department: parseInt(depart.id_department),
-          nama_department: depart.nama_department,
-        });
+        await InspeksiRabutDefectDepartment.create(
+          {
+            id_inspeksi_rabut_periode_point_defect: rabutDefect.id,
+            id_department: parseInt(depart.id_department),
+            nama_department: depart.nama_department,
+          },
+          { transaction: t }
+        );
       }
       // for (let index = 0; index < MasterDefect.department.length; index++) {
       //   const element = array[index];
 
       // }
-
+      await t.commit();
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
+      await t.rollback();
       return res.status(400).json({ msg: error.message });
     }
   },

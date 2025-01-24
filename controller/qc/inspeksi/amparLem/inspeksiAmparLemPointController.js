@@ -94,6 +94,8 @@ const inspeksiAmparLempointController = {
       id_inspeksi_ampar_lem_point,
       id_defect,
       MasterDefect,
+      kode_lkh,
+      masalah_lkh,
     } = req.body;
 
     try {
@@ -105,6 +107,8 @@ const inspeksiAmparLempointController = {
         id_inspeksi_ampar_lem_point: id_inspeksi_ampar_lem_point,
         kode: MasterDefect.e_kode_produksi,
         masalah: MasterDefect.nama_kendala,
+        kode_lkh: kode_lkh,
+        masalah_lkh: masalah_lkh,
         kriteria: MasterDefect.criteria,
         persen_kriteria: MasterDefect.criteria_percent,
         sumber_masalah: MasterDefect.kategori_kendala,
