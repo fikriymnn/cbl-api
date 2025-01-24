@@ -136,6 +136,16 @@ router.use(
   require("./qc/inspeksi/barangRusak/inspeksiBarangRusakDefectRoutes")
 );
 
+// qc barang rusak v2
+router.use(
+  "/",
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Routes")
+);
+router.use(
+  "/",
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Route")
+);
+
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 

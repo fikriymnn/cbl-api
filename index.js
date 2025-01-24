@@ -143,6 +143,10 @@ const inspeksiOutsourcingBJSub = require("./model/qc/inspeksi/outsourcingBJ/insp
 const inspeksiBarangRusak = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakModel");
 const inspeksiBarangRusakDefect = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakDefectModel");
 
+const inspeksiBarangRusakV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Model");
+const inspeksiBarangRusakPointV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
+const inspeksiBarangRusakDefectV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
+
 const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
@@ -240,7 +244,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiRabutDefect.sync({ alter: true });
+//   await inspeksiBarangRusakDefectV2.sync({ alter: true });
 // })();
 
 // const ip100 = 75
