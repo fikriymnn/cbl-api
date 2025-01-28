@@ -13,8 +13,6 @@ const inspeksiBarangRusakController = {
 
     if (!jumlah_defect)
       return res.status(400).json({ msg: "Druk awal wajib di isi" });
-    if (!catatan)
-      return res.status(400).json({ msg: "Catatan awal wajib di isi" });
 
     const t = await db.transaction();
 
@@ -38,19 +36,20 @@ const inspeksiBarangRusakController = {
 
   addInspeksiBarangRusakDefectV2V2: async (req, res) => {
     const {
-      id_barang_rusak,
-      id_barang_rusak_point,
-      kode,
-      masalah,
+      id_barang_rusak_v2,
+      id_barang_rusak_point_v2,
+      MasterDefect,
       kode_lkh,
       masalah_lkh,
       asal_temuan,
     } = req.body;
     const t = await db.transaction();
     try {
-      const dataRusak = await InspeksiBarangRusakV2.findByPk(id_barang_rusak);
+      const dataRusak = await InspeksiBarangRusakV2.findByPk(
+        id_barang_rusak_v2
+      );
       const dataPoint = await InspeksiBarangRusakPointV2.findByPk(
-        id_barang_rusak_point
+        id_barang_rusak_point_v2
       );
 
       if (!dataRusak)
@@ -64,10 +63,10 @@ const inspeksiBarangRusakController = {
 
       await InspeksiBarangRusakDefectV2.create(
         {
-          id_inspeksi_barang_rusak_v2: id_barang_rusak,
-          id_inspeksi_barang_rusak_point_v2: id_barang_rusak_point,
-          kode: kode,
-          masalah: masalah,
+          id_inspeksi_barang_rusak_v2: id_barang_rusak_v2,
+          id_inspeksi_barang_rusak_point_v2: id_barang_rusak_point_v2,
+          kode: MasterDefect.e_kode_produksi,
+          masalah: MasterDefect.nama_kendala,
           asal_temuan: asal_temuan,
           kode_lkh,
           masalah_lkh,
