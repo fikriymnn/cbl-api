@@ -1,5 +1,6 @@
 const { getAbsensiFunction } = require("../../../helper/absenFunction");
 const Karyawan = require("../../../model/hr/karyawanModel");
+const BiodataKaryawan = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const PengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
@@ -79,6 +80,10 @@ const payrollController = {
             as: "potongan_karyawan",
           },
           {
+            model: Karyawan,
+            as: "karyawan",
+          },
+          {
             model: MasterGradeHr,
             as: "grade",
           },
@@ -109,6 +114,136 @@ const payrollController = {
       );
       res.status(200).json({
         data: payroll,
+        //  lembur: resultPengajuanLebur
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getPayrollAll: async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    const dataKaryawan = await BiodataKaryawan.findAll({
+      where: { is_active: true, id_grade: { [Op.ne]: null } },
+    });
+
+    try {
+      let dataResult = {
+        periode_dari: startDate,
+        periode_sampai: endDate,
+        total: 0,
+        detail: [],
+      };
+
+      for (let i = 0; i < dataKaryawan.length; i++) {
+        const data = dataKaryawan[i];
+        let obj = {};
+        obj.id_karyawan = data.id_karyawan;
+        const pengajuanLemburData = await pengajuanLembur.findAll({
+          include: [
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+            {
+              model: Karyawan,
+              as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
+              as: "karyawan_hr",
+            },
+          ],
+          where: {
+            id_karyawan: data.id_karyawan,
+            dari: {
+              [Op.between]: [
+                new Date(startDate).setHours(0, 0, 0, 0),
+                new Date(endDate).setHours(23, 59, 59, 999),
+              ],
+            },
+            sampai: {
+              [Op.between]: [
+                new Date(startDate).setHours(0, 0, 0, 0),
+                new Date(endDate).setHours(23, 59, 59, 999),
+              ],
+            },
+          },
+        });
+        const karyawanData = await KaryawanBiodata.findOne({
+          where: { id_karyawan: data.id_karyawan },
+          include: [
+            {
+              model: KaryawanPotongan,
+              as: "potongan_karyawan",
+            },
+            {
+              model: Karyawan,
+              as: "karyawan",
+            },
+            {
+              model: MasterGradeHr,
+              as: "grade",
+            },
+          ],
+        });
+
+        // buat tanggal sesuai format
+        const resultPengajuanLebur = pengajuanLemburData.map((pengajuan) => {
+          const datePengajuan = new Date(pengajuan.dari);
+          const day = datePengajuan.getDate();
+          const month = getMonthName((datePengajuan.getMonth() + 1).toString());
+          const year = datePengajuan.getFullYear();
+
+          return {
+            tanggal_lembur: `${day}-${month}-${year}`,
+            ...pengajuan.toJSON(),
+          };
+        });
+
+        //ambil data dari absensi
+        const absenResult = await getAbsensiFunction(startDate, endDate, obj);
+
+        //hitung payroll berdasarkan data absensi dan pengajuan lembur
+        const payroll = await hitungPayroll(
+          absenResult,
+          karyawanData,
+          resultPengajuanLebur
+        );
+
+        dataResult.detail.push(payroll);
+      }
+
+      // Menggunakan reduce untuk menjumlahkan nilai total
+      const totalSum = dataResult.detail.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue.summaryPayroll.total;
+      }, 0); // Nilai awal accumulator adalah 0
+
+      dataResult.total = totalSum;
+
+      res.status(200).json({
+        data: dataResult,
         //  lembur: resultPengajuanLebur
       });
     } catch (error) {
@@ -169,8 +304,6 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   const potonganKaryawan = dataKaryawan.potongan_karyawan;
   const typeKaryawan = dataKaryawan.tipe_karyawan;
 
-  console.log(potonganKaryawan);
-
   const masterPayrollData = await MasterPayroll.findByPk(1);
   const pengajuanPinjaman = await PengajuanPinjaman.findOne({
     where: {
@@ -180,6 +313,9 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   });
 
   let summaryPayroll = {
+    nama_karyawan: dataKaryawan.karyawan.name,
+    nik: dataKaryawan.nik,
+    id_karyawan: dataKaryawan.id_karyawan,
     rincian: [],
     upahHarianSakit: [],
     potonganPinjaman: null,

@@ -20,6 +20,7 @@ const ticketController = {
     try {
       const {
         status_tiket,
+        status_qc,
         type_mtc,
         jenis_kendala,
         no_jo,
@@ -60,7 +61,7 @@ const ticketController = {
       const offset = (page - 1) * limit;
 
       if (status_tiket) obj.status_tiket = status_tiket;
-
+      if (status_qc) obj.status_qc = status_qc;
       if (type_mtc) obj.type_mtc = type_mtc;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (nama_customer) obj.nama_customer = nama_customer;

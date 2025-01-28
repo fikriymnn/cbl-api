@@ -10,8 +10,8 @@ router.use("/", require("./ticketOs3Routes"));
 router.use("/", require("./mtc/DashboardMtc"));
 
 //project mtc
-router.use("/",require("./mtc/project/projectRoutes"))
-router.use("/",require("./mtc/project/subProjectRoutes"))
+router.use("/", require("./mtc/project/projectRoutes"));
+router.use("/", require("./mtc/project/subProjectRoutes"));
 
 //report mtc
 router.use("/", require("./mtc/reportMtc"));
@@ -136,6 +136,16 @@ router.use(
   require("./qc/inspeksi/barangRusak/inspeksiBarangRusakDefectRoutes")
 );
 
+// qc barang rusak v2
+router.use(
+  "/",
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Routes")
+);
+router.use(
+  "/",
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Route")
+);
+
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 
@@ -161,24 +171,41 @@ router.use("/", require("./masterdata/hr/masterShift/masterIstirahatRoute"));
 router.use("/", require("./masterdata/hr/masterCutiRoute"));
 router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
 router.use("/", require("./masterdata/hr/masterDivisiRoute"));
+router.use("/", require("./masterdata/hr/masterJabatanRoute"));
 router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
 router.use("/", require("./masterdata/hr/masterBagianHrRoute"));
 router.use("/", require("./masterdata/hr/masterGradeRoute"));
 router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
 router.use("/", require("./masterdata/hr/masterPayrollRoute"));
+router.use("/", require("./masterdata/hr/masterStatusKaryawanRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
+router.use("/", require("./hr/absenCheckInOutRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
+router.use("/", require("./hr/karyawan/karyawanBagianMesinRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
 router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
 router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
 router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
 router.use("/", require("./hr/pengajuanMangkir/pengajuanMangkirRoute"));
+router.use(
+  "/",
+  require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
+);
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
+router.use("/", require("./hr/incomingTaskRoute"));
+router.use(
+  "/",
+  require("./hr/outstanding/outstandingAbsen/outstandingAbsenRoute")
+);
+router.use(
+  "/",
+  require("./hr/outstanding/outstandingKaryawan/outstandingKaryawanRoute")
+);
 
 //payroll
 router.use("/", require("./hr/payroll/payrollRoute"));
@@ -194,6 +221,10 @@ router.use(
   require("./masterdata/ppic/masterKategoriSettingKapasitasRoute")
 );
 router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
+
+//ppic
+router.use("/", require("./ppic/jadwalProduksiRoute"));
+router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

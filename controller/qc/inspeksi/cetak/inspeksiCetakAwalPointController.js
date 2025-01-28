@@ -29,6 +29,7 @@ const inspeksiCetakAwalpointController = {
     const _id = req.params.id;
     const {
       catatan,
+      eye_c,
       lama_pengerjaan,
       line_clearance,
       design,
@@ -58,6 +59,7 @@ const inspeksiCetakAwalpointController = {
           waktu_selesai: new Date(),
           status: "done",
           catatan,
+          eye_c,
           lama_pengerjaan,
           line_clearance,
           design,

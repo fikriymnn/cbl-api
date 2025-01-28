@@ -7,14 +7,14 @@ const { DataTypes } = Sequelize;
 const MasterRole = db.define(
   "ms_role",
   {
-    id_bagian: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: MasterBagian,
-        key: "id",
-      },
-    },
+    // id_bagian: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: true,
+    //   references: {
+    //     model: MasterBagian,
+    //     key: "id",
+    //   },
+    // },
     nama_role: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -30,10 +30,10 @@ const MasterRole = db.define(
   }
 );
 
-MasterBagian.hasMany(MasterRole, { foreignKey: "id_bagian" }),
-  MasterRole.belongsTo(MasterBagian, {
-    foreignKey: "id_bagian",
-    as: "bagian",
-  });
+// MasterBagian.hasMany(MasterRole, { foreignKey: "id_bagian" }),
+//   MasterRole.belongsTo(MasterBagian, {
+//     foreignKey: "id_bagian",
+//     as: "bagian",
+//   });
 
 module.exports = MasterRole;

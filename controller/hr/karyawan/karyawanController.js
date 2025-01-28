@@ -5,15 +5,20 @@ const MasterCuti = require("../../../model/masterData/hr/masterCutiModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
+const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
+const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
+const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, id_department, tipe_penggajian } = req.query;
+    const { page, limit, search, id_department, tipe_penggajian, is_active } =
+      req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search)
@@ -21,12 +26,20 @@ const karyawanController = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
       };
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+
+    if (is_active && is_active == "true") {
+      obj.is_active = true;
+    } else if (is_active && is_active == "false") {
+      obj.is_active = false;
+    }
+
     try {
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
+
       const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
-      console.log(karyawanIds);
+
       if (page && limit) {
         const length = await Karyawan.count({
           where: {
@@ -48,8 +61,16 @@ const karyawanController = {
                   as: "divisi",
                 },
                 {
+                  model: MasterStatusKaryawan,
+                  as: "status",
+                },
+                {
                   model: MasterDepartment,
                   as: "department",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
                 },
                 {
                   model: MasterBagianHr,
@@ -84,6 +105,29 @@ const karyawanController = {
                   model: KaryawanPotongan,
                   as: "potongan_karyawan",
                 },
+
+                {
+                  model: HistoriPromosiStatusKaryawan,
+                  as: "histori_promosi_status_karyawan",
+                  include: [
+                    {
+                      model: MasterStatusKaryawan,
+                      as: "status_karyawan_awal",
+                    },
+                    {
+                      model: MasterStatusKaryawan,
+                      as: "status_karyawan_pengajuan",
+                    },
+                  ],
+                },
+                {
+                  model: MasterStatusKaryawan,
+                  as: "status",
+                },
+                {
+                  model: KaryawanBagianMesin,
+                  as: "bagian_mesin_karyawan",
+                },
                 {
                   model: MasterDivisi,
                   as: "divisi",
@@ -95,6 +139,10 @@ const karyawanController = {
                 {
                   model: MasterBagianHr,
                   as: "bagian",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
                 },
                 {
                   model: MasterGradeHr,
@@ -125,6 +173,10 @@ const karyawanController = {
               ],
             },
             {
+              model: MasterStatusKaryawan,
+              as: "status",
+            },
+            {
               model: MasterDivisi,
               as: "divisi",
             },
@@ -135,6 +187,10 @@ const karyawanController = {
             {
               model: MasterBagianHr,
               as: "bagian",
+            },
+            {
+              model: MasterJabatan,
+              as: "jabatan",
             },
             {
               model: MasterGradeHr,
@@ -161,12 +217,20 @@ const karyawanController = {
                   as: "divisi",
                 },
                 {
+                  model: MasterStatusKaryawan,
+                  as: "status",
+                },
+                {
                   model: MasterDepartment,
                   as: "department",
                 },
                 {
                   model: MasterBagianHr,
                   as: "bagian",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
                 },
                 {
                   model: MasterGradeHr,
@@ -199,12 +263,13 @@ const karyawanController = {
       id_divisi,
       id_department,
       id_bagian,
+      id_jabatan,
       id_grade,
+      id_status_karyawan,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
       tipe_karyawan,
-      jabatan,
       status_karyawan,
       status_pajak,
       level,
@@ -212,17 +277,21 @@ const karyawanController = {
       gaji,
       kontrak_dari,
       kontrak_sampai,
+      bagian_mesin,
     } = req.body;
     const t = await db.transaction();
 
     let jumlah_cuti = 0;
 
-    if (status_karyawan == "tetap") {
+    if (id_status_karyawan == 1) {
       const masterCuti = await MasterCuti.findByPk(1);
       jumlah_cuti = masterCuti.jumlah_hari;
     }
 
     try {
+      const dataJabatan = await MasterJabatan.findByPk(id_jabatan);
+      if (!dataJabatan)
+        return res.status(404).json({ msg: "data jabatan tidak di temukan" });
       const dataKaryawan = await Karyawan.create(
         {
           name: nama_karyawan,
@@ -248,12 +317,14 @@ const karyawanController = {
           id_divisi,
           id_department,
           id_bagian,
+          id_jabatan,
           id_grade,
+          id_status_karyawan,
           tgl_masuk,
           tgl_keluar,
           tipe_penggajian,
           tipe_karyawan,
-          jabatan,
+          nama_jabatan: dataJabatan.nama_jabatan,
           status_karyawan,
           status_pajak,
           level,
@@ -267,6 +338,19 @@ const karyawanController = {
           transaction: t,
         }
       );
+
+      for (let i = 0; i < bagian_mesin.length; i++) {
+        const data = bagian_mesin[i];
+        await KaryawanBagianMesin.create(
+          {
+            id_karyawan: dataKaryawan.userid,
+            id_biodata_karyawan: dataBiodata.id,
+            id_bagian_mesin: data.id_bagian_mesin,
+            nama_bagian_mesin: data.nama_bagian_mesin,
+          },
+          { transaction: t }
+        );
+      }
 
       await t.commit();
       res.status(200).json({
@@ -287,40 +371,50 @@ const karyawanController = {
       id_divisi,
       id_department,
       id_bagian,
+      id_jabatan,
       id_grade,
+      id_status_karyawan,
       tgl_masuk,
       tgl_keluar,
       tipe_penggajian,
       tipe_karyawan,
-      jabatan,
       status_karyawan,
       status_pajak,
       level,
       sub_level,
       gaji,
+      bagian_mesin,
     } = req.body;
     const t = await db.transaction();
-    let obj = {};
-
-    if (nik) obj.nik = nik;
-    if (jenis_kelamin) obj.jenis_kelamin = jenis_kelamin;
-    if (id_divisi) obj.id_divisi = id_divisi;
-    if (id_department) obj.id_department = id_department;
-    if (id_bagian) obj.id_bagian = id_bagian;
-    if (id_grade) obj.id_grade = id_grade;
-    if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
-    if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
-    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
-    if (tipe_karyawan) obj.tipe_karyawan = tipe_karyawan;
-    if (jabatan) obj.jabatan = jabatan;
-    if (status_karyawan) obj.status_karyawan = status_karyawan;
-    if (status_pajak) obj.status_pajak = status_pajak;
-    if (level) obj.level = level;
-    if (sub_level) obj.sub_level = sub_level;
-    if (gaji) obj.gaji = gaji;
+    console.log(_id);
 
     try {
-      const dataKaryawan = await Karyawan.update(
+      let obj = {};
+      if (nik) obj.nik = nik;
+      if (jenis_kelamin) obj.jenis_kelamin = jenis_kelamin;
+      if (id_divisi) obj.id_divisi = id_divisi;
+      if (id_department) obj.id_department = id_department;
+      if (id_bagian) obj.id_bagian = id_bagian;
+      if (id_grade) obj.id_grade = id_grade;
+      if (id_status_karyawan) obj.id_status_karyawan = id_status_karyawan;
+      if (tgl_masuk) obj.tgl_masuk = tgl_masuk;
+      if (tgl_keluar) obj.tgl_keluar = tgl_keluar;
+      if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+      if (tipe_karyawan) obj.tipe_karyawan = tipe_karyawan;
+      if (status_karyawan) obj.status_karyawan = status_karyawan;
+      if (status_pajak) obj.status_pajak = status_pajak;
+      if (level) obj.level = level;
+      if (sub_level) obj.sub_level = sub_level;
+      if (gaji) obj.gaji = gaji;
+      if (id_jabatan) {
+        const dataJabatan = await MasterJabatan.findByPk(id_jabatan);
+        if (!dataJabatan)
+          return res.status(404).json({ msg: "data jabatan tidak di temukan" });
+
+        obj.id_jabatan = id_jabatan;
+        obj.nama_jabatan = dataJabatan.nama_jabatan;
+      }
+      await Karyawan.update(
         {
           name: nama_karyawan,
         },
@@ -339,9 +433,49 @@ const karyawanController = {
         transaction: t,
       });
 
+      if (bagian_mesin) {
+        for (let i = 0; i < bagian_mesin.length; i++) {
+          const data = bagian_mesin[i];
+          await KaryawanBagianMesin.update(
+            {
+              id_bagian_mesin: data.id_bagian_mesin,
+              nama_bagian_mesin: data.nama_bagian_mesin,
+            },
+            { where: { id: data.id }, transaction: t }
+          );
+        }
+      }
+
       await t.commit();
       res.status(200).json({
         msg: "Update Successful",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  deleteKaryawan: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      await KaryawanBiodata.update(
+        {
+          is_active: false,
+        },
+        {
+          where: {
+            id_karyawan: _id,
+          },
+          transaction: t,
+        }
+      );
+
+      await t.commit();
+      res.status(200).json({
+        msg: "Delete Successful",
       });
     } catch (error) {
       await t.rollback();
