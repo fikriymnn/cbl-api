@@ -4,7 +4,6 @@ const inspeksiBarangrusakV2 = require("../../../../controller/qc/inspeksi/barang
 
 router.get(
   "/qc/cs/inspeksiBarangRusakV2/:id?",
-  auth,
   inspeksiBarangrusakV2.getInspeksiBarangRusakV2
 );
 router.post(
