@@ -31,6 +31,14 @@ const InspeksiRabutDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    kode_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masalah_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     sumber_masalah: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -447,30 +447,54 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_mulai_mtc"),
+                col("waktu_respon_qc"),
                 col("waktu_selesai_mtc")
               )
             ),
+            "jumlah_waktu_menit_mtc",
+          ], // Menghitung jumlah waktu mtc dalam menit
+          [
+            fn(
+              "SUM",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("createdAt"),
+                col("waktu_selesai")
+              )
+            ),
             "jumlah_waktu_menit",
-          ], // Menghitung jumlah waktu dalam menit
+          ], // Menghitung jumlah waktu keseluruhan dalam menit
           [
             fn(
               "AVG",
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_mulai_mtc"),
+                col("waktu_respon_qc"),
                 col("waktu_selesai_mtc")
               )
             ),
+            "rata_rata_waktu_menit_mtc",
+          ], // Menghitung rata-rata waktu mtc
+          [
+            fn(
+              "AVG",
+              fn(
+                "TIMESTAMPDIFF",
+                literal("MINUTE"),
+                col("createdAt"),
+                col("waktu_selesai")
+              )
+            ),
             "rata_rata_waktu_menit",
-          ], // Menghitung rata-rata waktu
+          ], // Menghitung rata-rata waktu keseluruhan
         ],
         where: {
-          waktu_mulai_mtc: {
-            [Op.ne]: null,
-          },
-          waktu_selesai_mtc: {
+          // waktu_mulai_mtc: {
+          //   [Op.ne]: null,
+          // },
+          waktu_selesai: {
             [Op.ne]: null,
           },
           createdAt: {
@@ -492,7 +516,7 @@ const ReportMaintenance = {
             data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
           };
         }
-        console.log([...defaultMonths]);
+        // console.log([...defaultMonths]);
 
         // Temukan bulan yang sesuai dalam array default bulan
         const foundMonth = acc[mesin].data.find(
@@ -501,8 +525,14 @@ const ReportMaintenance = {
 
         if (foundMonth) {
           // Jika bulan ditemukan, update total
+          foundMonth.jumlah_waktu_mtc_menit = row.jumlah_waktu_menit_mtc;
+          foundMonth.rata_rata_waktu_mtc_menit = row.rata_rata_waktu_menit_mtc;
           foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;
           foundMonth.rata_rata_waktu_menit = row.rata_rata_waktu_menit;
+          foundMonth.jumlah_waktu_menit_qc =
+            row.jumlah_waktu_menit - row.jumlah_waktu_menit_mtc;
+          foundMonth.rata_rata_waktu_menit_qc =
+            row.rata_rata_waktu_menit - row.rata_rata_waktu_menit_mtc;
         }
 
         return acc;

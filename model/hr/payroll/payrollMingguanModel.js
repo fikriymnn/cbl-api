@@ -2,12 +2,21 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const KaryawanModel = require("../karyawanModel");
 const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
+const PayrollPeriodeModel = require("./payrollMingguanPeriodeModel");
 
 const { DataTypes } = Sequelize;
 
 const Payroll = db.define(
   "payroll_mingguan",
   {
+    id_payroll_periode: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PayrollPeriodeModel,
+        key: "id",
+      },
+    },
     id_karyawan: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -91,6 +100,16 @@ DepartmentModel.hasMany(Payroll, {
 Payroll.belongsTo(DepartmentModel, {
   foreignKey: "id_department",
   as: "department",
+});
+
+//relasi master department
+PayrollPeriodeModel.hasMany(Payroll, {
+  foreignKey: "id_payroll_periode",
+  as: "payroll_detail",
+});
+Payroll.belongsTo(PayrollPeriodeModel, {
+  foreignKey: "id_payroll_periode",
+  as: "payroll_periode",
 });
 
 module.exports = Payroll;

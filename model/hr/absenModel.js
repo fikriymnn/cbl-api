@@ -1,5 +1,5 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../config/databaseFinger");
+const db = require("../../config/database");
 
 const { DataTypes } = Sequelize;
 
@@ -18,7 +18,7 @@ const CheckInOut = db.define(
     checktype: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "I",
+      defaultValue: "0",
     },
     verifycode: {
       type: DataTypes.INTEGER,

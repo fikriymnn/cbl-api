@@ -24,6 +24,7 @@ const KendalaLkhTiketController = {
       department,
     } = req.query;
     try {
+      console.log(req.query);
       let obj = {};
       let des = ["createdAt", "DESC"];
       let options = {};

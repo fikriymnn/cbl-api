@@ -1,17 +1,17 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../config/database");
-const masterRole = require("./masterRoleModel");
+const db = require("../../../config/database");
+const MasterAksesParent3 = require("./masterAksesParent3Model");
 
 const { DataTypes } = Sequelize;
 
-const MasterAkses = db.define(
-  "ms_akses",
+const MasterAksesParent4 = db.define(
+  "ms_akses_parent_4",
   {
-    id_role: {
+    id_akses_parent_3: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: masterRole,
+        model: MasterAksesParent3,
         key: "id",
       },
     },
@@ -33,7 +33,7 @@ const MasterAkses = db.define(
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
-      defaultValue: false,
+      defaultValue: true,
     },
     path_name: {
       type: DataTypes.STRING,
@@ -47,28 +47,19 @@ const MasterAkses = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    id_parent: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    id_parent_1: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    id_parent_2: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
   },
   {
     freezeTableName: true,
   }
 );
 
-masterRole.hasMany(MasterAkses, { foreignKey: "id_role", as: "akses" }),
-  MasterAkses.belongsTo(masterRole, {
-    foreignKey: "id_role",
-    as: "role",
+MasterAksesParent3.hasMany(MasterAksesParent4, {
+  foreignKey: "id_akses_parent_3",
+  as: "parent_4",
+}),
+  MasterAksesParent4.belongsTo(MasterAksesParent3, {
+    foreignKey: "id_akses_parent_3",
+    as: "parent_3",
   });
 
-module.exports = MasterAkses;
+module.exports = MasterAksesParent4;

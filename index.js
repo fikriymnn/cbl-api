@@ -143,6 +143,10 @@ const inspeksiOutsourcingBJSub = require("./model/qc/inspeksi/outsourcingBJ/insp
 const inspeksiBarangRusak = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakModel");
 const inspeksiBarangRusakDefect = require("./model/qc/inspeksi/barangRusak/inspeksiBarangRusakDefectModel");
 
+const inspeksiBarangRusakV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Model");
+const inspeksiBarangRusakPointV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
+const inspeksiBarangRusakDefectV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
+
 const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
@@ -152,7 +156,7 @@ const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
 
 const masterBagian = require("./model/masterData/masterBagian");
 const masterRole = require("./model/masterData/masterRoleModel");
-const masterAkses = require("./model/masterData/masterAksesModel");
+const masterAkses = require("./model/masterData/masterAkses/masterAksesModel");
 
 //master hr
 const masterPerusahaan = require("./model/masterData/hr/masterPerusahaanModel");
@@ -160,19 +164,24 @@ const masterCuti = require("./model/masterData/hr/masterCutiModel");
 const masterDivisi = require("./model/masterData/hr/masterDivisiModel");
 const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
+const masterJabatan = require("./model/masterData/hr/masterJabatanModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
 const WaktuShift = require("./model/masterData/hr/masterShift/masterShiftModel");
 const WaktuIstirahat = require("./model/masterData/hr/masterShift/masterIstirahatModel");
 const masterPayroll = require("./model/masterData/hr/masterPayrollModel");
+const masterStatusKaryawan = require("./model/masterData/hr/masterStatusKaryawanModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
+const outstandingAbsen = require("./model/hr/outstanding/outstandingAbsen/outstandingAbsenModel");
+const outstandingKaryawan = require("./model/hr/outstanding/outstandingKaryawan/outstandingKaryawanModel");
 
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
 const karyawanPotongan = require("./model/hr/karyawan/karyawanPotonganModel");
+const KaryawanBagianMesin = require("./model/hr/karyawan/karyawanBagianMesinModel");
 
 //jadwal
 const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
@@ -183,6 +192,9 @@ const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
+const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
+const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
+const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -194,6 +206,7 @@ const Project = require("./model/mtc/project/projectModel");
 const SubProject = require("./model/mtc/project/subProjectModel");
 
 //payroll
+const payrollMingguanPeriode = require("./model/hr/payroll/payrollMingguanPeriodeModel");
 const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
 const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
 const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
@@ -202,6 +215,17 @@ const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailMod
 //master ppic
 const MasterKategoriSettingKapasitas = require("./model/masterData/ppic/masterKategoriSettingKapasitasModel");
 const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel");
+
+//ppic
+const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
+
+//hak akses
+const MasterRole = require("./model/masterData/masterRoleModel");
+const MasterAksesMain = require("./model/masterData/masterAkses/masterAksesModel");
+const MasterAksesParent1 = require("./model/masterData/masterAkses/masterAksesParent1Model");
+const MasterAksesParent2 = require("./model/masterData/masterAkses/masterAksesParent2Model");
+const MasterAksesParent3 = require("./model/masterData/masterAkses/masterAksesParent3Model");
+const MasterAksesParent4 = require("./model/masterData/masterAkses/masterAksesParent4Model");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -220,7 +244,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await SubProject.sync({ alter: true });
+//   await inspeksiBarangRusakDefectV2.sync({ alter: true });
 // })();
 
 // const ip100 = 75

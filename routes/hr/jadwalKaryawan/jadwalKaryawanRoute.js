@@ -21,5 +21,14 @@ router.put(
   "/hr/jadwalKaryawan/:id",
   jadwalKaryawanController.updateJadwalKaryawan
 );
+router.delete(
+  "/hr/jadwalKaryawan/:id",
+  jadwalKaryawanController.deleteJadwalKaryawan
+);
+
+router.delete(
+  "/hr/jadwalKaryawanSatuTahun",
+  jadwalKaryawanController.deleteJadwalKaryawanSatuTahun
+);
 
 module.exports = router;

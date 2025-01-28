@@ -10,11 +10,11 @@ const DataSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
 const AbsensiDepartmentController = {
   getAbsensiDepartment: async (req, res) => {
-    const { id_department, startDate, endDate } = req.query;
+    const { id_department, is_active, startDate, endDate } = req.query;
 
     let obj = {};
     if (id_department) obj.id_department = id_department;
-
+    if (is_active) obj.is_active = is_active;
     try {
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,

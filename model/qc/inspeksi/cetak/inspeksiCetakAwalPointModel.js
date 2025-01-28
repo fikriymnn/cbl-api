@@ -37,6 +37,10 @@ const InspeksiCetakAwalPoint = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    eye_c: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

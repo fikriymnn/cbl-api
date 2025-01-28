@@ -45,6 +45,10 @@ const InspeksiCetakPeriodePoint = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    eye_c: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     jumlah_sampling: {
       type: DataTypes.STRING,
       allowNull: true,
