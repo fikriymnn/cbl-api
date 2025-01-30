@@ -137,6 +137,11 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    status_active: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "active",
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -6,6 +6,7 @@ const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const MasterPayroll = require("../../../model/masterData/hr/masterPayrollModel");
 const pengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
@@ -206,6 +207,22 @@ const payrollController = {
               model: MasterGradeHr,
               as: "grade",
             },
+            // {
+            //   model: MasterDivisi,
+            //   as: "divisi",
+            // },
+            // {
+            //   model: MasterDepartment,
+            //   as: "department",
+            // },
+            // {
+            //   model: MasterBagianHr,
+            //   as: "bagian",
+            // },
+            // {
+            //   model: MasterJabatan,
+            //   as: "jabatan",
+            // },
           ],
         });
 
@@ -316,6 +333,14 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     nama_karyawan: dataKaryawan.karyawan.name,
     nik: dataKaryawan.nik,
     id_karyawan: dataKaryawan.id_karyawan,
+    divisi:
+      dataKaryawan.divisi == null ? null : dataKaryawan.divisi?.nama_divisi,
+    department:
+      dataKaryawan.department == null
+        ? null
+        : dataKaryawan.department.nama_department,
+    jabatan:
+      dataKaryawan.jabatan == null ? null : dataKaryawan.jabatan.nama_jabatan,
     rincian: [],
     upahHarianSakit: [],
     potonganPinjaman: null,

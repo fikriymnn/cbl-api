@@ -122,13 +122,14 @@ const ReportWasterQc = {
             const data = result.get({ plain: true }); // Mengambil data bersih
             // console.log(data.inspeksi_barang_rusak_defect_v2);
             return data.inspeksi_barang_rusak_defect_v2.map((defect) => ({
-              temuan: "sortir RS",
+              temuan: "sortir_RS",
               no_jo: data.no_jo,
               no_io: data.no_io,
               customer: data.customer,
               nama_produk: data.nama_produk,
               mesin: null,
               operator: data.operator,
+              tanggal: defect.inspeksi_barang_rusak_point_v2.waktu_mulai,
               inspektor: defect.inspeksi_barang_rusak_point_v2.inspektor.nama,
               total_defect:
                 defect.jumlah_defect == null ? 0 : defect.jumlah_defect,
@@ -144,7 +145,7 @@ const ReportWasterQc = {
           .map((result) => {
             const data = result.get({ plain: true }); // Mengambil data bersih
             return data.inspeksi_defect.map((defect) => ({
-              temuan: "sampling rabut",
+              temuan: "sampling_rabut",
               no_jo: data.no_jo,
               no_jo: data.no_jo,
               no_io: data.no_io,
@@ -152,6 +153,7 @@ const ReportWasterQc = {
               nama_produk: data.nama_produk,
               mesin: data.mesin,
               operator: data.operator,
+              tanggal: defect.inspeksi_rabut_point.waktu_mulai,
               inspektor: defect.inspeksi_rabut_point.inspektor.nama,
               total_defect: defect.hasil == null ? 0 : defect.hasil,
               ...defect,
@@ -166,7 +168,7 @@ const ReportWasterQc = {
           .map((result) => {
             const data = result.get({ plain: true }); // Mengambil data bersih
             return data.inspeksi_defect.map((defect) => ({
-              temuan: "ampar lem",
+              temuan: "ampar_lem",
               no_jo: data.no_jo,
               mesin: data.mesin,
               no_jo: data.no_jo,
@@ -275,11 +277,11 @@ const ReportWasterQc = {
       res.status(200).json({
         //data2: grupByJo,
         //data3: datamasterReplace,
-        // dataWasteAllReplace: resultJumlahAllDataReplace,
-        // dataWasteAll: resultJumlahAllData,
+        dataWasteAllReplace: resultJumlahAllDataReplace,
+        dataWasteAll: resultJumlahAllData,
         dataWasteByJo: resultGrupJoinWithMaster,
-        // dataWasteByJoReplace: resultGrupJoinWithMasterReplace,
-        // dataByKategori: dataByKategori,
+        dataWasteByJoReplace: resultGrupJoinWithMasterReplace,
+        dataByKategori: dataByKategori,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -452,6 +454,9 @@ const mapKodeToProduksiReplace = (
     // Kembalikan data jo dengan defects yang sudah dikelompokkan
     return {
       no_jo: joItem.no_jo,
+      no_io: joItem.no_io,
+      customer: joItem.customer,
+      nama_produk: joItem.nama_produk,
       defectsByKategori: dataDefectByKategori.defectsByKategori,
       total_defect: Object.values(groupedDefects).reduce(
         (sum, defect) => sum + defect.total_defect,

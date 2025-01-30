@@ -14,6 +14,14 @@ const MasterAbsensi = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    terhitung_lembur_menit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    outstanding_karyawan_hari: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     freezeTableName: true,

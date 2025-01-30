@@ -567,6 +567,7 @@ const absenFunction = {
         // Hitung pulang cepat
         const toleransiKeluar =
           masterAbsensi.toleransi_pulang_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
+
         if (
           waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar &&
           jenisHariMasuk == "Biasa"
@@ -580,10 +581,13 @@ const absenFunction = {
         }
 
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
+        // diambil dari master absensi untuk minimal jam lembur
         if (keluar && jenisHariMasuk == "Biasa") {
           if (
             shift === "Shift 1" &&
-            waktuKeluarUTC > waktuKeluarShift1UTC + 30 * 60 * 1000
+            waktuKeluarUTC >
+              waktuKeluarShift1UTC +
+                masterAbsensi.terhitung_lembur_menit * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift1UTC) / 3600000;
@@ -593,7 +597,9 @@ const absenFunction = {
             statusLembur = "Lembur";
           } else if (
             shift === "Shift 2" &&
-            waktuKeluarUTC > waktuKeluarShift2UTC + 30 * 60 * 1000
+            waktuKeluarUTC >
+              waktuKeluarShift2UTC +
+                masterAbsensi.terhitung_lembur_menit * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift2UTC) / 3600000;

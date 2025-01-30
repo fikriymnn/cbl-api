@@ -11,13 +11,22 @@ const masterShiftController = {
   },
 
   updateMasterAbsensi: async (req, res) => {
-    const { toleransi_kedatangan_menit, toleransi_pulang_menit } = req.body;
+    const {
+      toleransi_kedatangan_menit,
+      toleransi_pulang_menit,
+      terhitung_lembur_menit,
+      outstanding_karyawan_hari,
+    } = req.body;
 
     let obj = {};
     if (toleransi_kedatangan_menit)
       obj.toleransi_kedatangan_menit = toleransi_kedatangan_menit;
     if (toleransi_pulang_menit)
       obj.toleransi_pulang_menit = toleransi_pulang_menit;
+    if (terhitung_lembur_menit)
+      obj.terhitung_lembur_menit = terhitung_lembur_menit;
+    if (outstanding_karyawan_hari)
+      obj.outstanding_karyawan_hari = outstanding_karyawan_hari;
 
     try {
       await masterAbsensi.update(obj, { where: { id: 1 } }),

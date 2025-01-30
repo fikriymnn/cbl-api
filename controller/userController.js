@@ -4,6 +4,12 @@ const userActionMtc = require("../model/mtc/userActionMtc");
 const Ticket = require("../model/maintenaceTicketModel");
 const Karyawan = require("../model/hr/karyawanModel");
 const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
+const masterRole = require("../model/masterData/masterRoleModel");
+const masterAkses = require("../model/masterData/masterAkses/masterAksesModel");
+const masterAksesParent1 = require("../model/masterData/masterAkses/masterAksesParent1Model");
+const masterAksesParent2 = require("../model/masterData/masterAkses/masterAksesParent2Model");
+const masterAksesParent3 = require("../model/masterData/masterAkses/masterAksesParent3Model");
+const masterAksesParent4 = require("../model/masterData/masterAkses/masterAksesParent4Model");
 
 const userController = {
   getUsers: async (req, res) => {
@@ -81,6 +87,41 @@ const userController = {
               as: "biodata_karyawan",
             },
           },
+          {
+            model: masterRole,
+            as: "role_akses",
+            include: [
+              {
+                model: masterAkses,
+                as: "akses",
+                order: [["nama", "ASC"]],
+                include: [
+                  {
+                    model: masterAksesParent1,
+                    as: "parent_1",
+                    include: [
+                      {
+                        model: masterAksesParent2,
+                        as: "parent_2",
+                        include: [
+                          {
+                            model: masterAksesParent3,
+                            as: "parent_3",
+                            include: [
+                              {
+                                model: masterAksesParent4,
+                                as: "parent_4",
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
         ],
         where: {
           uuid: req.params.id,
@@ -155,6 +196,7 @@ const userController = {
     const {
       nama,
       id_karyawan,
+      id_role,
       email,
       password,
       confPassword,
@@ -164,6 +206,7 @@ const userController = {
       bagian,
     } = req.body;
     let hashPassword;
+    console.log(password);
     if (password === "" || password === null) {
       hashPassword = users.password;
     } else {
@@ -181,6 +224,7 @@ const userController = {
           nama: nama,
           email: email,
           id_karyawan: id_karyawan,
+          id_role: id_role,
           password: hashPassword,
           role: role,
           no: no,
