@@ -833,11 +833,13 @@ const absenFunction = {
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
       // console.log(dataKaryawanGenerete);
+
       return resultAbsen;
     } else {
       const resultAbsen = results.sort(
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
+
       return resultAbsen;
     }
   },

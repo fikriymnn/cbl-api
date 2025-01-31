@@ -44,7 +44,34 @@ const AbsensiController = {
     }
 
     try {
-      const dataKaryawan = await BiodataKaryawan.findAll({ where: obj });
+      const dataKaryawan = await BiodataKaryawan.findAll({
+        where: obj,
+        include: [
+          {
+            model: Karyawan,
+            as: "karyawan",
+          },
+          {
+            model: MasterDivisi,
+            as: "divisi",
+          },
+          {
+            model: MasterDepartment,
+            as: "department",
+          },
+          {
+            model: MasterBagianHr,
+            as: "bagian",
+          },
+          {
+            model: MasterJabatan,
+            as: "jabatan",
+          },
+        ],
+      });
+
+      //ambil data dari absensi
+      const absenResult = await getAbsensiFunction(startDate, endDate, obj);
 
       let dataResult = [];
       for (let i = 0; i < dataKaryawan.length; i++) {
@@ -52,51 +79,18 @@ const AbsensiController = {
         let obj = {};
         obj.id_karyawan = data.id_karyawan;
 
-        const karyawanData = await BiodataKaryawan.findOne({
-          where: { id_karyawan: data.id_karyawan },
-          include: [
-            {
-              model: Karyawan,
-              as: "karyawan",
-            },
-            {
-              model: MasterDivisi,
-              as: "divisi",
-            },
-            {
-              model: MasterDepartment,
-              as: "department",
-            },
-            {
-              model: MasterBagianHr,
-              as: "bagian",
-            },
-            {
-              model: MasterJabatan,
-              as: "jabatan",
-            },
-          ],
-        });
-
-        //ambil data dari absensi
-        const absenResult = await getAbsensiFunction(startDate, endDate, obj);
+        const absenResultFilter = absenResult.filter(
+          (absen) => absen.userid === data.id_karyawan
+        );
 
         dataResult.push({
-          nama_karyawan: karyawanData.karyawan.name,
-          id_department: karyawanData.id_department,
-          divisi:
-            karyawanData.divisi == null
-              ? null
-              : karyawanData.divisi?.nama_divisi,
+          nama_karyawan: data.karyawan.name,
+          id_department: data.id_department,
+          divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
           department:
-            karyawanData.department == null
-              ? null
-              : karyawanData.department.nama_department,
-          jabatan:
-            karyawanData.jabatan == null
-              ? null
-              : karyawanData.jabatan.nama_jabatan,
-          absensi: absenResult,
+            data.department == null ? null : data.department.nama_department,
+          jabatan: data.jabatan == null ? null : data.jabatan.nama_jabatan,
+          absensi: absenResultFilter,
         });
       }
       res.status(200).json({ data: dataResult });
