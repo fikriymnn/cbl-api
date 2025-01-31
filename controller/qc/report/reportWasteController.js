@@ -194,25 +194,28 @@ const ReportWasterQc = {
       const grupByJo = groupedDataBerdasarkanJO(resultGabung);
 
       //update data waste p1 menyesuaikan dengan data p2
-      // const updatedDataP1 = data_waste_p1.map((item) => ({
-      //   ...item,
-      //   inspeksi_defect: item.waste.map((defect) => ({
-      //     ...defect,
-      //     temuan: "helper",
-      //     total_defect: defect.total,
-      //     kode: defect.kode_waste,
-      //     masalah: defect.desc_waste,
-      //     kode_lkh: defect.kode_kendala,
-      //     masalah: defect.desc_kendala,
-      //   })),
-      //   waste: undefined, // Menghapus properti "waste"
-      // }));
+      const updatedDataP1 = data_waste_p1.map((item) => ({
+        ...item,
+        inspeksi_defect: item.waste.map((defect) => ({
+          ...defect,
+          temuan: "helper",
+          total_defect: defect.total,
+          kode: defect.kode_waste,
+          masalah: defect.desc_waste,
+          kode_lkh: defect.kode_kendala,
+          masalah_lkh: defect.desc_kendala,
+          inspektor: item.inspektor,
+          operator: item.operator,
+          tgl: item.tgl,
+        })),
+        waste: undefined, // Menghapus properti "waste"
+      }));
 
       //array untuk menggabungkan data p1 dan p2
       let dataWasteGabungan = [];
 
       //masukan data p1 ke array
-      //dataWasteGabungan.push(...updatedDataP1);
+      dataWasteGabungan.push(...updatedDataP1);
 
       //masukan data p2 ke array
       dataWasteGabungan.push(...grupByJo);
@@ -275,7 +278,7 @@ const ReportWasterQc = {
       const dataByKategori = getDataByKategoriAll(resultJumlahAllData);
 
       res.status(200).json({
-        //data2: grupByJo,
+        //data2: resultGrupJoinWithMaster,
         //data3: datamasterReplace,
         dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
@@ -619,9 +622,12 @@ function getDataByKategoriAll(dataAll) {
       resultMesin[key].total_calculated_defect += item.calculated_defect;
     }
   });
+  const resultDataKendalaByKategori = Object.values(dataKendalaByKategori).sort(
+    (a, b) => b.total_calculated_defect - a.total_calculated_defect
+  );
 
   return {
-    dataKendala: Object.values(dataKendalaByKategori),
+    dataKendala: resultDataKendalaByKategori,
     dataKendalaMesin: Object.values(resultMesin),
   };
 }
@@ -656,7 +662,7 @@ const transformDataMaster = (data) => {
 };
 
 // Daftar kategori default
-const defaultCategories = ["CETAK", "COATING", "POND", "LEM"];
+const defaultCategories = ["CETAK", "COATING", "POND", "LEM", "UNKNOWN"];
 const groupByCategoryWithDefault = (data) => {
   let result = {};
 
