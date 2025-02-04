@@ -138,19 +138,20 @@ const jadwalProduksiController = {
       const { id } = req.params;
       const dataById = dataDumyJo.find((data) => data.id == id);
 
-      const dataJadwal = await JadwalKaryawan.findAll({
-        order: [["createdAt", "DESC"]],
-        where: {
-          tanggal: {
-            [Op.between]: [
-              new Date().setHours(0, 0, 0, 0),
-              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-            ],
-          },
-          jenis_karyawan: "produksi",
-        },
-      });
+      // const dataJadwal = await JadwalKaryawan.findAll({
+      //   order: [["createdAt", "DESC"]],
+      //   where: {
+      //     tanggal: {
+      //       [Op.between]: [
+      //         new Date().setHours(0, 0, 0, 0),
+      //         new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
+      //       ],
+      //     },
+      //     jenis_karyawan: "produksi",
+      //   },
+      // });
 
+      // Jadwal libur
       let jadwalLibur = [
         "2024-12-25",
         "2024-12-01",
@@ -186,21 +187,27 @@ const jadwalProduksiController = {
         tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
       });
 
-      const tglKirim = new Date(dataById.tgl_kirim);
-      let currentDate = new Date(dataById.tgl_kirim);
+      const tgl_kirim = dataById.tgl_kirim;
+      const tahap = dataById.tahap;
+
+      const tglKirim = new Date(tgl_kirim);
+      let currentDate = new Date(tgl_kirim);
       let firstTglInSequence = null;
-      let currentHour = 23;
 
-      for (let i = dataById.tahap.length - 1; i >= 0; i--) {
-        const stage = dataById.tahap[i];
-        stage.jadwal_per_jam = [];
+      // Tempat untuk menyimpan list jadwal per jam
+      let listJadwalPerJam = [];
 
-        if (i === dataById.tahap.length - 1) {
+      for (let i = tahap.length - 1; i >= 0; i--) {
+        const stage = tahap[i];
+
+        if (i === tahap.length - 1) {
+          // Tahapan terakhir selalu menggunakan tgl_kirim asli
           stage.tgl_from = formatDateNow(tglKirim);
           stage.tgl_to = formatDateNow(tglKirim);
           continue;
         }
 
+        // Set tgl_to
         stage.tgl_to = formatDateNow(currentDate);
 
         if (stage.from === "tgl") {
@@ -214,28 +221,45 @@ const jadwalProduksiController = {
           }
         } else {
           firstTglInSequence = null;
-          let remainingHours = stage.total_waktu;
-          while (remainingHours > 0) {
-            if (currentHour === 0) {
-              currentDate.setDate(currentDate.getDate() - 1);
-              if (jadwalLiburSet.has(formatDateNow(currentDate))) continue;
-              currentHour = 23;
+
+          // Handle "druk" and "pcs" logic
+          if (stage.from === "druk" || stage.from === "pcs") {
+            // Mengurangi waktu sesuai total_waktu
+            for (let j = 0; j < stage.total_waktu; j++) {
+              listJadwalPerJam.push({
+                item: stage.item,
+                no_jo: dataById.no_jo,
+                qty_pcs: dataById.qty_pcs,
+                qty_druk: dataById.qty_druk,
+                tahapan: stage.tahapan,
+                from: stage.from,
+                nama_kategori: stage.nama_kategori,
+                kategori: stage.kategori,
+                kategori_drying_time: stage.kategory_drying_time,
+                mesin: stage.mesin,
+                kapasitas_per_jam: stage.kapasitas_per_jam,
+                drying_time: stage.drying_time,
+                seting: stage.setting,
+                kapasitas: stage.kapasitas,
+                toleransi: stage.toleransi,
+                total_waktu: stage.total_waktu,
+                tgl: formatNowDateOnly(currentDate),
+                jam: formatNowTimeOnly(currentDate),
+              });
+              currentDate.setHours(currentDate.getHours() - 1);
             }
-
-            console.log(currentHour);
-
-            stage.jadwal_per_jam.push({
-              tanggal: formatDateNow(currentDate),
-              jam: currentHour,
-            });
-
-            currentHour--;
-            remainingHours--;
           }
 
           stage.tgl_from = formatDateNow(currentDate);
         }
       }
+
+      // Menambahkan list jadwal per jam ke dalam data tahap
+      dataById.tahap.forEach((stage, index) => {
+        stage.listJadwalPerJam = listJadwalPerJam.filter(
+          (jadwal) => jadwal.tahapan === stage.tahapan
+        );
+      });
 
       res.status(200).json({ data: dataById });
     } catch (err) {
@@ -243,6 +267,14 @@ const jadwalProduksiController = {
     }
   },
 };
+
+// function formatDateNow(date) {
+//   return (
+//     date.toISOString().split("T")[0] +
+//     " " +
+//     date.toISOString().split("T")[1].split(".")[0]
+//   );
+// }
 
 const formatDateNow = (date) => {
   const options = {
@@ -255,7 +287,37 @@ const formatDateNow = (date) => {
     second: "2-digit",
   };
 
-  const formatter = new Intl.DateTimeFormat("en-GB", options);
+  const formatter = new Intl.DateTimeFormat("id-ID", options);
+  return formatter
+    .format(date)
+    .replace(",", "")
+    .replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$2-$1");
+};
+
+const formatNowDateOnly = (date) => {
+  const options = {
+    timeZone: "Asia/Jakarta", // Ganti dengan zona waktu Anda
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
+
+  const formatter = new Intl.DateTimeFormat("id-ID", options);
+  return formatter
+    .format(date)
+    .replace(",", "")
+    .replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$2-$1");
+};
+
+const formatNowTimeOnly = (date) => {
+  const options = {
+    timeZone: "Asia/Jakarta", // Ganti dengan zona waktu Anda
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  };
+
+  const formatter = new Intl.DateTimeFormat("id-ID", options);
   return formatter
     .format(date)
     .replace(",", "")
