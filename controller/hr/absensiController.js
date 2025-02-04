@@ -11,8 +11,6 @@ const AbsensiController = {
   getAbsensi: async (req, res) => {
     const { idDepartment, is_active, startDate, endDate } = req.query;
 
-    console.log(req.query);
-
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
     // if (is_active && is_active == "true") {
@@ -24,8 +22,14 @@ const AbsensiController = {
     // }
 
     if (startDate === endDate) obj.is_active = true;
+
     try {
-      const absenResult = await getAbsensiFunction(startDate, endDate, obj);
+      const absenResult = await getAbsensiFunction(
+        startDate,
+        endDate,
+        obj,
+        true
+      );
       res.status(200).json({ data: absenResult });
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -85,6 +89,7 @@ const AbsensiController = {
 
         dataResult.push({
           nama_karyawan: data.karyawan.name,
+          nik: data.nik,
           id_department: data.id_department,
           divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
           department:

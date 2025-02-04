@@ -1,6 +1,8 @@
 const { Op, Sequelize } = require("sequelize");
 const JadwalKaryawan = require("../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
 
+const moment = require("moment");
+
 const jadwalProduksiController = {
   getTiketJadwalProduksi: async (req, res) => {
     try {
@@ -136,36 +138,20 @@ const jadwalProduksiController = {
       const { id } = req.params;
       const dataById = dataDumyJo.find((data) => data.id == id);
 
-      const dataJadwal = await JadwalKaryawan.findAll({
-        order: [["createdAt", "DESC"]],
-        where: {
-          tanggal: {
-            [Op.between]: [
-              new Date().setHours(0, 0, 0, 0),
-              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-            ],
-          },
-          jenis_karyawan: "produksi",
-        },
-      });
-
       // Jadwal libur
-      let jadwalLibur = [
-        "2024-12-25", // Hari Natal
-        "2024-12-01", // Minggu
-        "2024-12-08", // Minggu
-        "2024-12-15", // Minggu
-        "2024-12-22", // Minggu
-        "2025-01-17", // Minggu
-      ];
+      // let jadwalLibur = [
+      //     "2024-12-25", // Hari Natal
+      //     "2024-12-01", // Minggu
+      //     "2024-12-08", // Minggu
+      //     "2024-12-15", // Minggu
+      //     "2024-12-22", // Minggu
+      //     "2025-01-19", // Minggu
+      // ];
 
-      // Format jadwal libur menjadi Date untuk perbandingan
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
       );
-      console.log(jadwalLiburSet);
 
-      // Fungsi untuk mengurangi tanggal dan melewati tanggal libur
       const decrementDate = (date, days) => {
         while (days > 0) {
           date.setDate(date.getDate() - 1);
@@ -177,8 +163,8 @@ const jadwalProduksiController = {
         return date;
       };
 
+      // Hitung kapasitas dan total waktu
       dataById.tahap.forEach((tahap) => {
-        // Hitung kapasitas
         if (tahap.from === "druk" && tahap.kapasitas_per_jam != 0) {
           tahap.kapasitas = dataById.qty_druk / tahap.kapasitas_per_jam;
         } else if (tahap.from === "pcs" && tahap.kapasitas_per_jam != 0) {
@@ -189,50 +175,109 @@ const jadwalProduksiController = {
 
         // Hitung total waktu
         tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
+
+        // Inisialisasi jadwal per jam untuk setiap tahap
+        tahap.jadwalPerJam = [];
       });
 
       const tgl_kirim = dataById.tgl_kirim;
-      const tahap = dataById.tahap;
-
       const tglKirim = new Date(tgl_kirim);
       let currentDate = new Date(tgl_kirim);
-      let firstTglInSequence = null;
 
-      for (let i = tahap.length - 1; i >= 0; i--) {
-        const stage = tahap[i];
+      for (let i = dataById.tahap.length - 1; i >= 0; i--) {
+        const stage = dataById.tahap[i];
 
-        if (i === tahap.length - 1) {
+        if (i === dataById.tahap.length - 1) {
           // Tahapan terakhir selalu menggunakan tgl_kirim asli
-          stage.tgl_from = formatDateNow(tglKirim);
-          stage.tgl_to = formatDateNow(tglKirim);
+          stage.tgl_from = moment(tglKirim).format("YYYY-MM-DD HH:mm:ss");
+          stage.tgl_to = moment(tglKirim).format("YYYY-MM-DD HH:mm:ss");
           continue;
         }
 
         // Set tgl_to
-        stage.tgl_to = formatDateNow(currentDate);
+        stage.tgl_to = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
 
         if (stage.from === "tgl") {
-          if (firstTglInSequence) {
-            // If in a sequence, align with the first "tgl"
-            stage.tgl_from = firstTglInSequence.tgl_from;
-            stage.tgl_to = firstTglInSequence.tgl_to;
-          } else {
-            // Otherwise, calculate and set as the first in sequence
-            firstTglInSequence = stage;
-            currentDate = decrementDate(currentDate, 2); // Kurangi 2 hari (lewati libur)
-            stage.tgl_from = formatDateNow(currentDate);
-          }
+          // Jika dari tgl, kurangi 2 hari
+          currentDate = decrementDate(currentDate, 2);
+          stage.tgl_from = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
         } else {
-          // Reset the sequence tracker for non-"tgl" stages
-          firstTglInSequence = null;
+          // Logika untuk "druk" dan "pcs"
+          const totalJam = stage.total_waktu; // total waktu dalam jam
+          let remainingHours = totalJam;
 
-          // Handle "druk" and "pcs" logic
-          if (stage.from === "druk" || stage.from === "pcs") {
-            currentDate.setHours(currentDate.getHours() - stage.total_waktu); // Gunakan total_waktu untuk kalkulasi
+          while (remainingHours > 0) {
+            // moment.locale("id"); // Atur bahasa ke Indonesia
+            // const dayOfWeek = new moment(currentDate).format("dddd");
+            // const shift = shiftHarian.find((s) => s.hari === dayOfWeek);
+
+            // Hitung jam kerja untuk shift 1
+            const shift1Start = moment(
+              `${moment(currentDate).format("YYYY-MM-DD")} ${"08:00:00"}`
+            );
+            const shift1End = moment(
+              `${moment(currentDate).format("YYYY-MM-DD")} ${"16:00:00"}`
+            );
+            const shift1Hours = shift1End.diff(shift1Start, "hours");
+
+            if (remainingHours > shift1Hours) {
+              // Jika jam tersisa lebih dari jam shift 1
+              for (let hour = 0; hour < shift1Hours; hour++) {
+                stage.jadwalPerJam.push({
+                  tanggal: moment(currentDate).format("YYYY-MM-DD"),
+                  jam: shift1Start.hours() + hour,
+                });
+              }
+              remainingHours -= shift1Hours;
+              currentDate = decrementDate(currentDate, 1); // Pindah ke hari berikutnya
+            } else {
+              // Jika jam tersisa kurang dari jam shift 1
+              for (let hour = 0; hour < remainingHours; hour++) {
+                stage.jadwalPerJam.push({
+                  tanggal: moment(currentDate).format("YYYY-MM-DD"),
+                  jam: shift1Start.hours() + hour,
+                });
+              }
+              currentDate.setHours(shift1Start.hours() + remainingHours);
+              remainingHours = 0; // Selesai
+            }
+
+            // Hitung jam kerja untuk shift 2 jika masih ada jam tersisa
+            if (remainingHours > 0) {
+              const shift2Start = moment(
+                `${moment(currentDate).format("YYYY-MM-DD")} ${"20:00:00"}`
+              );
+              const shift2End = moment(
+                `${moment(currentDate).format("YYYY-MM-DD")} ${"23:00:00"}`
+              );
+              const shift2Hours = shift2End.diff(shift2Start, "hours");
+
+              if (remainingHours > shift2Hours) {
+                // Jika jam tersisa lebih dari jam shift 2
+                for (let hour = 0; hour < shift2Hours; hour++) {
+                  stage.jadwalPerJam.push({
+                    tanggal: moment(currentDate).format("YYYY-MM-DD"),
+                    jam: shift2Start.hours() + hour,
+                  });
+                }
+                remainingHours -= shift2Hours;
+                currentDate = decrementDate(currentDate, 1); // Pindah ke hari berikutnya
+              } else {
+                // Jika jam tersisa kurang dari jam shift 2
+                for (let hour = 0; hour < remainingHours; hour++) {
+                  stage.jadwalPerJam.push({
+                    tanggal: moment(currentDate).format("YYYY-MM-DD"),
+                    jam: shift2Start.hours() + hour,
+                  });
+                }
+                currentDate.setHours(shift2Start.hours() + remainingHours);
+                remainingHours = 0; // Selesai
+              }
+            }
           }
 
           // Set tgl_from
-          stage.tgl_from = formatDateNow(currentDate);
+          stage.tgl_from = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
         }
       }
 
@@ -260,6 +305,18 @@ const formatDateNow = (date) => {
     .replace(",", "")
     .replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$2-$1");
 };
+
+// Jadwal libur
+const jadwalLibur = [
+  "2024-12-25", // Hari Natal
+  "2024-12-01", // Minggu
+  "2024-12-08", // Minggu
+  "2024-12-15", // Minggu
+  "2024-12-22", // Minggu
+  "2025-01-09", // Minggu
+  "2025-01-11", // Minggu
+  "2025-01-19", // Minggu
+];
 
 // Data shift untuk setiap hari
 const shiftHarian = [
@@ -314,7 +371,6 @@ const shiftHarian = [
     shift_2_keluar: "06:00:00",
     istirahat: [],
   },
-  // Tambahkan data untuk hari lainnya...
 ];
 
 const dataDumyJo = [
@@ -510,197 +566,197 @@ const dataDumyJo = [
     ],
   },
 
-  {
-    id: 2,
-    item: "Bolu bakar",
-    jo: "24-00003",
-    tgl_kirim: "30 October 2024",
-    tgl_cetak: "07 October 2024",
-    qty_pcs: 50000,
-    qty_druk: 25700,
-    tahap: [
-      {
-        tahapan: "Potong",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "ITOH",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Plate",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "CTP",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Cetak",
-        from: "druk",
-        kategory: "B",
-        kategory_drying_time: "B",
-        mesin: "SM",
-        kapasitas_per_jam: 1500,
-        drying_time: 48,
-        setting: 3,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Coating",
-        from: "druk",
-        kategory: "A",
-        kategory_drying_time: "B",
-        mesin: "OUTSORCE",
-        kapasitas_per_jam: 500,
-        drying_time: 48,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Pond",
-        from: "druk",
-        kategory: "B",
-        kategory_drying_time: "A",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 24,
-        setting: 2,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Rabut",
-        from: "pcs",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 2000,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Sortir",
-        from: "pcs",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 2000,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Lem",
-        from: "pcs",
-        kategory: "B",
-        kategory_drying_time: "A",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 200,
-        drying_time: 24,
-        setting: 3,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Sampling",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Packing",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Final Inspection",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Kirim",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-    ],
-  },
+  // {
+  //   id: 2,
+  //   item: "Bolu bakar",
+  //   jo: "24-00003",
+  //   tgl_kirim: "30 October 2024",
+  //   tgl_cetak: "07 October 2024",
+  //   qty_pcs: 50000,
+  //   qty_druk: 25700,
+  //   tahap: [
+  //     {
+  //       tahapan: "Potong",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "ITOH",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Plate",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "CTP",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Cetak",
+  //       from: "druk",
+  //       kategory: "B",
+  //       kategory_drying_time: "B",
+  //       mesin: "SM",
+  //       kapasitas_per_jam: 1500,
+  //       drying_time: 48,
+  //       setting: 3,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Coating",
+  //       from: "druk",
+  //       kategory: "A",
+  //       kategory_drying_time: "B",
+  //       mesin: "OUTSORCE",
+  //       kapasitas_per_jam: 500,
+  //       drying_time: 48,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Pond",
+  //       from: "druk",
+  //       kategory: "B",
+  //       kategory_drying_time: "A",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 24,
+  //       setting: 2,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Rabut",
+  //       from: "pcs",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 2000,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Sortir",
+  //       from: "pcs",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 2000,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Lem",
+  //       from: "pcs",
+  //       kategory: "B",
+  //       kategory_drying_time: "A",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 200,
+  //       drying_time: 24,
+  //       setting: 3,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Sampling",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Packing",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Final Inspection",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //     {
+  //       tahapan: "Kirim",
+  //       from: "tgl",
+  //       kategory: "",
+  //       kategory_drying_time: "",
+  //       mesin: "MANUAL",
+  //       kapasitas_per_jam: 0,
+  //       drying_time: 0,
+  //       setting: 0,
+  //       kapasitas: 0,
+  //       toleransi: 0,
+  //       total_waktu: 0,
+  //       tgl_from: "",
+  //       tgl_to: "",
+  //     },
+  //   ],
+  // },
 ];
 
 module.exports = jadwalProduksiController;
