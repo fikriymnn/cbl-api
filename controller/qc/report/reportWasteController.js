@@ -220,12 +220,19 @@ const ReportWasterQc = {
       //masukan data p2 ke array
       dataWasteGabungan.push(...grupByJo);
 
-      const datamasterReplace = transformDataMaster(data_waste_master);
+      // Menggunakan Map untuk menyimpan hanya satu kode_waste yang unik
+      const dataMasterWasteUniq = Array.from(
+        new Map(
+          data_waste_master.map((item) => [item.kode_waste, item])
+        ).values()
+      );
+
+      const datamasterReplace = transformDataMaster(dataMasterWasteUniq);
 
       //hasil data gabungan di masukan sesuai master waste
       const grupJoinWithMaster = mapKodeToProduksi(
         dataWasteGabungan,
-        data_waste_master
+        dataMasterWasteUniq
       );
 
       const grupJoinWithMasterReplace = mapKodeToProduksiReplace(
@@ -236,7 +243,7 @@ const ReportWasterQc = {
 
       const jumlahAllData = aggregateByKodeProduksiWithWaste(
         dataWasteGabungan,
-        data_waste_master
+        dataMasterWasteUniq
       );
 
       // Filter data grup jo gabungan berdasarkan total_defect > 0
@@ -380,6 +387,11 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
 
     const grupByKategori = groupByCategoryWithDefault(groupedDefects);
 
+    const cleanedData = Object.values(groupedDefects).map((item) => ({
+      ...item,
+      kendala: item.kendala.filter((k) => k.calculated_defect > 0),
+    }));
+
     // Kembalikan data jo dengan defects yang sudah dikelompokkan
     return {
       no_jo: joItem.no_jo,
@@ -391,7 +403,7 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
         (sum, defect) => sum + defect.total_defect,
         0
       ),
-      defects: Object.values(groupedDefects),
+      defects: cleanedData,
     };
   });
 
@@ -454,6 +466,11 @@ const mapKodeToProduksiReplace = (
       (data) => joItem.no_jo === data.no_jo
     );
 
+    const cleanedData = Object.values(groupedDefects).map((item) => ({
+      ...item,
+      kendala: item.kendala.filter((k) => k.calculated_defect > 0),
+    }));
+
     // Kembalikan data jo dengan defects yang sudah dikelompokkan
     return {
       no_jo: joItem.no_jo,
@@ -465,7 +482,7 @@ const mapKodeToProduksiReplace = (
         (sum, defect) => sum + defect.total_defect,
         0
       ),
-      defects: Object.values(groupedDefects),
+      defects: cleanedData,
     };
   });
 
@@ -527,7 +544,7 @@ function aggregateByKodeProduksiWithWaste(inspeksiData, masterData) {
     kode_waste: master.kode_waste,
     waste_desc: master.waste_desc,
     total_defect: master.total_defect,
-    kendala: master.kendala,
+    kendala: master.kendala.filter((k) => k.calculated_defect > 0),
   }));
 }
 

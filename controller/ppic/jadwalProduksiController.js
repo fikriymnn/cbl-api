@@ -138,16 +138,27 @@ const jadwalProduksiController = {
       const { id } = req.params;
       const dataById = dataDumyJo.find((data) => data.id == id);
 
-      // Jadwal libur
-      // let jadwalLibur = [
-      //     "2024-12-25", // Hari Natal
-      //     "2024-12-01", // Minggu
-      //     "2024-12-08", // Minggu
-      //     "2024-12-15", // Minggu
-      //     "2024-12-22", // Minggu
-      //     "2025-01-19", // Minggu
-      // ];
+      const dataJadwal = await JadwalKaryawan.findAll({
+        order: [["createdAt", "DESC"]],
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date().setHours(0, 0, 0, 0),
+              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
+            ],
+          },
+          jenis_karyawan: "produksi",
+        },
+      });
 
+      let jadwalLibur = [
+        "2024-12-25",
+        "2024-12-01",
+        "2024-12-08",
+        "2024-12-15",
+        "2024-12-22",
+        "2025-01-19",
+      ];
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
       );
@@ -163,121 +174,66 @@ const jadwalProduksiController = {
         return date;
       };
 
-      // Hitung kapasitas dan total waktu
       dataById.tahap.forEach((tahap) => {
         if (tahap.from === "druk" && tahap.kapasitas_per_jam != 0) {
           tahap.kapasitas = dataById.qty_druk / tahap.kapasitas_per_jam;
         } else if (tahap.from === "pcs" && tahap.kapasitas_per_jam != 0) {
           tahap.kapasitas = dataById.qty_pcs / tahap.kapasitas_per_jam;
         } else {
-          tahap.kapasitas = 0; // Jika tidak relevan
+          tahap.kapasitas = 0;
         }
 
-        // Hitung total waktu
         tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
-
-        // Inisialisasi jadwal per jam untuk setiap tahap
-        tahap.jadwalPerJam = [];
       });
 
-      const tgl_kirim = dataById.tgl_kirim;
-      const tglKirim = new Date(tgl_kirim);
-      let currentDate = new Date(tgl_kirim);
+      const tglKirim = new Date(dataById.tgl_kirim);
+      let currentDate = new Date(dataById.tgl_kirim);
+      let firstTglInSequence = null;
+      let currentHour = 23;
 
       for (let i = dataById.tahap.length - 1; i >= 0; i--) {
         const stage = dataById.tahap[i];
+        stage.jadwal_per_jam = [];
 
         if (i === dataById.tahap.length - 1) {
-          // Tahapan terakhir selalu menggunakan tgl_kirim asli
-          stage.tgl_from = moment(tglKirim).format("YYYY-MM-DD HH:mm:ss");
-          stage.tgl_to = moment(tglKirim).format("YYYY-MM-DD HH:mm:ss");
+          stage.tgl_from = formatDateNow(tglKirim);
+          stage.tgl_to = formatDateNow(tglKirim);
           continue;
         }
 
-        // Set tgl_to
-        stage.tgl_to = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
+        stage.tgl_to = formatDateNow(currentDate);
 
         if (stage.from === "tgl") {
-          // Jika dari tgl, kurangi 2 hari
-          currentDate = decrementDate(currentDate, 2);
-          stage.tgl_from = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
+          if (firstTglInSequence) {
+            stage.tgl_from = firstTglInSequence.tgl_from;
+            stage.tgl_to = firstTglInSequence.tgl_to;
+          } else {
+            firstTglInSequence = stage;
+            currentDate = decrementDate(currentDate, 2);
+            stage.tgl_from = formatDateNow(currentDate);
+          }
         } else {
-          // Logika untuk "druk" dan "pcs"
-          const totalJam = stage.total_waktu; // total waktu dalam jam
-          let remainingHours = totalJam;
-
+          firstTglInSequence = null;
+          let remainingHours = stage.total_waktu;
           while (remainingHours > 0) {
-            // moment.locale("id"); // Atur bahasa ke Indonesia
-            // const dayOfWeek = new moment(currentDate).format("dddd");
-            // const shift = shiftHarian.find((s) => s.hari === dayOfWeek);
-
-            // Hitung jam kerja untuk shift 1
-            const shift1Start = moment(
-              `${moment(currentDate).format("YYYY-MM-DD")} ${"08:00:00"}`
-            );
-            const shift1End = moment(
-              `${moment(currentDate).format("YYYY-MM-DD")} ${"16:00:00"}`
-            );
-            const shift1Hours = shift1End.diff(shift1Start, "hours");
-
-            if (remainingHours > shift1Hours) {
-              // Jika jam tersisa lebih dari jam shift 1
-              for (let hour = 0; hour < shift1Hours; hour++) {
-                stage.jadwalPerJam.push({
-                  tanggal: moment(currentDate).format("YYYY-MM-DD"),
-                  jam: shift1Start.hours() + hour,
-                });
-              }
-              remainingHours -= shift1Hours;
-              currentDate = decrementDate(currentDate, 1); // Pindah ke hari berikutnya
-            } else {
-              // Jika jam tersisa kurang dari jam shift 1
-              for (let hour = 0; hour < remainingHours; hour++) {
-                stage.jadwalPerJam.push({
-                  tanggal: moment(currentDate).format("YYYY-MM-DD"),
-                  jam: shift1Start.hours() + hour,
-                });
-              }
-              currentDate.setHours(shift1Start.hours() + remainingHours);
-              remainingHours = 0; // Selesai
+            if (currentHour === 0) {
+              currentDate.setDate(currentDate.getDate() - 1);
+              if (jadwalLiburSet.has(formatDateNow(currentDate))) continue;
+              currentHour = 23;
             }
 
-            // Hitung jam kerja untuk shift 2 jika masih ada jam tersisa
-            if (remainingHours > 0) {
-              const shift2Start = moment(
-                `${moment(currentDate).format("YYYY-MM-DD")} ${"20:00:00"}`
-              );
-              const shift2End = moment(
-                `${moment(currentDate).format("YYYY-MM-DD")} ${"23:00:00"}`
-              );
-              const shift2Hours = shift2End.diff(shift2Start, "hours");
+            console.log(currentHour);
 
-              if (remainingHours > shift2Hours) {
-                // Jika jam tersisa lebih dari jam shift 2
-                for (let hour = 0; hour < shift2Hours; hour++) {
-                  stage.jadwalPerJam.push({
-                    tanggal: moment(currentDate).format("YYYY-MM-DD"),
-                    jam: shift2Start.hours() + hour,
-                  });
-                }
-                remainingHours -= shift2Hours;
-                currentDate = decrementDate(currentDate, 1); // Pindah ke hari berikutnya
-              } else {
-                // Jika jam tersisa kurang dari jam shift 2
-                for (let hour = 0; hour < remainingHours; hour++) {
-                  stage.jadwalPerJam.push({
-                    tanggal: moment(currentDate).format("YYYY-MM-DD"),
-                    jam: shift2Start.hours() + hour,
-                  });
-                }
-                currentDate.setHours(shift2Start.hours() + remainingHours);
-                remainingHours = 0; // Selesai
-              }
-            }
+            stage.jadwal_per_jam.push({
+              tanggal: formatDateNow(currentDate),
+              jam: currentHour,
+            });
+
+            currentHour--;
+            remainingHours--;
           }
 
-          // Set tgl_from
-          stage.tgl_from = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
+          stage.tgl_from = formatDateNow(currentDate);
         }
       }
 
