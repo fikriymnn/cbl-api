@@ -218,6 +218,9 @@ const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel"
 
 //ppic
 const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
+const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
+const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
+const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
 
 //hak akses
 const MasterRole = require("./model/masterData/masterRoleModel");
@@ -244,7 +247,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await TiketJadwalProduksiPerJam.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -592,7 +592,11 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       jamLembur -= jamIstirahat;
 
       // Perhitungan payroll
-      if (absen.status_absen === "masuk") {
+      if (
+        absen.status_absen === "masuk" &&
+        (absen.status_keluar === "Keluar" ||
+          absen.status_keluar === "Pulang Cepat")
+      ) {
         // const banyakmakan = 1;
         // payroll.rincian.push({
         //   label: "uangMakan",

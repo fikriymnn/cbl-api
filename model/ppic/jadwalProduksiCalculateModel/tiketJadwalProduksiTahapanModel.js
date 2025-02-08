@@ -1,44 +1,44 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
+const TiketJadwalProduksi = require("./tiketJadwalProduksiModel");
 
 const { DataTypes } = Sequelize;
 
-const JadwalProduksi = db.define(
-  "jadwal_produksi",
+const TiketJadwalProduksitahap = db.define(
+  "tiket_jadwal_produksi_tahapan",
   {
+    id_tiket_jadwal_produksi: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: TiketJadwalProduksi,
+        key: "id",
+      },
+    },
     item: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    no_jo: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    qty_pcs: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    qty_druk: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     tahapan: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    tahapan_ke: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     from: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    nama_kategori: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     kategori: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    nama_kategori: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     kategori_drying_time: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -50,34 +50,40 @@ const JadwalProduksi = db.define(
     kapasitas_per_jam: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     drying_time: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     setting: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     kapasitas: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     toleransi: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     total_waktu: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
-    tanggal: {
-      type: DataTypes.DATE,
-      allowNull: false,
+    tgl_from: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
-    jam: {
-      type: DataTypes.TIME,
-      allowNull: false,
+    tgl_to: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
@@ -85,4 +91,14 @@ const JadwalProduksi = db.define(
   }
 );
 
-module.exports = JadwalProduksi;
+//relasi tiket
+TiketJadwalProduksi.hasMany(TiketJadwalProduksitahap, {
+  foreignKey: "id_tiket_jadwal_produksi",
+  as: "tahap",
+});
+TiketJadwalProduksitahap.belongsTo(TiketJadwalProduksi, {
+  foreignKey: "id_tiket_jadwal_produksi",
+  as: "tiket",
+});
+
+module.exports = TiketJadwalProduksitahap;
