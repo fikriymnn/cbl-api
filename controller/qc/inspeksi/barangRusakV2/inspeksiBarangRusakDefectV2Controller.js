@@ -42,6 +42,7 @@ const inspeksiBarangRusakController = {
       kode_lkh,
       masalah_lkh,
       asal_temuan,
+      mesin,
     } = req.body;
     const t = await db.transaction();
     try {
@@ -70,6 +71,7 @@ const inspeksiBarangRusakController = {
           asal_temuan: asal_temuan,
           kode_lkh,
           masalah_lkh,
+          mesin: mesin,
           nama_pengecekan: dataPoint.nama_pengecekan,
         },
         { transaction: t }

@@ -14,6 +14,10 @@ const MasterDivisi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

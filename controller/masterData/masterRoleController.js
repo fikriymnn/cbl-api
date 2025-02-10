@@ -102,6 +102,7 @@ const masterRoleController = {
               is_dropdown: data1.is_dropdown,
               is_main: data1.is_main,
               is_group: data1.is_group,
+              is_active: data1.is_active,
             },
             { transaction: t }
           );
@@ -118,6 +119,7 @@ const masterRoleController = {
                   is_dropdown: data2.is_dropdown,
                   is_main: data2.is_main,
                   is_group: data2.is_group,
+                  is_active: data2.is_active,
                 },
                 { transaction: t }
               );
@@ -134,6 +136,7 @@ const masterRoleController = {
                       is_dropdown: data3.is_dropdown,
                       is_main: data3.is_main,
                       is_group: data3.is_group,
+                      is_active: data3.is_active,
                     },
                     { transaction: t }
                   );
@@ -149,6 +152,7 @@ const masterRoleController = {
                           is_dropdown: data4.is_dropdown,
                           is_main: data4.is_main,
                           is_group: data4.is_group,
+                          is_active: data4.is_active,
                         },
                         { transaction: t }
                       );
@@ -164,6 +168,7 @@ const masterRoleController = {
                               is_dropdown: data5.is_dropdown,
                               is_main: data5.is_main,
                               is_group: data5.is_group,
+                              is_active: data5.is_active,
                             },
                             { transaction: t }
                           );
@@ -221,6 +226,7 @@ const dataAkses = [
     is_dropdown: false,
     is_main: false,
     is_group: false,
+    is_active: false,
     parent: [],
   },
   //pre press
@@ -231,6 +237,7 @@ const dataAkses = [
     is_dropdown: false,
     is_main: false,
     is_group: false,
+    is_active: false,
     parent: [],
   },
   //Maintenance
@@ -241,6 +248,7 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: true,
+    is_active: true,
     parent: [
       {
         nama: "Maintenance",
@@ -249,6 +257,7 @@ const dataAkses = [
         is_dropdown: true,
         is_main: false,
         is_group: true,
+        is_active: false,
         parent: [
           //os2
           {
@@ -258,6 +267,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //path name pm
@@ -268,6 +278,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -277,6 +288,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "PM 1",
@@ -285,6 +297,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "PM 2",
@@ -293,6 +306,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -302,6 +316,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -311,6 +326,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -320,6 +336,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -334,6 +351,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -343,6 +361,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "KPI Form",
@@ -351,6 +370,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                 ],
               },
@@ -364,6 +384,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -373,6 +394,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Stock Master",
@@ -381,6 +403,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -390,6 +413,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -399,6 +423,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -408,6 +433,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Adjustment Op Neme",
@@ -416,6 +442,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -425,6 +452,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -439,6 +467,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -448,6 +477,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -456,6 +486,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -465,6 +496,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -474,6 +506,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -483,6 +516,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Adjustment Op Neme",
@@ -491,6 +525,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -500,6 +535,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -514,6 +550,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //Outstanding
@@ -524,6 +561,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //absensi
@@ -534,6 +572,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //spb
@@ -544,6 +583,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //rekap
@@ -554,6 +594,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //path name master data
@@ -564,6 +605,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -573,6 +615,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Machine",
@@ -581,6 +624,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -590,6 +634,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -599,6 +644,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -608,6 +654,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "PM2",
@@ -616,6 +663,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -625,6 +673,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -634,6 +683,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -643,6 +693,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -652,6 +703,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -661,6 +713,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -670,6 +723,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -688,6 +742,7 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: true,
+    is_active: true,
     parent: [
       {
         nama: "Quality Control",
@@ -696,6 +751,7 @@ const dataAkses = [
         is_dropdown: true,
         is_main: false,
         is_group: true,
+        is_active: false,
         parent: [
           //Validate & Verify
           {
@@ -705,6 +761,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //Quality Inspection
@@ -715,6 +772,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //absensi
@@ -725,6 +783,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //outstanding
@@ -735,6 +794,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //rekap
@@ -745,6 +805,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
 
@@ -756,6 +817,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -765,6 +827,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -773,6 +836,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "CAPA",
@@ -781,6 +845,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -796,6 +861,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               {
                 nama: "LAPOR",
@@ -804,6 +870,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -812,6 +879,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -821,6 +889,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -835,6 +904,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -844,6 +914,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Defect",
@@ -852,6 +923,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Final Inspection",
@@ -860,6 +932,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -869,6 +942,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "User",
@@ -877,6 +951,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -896,6 +971,7 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: true,
+    is_active: true,
     parent: [
       {
         nama: "MR",
@@ -904,6 +980,7 @@ const dataAkses = [
         is_dropdown: true,
         is_main: false,
         is_group: true,
+        is_active: false,
         parent: [
           //path qms
           {
@@ -913,6 +990,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -922,6 +1000,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -930,6 +1009,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "CAPA",
@@ -938,6 +1018,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -953,6 +1034,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -962,6 +1044,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -970,6 +1053,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -979,6 +1063,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -998,6 +1083,7 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: true,
+    is_active: true,
     parent: [
       //drop down human resource
       {
@@ -1007,6 +1093,7 @@ const dataAkses = [
         is_dropdown: true,
         is_main: false,
         is_group: true,
+        is_active: false,
         parent: [
           //path name human resource
           {
@@ -1016,6 +1103,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -1025,6 +1113,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Master Perusahaan",
@@ -1033,6 +1122,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Master Karyawan",
@@ -1041,6 +1131,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1050,6 +1141,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1059,6 +1151,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -1073,6 +1166,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //pengajuan
               {
@@ -1082,6 +1176,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: " Buat Pengajuan",
@@ -1090,6 +1185,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Buat Pengajuan Jabatan",
@@ -1098,6 +1194,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1107,6 +1204,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1116,6 +1214,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -1130,6 +1229,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //respon pengajuan
               {
@@ -1139,6 +1239,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Respon Pengajuan",
@@ -1147,6 +1248,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Respon Pengajuan Jabatan",
@@ -1155,6 +1257,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1164,6 +1267,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1173,6 +1277,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -1187,6 +1292,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //outstanding
@@ -1197,6 +1303,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //path name lapor ncr
@@ -1207,6 +1314,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //respon pengajuan
               {
@@ -1216,6 +1324,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "NCR",
@@ -1224,6 +1333,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "CAPA",
@@ -1232,6 +1342,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -1246,6 +1357,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //respon pengajuan
               {
@@ -1255,6 +1367,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Shift",
@@ -1263,6 +1376,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                   {
                     nama: "Department",
@@ -1271,6 +1385,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1280,6 +1395,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1289,6 +1405,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                   {
@@ -1298,6 +1415,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                     parent: [],
                   },
                 ],
@@ -1317,6 +1435,7 @@ const dataAkses = [
     is_dropdown: true,
     is_main: true,
     is_group: true,
+    is_active: true,
     parent: [
       {
         nama: "PPIC",
@@ -1325,6 +1444,7 @@ const dataAkses = [
         is_dropdown: true,
         is_main: false,
         is_group: true,
+        is_active: false,
         parent: [
           //jadwal produksi
           {
@@ -1334,6 +1454,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //outstanding
@@ -1344,6 +1465,7 @@ const dataAkses = [
             is_dropdown: false,
             is_main: false,
             is_group: false,
+            is_active: false,
             parent: [],
           },
           //path qms
@@ -1354,6 +1476,7 @@ const dataAkses = [
             is_dropdown: true,
             is_main: true,
             is_group: true,
+            is_active: true,
             parent: [
               //personel management
               {
@@ -1363,6 +1486,7 @@ const dataAkses = [
                 is_dropdown: true,
                 is_main: false,
                 is_group: true,
+                is_active: false,
                 parent: [
                   {
                     nama: "Master Kalkulasi",
@@ -1371,6 +1495,7 @@ const dataAkses = [
                     is_dropdown: false,
                     is_main: false,
                     is_group: false,
+                    is_active: false,
                   },
                 ],
               },

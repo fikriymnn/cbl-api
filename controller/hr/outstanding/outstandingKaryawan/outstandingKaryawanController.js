@@ -4,6 +4,7 @@ const OutstandingKaryawan = require("../../../../model/hr/outstanding/outstandin
 const KaryawanBiodata = require("../../../../model/hr/karyawan/karyawanBiodataModel");
 const JadwalKaryawan = require("../../../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
 const MasterDepartment = require("../../../../model/masterData/hr/masterDeprtmentModel");
+const MasterAbsensi = require("../../../../model/masterData/hr/masterAbsensiModel");
 const { getAbsensiFunction } = require("../../../../helper/absenFunction");
 const db = require("../../../../config/database");
 const {
@@ -111,37 +112,47 @@ const OutstandingKaryawanController = {
     obj.is_active = true;
 
     try {
+      const masterAbsensi = await MasterAbsensi.findByPk(1);
       // Ambil tanggal hari ini
       const today = new Date();
 
-      // Tambahkan 3 hari ke tanggal hari ini
-      const threeDaysFromNow = new Date(today);
-      threeDaysFromNow.setDate(today.getDate() + 3);
+      // Tambahkan jumlah hari mengambil dari master hari ke tanggal hari ini
+      const DaysFromNow = new Date(today);
+      DaysFromNow.setDate(
+        today.getDate() + masterAbsensi.outstanding_karyawan_hari
+      );
 
       const dataBiodataKaryawan = await KaryawanBiodata.findAll({
         order: [["createdAt", "DESC"]],
         where: {
           is_active: true,
           tgl_keluar: {
-            [Op.between]: [today, threeDaysFromNow],
+            [Op.between]: [today, DaysFromNow],
           },
         },
       });
+      console.log(DaysFromNow);
 
       for (let i = 0; i < dataBiodataKaryawan.length; i++) {
         const data = dataBiodataKaryawan[i];
         const tglKeluar = converTanggalWithMonthName(data.tgl_keluar);
 
-        await OutstandingKaryawan.create(
-          {
-            id_karyawan: data.id_karyawan,
-            id_department: data.id_department,
-            tanggal: new Date(),
-            deskripsi: `kontrak kerja hampir selesai yang dimana berakhir pada tanggal ${tglKeluar}`,
-            type: "kontrak kerja",
-          },
-          { transaction: t }
-        );
+        const checkData = await OutstandingKaryawan.count({
+          where: { id_karyawan: data.id_karyawan, status: "incoming" },
+        });
+
+        if (checkData == 0) {
+          await OutstandingKaryawan.create(
+            {
+              id_karyawan: data.id_karyawan,
+              id_department: data.id_department,
+              tanggal: new Date(),
+              deskripsi: `kontrak kerja hampir selesai yang dimana berakhir pada tanggal ${tglKeluar}`,
+              type: "kontrak kerja",
+            },
+            { transaction: t }
+          );
+        }
       }
 
       await t.commit();
