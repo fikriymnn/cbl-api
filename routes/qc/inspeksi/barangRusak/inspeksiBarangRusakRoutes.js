@@ -7,10 +7,10 @@ router.get(
   auth,
   inspeksiBarangrusak.getInspeksiBarangRusak
 );
-router.post(
-  "/qc/cs/inspeksiBarangrusak",
-  inspeksiBarangrusak.createInspeksiBarangRusak
-);
+// router.post(
+//   "/qc/cs/inspeksiBarangrusak",
+//   inspeksiBarangrusak.createInspeksiBarangRusak
+// );
 
 router.put(
   "/qc/cs/inspeksiBarangrusak/start/:id",

@@ -13,7 +13,7 @@ const DataMangkir = require("../model/hr/pengajuanMangkir/pengajuanMangkirModel"
 const JadwalKaryawan = require("../model/hr/jadwalKaryawan/jadwalKaryawanModel");
 
 const absenFunction = {
-  getAbsensiFunction: async (startDate, endDate, obj) => {
+  getAbsensiFunction: async (startDate, endDate, obj, isLibur) => {
     const masterAbsensi = await MasterAbsensi.findByPk(1);
     const masterDepartment = await MasterDepartment.findAll();
     const karyawanBiodata = await KaryawanBiodata.findAll({
@@ -61,7 +61,6 @@ const absenFunction = {
         ...jadwal.toJSON(),
       };
     });
-    // console.log(resultJadwalKaryawan);
 
     //jika ada range tanggal
     if (startDate && endDate) {
@@ -567,6 +566,7 @@ const absenFunction = {
         // Hitung pulang cepat
         const toleransiKeluar =
           masterAbsensi.toleransi_pulang_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
+
         if (
           waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar &&
           jenisHariMasuk == "Biasa"
@@ -580,10 +580,13 @@ const absenFunction = {
         }
 
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
+        // diambil dari master absensi untuk minimal jam lembur
         if (keluar && jenisHariMasuk == "Biasa") {
           if (
             shift === "Shift 1" &&
-            waktuKeluarUTC > waktuKeluarShift1UTC + 30 * 60 * 1000
+            waktuKeluarUTC >
+              waktuKeluarShift1UTC +
+                masterAbsensi.terhitung_lembur_menit * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift1UTC) / 3600000;
@@ -593,7 +596,9 @@ const absenFunction = {
             statusLembur = "Lembur";
           } else if (
             shift === "Shift 2" &&
-            waktuKeluarUTC > waktuKeluarShift2UTC + 30 * 60 * 1000
+            waktuKeluarUTC >
+              waktuKeluarShift2UTC +
+                masterAbsensi.terhitung_lembur_menit * 60 * 1000
           ) {
             const jamLemburMentah =
               (waktuKeluarUTC.getTime() - waktuKeluarShift2UTC) / 3600000;
@@ -792,6 +797,7 @@ const absenFunction = {
         karyawan,
         karyawanBiodata,
         masterDepartment,
+        resultJadwalKaryawan,
         startDate
       );
 
@@ -821,17 +827,42 @@ const absenFunction = {
             (karyawanDitemukan.nama_department = absen.nama_department);
           (karyawanDitemukan.hari = absen.hari),
             (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk);
+        } else {
+          dataKaryawanGenerete.push({
+            userid: absen.userid,
+            waktu_masuk: absen.waktu_masuk,
+            waktu_keluar: absen.waktu_keluar,
+            tgl_masuk: absen.tgl_masuk,
+            tgl_keluar: absen.tgl_keluar,
+            jam_masuk: absen.jam_masuk,
+            jam_keluar: absen.jam_keluar,
+            menit_terlambat: absen.menit_terlambat,
+            jam_lembur: absen.jam_lembur,
+            status_lembur: absen.status_lembur,
+            status_masuk: absen.status_masuk,
+            name: absen.name,
+            status_keluar: absen.status_keluar,
+            menit_pulang_cepat: absen.menit_pulang_cepat,
+            shift: absen.shift,
+            status_absen: absen.status_absen,
+            id_department: absen.id_department,
+            nama_department: absen.nama_department,
+            hari: absen.hari,
+            jenis_hari_masuk: absen.jenis_hari_masuk,
+          });
         }
       });
       const resultAbsen = dataKaryawanGenerete.sort(
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
       // console.log(dataKaryawanGenerete);
+
       return resultAbsen;
     } else {
       const resultAbsen = results.sort(
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
+
       return resultAbsen;
     }
   },
@@ -1228,9 +1259,23 @@ const generatekaryawanList = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  resultJadwalKaryawan,
   date
 ) => {
   let dataKaryawan = [];
+  // Dapatkan tanggal berdasarkan tanggal absensi masuk
+  const waktuHariIni = new Date(date);
+  const tglMasukUtc = new Date(
+    Date.UTC(
+      waktuHariIni.getUTCFullYear(),
+      waktuHariIni.getUTCMonth(),
+      waktuHariIni.getUTCDate()
+    )
+  );
+  const hariIni = tglMasukUtc.getDate();
+  const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+  const tahunIni = tglMasukUtc.getFullYear();
+  const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
 
   for (let i = 0; i < karyawan.length; i++) {
     //get biodataKaryawan
@@ -1242,32 +1287,44 @@ const generatekaryawanList = (
       (data) => data.id === dataKaryawanBiodata?.id_department
     );
 
+    const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    );
+
+    // Cek apakah tanggal hari ini ada di data lembur
+    const isTodayOvertime = filterJadwalKaryawan.some(
+      (data) => data.tanggal_libur == tglHariini
+    );
+
     const idDepartment = dataKaryawanBiodata?.id_department;
     const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
-    dataKaryawan.push({
-      tgl_absen: date,
-      userid: karyawan[i].userid,
-      waktu_masuk: null,
-      waktu_keluar: null,
-      tgl_masuk: null,
-      tgl_keluar: null,
-      jam_masuk: null,
-      jam_keluar: null,
-      menit_terlambat: null,
-      jam_lembur: null,
-      status_lembur: null,
-      status_masuk: null,
-      name: karyawan[i].name,
-      status_keluar: "Belum Keluar",
-      menit_pulang_cepat: null,
-      shift: null, // Menampilkan shift
-      status_absen: "Belum Masuk",
-      id_department: idDepartment,
-      nama_department: namaDepartmentKaryawan,
-      hari: null,
-      jenis_hari_masuk: null,
-      tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
-    });
+
+    if (!isTodayOvertime) {
+      dataKaryawan.push({
+        tgl_absen: date,
+        userid: karyawan[i].userid,
+        waktu_masuk: null,
+        waktu_keluar: null,
+        tgl_masuk: null,
+        tgl_keluar: null,
+        jam_masuk: null,
+        jam_keluar: null,
+        menit_terlambat: null,
+        jam_lembur: null,
+        status_lembur: null,
+        status_masuk: null,
+        name: karyawan[i].name,
+        status_keluar: "Belum Keluar",
+        menit_pulang_cepat: null,
+        shift: null, // Menampilkan shift
+        status_absen: "Belum Masuk",
+        id_department: idDepartment,
+        nama_department: namaDepartmentKaryawan,
+        hari: null,
+        jenis_hari_masuk: null,
+        tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
+      });
+    }
   }
 
   return dataKaryawan;

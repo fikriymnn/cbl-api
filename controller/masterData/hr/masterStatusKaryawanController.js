@@ -18,17 +18,19 @@ const masterStatusKaryawanController = {
   },
 
   createMasterKaryawan: async (req, res) => {
-    const { nama_status, waktu_bulan } = req.body;
+    const { nama_status, waktu_bulan, type } = req.body;
 
     if (!nama_status)
       return res.status(404).json({ msg: "nama status wajib di isi" });
     if (!waktu_bulan)
       return res.status(404).json({ msg: "waktu wajib di isi" });
+    if (!type) return res.status(404).json({ msg: "type wajib di isi" });
 
     try {
       const data = await masterStatusKaryawan.create({
         nama_status,
         waktu_bulan,
+        type,
       });
       res
         .status(201)
@@ -40,11 +42,12 @@ const masterStatusKaryawanController = {
 
   updateMasterKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { nama_status, waktu_bulan } = req.body;
+    const { nama_status, waktu_bulan, type } = req.body;
 
     let obj = {};
     if (nama_status) obj.nama_status = nama_status;
     if (waktu_bulan) obj.waktu_bulan = waktu_bulan;
+    if (type) obj.type = type;
 
     try {
       await masterStatusKaryawan.update(obj, { where: { id: _id } }),

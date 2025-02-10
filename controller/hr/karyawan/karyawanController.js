@@ -456,6 +456,34 @@ const karyawanController = {
     }
   },
 
+  cutOffKaryawan: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      await KaryawanBiodata.update(
+        {
+          is_active: false,
+          status_active: "cut off",
+        },
+        {
+          where: {
+            id_karyawan: _id,
+          },
+          transaction: t,
+        }
+      );
+
+      await t.commit();
+      res.status(200).json({
+        msg: "Delete Successful",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   deleteKaryawan: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();

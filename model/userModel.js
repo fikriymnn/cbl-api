@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../config/database");
 const maintenaceTicketModel = require("./maintenaceTicketModel");
 const KaryawanModel = require("../model/hr/karyawanModel");
+const RoleModel = require("../model/masterData/masterRoleModel");
 
 const { DataTypes } = Sequelize;
 
@@ -22,6 +23,14 @@ const Users = db.define(
       references: {
         model: KaryawanModel,
         key: "userid",
+      },
+    },
+    id_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: RoleModel,
+        key: "id",
       },
     },
     nama: {
@@ -90,6 +99,16 @@ KaryawanModel.hasMany(Users, {
 Users.belongsTo(KaryawanModel, {
   foreignKey: "id_karyawan",
   as: "karyawan",
+});
+
+//relasi role
+RoleModel.hasMany(Users, {
+  foreignKey: "id_role",
+  as: "data_user",
+});
+Users.belongsTo(RoleModel, {
+  foreignKey: "id_role",
+  as: "role_akses",
 });
 
 module.exports = Users;

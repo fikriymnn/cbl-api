@@ -82,10 +82,14 @@ const ReportMaintenance = {
             bulan: bulan,
             jumlah_waktu_menit: 0,
             rata_rata_waktu_menit: 0,
+            jumlah_waktu_jam: 0,
+            rata_rata_waktu_jam: 0,
             minggu: Array.from({ length: 5 }, (_, index) => ({
               Minggu_ke: index + 1,
               jumlah_waktu_menit: 0,
               rata_rata_waktu_menit: 0,
+              jumlah_waktu_jam: 0,
+              rata_rata_waktu_jam: 0,
             })),
           };
           acc.push(mesinData);
@@ -96,6 +100,11 @@ const ReportMaintenance = {
           mesinData.minggu[mingguKe - 1].jumlah_waktu_menit = jumlahWaktuMenit;
           mesinData.minggu[mingguKe - 1].rata_rata_waktu_menit =
             rataRataWaktuMenit;
+
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_jam =
+            parseFloat(jumlahWaktuMenit) / 60;
+          mesinData.minggu[mingguKe - 1].rata_rata_waktu_jam =
+            parseFloat(rataRataWaktuMenit) / 60;
         }
 
         // Update jumlah total waktu dan rata-rata waktu untuk mesin
@@ -106,6 +115,17 @@ const ReportMaintenance = {
         mesinData.rata_rata_waktu_menit =
           mesinData.minggu.reduce(
             (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit),
+            0
+          ) / 5;
+
+        // Update jumlah total waktu jam dan rata-rata waktu jam untuk mesin
+        mesinData.jumlah_waktu_jam = mesinData.minggu.reduce(
+          (sum, m) => sum + parseFloat(m.jumlah_waktu_menit) / 60,
+          0
+        );
+        mesinData.rata_rata_waktu_jam =
+          mesinData.minggu.reduce(
+            (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit) / 60,
             0
           ) / 5;
 
@@ -160,6 +180,8 @@ const ReportMaintenance = {
           year: start.getFullYear(), // Mendapatkan tahun
           rata_rata_waktu_menit: 0, // Default rata rata
           jumlah_waktu_menit: 0, //Default jumlah
+          rata_rata_waktu_jam: 0, // Default rata rata jam
+          jumlah_waktu_jam: 0, //Default jumlah jam
         });
         start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
       }
@@ -221,8 +243,6 @@ const ReportMaintenance = {
         raw: true,
       });
 
-      console.log(responTime);
-
       // Mengelompokkan data per mesin
       const groupedResults = responTime.reduce((acc, row) => {
         const mesin = row.mesin;
@@ -245,6 +265,11 @@ const ReportMaintenance = {
           // Jika bulan ditemukan, update total
           foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;
           foundMonth.rata_rata_waktu_menit = row.rata_rata_waktu_menit;
+
+          // Jika bulan ditemukan, update total jam
+          foundMonth.jumlah_waktu_jam = parseFloat(row.jumlah_waktu_menit) / 60;
+          foundMonth.rata_rata_waktu_jam =
+            parseFloat(row.rata_rata_waktu_menit) / 60;
         }
 
         return acc;
@@ -331,6 +356,10 @@ const ReportMaintenance = {
         const mingguKe = result.dataValues.Minggu_ke;
         const jumlahWaktuMenit = result.dataValues.jumlah_waktu_menit || 0;
         const rataRataWaktuMenit = result.dataValues.rata_rata_waktu_menit || 0;
+        const jumlahWaktuJam =
+          parseFloat(result.dataValues.jumlah_waktu_menit) / 60 || 0;
+        const rataRataWaktuJam =
+          parseFloat(result.dataValues.rata_rata_waktu_menit) / 60 || 0;
 
         // Cari mesin dalam hasil yang sudah diproses
         let mesinData = acc.find((item) => item.mesin === mesin);
@@ -342,10 +371,14 @@ const ReportMaintenance = {
             bulan: bulan,
             jumlah_waktu_menit: 0,
             rata_rata_waktu_menit: 0,
+            jumlah_waktu_jam: 0,
+            rata_rata_waktu_jam: 0,
             minggu: Array.from({ length: 5 }, (_, index) => ({
               Minggu_ke: index + 1,
               jumlah_waktu_menit: 0,
               rata_rata_waktu_menit: 0,
+              jumlah_waktu_jam: 0,
+              rata_rata_waktu_jam: 0,
             })),
           };
           acc.push(mesinData);
@@ -353,9 +386,16 @@ const ReportMaintenance = {
 
         // Update minggu yang sesuai
         if (mingguKe >= 1 && mingguKe <= 5) {
-          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit = jumlahWaktuMenit;
+          //menit
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit =
+            parseFloat(jumlahWaktuMenit).toFixed(2);
           mesinData.minggu[mingguKe - 1].rata_rata_waktu_menit =
-            rataRataWaktuMenit;
+            parseFloat(rataRataWaktuMenit).toFixed(3);
+          //jam
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_jam =
+            parseFloat(jumlahWaktuJam).toFixed(3);
+          mesinData.minggu[mingguKe - 1].rata_rata_waktu_jam =
+            parseFloat(rataRataWaktuJam).toFixed(3);
         }
 
         // Update jumlah total waktu dan rata-rata waktu untuk mesin
@@ -363,11 +403,24 @@ const ReportMaintenance = {
           (sum, m) => sum + parseFloat(m.jumlah_waktu_menit),
           0
         );
-        mesinData.rata_rata_waktu_menit =
+        mesinData.rata_rata_waktu_menit = (
           mesinData.minggu.reduce(
             (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit),
             0
-          ) / 5;
+          ) / 5
+        ).toFixed(3);
+
+        // Update jumlah total waktu jam dan rata-rata waktu jam untuk mesin
+        mesinData.jumlah_waktu_jam = mesinData.minggu.reduce(
+          (sum, m) => sum + parseFloat(m.jumlah_waktu_menit) / 60,
+          0
+        );
+        mesinData.rata_rata_waktu_jam = (
+          mesinData.minggu.reduce(
+            (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit) / 60,
+            0
+          ) / 5
+        ).toFixed(3);
 
         return acc;
       }, []);
@@ -380,7 +433,6 @@ const ReportMaintenance = {
 
   getDataBreakdownTimeRange: async (req, res) => {
     const { fromDate, toDate } = req.query;
-    console.log(req.query);
 
     // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
     const startDate = new Date(fromDate);
@@ -420,6 +472,8 @@ const ReportMaintenance = {
           year: start.getFullYear(), // Mendapatkan tahun
           rata_rata_waktu_menit: 0, // Default rata rata
           jumlah_waktu_menit: 0, //Default jumlah
+          rata_rata_waktu_jam: 0, // Default rata rata jam
+          jumlah_waktu_jam: 0, //Default jumlah jam
         });
         start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
       }
@@ -525,14 +579,50 @@ const ReportMaintenance = {
 
         if (foundMonth) {
           // Jika bulan ditemukan, update total
-          foundMonth.jumlah_waktu_mtc_menit = row.jumlah_waktu_menit_mtc;
-          foundMonth.rata_rata_waktu_mtc_menit = row.rata_rata_waktu_menit_mtc;
-          foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;
-          foundMonth.rata_rata_waktu_menit = row.rata_rata_waktu_menit;
-          foundMonth.jumlah_waktu_menit_qc =
-            row.jumlah_waktu_menit - row.jumlah_waktu_menit_mtc;
-          foundMonth.rata_rata_waktu_menit_qc =
-            row.rata_rata_waktu_menit - row.rata_rata_waktu_menit_mtc;
+          foundMonth.jumlah_waktu_mtc_menit = parseFloat(
+            row.jumlah_waktu_menit_mtc
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_mtc_menit = parseFloat(
+            row.rata_rata_waktu_menit_mtc
+          ).toFixed(3);
+          foundMonth.jumlah_waktu_menit = parseFloat(
+            row.jumlah_waktu_menit
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_menit = parseFloat(
+            row.rata_rata_waktu_menit
+          ).toFixed(3);
+          foundMonth.jumlah_waktu_menit_qc = (
+            parseFloat(row.jumlah_waktu_menit) -
+            parseFloat(row.jumlah_waktu_menit_mtc)
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_menit_qc = (
+            parseFloat(row.rata_rata_waktu_menit) -
+            parseFloat(row.rata_rata_waktu_menit_mtc)
+          ).toFixed(3);
+
+          // Jika bulan ditemukan, update total jam
+          foundMonth.jumlah_waktu_mtc_jam = (
+            parseFloat(row.jumlah_waktu_menit_mtc) / 60
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_mtc_jam = (
+            parseFloat(row.rata_rata_waktu_menit_mtc) / 60
+          ).toFixed(3);
+          foundMonth.jumlah_waktu_jam = (
+            parseFloat(row.jumlah_waktu_menit) / 60
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_jam = (
+            parseFloat(row.rata_rata_waktu_menit) / 60
+          ).toFixed(3);
+          foundMonth.jumlah_waktu_jam_qc = (
+            (parseFloat(row.jumlah_waktu_menit) -
+              parseFloat(row.jumlah_waktu_menit_mtc)) /
+            60
+          ).toFixed(3);
+          foundMonth.rata_rata_waktu_jam_qc = (
+            (parseFloat(row.rata_rata_waktu_menit) -
+              parseFloat(row.rata_rata_waktu_menit_mtc)) /
+            60
+          ).toFixed(3);
         }
 
         return acc;

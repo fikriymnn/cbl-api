@@ -331,6 +331,7 @@ const PengajuanStatusKaryawanController = {
             id_status_karyawan: id_status_karyawan_pengajuan,
             is_active: false,
             sisa_cuti: 0,
+            status_active: "keluar",
           },
           {
             where: { id: dataPengajuanStatusKaryawan.id_karyawan },
