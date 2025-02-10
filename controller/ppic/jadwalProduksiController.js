@@ -100,17 +100,50 @@ const jadwalProduksiController = {
         },
         { transaction: t }
       );
-
+      let dataTahapan = [];
       for (let i = 0; i < tahap.length; i++) {
         const data = tahap[i];
-        await TiketJadwalProduksiTahapan.create(
-          {
-            id_tiket_jadwal_produksi: dataTiket.id,
-            ...data,
-          },
-          { transaction: t }
-        );
+        let fromData = "";
+
+        if (
+          data.tahapan === "Potong" ||
+          data.tahapan === "Plate" ||
+          data.tahapan === "Sampling" ||
+          data.tahapan === "Packing" ||
+          data.tahapan === "Final Inspection" ||
+          data.tahapan === "Kirim"
+        ) {
+          fromData = "tgl";
+        } else if (
+          data.tahapan === "Cetak" ||
+          data.tahapan === "Coating" ||
+          data.tahapan === "Pond"
+        ) {
+          fromData = "druk";
+        } else {
+          fromData = "pcs";
+        }
+
+        dataTahapan.push({
+          id_tiket_jadwal_produksi: dataTiket.id,
+          item: item,
+          tahapan: data.tahapan,
+          tahapan_ke: data.tahapan_ke,
+          from: fromData,
+          nama_kategori: data.nama_kategori,
+          kategori: data.kategori,
+          kategori_drying_time: data.kategori_drying_time,
+          mesin: data.mesin,
+          kapasitas_per_jam: data.kapasitas_per_jam,
+          drying_time: data.drying_time,
+          setting: data.setting,
+          toleransi: data.toleransi,
+        });
       }
+
+      await TiketJadwalProduksiTahapan.bulkCreate(dataTahapan, {
+        transaction: t,
+      });
 
       await t.commit();
       res.status(200).json({ msg: "create success" });

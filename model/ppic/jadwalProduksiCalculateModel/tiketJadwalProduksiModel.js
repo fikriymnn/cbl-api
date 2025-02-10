@@ -20,7 +20,7 @@ const TiketJadwalProduksi = db.define(
     },
     tgl_cetak: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     qty_pcs: {
       type: DataTypes.INTEGER,
