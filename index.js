@@ -192,6 +192,7 @@ const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
+const pengajuanTerlambat = require("./model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
 const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
 const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
 const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
@@ -247,7 +248,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiBarangRusakDefectV2.sync({ alter: true });
+//   await pengajuanTerlambat.sync({ alter: true });
 // })();
 
 // const ip100 = 75
