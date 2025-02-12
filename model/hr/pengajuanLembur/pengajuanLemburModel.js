@@ -68,21 +68,6 @@ const PengajuanLembur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    isIstirahat: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    tipe_lembur: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "biasa",
-    },
-    jumlah_makan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
     catatan_hr: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -96,6 +81,31 @@ const PengajuanLembur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "incoming",
+    },
+    status_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "none",
+    },
+    catatan_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    alasan_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    lama_lembur_absen: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    type_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    penanganan: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

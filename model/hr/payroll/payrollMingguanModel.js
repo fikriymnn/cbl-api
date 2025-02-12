@@ -54,6 +54,14 @@ const Payroll = db.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    sub_total_upah: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    pengurangan_penambahan: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
     total_potongan: {
       type: DataTypes.DOUBLE,
       allowNull: true,

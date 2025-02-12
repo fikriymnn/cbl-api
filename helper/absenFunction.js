@@ -11,6 +11,7 @@ const DataIzin = require("../model/hr/pengajuanIzin/pengajuanIzinModel");
 const DataSakit = require("../model/hr/pengajuanSakit/pengajuanSakitModel");
 const DataMangkir = require("../model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const DataTerlambat = require("../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const DataLembur = require("../model/hr/pengajuanLembur/pengajuanLemburModel");
 const JadwalKaryawan = require("../model/hr/jadwalKaryawan/jadwalKaryawanModel");
 
 const absenFunction = {
@@ -38,6 +39,7 @@ const absenFunction = {
     let dataSakit = [];
     let dataMangkir = [];
     let dataTerlambat = [];
+    let dataLembur = [];
 
     const dataJadwalKaryawan = await JadwalKaryawan.findAll({
       order: [["createdAt", "DESC"]],
@@ -249,6 +251,47 @@ const absenFunction = {
           },
         },
       });
+
+      dataLembur = await DataLembur.findAll({
+        where: {
+          status: "approved",
+          id_karyawan: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+          [Op.or]: [
+            {
+              dari: {
+                [Op.between]: [
+                  new Date(startDate).setHours(0, 0, 0, 0),
+                  new Date(endDate).setHours(23, 59, 59, 999),
+                ],
+              },
+            }, // `from` berada dalam rentang
+            {
+              sampai: {
+                [Op.between]: [
+                  new Date(startDate).setHours(0, 0, 0, 0),
+                  new Date(endDate).setHours(23, 59, 59, 999),
+                ],
+              },
+            }, // `to` berada dalam rentang
+            {
+              [Op.and]: [
+                {
+                  dari: {
+                    [Op.lte]: new Date(startDate).setHours(0, 0, 0, 0),
+                  },
+                }, // Rentang cuti mencakup startDate
+                {
+                  sampai: {
+                    [Op.gte]: new Date(endDate).setHours(23, 59, 59, 999),
+                  },
+                }, // Rentang cuti mencakup endDate
+              ],
+            },
+          ],
+        },
+      });
       //console.log(absensiMasuk);
     } else {
       // Ambil  data absensi masuk
@@ -316,6 +359,15 @@ const absenFunction = {
       });
     }
 
+    dataLembur = await DataLembur.findAll({
+      where: {
+        status: "approved",
+        id_karyawan: {
+          [Op.in]: karyawanIds, // Gunakan array id_karyawan
+        },
+      },
+    });
+
     // Memecah cuti menjadi entri harian
     let cutiEntries = [];
     dataCuti.forEach((cuti) => {
@@ -376,13 +428,27 @@ const absenFunction = {
       ];
     });
 
-    // Memecah mangkir menjadi entri harian
+    // Memecah terlamabt menjadi entri harian
     let terlambatEntries = [];
     dataTerlambat.forEach((terlambat) => {
       terlambatEntries = [
         ...terlambatEntries,
         ...generateDailyTerlambat(
           terlambat,
+          karyawan,
+          karyawanBiodata,
+          masterDepartment,
+          resultJadwalKaryawan
+        ),
+      ];
+    });
+
+    let lemburEntries = [];
+    dataLembur.forEach((lembur) => {
+      lemburEntries = [
+        ...lemburEntries,
+        ...generateDailyLembur(
+          lembur,
           karyawan,
           karyawanBiodata,
           masterDepartment,
@@ -688,14 +754,15 @@ const absenFunction = {
         if (keluar && jenisHariMasuk == "Libur") {
           if (shift === "Shift 1") {
             const jamLemburMentah =
-              (waktuMasukUTC.getTime() - waktuKeluarUTC) / 3600000;
+              (waktuKeluarUTC - waktuMasukUTC.getTime()) / 3600000;
 
             // Pembulatan ke bawah ke kelipatan 0.5
             jamLembur = Math.floor(jamLemburMentah * 2) / 2;
+            console.log(jamLembur);
             statusLembur = "Lembur Libur";
           } else if (shift === "Shift 2") {
             const jamLemburMentah =
-              (waktuMasukUTC.getTime() - waktuKeluarUTC) / 3600000;
+              (waktuKeluarUTC - waktuMasukUTC.getTime()) / 3600000;
 
             // Pembulatan ke bawah ke kelipatan 0.5
             jamLembur = Math.floor(jamLemburMentah * 2) / 2;
@@ -715,20 +782,35 @@ const absenFunction = {
         const jamMasukShift = shift == "Shift 1" ? shiftMasuk1 : shiftMasuk2;
         const jamKeluarShift = shift == "Shift 1" ? shiftKeluar1 : shiftKeluar2;
 
+        //pencocokan pengajuan terlambat dengan absen
         let statusTerlambat = "";
-
         const terlambatFind = terlambatEntries.find(
           (entry) =>
             entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
         );
-
         if (terlambatFind) {
           statusTerlambat = terlambatFind.status_masuk;
+        }
+
+        //pencocokan pengajuan lembur dengan absen
+        let statusLemburSPL = "tidak dengan SPL";
+        let jamLemburSPL = 0;
+        let id_pengajuan_lembur = null;
+        const lemburFind = lemburEntries.find(
+          (entry) =>
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+        );
+
+        if (lemburFind) {
+          statusLemburSPL = "dengan SPL";
+          jamLemburSPL = lemburFind.jam_lembur;
+          id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
         }
 
         //console.log(terlambatFind);
 
         return {
+          id_pengajuan_lembur: id_pengajuan_lembur,
           tgl_absen: tglMasuk,
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
@@ -739,7 +821,9 @@ const absenFunction = {
           jam_keluar: jamKeluar,
           menit_terlambat: menitTerlambat,
           jam_lembur: jamLembur,
+          jam_lembur_spl: jamLemburSPL,
           status_lembur: statusLembur,
+          status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
           name: namaKaryawan,
           status_keluar: statusKeluar,
@@ -841,18 +925,33 @@ const absenFunction = {
         const jamMasukShift = shift == "Shift 1" ? shiftMasuk1 : shiftMasuk2;
         const jamKeluarShift = shift == "Shift 1" ? shiftKeluar1 : shiftKeluar2;
 
+        //pencocokan pengajuan terlambat dengan absen
         let statusTerlambat = "";
-
         const terlambatFind = terlambatEntries.find(
           (entry) =>
             entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
         );
-
         if (terlambatFind) {
           statusTerlambat = terlambatFind.status_masuk;
         }
 
+        //pencocokan pengajuan lembur dengan absen
+        let statusLemburSPL = "tidak dengan SPL";
+        let jamLemburSPL = 0;
+        let id_pengajuan_lembur = null;
+        const lemburFind = lemburEntries.find(
+          (entry) =>
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+        );
+
+        if (lemburFind) {
+          statusLemburSPL = "dengan SPL";
+          jamLemburSPL = lemburFind.jam_lembur;
+          id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
+        }
+
         return {
+          id_pengajuan_lembur: id_pengajuan_lembur,
           tgl_absen: tglMasuk,
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
@@ -863,7 +962,9 @@ const absenFunction = {
           jam_keluar: null,
           menit_terlambat: menitTerlambat,
           jam_lembur: 0,
+          jam_lembur_spl: jamLemburSPL,
           status_lembur: "Belum Pulang",
+          status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
           name: namaKaryawan,
           status_keluar: "Belum Pulang",
@@ -909,7 +1010,8 @@ const absenFunction = {
         );
 
         if (karyawanDitemukan) {
-          (karyawanDitemukan.userid = absen.userid),
+          (karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
+            (karyawanDitemukan.userid = absen.userid),
             (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
             (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
             (karyawanDitemukan.tgl_masuk = absen.tgl_masuk),
@@ -918,7 +1020,9 @@ const absenFunction = {
             (karyawanDitemukan.jam_keluar = absen.jam_keluar),
             (karyawanDitemukan.menit_terlambat = absen.menit_terlambat),
             (karyawanDitemukan.jam_lembur = absen.jam_lembur),
+            (karyawanDitemukan.jam_lembur_spl = absen.jam_lembur_spl),
             (karyawanDitemukan.status_lembur = absen.status_lembur),
+            (karyawanDitemukan.status_lembur_spl = absen.status_lembur_spl),
             (karyawanDitemukan.status_masuk = absen.status_masuk),
             (karyawanDitemukan.name = absen.name),
             (karyawanDitemukan.status_keluar = absen.status_keluar),
@@ -931,6 +1035,7 @@ const absenFunction = {
             (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk);
         } else {
           dataKaryawanGenerete.push({
+            id_pengajuan_lembur: absen.id_pengajuan_lembur,
             userid: absen.userid,
             waktu_masuk: absen.waktu_masuk,
             waktu_keluar: absen.waktu_keluar,
@@ -940,7 +1045,9 @@ const absenFunction = {
             jam_keluar: absen.jam_keluar,
             menit_terlambat: absen.menit_terlambat,
             jam_lembur: absen.jam_lembur,
+            jam_lembur_spl: absen.jam_lembur_spl,
             status_lembur: absen.status_lembur,
+            status_lembur_spl: absen.status_lembur_spl,
             status_masuk: absen.status_masuk,
             name: absen.name,
             status_keluar: absen.status_keluar,
@@ -1451,6 +1558,61 @@ const generateDailyTerlambat = (
   return dailyTerlambat;
 };
 
+// Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
+const generateDailyLembur = (
+  Lembur,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment,
+  resultJadwalKaryawan
+) => {
+  let dailyLembur = [];
+  let startDate = new Date(Lembur.dari);
+
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === Lembur.id_karyawan
+  );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === Lembur.id_karyawan
+  );
+
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+
+  const waktuMasuk = new Date(startDate);
+  const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+  const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+  // Dapatkan tanggal berdasarkan tanggal absensi masuk
+  const tglMasukUtc = new Date(
+    Date.UTC(
+      waktuMasuk.getUTCFullYear(),
+      waktuMasuk.getUTCMonth(),
+      waktuMasuk.getUTCDate()
+    )
+  );
+
+  dailyLembur.push({
+    id_pengajuan_lembur: Lembur.id,
+    userid: Lembur.id_karyawan,
+    waktu_masuk: new Date(startDate),
+    tgl_masuk: tglMasuk,
+    jam_lembur: Lembur.lama_lembur_aktual,
+    name: namaKaryawan,
+    id_department: namaKaryawanBiodata,
+    nama_department: namaDepartmentKaryawan,
+  });
+
+  return dailyLembur;
+};
 // Fungsi untuk memecah rentang tanggal Cuti menjadi array tanggal harian
 const generatekaryawanList = (
   karyawan,
@@ -1498,6 +1660,7 @@ const generatekaryawanList = (
 
     if (!isTodayOvertime) {
       dataKaryawan.push({
+        id_pengajuan_lembur: null,
         tgl_absen: date,
         userid: karyawan[i].userid,
         waktu_masuk: null,
@@ -1508,7 +1671,9 @@ const generatekaryawanList = (
         jam_keluar: null,
         menit_terlambat: null,
         jam_lembur: null,
+        jam_lembur_spl: null,
         status_lembur: null,
+        status_lembur_spl: null,
         status_masuk: null,
         name: karyawan[i].name,
         status_keluar: "Belum Keluar",

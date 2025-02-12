@@ -187,6 +187,8 @@ const PayrollBayarPeriodeController = {
             periode_dari: data_payroll.periode_dari,
             periode_sampai: data_payroll.periode_sampai,
             total_upah: parseInt(data.total),
+            sub_total_upah: parseInt(data.sub_total),
+            pengurangan_penambahan: parseInt(data.pengurangan_penambahan),
             total_potongan: data.total_potongan,
             tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
           },
