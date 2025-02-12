@@ -796,6 +796,7 @@ const absenFunction = {
         let statusLemburSPL = "tidak dengan SPL";
         let jamLemburSPL = 0;
         let id_pengajuan_lembur = null;
+        let statusKetidaksesuaian = null;
         const lemburFind = lemburEntries.find(
           (entry) =>
             entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
@@ -805,9 +806,8 @@ const absenFunction = {
           statusLemburSPL = "dengan SPL";
           jamLemburSPL = lemburFind.jam_lembur;
           id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
+          statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
         }
-
-        //console.log(terlambatFind);
 
         return {
           id_pengajuan_lembur: id_pengajuan_lembur,
@@ -825,6 +825,7 @@ const absenFunction = {
           status_lembur: statusLembur,
           status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
+          status_ketidaksesuaian: statusKetidaksesuaian,
           name: namaKaryawan,
           status_keluar: statusKeluar,
           menit_pulang_cepat: menitPulangCepat,
@@ -939,6 +940,7 @@ const absenFunction = {
         let statusLemburSPL = "tidak dengan SPL";
         let jamLemburSPL = 0;
         let id_pengajuan_lembur = null;
+        let statusKetidaksesuaian = null;
         const lemburFind = lemburEntries.find(
           (entry) =>
             entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
@@ -948,6 +950,7 @@ const absenFunction = {
           statusLemburSPL = "dengan SPL";
           jamLemburSPL = lemburFind.jam_lembur;
           id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
+          statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
         }
 
         return {
@@ -966,6 +969,7 @@ const absenFunction = {
           status_lembur: "Belum Pulang",
           status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
+          status_ketidaksesuaian: statusKetidaksesuaian,
           name: namaKaryawan,
           status_keluar: "Belum Pulang",
           menit_pulang_cepat: 0,
@@ -1024,6 +1028,8 @@ const absenFunction = {
             (karyawanDitemukan.status_lembur = absen.status_lembur),
             (karyawanDitemukan.status_lembur_spl = absen.status_lembur_spl),
             (karyawanDitemukan.status_masuk = absen.status_masuk),
+            (karyawanDitemukan.status_ketidaksesuaian =
+              absen.status_ketidaksesuaian),
             (karyawanDitemukan.name = absen.name),
             (karyawanDitemukan.status_keluar = absen.status_keluar),
             (karyawanDitemukan.menit_pulang_cepat = absen.menit_pulang_cepat),
@@ -1049,6 +1055,7 @@ const absenFunction = {
             status_lembur: absen.status_lembur,
             status_lembur_spl: absen.status_lembur_spl,
             status_masuk: absen.status_masuk,
+            status_ketidaksesuaian: absen.status_ketidaksesuaian,
             name: absen.name,
             status_keluar: absen.status_keluar,
             menit_pulang_cepat: absen.menit_pulang_cepat,
@@ -1609,6 +1616,7 @@ const generateDailyLembur = (
     name: namaKaryawan,
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
+    status_ketidaksesuaian: Lembur.status_ketidaksesuaian,
   });
 
   return dailyLembur;
@@ -1675,6 +1683,7 @@ const generatekaryawanList = (
         status_lembur: null,
         status_lembur_spl: null,
         status_masuk: null,
+        status_ketidaksesuaian: null,
         name: karyawan[i].name,
         status_keluar: "Belum Keluar",
         menit_pulang_cepat: null,

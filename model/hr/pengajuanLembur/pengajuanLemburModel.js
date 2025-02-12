@@ -32,6 +32,22 @@ const PengajuanLembur = db.define(
         key: "userid",
       },
     },
+    id_pengaju_ketidaksesuaian: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: KaryawanModel,
+        key: "userid",
+      },
+    },
+    id_respon_ketidaksesuaian: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: KaryawanModel,
+        key: "userid",
+      },
+    },
     id_department: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -141,6 +157,26 @@ KaryawanModel.hasMany(PengajuanLembur, {
 PengajuanLembur.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
   as: "karyawan_hr",
+});
+
+//relasi karyawan pengaju ketidaksesuaian
+KaryawanModel.hasMany(PengajuanLembur, {
+  foreignKey: "id_pengaju_ketidaksesuaian",
+  as: "pengaju_lembur_ketidaksesuaian_karyawan",
+});
+PengajuanLembur.belongsTo(KaryawanModel, {
+  foreignKey: "id_pengaju_ketidaksesuaian",
+  as: "karyawan_pengaju_ketidaksesuaian",
+});
+
+//relasi karyawan respon ketidaksesuaian
+KaryawanModel.hasMany(PengajuanLembur, {
+  foreignKey: "id_respon_ketidaksesuaian",
+  as: "respon_lembur_ketidaksesuaian_karyawan",
+});
+PengajuanLembur.belongsTo(KaryawanModel, {
+  foreignKey: "id_respon_ketidaksesuaian",
+  as: "karyawan_respon_ketidaksesuaian",
 });
 
 //relasi master department

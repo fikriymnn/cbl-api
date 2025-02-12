@@ -65,6 +65,54 @@ const PengajuanLemburController = {
             },
             {
               model: Karyawan,
+              as: "karyawan_pengaju_ketidaksesuaian",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
+              as: "karyawan_respon_ketidaksesuaian",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
               as: "karyawan_hr",
             },
           ],
@@ -85,6 +133,55 @@ const PengajuanLemburController = {
             {
               model: Karyawan,
               as: "karyawan_pengaju",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+
+            {
+              model: Karyawan,
+              as: "karyawan_pengaju_ketidaksesuaian",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
+              as: "karyawan_respon_ketidaksesuaian",
               include: [
                 {
                   model: KaryawanBiodata,
@@ -150,6 +247,54 @@ const PengajuanLemburController = {
             },
             {
               model: Karyawan,
+              as: "karyawan_pengaju_ketidaksesuaian",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
+              as: "karyawan_respon_ketidaksesuaian",
+              include: [
+                {
+                  model: KaryawanBiodata,
+                  as: "biodata_karyawan",
+                  include: [
+                    // {
+                    //   model: MasterDivisi,
+                    //   as: "divisi",
+                    // },
+                    {
+                      model: MasterDepartment,
+                      as: "department",
+                    },
+                    // {
+                    //   model: MasterBagianHr,
+                    //   as: "bagian",
+                    // },
+                  ],
+                },
+              ],
+            },
+            {
+              model: Karyawan,
               as: "karyawan_hr",
             },
           ],
@@ -173,7 +318,6 @@ const PengajuanLemburController = {
       lama_lembur,
       alasan_lembur,
       target_lembur,
-      isIstirahat,
     } = req.body;
     const t = await db.transaction();
 
@@ -274,8 +418,12 @@ const PengajuanLemburController = {
 
   kirimPengajuanLemburTidakSesuai: async (req, res) => {
     const _id = req.params.id;
-    const { catatan_ketidaksesuaian, lama_lembur_absen, type_ketidaksesuaian } =
-      req.body;
+    const {
+      catatan_ketidaksesuaian,
+      lama_lembur_absen,
+      type_ketidaksesuaian,
+      id_pengaju_ketidaksesuaian,
+    } = req.body;
     const t = await db.transaction();
 
     try {
@@ -289,6 +437,7 @@ const PengajuanLemburController = {
           catatan_ketidaksesuaian,
           lama_lembur_absen,
           type_ketidaksesuaian,
+          id_pengaju_ketidaksesuaian,
         },
         {
           where: { id: _id },
@@ -306,7 +455,8 @@ const PengajuanLemburController = {
 
   responPengajuanLemburTidakSesuai: async (req, res) => {
     const _id = req.params.id;
-    const { alasan_ketidaksesuaian, penanganan } = req.body;
+    const { alasan_ketidaksesuaian, penanganan, id_respon_ketidaksesuaian } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -314,20 +464,21 @@ const PengajuanLemburController = {
       if (!dataPengajuanLembur)
         return res.status(404).json({ msg: "data tidak di temukan" });
       let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
-      let statusPenanganan = "mengikuti SPL";
+      let statusPenanganan = "Sesuai SPL";
 
       // 1 untuk ikut lama lembur absen
       if (penanganan == 1) {
         lamaLemburAktual = dataPengajuanLembur.lama_lembur_absen;
-        statusPenanganan = "mengikuti absen";
+        statusPenanganan = "Sesuai absen";
       }
 
       await PengajuanLembur.update(
         {
-          status_ketidaksesuaian: "done",
+          status_ketidaksesuaian: "history",
           alasan_ketidaksesuaian,
           lama_lembur_aktual: lamaLemburAktual,
           penanganan: statusPenanganan,
+          id_respon_ketidaksesuaian,
         },
         {
           where: { id: _id },
