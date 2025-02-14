@@ -2,21 +2,12 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const KaryawanModel = require("../karyawanModel");
 const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
-const PayrollPeriodeModel = require("./payrollMingguanPeriodeModel");
 
 const { DataTypes } = Sequelize;
 
-const Payroll = db.define(
-  "payroll_mingguan",
+const PengajuanSakit = db.define(
+  "pengajuan_terlambat",
   {
-    id_payroll_periode: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: PayrollPeriodeModel,
-        key: "id",
-      },
-    },
     id_karyawan: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -25,7 +16,14 @@ const Payroll = db.define(
         key: "userid",
       },
     },
-
+    id_pengaju: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: KaryawanModel,
+        key: "userid",
+      },
+    },
     id_hr: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -42,37 +40,31 @@ const Payroll = db.define(
         key: "id",
       },
     },
-    periode_dari: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    periode_sampai: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    total_upah: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-    },
-    sub_total_upah: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-    },
-    pengurangan_penambahan: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-    },
-    total_potongan: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-    },
-    tipe_penggajian: {
+    nama_department: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    insentif: {
-      type: DataTypes.DOUBLE,
+    tanggal: {
+      type: DataTypes.DATE,
       allowNull: true,
+    },
+    type_izin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    catatan_hr: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "incoming",
+    },
+    status_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "incoming",
     },
   },
   {
@@ -81,43 +73,42 @@ const Payroll = db.define(
 );
 
 //relasi karyawan
-KaryawanModel.hasMany(Payroll, {
+KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_karyawan",
-  as: "payroll_karyawan",
+  as: "terlambat_karyawan",
 });
-Payroll.belongsTo(KaryawanModel, {
+PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_karyawan",
   as: "karyawan",
 });
 
-//relasi karyawan hr
-KaryawanModel.hasMany(Payroll, {
-  foreignKey: "id_hr",
-  as: "hr_payroll_karyawan",
+//relasi karyawan pengaju
+KaryawanModel.hasMany(PengajuanSakit, {
+  foreignKey: "id_pengaju",
+  as: "pengaju_terlambat_karyawan",
 });
-Payroll.belongsTo(KaryawanModel, {
+PengajuanSakit.belongsTo(KaryawanModel, {
+  foreignKey: "id_pengaju",
+  as: "karyawan_pengaju",
+});
+
+//relasi karyawan hr
+KaryawanModel.hasMany(PengajuanSakit, {
+  foreignKey: "id_hr",
+  as: "hr_respon_terlambat_karyawan",
+});
+PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
   as: "karyawan_hr",
 });
-
 //relasi master department
-DepartmentModel.hasMany(Payroll, {
+DepartmentModel.hasMany(PengajuanSakit, {
   foreignKey: "id_department",
-  as: "payroll_department",
+  as: "hr_pengajuan_terlambat",
 });
-Payroll.belongsTo(DepartmentModel, {
+PengajuanSakit.belongsTo(DepartmentModel, {
   foreignKey: "id_department",
   as: "department",
 });
 
-//relasi master department
-PayrollPeriodeModel.hasMany(Payroll, {
-  foreignKey: "id_payroll_periode",
-  as: "payroll_detail",
-});
-Payroll.belongsTo(PayrollPeriodeModel, {
-  foreignKey: "id_payroll_periode",
-  as: "payroll_periode",
-});
-
-module.exports = Payroll;
+module.exports = PengajuanSakit;
