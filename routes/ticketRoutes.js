@@ -2,6 +2,7 @@ const router = require("express").Router();
 const {
   createTiket,
   getTicket,
+  getTicketValidasiVerifikasiQc,
   getTiketById,
   updateTiket,
   selectMtc,
@@ -13,6 +14,7 @@ const {
 const { auth } = require("../middlewares/authMiddlewares");
 
 router.get("/ticket/:id", getTiketById);
+router.get("/ticketValidasiVerifikasi", getTicketValidasiVerifikasiQc);
 router.get("/ticket", getTicket);
 router.get("/ticketUsers", auth, getTiketUser);
 router.post("/ticket", createTiket);

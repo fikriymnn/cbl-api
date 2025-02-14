@@ -511,6 +511,8 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     potongan: [],
     total_potongan: 0,
     total: 0,
+    sub_total: 0,
+    pengurangan_penambahan: 0,
   };
 
   //tambah data pengajuan pinjaman
@@ -519,6 +521,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 
     //pengurangan nilai ke total gaji
     summaryPayroll.total -= pengajuanPinjaman.jumlah_cicilan;
+    summaryPayroll.sub_total -= pengajuanPinjaman.jumlah_cicilan;
     summaryPayroll.total_potongan += pengajuanPinjaman.jumlah_cicilan;
   }
 
@@ -535,6 +538,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 
       //pengurangan nilai ke total gaji
       summaryPayroll.total -= dataPotongan.jumlah_potongan;
+      summaryPayroll.sub_total -= dataPotongan.jumlah_potongan;
       summaryPayroll.total_potongan += dataPotongan.jumlah_potongan;
     }
   }
@@ -574,7 +578,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       const jamKeluar = new Date(absen.waktu_keluar);
       // jamLembur = (jamKeluar - jamKeluarShift) / (1000 * 60 * 60); // Hasil dalam jam
       //   jamLembur = payroll.data_pengajuan_lembur.lama_lembur_aktual;
-      jamLembur = absen.jam_lembur;
+      jamLembur = absen.jam_lembur_spl;
 
       // // Jika ada waktu istirahat, kita akan kurangi durasi lembur dengan jam istirahat
       // istirahat.forEach((rest) => {
@@ -709,6 +713,21 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
         }
       }
 
+      //perhitungan potongan terlambat
+      // if (
+      //   absen.status_masuk == "Terlambat " ||
+      //   absen.status_masuk == "Terlambat : pribadi"
+      // ) {
+      //   payroll.rincian.push({
+      //     label: "potonganTerlambat",
+      //     jumlah: absen.menit_terlambat,
+      //     nilai: 15000,
+      //     total: absen.menit_terlambat * 15000,
+      //   });
+
+      //    payroll.total -= absen.menit_terlambat * 15000;
+      // }
+
       // Perhitungan sakit khusus untuk karyawan mingguan
       if (
         absen.status_absen === "sakit" &&
@@ -755,12 +774,14 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           summaryPayroll.rincian[item.label].total =
             summaryPayroll.rincian[item.label].jumlah * item.nilai;
           summaryPayroll.total += item.total;
+          summaryPayroll.sub_total += item.total;
         }
       });
 
       // Gabungkan rincian sakit payroll ke summaryPayroll
       summaryPayroll.upahHarianSakit.map((item) => {
         summaryPayroll.total += item.total;
+        summaryPayroll.sub_total += item.total;
       });
 
       // Tambahkan payroll ke dalam data absen

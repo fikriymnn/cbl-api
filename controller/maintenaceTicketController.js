@@ -117,6 +117,55 @@ const ticketController = {
     }
   },
 
+  getTicketValidasiVerifikasiQc: async (req, res) => {
+    try {
+      const { jenis_kendala, no_jo, mesin, operator } = req.query;
+
+      let obj = {};
+      if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
+      if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
+      if (operator) obj.operator = { [Op.like]: `%${operator}%` };
+      if (mesin) obj.mesin = mesin;
+
+      const response = await Ticket.findOne({
+        where: obj,
+        include: [
+          {
+            model: ProsesMtc,
+          },
+        ],
+      });
+
+      if (!response)
+        return res.status(404).json({
+          status: 404,
+          msg: "data not found",
+        });
+
+      const dataHasil = {
+        id_jo: response.id,
+        no_jo: response.no_jo,
+        operator: response.operator,
+        status_validasi:
+          response.status_qc == null ? "belum di validasi" : response.status_qc,
+        status_verifikasi: "belum di verifikasi",
+      };
+
+      for (let i = 0; i < response.proses_mtcs.length; i++) {
+        const dataProses = response.proses_mtcs[i];
+        dataHasil.status_verifikasi = dataProses.status_qc;
+      }
+
+      res.status(200).json({
+        status: 200,
+        msg: "data find success",
+        data: dataHasil,
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   getTiketById: async (req, res) => {
     try {
       const response = await Ticket.findOne({

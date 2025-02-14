@@ -21,4 +21,15 @@ router.put(
   pengajuanLemburController.rejectPengajuanLembur
 );
 
+router.post(
+  "/hr/pengajuanLembur/tidakSesuai/:id",
+
+  pengajuanLemburController.kirimPengajuanLemburTidakSesuai
+);
+router.put(
+  "/hr/pengajuanLembur/tidakSesuai/respon/:id",
+
+  pengajuanLemburController.responPengajuanLemburTidakSesuai
+);
+
 module.exports = router;

@@ -757,7 +757,15 @@ const transformDataMaster = (data) => {
 };
 
 // Daftar kategori default
-const defaultCategories = ["CETAK", "COATING", "POND", "LEM", "UNKNOWN"];
+const defaultCategories = [
+  "CETAK",
+  "COATING",
+  "POND",
+  "LEM",
+  "POTONG",
+  "LIPAT",
+  "UNKNOWN",
+];
 const groupByCategoryWithDefault = (data) => {
   let result = {};
 
@@ -807,9 +815,13 @@ const getCategoryWaste = (item) => {
     return "COATING";
   } else if (/^C(?!O)/.test(item)) {
     return "CETAK";
-  } else if (/^P/.test(item)) {
+  } else if (/^PT/.test(item)) {
+    return "POTONG";
+  } else if (/^P(?!T)/.test(item)) {
     return "POND";
-  } else if (/^L/.test(item)) {
+  } else if (/^LP/.test(item)) {
+    return "LIPAT";
+  } else if (/^L(?!P)/.test(item)) {
     return "LEM";
   } else {
     return "UNKNOWN"; // Jika tidak cocok dengan kategori yang ada

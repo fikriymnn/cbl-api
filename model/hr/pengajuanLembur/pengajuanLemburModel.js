@@ -32,6 +32,22 @@ const PengajuanLembur = db.define(
         key: "userid",
       },
     },
+    id_pengaju_ketidaksesuaian: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: KaryawanModel,
+        key: "userid",
+      },
+    },
+    id_respon_ketidaksesuaian: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: KaryawanModel,
+        key: "userid",
+      },
+    },
     id_department: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -68,21 +84,6 @@ const PengajuanLembur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    isIstirahat: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    tipe_lembur: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "biasa",
-    },
-    jumlah_makan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
     catatan_hr: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -96,6 +97,31 @@ const PengajuanLembur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "incoming",
+    },
+    status_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "none",
+    },
+    catatan_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    alasan_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    lama_lembur_absen: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    type_ketidaksesuaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    penanganan: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
@@ -131,6 +157,26 @@ KaryawanModel.hasMany(PengajuanLembur, {
 PengajuanLembur.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
   as: "karyawan_hr",
+});
+
+//relasi karyawan pengaju ketidaksesuaian
+KaryawanModel.hasMany(PengajuanLembur, {
+  foreignKey: "id_pengaju_ketidaksesuaian",
+  as: "pengaju_lembur_ketidaksesuaian_karyawan",
+});
+PengajuanLembur.belongsTo(KaryawanModel, {
+  foreignKey: "id_pengaju_ketidaksesuaian",
+  as: "karyawan_pengaju_ketidaksesuaian",
+});
+
+//relasi karyawan respon ketidaksesuaian
+KaryawanModel.hasMany(PengajuanLembur, {
+  foreignKey: "id_respon_ketidaksesuaian",
+  as: "respon_lembur_ketidaksesuaian_karyawan",
+});
+PengajuanLembur.belongsTo(KaryawanModel, {
+  foreignKey: "id_respon_ketidaksesuaian",
+  as: "karyawan_respon_ketidaksesuaian",
 });
 
 //relasi master department
