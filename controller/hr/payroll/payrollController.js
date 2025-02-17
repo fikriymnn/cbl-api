@@ -512,6 +512,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     total_potongan: 0,
     total: 0,
     sub_total: 0,
+    pembulatan: false,
     pengurangan_penambahan: 0,
   };
 
@@ -788,6 +789,12 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       return { ...absen, payroll };
     })
   );
+
+  //pembulatan bayaran dua digit terakhir
+  const pembulatanBayaran = pembulatanAngka(summaryPayroll.sub_total);
+  summaryPayroll.total = pembulatanBayaran.nilai;
+  summaryPayroll.sub_total = pembulatanBayaran.nilai;
+  summaryPayroll.pembulatan = pembulatanBayaran.pembulatan;
   // Ubah rincian summaryPayroll menjadi array
   summaryPayroll.rincian = Object.entries(summaryPayroll.rincian).map(
     ([label, { jumlah, nilai, total }]) => ({ label, jumlah, nilai, total })
@@ -941,6 +948,25 @@ function getMonthName(monthString) {
   } else {
     return months[monthNumber - 1];
   }
+}
+
+// Fungsi untuk membulatkan sesuai aturan
+function pembulatanAngka(angka) {
+  // Ambil dua digit terakhir
+  const duaDigitTerakhir = angka % 100;
+
+  // Jika dua digit terakhir adalah 00, tidak perlu pembulatan
+  if (duaDigitTerakhir === 0) {
+    return { nilai: angka, pembulatan: false };
+  }
+
+  // Tentukan hasil pembulatan
+  let hasil =
+    duaDigitTerakhir >= 50
+      ? angka + (100 - duaDigitTerakhir) // Dibulatkan ke atas
+      : angka - duaDigitTerakhir; // Dibulatkan ke bawah
+
+  return { nilai: hasil, pembulatan: hasil !== angka };
 }
 
 function hitungTahunDari(tanggal) {

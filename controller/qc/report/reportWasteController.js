@@ -301,7 +301,7 @@ const ReportWasterQc = {
       const dataByKategori = getDataByKategoriAll(grupJoinWithMasterReplace);
 
       res.status(200).json({
-        data2: datamasterReplace,
+        // data2: datamasterReplace,
         //data3: datamasterReplace,
         dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
@@ -671,28 +671,44 @@ function getDataByKategoriAll(dataAll) {
 
   const dataKendalaByKategori = filterDataAllKendala.reduce(
     (result, current) => {
-      const { no_jo, kategori_kendala, calculated_defect } = current;
+      const { no_jo, kategori_kendala, calculated_defect, mesin } = current;
+      const namaMesin = mesin || "No Machine";
 
-      // Jika kategori_kendala sudah ada dalam result
-      if (result[kategori_kendala]) {
-        result[kategori_kendala].total_calculated_defect += calculated_defect;
-
-        const existingJo = result[kategori_kendala].jo.find(
-          (dataJo) => dataJo.no_jo === no_jo
-        );
-
-        if (!existingJo) {
-          result[kategori_kendala].jo.push({ no_jo: no_jo });
-        }
-      } else {
-        // Jika kategori_kendala belum ada, buat kategori baru
+      // Jika kategori_kendala belum ada, buat kategori baru
+      if (!result[kategori_kendala]) {
         result[kategori_kendala] = {
-          total_calculated_defect: calculated_defect,
+          total_calculated_defect: 0,
           kategori_kendala,
+          joMap: {}, // Digunakan untuk mempercepat akses
           jo: [],
         };
-        result[kategori_kendala].jo.push({ no_jo: no_jo });
       }
+
+      // Tambah total defect di kategori
+      result[kategori_kendala].total_calculated_defect += calculated_defect;
+
+      // Ambil atau buat entri jo
+      let joItem = result[kategori_kendala].joMap[no_jo];
+      if (!joItem) {
+        joItem = {
+          no_jo: no_jo,
+          mesinMap: {}, // Map untuk akses mesin yang lebih cepat
+          mesin: [],
+        };
+        result[kategori_kendala].joMap[no_jo] = joItem;
+        result[kategori_kendala].jo.push(joItem);
+      }
+
+      // Tambah atau update defect di mesin
+      if (!joItem.mesinMap[namaMesin]) {
+        joItem.mesinMap[namaMesin] = {
+          mesin: namaMesin,
+          total_calculated_defect: 0,
+        };
+        joItem.mesin.push(joItem.mesinMap[namaMesin]);
+      }
+
+      joItem.mesinMap[namaMesin].total_calculated_defect += calculated_defect;
 
       return result;
     },

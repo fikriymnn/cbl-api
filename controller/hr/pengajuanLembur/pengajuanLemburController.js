@@ -310,6 +310,7 @@ const PengajuanLemburController = {
 
   createPengajuanLembur: async (req, res) => {
     const {
+      karyawan,
       id_karyawan,
       id_pengaju,
       jo_lembur,
@@ -322,30 +323,47 @@ const PengajuanLemburController = {
     const t = await db.transaction();
 
     try {
-      const dataKaryawanBiodata = await KaryawanBiodata.findOne({
-        where: { id_karyawan: id_karyawan },
-      });
-
-      if (!dataKaryawanBiodata)
-        return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
-      const dataPengajuanLembur = await PengajuanLembur.create(
-        {
-          id_karyawan,
-          id_pengaju: id_pengaju,
-          id_department: dataKaryawanBiodata.id_department,
-          jo_lembur,
-          dari,
-          sampai,
-          lama_lembur,
-          lama_lembur_aktual: lama_lembur,
-          alasan_lembur,
-          target_lembur,
+      const dataKaryawanBiodata = await KaryawanBiodata.findAll({
+        where: {
+          id_karyawan: {
+            [Op.in]: karyawan, // Gunakan array id_karyawan
+          },
         },
-        { transaction: t }
+      });
+      //set untuk karyawan biodata
+      const idSet = new Set(
+        dataKaryawanBiodata.map((item) => item.id_karyawan)
       );
+      // Cari karyawan yang tidak ada di karyawanBiodata
+      const tidakAda = karyawan.filter((id) => !idSet.has(id));
+
+      if (tidakAda.length > 0)
+        return res
+          .status(404)
+          .json({ msg: `Karyawan dengan id ${tidakAda} Tidak ditemukan` });
+
+      for (let i = 0; i < dataKaryawanBiodata.length; i++) {
+        const data = dataKaryawanBiodata[i];
+        await PengajuanLembur.create(
+          {
+            id_karyawan: data.id_karyawan,
+            id_pengaju: id_pengaju,
+            id_department: data.id_department,
+            jo_lembur,
+            dari,
+            sampai,
+            lama_lembur,
+            lama_lembur_aktual: lama_lembur,
+            alasan_lembur,
+            target_lembur,
+          },
+          { transaction: t }
+        );
+      }
+
       await t.commit();
       res.status(200).json({
-        data: dataPengajuanLembur,
+        msg: "pengajuan successfully",
       });
     } catch (error) {
       await t.rollback();
@@ -423,6 +441,8 @@ const PengajuanLemburController = {
       lama_lembur_absen,
       type_ketidaksesuaian,
       id_pengaju_ketidaksesuaian,
+      alasan_ketidaksesuaian,
+      penanganan,
     } = req.body;
     const t = await db.transaction();
 
@@ -431,6 +451,15 @@ const PengajuanLemburController = {
       if (!dataPengajuanLembur)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
+      let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
+      let statusPenanganan = "Sesuai SPL";
+
+      // 1 untuk ikut lama lembur absen
+      if (penanganan == 1) {
+        lamaLemburAktual = dataPengajuanLembur.lama_lembur_absen;
+        statusPenanganan = "Sesuai absen";
+      }
+
       await PengajuanLembur.update(
         {
           status_ketidaksesuaian: "incoming",
@@ -438,6 +467,9 @@ const PengajuanLemburController = {
           lama_lembur_absen,
           type_ketidaksesuaian,
           id_pengaju_ketidaksesuaian,
+          alasan_ketidaksesuaian,
+          lama_lembur_aktual: lamaLemburAktual,
+          penanganan: statusPenanganan,
         },
         {
           where: { id: _id },
@@ -455,29 +487,17 @@ const PengajuanLemburController = {
 
   responPengajuanLemburTidakSesuai: async (req, res) => {
     const _id = req.params.id;
-    const { alasan_ketidaksesuaian, penanganan, id_respon_ketidaksesuaian } =
-      req.body;
+    const { id_respon_ketidaksesuaian } = req.body;
     const t = await db.transaction();
 
     try {
       const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
       if (!dataPengajuanLembur)
         return res.status(404).json({ msg: "data tidak di temukan" });
-      let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
-      let statusPenanganan = "Sesuai SPL";
-
-      // 1 untuk ikut lama lembur absen
-      if (penanganan == 1) {
-        lamaLemburAktual = dataPengajuanLembur.lama_lembur_absen;
-        statusPenanganan = "Sesuai absen";
-      }
 
       await PengajuanLembur.update(
         {
           status_ketidaksesuaian: "history",
-          alasan_ketidaksesuaian,
-          lama_lembur_aktual: lamaLemburAktual,
-          penanganan: statusPenanganan,
           id_respon_ketidaksesuaian,
         },
         {
