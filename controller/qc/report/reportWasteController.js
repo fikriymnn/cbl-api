@@ -127,7 +127,6 @@ const ReportWasterQc = {
               no_io: data.no_io,
               customer: data.customer,
               nama_produk: data.nama_produk,
-
               operator: data.operator,
               tanggal: defect.inspeksi_barang_rusak_point_v2.waktu_mulai,
               inspektor: defect.inspeksi_barang_rusak_point_v2.inspektor.nama,
@@ -488,9 +487,12 @@ const mapKodeToProduksiReplace = (
     const groupedDefects = {};
 
     joItem.inspeksi_defect.forEach((defect) => {
+      const temuan = defect.temuan;
       const kode = defect.kode;
       const kodeLKH = defect.kode_lkh;
       const mesin = defect.mesin;
+      const operator = defect.operator;
+      const inspektor = defect.inspektor;
 
       // Jika kode ada di master
       if (masterMap[kodeLKH]) {
@@ -500,12 +502,25 @@ const mapKodeToProduksiReplace = (
             kendala_desc: masterMap[kodeLKH].kendala_desc,
             total_defect: 0,
             mesin: mesin,
+            operator_inspektor: [
+              {
+                temuan: temuan,
+                operator: operator,
+                inspektor: inspektor,
+              },
+            ],
             kategori_kendala: masterMap[kodeLKH].kategori_kendala,
             kendala: masterMap[kodeLKH].kendala.map((kendala) => ({
               ...kendala,
               calculated_defect: 0, // Inisialisasi hasil perhitungan defect berdasarkan kode_lkh
             })),
           };
+        } else {
+          groupedDefects[kodeLKH].operator_inspektor.push({
+            temuan: temuan,
+            operator: operator,
+            inspektor: inspektor,
+          });
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -660,6 +675,7 @@ function getDataByKategoriAll(dataAll) {
         total_defect: item2.total_defect,
         calculated_defect: item2.total_defect,
         mesin: item2.mesin,
+        operator_inspektor: item2.operator_inspektor,
       });
     });
   });
@@ -671,7 +687,13 @@ function getDataByKategoriAll(dataAll) {
 
   const dataKendalaByKategori = filterDataAllKendala.reduce(
     (result, current) => {
-      const { no_jo, kategori_kendala, calculated_defect, mesin } = current;
+      const {
+        no_jo,
+        kategori_kendala,
+        calculated_defect,
+        mesin,
+        operator_inspektor,
+      } = current;
       const namaMesin = mesin || "No Machine";
 
       // Jika kategori_kendala belum ada, buat kategori baru
@@ -704,6 +726,7 @@ function getDataByKategoriAll(dataAll) {
         joItem.mesinMap[namaMesin] = {
           mesin: namaMesin,
           total_calculated_defect: 0,
+          operator_inspektor: operator_inspektor,
         };
         joItem.mesin.push(joItem.mesinMap[namaMesin]);
       }
