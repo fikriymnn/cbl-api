@@ -365,11 +365,15 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
 
     joItem.inspeksi_defect.forEach((defect) => {
       const kode = defect.kode;
+      const kodeMasalah = defect.masalah;
       const kodeLKH = defect.kode_lkh;
+      const masalahLKH = defect.masalah_lkh;
       const mesin = defect.mesin;
       const operator = defect.operator;
       const inspektor = defect.inspektor;
       const temuan = defect.temuan;
+      const kategoriKendala = defect.sumber_masalah;
+      const total_defect = defect.total_defect;
 
       //vrsi 1 untuk mencocokan berdasarkan master
       // Jika kode ada di master
@@ -381,6 +385,19 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
+            operator_inspektor: [
+              {
+                mesin: mesin,
+                temuan: temuan,
+                operator: operator,
+                inspektor: inspektor,
+                calculated_defect: total_defect,
+                kode_waste: kode,
+                masalah: kodeMasalah,
+                kode_lkh: kodeLKH,
+                masalah_lkh: masalahLKH,
+              },
+            ],
             waste_desc: masterMap[kode].waste_desc,
             kategori: getCategoryWaste(kode),
             total_defect: 0,
@@ -389,6 +406,18 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
               calculated_defect: 0, // Inisialisasi hasil perhitungan defect berdasarkan kode_lkh
             })),
           };
+        } else {
+          groupedDefects[kode].operator_inspektor.push({
+            mesin: mesin,
+            temuan: temuan,
+            operator: operator,
+            inspektor: inspektor,
+            calculated_defect: total_defect,
+            kode_waste: kode,
+            masalah: kodeMasalah,
+            kode_lkh: kodeLKH,
+            masalah_lkh: masalahLKH,
+          });
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -419,6 +448,7 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
+
             waste_desc: masterMap[kode].waste_desc,
             kategori: getCategoryWaste(kode),
             total_defect: 0,
@@ -487,12 +517,16 @@ const mapKodeToProduksiReplace = (
     const groupedDefects = {};
 
     joItem.inspeksi_defect.forEach((defect) => {
-      const temuan = defect.temuan;
       const kode = defect.kode;
+      const kodeMasalah = defect.masalah;
       const kodeLKH = defect.kode_lkh;
+      const masalahLKH = defect.masalah_lkh;
       const mesin = defect.mesin;
       const operator = defect.operator;
       const inspektor = defect.inspektor;
+      const temuan = defect.temuan;
+      const kategoriKendala = defect.sumber_masalah;
+      const total_defect = defect.total_defect;
 
       // Jika kode ada di master
       if (masterMap[kodeLKH]) {
@@ -504,9 +538,15 @@ const mapKodeToProduksiReplace = (
             mesin: mesin,
             operator_inspektor: [
               {
+                mesin: mesin,
                 temuan: temuan,
                 operator: operator,
                 inspektor: inspektor,
+                calculated_defect: total_defect,
+                kode_waste: kode,
+                masalah: kodeMasalah,
+                kode_lkh: kodeLKH,
+                masalah_lkh: masalahLKH,
               },
             ],
             kategori_kendala: masterMap[kodeLKH].kategori_kendala,
@@ -517,9 +557,15 @@ const mapKodeToProduksiReplace = (
           };
         } else {
           groupedDefects[kodeLKH].operator_inspektor.push({
+            mesin: mesin,
             temuan: temuan,
             operator: operator,
             inspektor: inspektor,
+            calculated_defect: total_defect,
+            kode_waste: kode,
+            masalah: kodeMasalah,
+            kode_lkh: kodeLKH,
+            masalah_lkh: masalahLKH,
           });
         }
 
