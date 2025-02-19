@@ -188,7 +188,10 @@ const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
 //pengajuan
 const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
 const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
+const pengajuanDinas = require("./model/hr/pengajuanDinas/pengajuanDinasModel");
+const pengajuanSP = require("./model/hr/pengajuanSP/pengajuanSPModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
+const pengajuanKaryawan = require("./model/hr/pengajuanKaryawan/pengajuanKaryawanModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
@@ -248,7 +251,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await payrollMingguan.sync({ alter: true });
+//   await pengajuanSP.sync({ alter: true });
 // })();
 
 // const ip100 = 75

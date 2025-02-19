@@ -7,6 +7,7 @@ const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentMo
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
+const DataSP = require("../../../model/hr/pengajuanSP/pengajuanSPModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
 const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
@@ -152,8 +153,46 @@ const karyawanController = {
             },
           ],
         });
+
+        const startToday = new Date().setHours(0, 0, 0, 0);
+        const endToday = new Date().setHours(23, 59, 59, 999);
+
+        const SpAktif = await DataSP.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: _id,
+            [Op.or]: [
+              {
+                dari: {
+                  [Op.between]: [startToday, endToday],
+                },
+              }, // `from` berada dalam rentang
+              {
+                sampai: {
+                  [Op.between]: [startToday, endToday],
+                },
+              }, // `to` berada dalam rentang
+              {
+                [Op.and]: [
+                  {
+                    dari: {
+                      [Op.lte]: startToday,
+                    },
+                  }, // Rentang cuti mencakup startDate
+                  {
+                    sampai: {
+                      [Op.gte]: endToday,
+                    },
+                  }, // Rentang cuti mencakup endDate
+                ],
+              },
+            ],
+          },
+        });
+
         return res.status(200).json({
           data: data,
+          sp_aktif: SpAktif,
         });
       } else if (id_department) {
         const data = await KaryawanBiodata.findAll({

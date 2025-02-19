@@ -477,6 +477,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   const uangLemburBiasa = dataKaryawan.grade.lembur_biasa;
   const uangLemburLibur = dataKaryawan.grade.lembur_libur;
   const uangMakanLembur = dataKaryawan.grade.uang_makan_lembur;
+  const uangDinas = dataKaryawan.grade.uang_dinas;
   const tunjanganKerjaMalam = dataKaryawan.grade.tunjangan_kerja_malam;
   const tunjanganKopi = dataKaryawan.grade.tunjangan_kopi;
 
@@ -598,9 +599,10 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 
       // Perhitungan payroll
       if (
-        absen.status_absen === "masuk" &&
-        (absen.status_keluar === "Keluar" ||
-          absen.status_keluar === "Pulang Cepat")
+        (absen.status_absen === "masuk" &&
+          (absen.status_keluar === "Keluar" ||
+            absen.status_keluar === "Pulang Cepat")) ||
+        absen.status_absen === "dinas"
       ) {
         // const banyakmakan = 1;
         // payroll.rincian.push({
@@ -635,14 +637,23 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           payroll.total += tunjanganKopi;
         }
 
+        if (absen.status_absen === "dinas") {
+          payroll.rincian.push({
+            label: "uangDinas",
+            jumlah: 1,
+            nilai: uangDinas,
+            total: uangDinas,
+          });
+
+          payroll.total += uangDinas;
+        }
+
         payroll.rincian.push({
           label: "uangHadir",
           jumlah: 1,
           nilai: uangHadir,
           total: uangHadir,
         });
-
-        payroll.total += uangHadir;
       }
 
       // Hitung uang lembur jika ada

@@ -4,6 +4,9 @@ const TiketJadwalProduksi = require("../../model/ppic/jadwalProduksiCalculateMod
 const TiketJadwalProduksiTahapan = require("../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
 const JadwalProduksi = require("../../model/ppic/jadwalProduksi/jadwalProduksiModel");
+const masterShift = require("../../model/masterData/hr/masterShift/masterShiftModel");
+const masterIstirahat = require("../../model/masterData/hr/masterShift/masterIstirahatModel");
+
 const db = require("../../config/database");
 
 const moment = require("moment");
@@ -65,10 +68,10 @@ const jadwalProduksiController = {
                 },
               ],
             },
-            // {
-            //   model: TiketJadwalProduksiPerJam,
-            //   as: "jadwal_per_jam",
-            // },
+            {
+              model: TiketJadwalProduksiPerJam,
+              as: "jadwal_per_jam",
+            },
           ],
         });
         res.status(200).json({ data: data });
@@ -217,28 +220,37 @@ const jadwalProduksiController = {
         });
       });
 
-      // const dataJadwal = await JadwalKaryawan.findAll({
-      //   order: [["createdAt", "DESC"]],
-      //   where: {
-      //     tanggal: {
-      //       [Op.between]: [
-      //         new Date().setHours(0, 0, 0, 0),
-      //         new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-      //       ],
-      //     },
-      //     jenis_karyawan: "produksi",
-      //   },
-      // });
+      const dataJadwal = await JadwalKaryawan.findAll({
+        order: [["createdAt", "DESC"]],
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date().setHours(0, 0, 0, 0),
+              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
+            ],
+          },
+          jenis_karyawan: "produksi",
+        },
+      });
+
+      const dataShift = await masterShift.findAll({
+        include: [
+          {
+            model: masterIstirahat,
+            as: "istirahat",
+          },
+        ],
+      });
 
       // Jadwal libur
-      let jadwalLibur = [
-        "2024-12-25",
-        "2024-12-01",
-        "2024-12-08",
-        "2024-12-15",
-        "2024-12-22",
-        "2025-01-19",
-      ];
+      let jadwalLibur = [];
+
+      dataJadwal.map((jadwal) => {
+        const date = new Date(jadwal.tanggal);
+        const formattedDate = date.toISOString().slice(0, 10);
+        jadwalLibur.push(formattedDate);
+      });
+
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
       );
@@ -301,8 +313,8 @@ const jadwalProduksiController = {
             let remainingHours = stage.total_waktu;
 
             while (remainingHours > 0) {
-              // Skip if current time is not within any shift
-              if (!isWithinShiftHours(currentDate)) {
+              // Check if we should work this hour considering all scenarios
+              if (!isWithinShiftHours(currentDate, jadwalLiburSet, dataShift)) {
                 currentDate.setHours(currentDate.getHours() - 1);
                 continue;
               }
@@ -344,34 +356,34 @@ const jadwalProduksiController = {
         );
       });
 
-      // await TiketJadwalProduksi.update(
-      //   { status: "calculated" },
-      //   { where: { id: dataById.id }, transaction: t }
-      // );
+      await TiketJadwalProduksi.update(
+        { status: "calculated" },
+        { where: { id: dataById.id }, transaction: t }
+      );
 
-      // for (let i = 0; i < dataById.tahap.length; i++) {
-      //   const data = dataById.tahap[i];
-      //   await TiketJadwalProduksiTahapan.update(data, {
-      //     where: { id: data.id },
-      //     transaction: t,
-      //   });
+      for (let i = 0; i < dataById.tahap.length; i++) {
+        const data = dataById.tahap[i];
+        await TiketJadwalProduksiTahapan.update(data, {
+          where: { id: data.id },
+          transaction: t,
+        });
 
-      //   for (let ii = 0; ii < data.listJadwalPerJam.length; ii++) {
-      //     const data2 = data.listJadwalPerJam[ii];
-      //     await TiketJadwalProduksiPerJam.create(
-      //       {
-      //         ...data2,
-      //         item: dataById.item,
-      //         tanggal: data2.tgl,
-      //         id_tiket_jadwal_produksi: dataById.id,
-      //         id_tiket_jadwal_produksi_tahapan: data.id,
-      //       },
-      //       { transaction: t }
-      //     );
-      //   }
-      // }
+        for (let ii = 0; ii < data.listJadwalPerJam.length; ii++) {
+          const data2 = data.listJadwalPerJam[ii];
+          await TiketJadwalProduksiPerJam.create(
+            {
+              ...data2,
+              item: dataById.item,
+              tanggal: data2.tgl,
+              id_tiket_jadwal_produksi: dataById.id,
+              id_tiket_jadwal_produksi_tahapan: data.id,
+            },
+            { transaction: t }
+          );
+        }
+      }
 
-      // await t.commit();
+      await t.commit();
 
       res.status(200).json({ data: dataById, jadwalPerJam: listJadwalPerJam });
     } catch (err) {
@@ -858,37 +870,69 @@ const formatNowTimeOnly = (date) => {
   return formatter.format(date).replace(/\./g, ":");
 };
 
-// Helper function to get shift schedule for a given date
-const getShiftSchedule = (date) => {
-  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-  const dayName = days[date.getDay()];
-  return shiftHarian.find((shift) => shift.hari === dayName);
+// Helper function to check if a date is a holiday
+const isHoliday = (date, holidaySet) => {
+  const formattedDate = date.toISOString().split("T")[0];
+  return holidaySet.has(formattedDate);
 };
 
-// Helper to check if time is within shift hours
-const isWithinShiftHours = (date) => {
-  const schedule = getShiftSchedule(date);
+// Helper function to get shift schedule for a given date
+const getShiftSchedule = (date, shift) => {
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const dayName = days[date.getDay()];
+  return shift.find((shift) => shift.hari === dayName);
+};
+
+// Helper function to check if time is within break time
+const isBreakTime = (date, schedule) => {
+  if (!schedule || !schedule.istirahat || schedule.istirahat.length === 0)
+    return false;
+
+  const timeStr = date.toTimeString().slice(0, 8);
+  return schedule.istirahat.some(
+    (breakTime) => timeStr >= breakTime.dari && timeStr < breakTime.sampai
+  );
+};
+
+// Enhanced helper to check if time is within shift hours, considering holidays
+const isWithinShiftHours = (date, holidaySet, shift) => {
+  const schedule = getShiftSchedule(date, shift);
   if (!schedule) return false;
 
   const timeStr = date.toTimeString().slice(0, 8);
-  const currentDay = date.getDay();
+  const currentDate = new Date(date);
   const previousDay = new Date(date);
   previousDay.setDate(date.getDate() - 1);
-  const previousSchedule = getShiftSchedule(previousDay);
+  const previousSchedule = getShiftSchedule(previousDay, shift);
 
-  // Check if time is within shift 1
+  // Skip if time is within break time
+  if (isBreakTime(date, schedule)) return false;
+
+  // Scenario 1: If today is a holiday, skip to the next valid workday
+  if (isHoliday(currentDate, holidaySet)) {
+    return false;
+  }
+
+  // Scenario 2: Regular shift 1 check
   if (timeStr >= schedule.shift_1_masuk && timeStr <= schedule.shift_1_keluar) {
     return true;
   }
 
-  // Check if time is within shift 2 of current day
-  if (timeStr >= schedule.shift_2_masuk && timeStr <= "23:59:59") {
+  // Scenario 3: Current day shift 2 check (before midnight)
+  if (
+    schedule.shift_2_masuk &&
+    schedule.shift_2_masuk !== "" &&
+    timeStr >= schedule.shift_2_masuk &&
+    timeStr <= "23:59:59"
+  ) {
     return true;
   }
 
-  // Check if time is within shift 2 crossing over from previous day
+  // Scenario 4: Previous day's shift 2 extending into current day (after midnight)
   if (
     previousSchedule &&
+    previousSchedule.shift_2_keluar &&
+    previousSchedule.shift_2_keluar !== "" &&
     timeStr >= "00:00:00" &&
     timeStr <= previousSchedule.shift_2_keluar
   ) {
@@ -957,6 +1001,22 @@ const shiftHarian = [
     shift_1_keluar: "16:00:00",
     shift_2_masuk: "20:00:00",
     shift_2_keluar: "04:00:00",
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Rabu",
+        dari: "12:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Rabu",
+      },
+      {
+        id: 7,
+        id_shift: "Rabu",
+        dari: "18:00:00",
+        sampai: "18:30:00",
+        nama: "Istirahat 2 Rabu",
+      },
+    ],
   },
   {
     hari: "Kamis",
@@ -964,6 +1024,22 @@ const shiftHarian = [
     shift_1_keluar: "16:00:00",
     shift_2_masuk: "20:00:00",
     shift_2_keluar: "04:00:00",
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Kamis",
+        dari: "12:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Kamis",
+      },
+      {
+        id: 7,
+        id_shift: "Kamis",
+        dari: "18:00:00",
+        sampai: "18:30:00",
+        nama: "Istirahat 2 Kamis",
+      },
+    ],
   },
   {
     hari: "Jumat",
@@ -971,6 +1047,22 @@ const shiftHarian = [
     shift_1_keluar: "16:00:00",
     shift_2_masuk: "20:00:00",
     shift_2_keluar: "04:00:00",
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Jumat",
+        dari: "11:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Jumat",
+      },
+      {
+        id: 7,
+        id_shift: "Jumat",
+        dari: "18:00:00",
+        sampai: "18:30:00",
+        nama: "Istirahat 2 Jumat",
+      },
+    ],
   },
   {
     hari: "Sabtu",
@@ -978,7 +1070,15 @@ const shiftHarian = [
     shift_1_keluar: "13:00:00",
     shift_2_masuk: "",
     shift_2_keluar: "",
-    istirahat: [],
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Sabtu",
+        dari: "12:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Sabtu",
+      },
+    ],
   },
 ];
 

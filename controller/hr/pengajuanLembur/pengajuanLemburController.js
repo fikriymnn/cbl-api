@@ -468,7 +468,7 @@ const PengajuanLemburController = {
           type_ketidaksesuaian,
           id_pengaju_ketidaksesuaian,
           alasan_ketidaksesuaian,
-          lama_lembur_aktual: lamaLemburAktual,
+          lama_pengajuan_ketidaksesuaian: lamaLemburAktual,
           penanganan: statusPenanganan,
         },
         {
@@ -487,7 +487,7 @@ const PengajuanLemburController = {
 
   responPengajuanLemburTidakSesuai: async (req, res) => {
     const _id = req.params.id;
-    const { id_respon_ketidaksesuaian } = req.body;
+    const { id_respon_ketidaksesuaian, penanganan } = req.body;
     const t = await db.transaction();
 
     try {
@@ -495,16 +495,31 @@ const PengajuanLemburController = {
       if (!dataPengajuanLembur)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
-      await PengajuanLembur.update(
-        {
-          status_ketidaksesuaian: "history",
-          id_respon_ketidaksesuaian,
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      );
+      if (penanganan == 1) {
+        await PengajuanLembur.update(
+          {
+            status_ketidaksesuaian: "approved",
+            id_respon_ketidaksesuaian,
+            lama_lembur_aktual:
+              dataPengajuanLembur.lama_pengajuan_ketidaksesuaian,
+          },
+          {
+            where: { id: _id },
+            transaction: t,
+          }
+        );
+      } else {
+        await PengajuanLembur.update(
+          {
+            status_ketidaksesuaian: "rejected",
+            id_respon_ketidaksesuaian,
+          },
+          {
+            where: { id: _id },
+            transaction: t,
+          }
+        );
+      }
 
       await t.commit();
       res.status(200).json({ msg: "Send Successfully" });
