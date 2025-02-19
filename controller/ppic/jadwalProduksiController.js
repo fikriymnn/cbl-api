@@ -155,8 +155,67 @@ const jadwalProduksiController = {
 
   calculateTiketJadwalProduksi: async (req, res) => {
     const { id } = req.params;
+    const t = await db.transaction();
     try {
-      const dataById = dataDumyJo.find((data) => data.id == id);
+      const dataTiket = await TiketJadwalProduksi.findByPk(id, {
+        include: [
+          {
+            model: TiketJadwalProduksiTahapan,
+            as: "tahap",
+            include: [
+              {
+                model: TiketJadwalProduksiPerJam,
+                as: "jadwal_per_jam",
+              },
+            ],
+          },
+          {
+            model: TiketJadwalProduksiPerJam,
+            as: "jadwal_per_jam",
+          },
+        ],
+      });
+
+      if (!dataTiket)
+        return res.status(404).json({ msg: "data tidak ditemukan" });
+      if (dataTiket.status === "calculated")
+        return res.status(404).json({ msg: "data sudah di kalkulasi" });
+
+      const dataById = {
+        id: dataTiket.id,
+        item: dataTiket.item,
+        no_jo: dataTiket.no_jo,
+        tgl_kirim: dataTiket.tgl_kirim,
+        tgl_cetak: dataTiket.tgl_cetak,
+        qty_pcs: dataTiket.qty_pcs,
+        qty_druk: dataTiket.qty_druk,
+        status: dataTiket.status,
+        tahap: [],
+      };
+
+      dataTiket.tahap.map((data) => {
+        dataById.tahap.push({
+          id: data.id,
+          id_tiket_jadwal_produksi: data.id_tiket_jadwal_produksi,
+          tahapan: data.tahapan,
+          tahapan_ke: data.tahapan_ke,
+          from: data.from,
+          nama_kategori: data.nama_kategori,
+          kategori: data.kategori,
+          kategori_drying_time: data.kategori_drying_time,
+          mesin: data.mesin,
+          kapasitas_per_jam: data.kapasitas_per_jam,
+          drying_time: data.drying_time,
+          setting: data.setting,
+          kapasitas: data.kapasitas,
+          toleransi: data.toleransi,
+          total_waktu: data.total_waktu,
+          tgl_from: data.tgl_from,
+          tgl_to: data.tgl_to,
+          jadwal_per_jam: data.jadwal_per_jam,
+          listJadwalPerJam: [],
+        });
+      });
 
       // const dataJadwal = await JadwalKaryawan.findAll({
       //   order: [["createdAt", "DESC"]],
@@ -211,23 +270,19 @@ const jadwalProduksiController = {
       const tahap = dataById.tahap;
 
       const tglKirim = new Date(tgl_kirim);
-      let currentDate = new Date(tgl_kirim);
       let firstTglInSequence = null;
-
-      // Tempat untuk menyimpan list jadwal per jam
       let listJadwalPerJam = [];
+      let currentDate = new Date(tgl_kirim);
 
       for (let i = tahap.length - 1; i >= 0; i--) {
         const stage = tahap[i];
 
         if (i === tahap.length - 1) {
-          // Tahapan terakhir selalu menggunakan tgl_kirim asli
           stage.tgl_from = formatDateNow(tglKirim);
           stage.tgl_to = formatDateNow(tglKirim);
           continue;
         }
 
-        // Set tgl_to
         stage.tgl_to = formatDateNow(currentDate);
 
         if (stage.from === "tgl") {
@@ -242,20 +297,27 @@ const jadwalProduksiController = {
         } else {
           firstTglInSequence = null;
 
-          // Handle "druk" and "pcs" logic
           if (stage.from === "druk" || stage.from === "pcs") {
-            // Mengurangi waktu sesuai total_waktu
-            for (let j = 0; j < stage.total_waktu; j++) {
+            let remainingHours = stage.total_waktu;
+
+            while (remainingHours > 0) {
+              // Skip if current time is not within any shift
+              if (!isWithinShiftHours(currentDate)) {
+                currentDate.setHours(currentDate.getHours() - 1);
+                continue;
+              }
+
               listJadwalPerJam.push({
-                item: stage.item,
+                item: dataById.item,
                 no_jo: dataById.no_jo,
                 qty_pcs: dataById.qty_pcs,
                 qty_druk: dataById.qty_druk,
                 tahapan: stage.tahapan,
+                tahapan_ke: stage.tahapan_ke,
                 from: stage.from,
                 nama_kategori: stage.nama_kategori,
                 kategori: stage.kategori,
-                kategori_drying_time: stage.kategory_drying_time,
+                kategori_drying_time: stage.kategori_drying_time,
                 mesin: stage.mesin,
                 kapasitas_per_jam: stage.kapasitas_per_jam,
                 drying_time: stage.drying_time,
@@ -266,20 +328,50 @@ const jadwalProduksiController = {
                 tgl: formatNowDateOnly(currentDate),
                 jam: formatNowTimeOnly(currentDate),
               });
+
               currentDate.setHours(currentDate.getHours() - 1);
+              remainingHours--;
             }
           }
 
           stage.tgl_from = formatDateNow(currentDate);
         }
       }
-
       // Menambahkan list jadwal per jam ke dalam data tahap
-      dataById.tahap.forEach((stage, index) => {
+      dataById.tahap.map((stage, index) => {
         stage.listJadwalPerJam = listJadwalPerJam.filter(
           (jadwal) => jadwal.tahapan === stage.tahapan
         );
       });
+
+      // await TiketJadwalProduksi.update(
+      //   { status: "calculated" },
+      //   { where: { id: dataById.id }, transaction: t }
+      // );
+
+      // for (let i = 0; i < dataById.tahap.length; i++) {
+      //   const data = dataById.tahap[i];
+      //   await TiketJadwalProduksiTahapan.update(data, {
+      //     where: { id: data.id },
+      //     transaction: t,
+      //   });
+
+      //   for (let ii = 0; ii < data.listJadwalPerJam.length; ii++) {
+      //     const data2 = data.listJadwalPerJam[ii];
+      //     await TiketJadwalProduksiPerJam.create(
+      //       {
+      //         ...data2,
+      //         item: dataById.item,
+      //         tanggal: data2.tgl,
+      //         id_tiket_jadwal_produksi: dataById.id,
+      //         id_tiket_jadwal_produksi_tahapan: data.id,
+      //       },
+      //       { transaction: t }
+      //     );
+      //   }
+      // }
+
+      // await t.commit();
 
       res.status(200).json({ data: dataById, jadwalPerJam: listJadwalPerJam });
     } catch (err) {
@@ -766,6 +858,46 @@ const formatNowTimeOnly = (date) => {
   return formatter.format(date).replace(/\./g, ":");
 };
 
+// Helper function to get shift schedule for a given date
+const getShiftSchedule = (date) => {
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const dayName = days[date.getDay()];
+  return shiftHarian.find((shift) => shift.hari === dayName);
+};
+
+// Helper to check if time is within shift hours
+const isWithinShiftHours = (date) => {
+  const schedule = getShiftSchedule(date);
+  if (!schedule) return false;
+
+  const timeStr = date.toTimeString().slice(0, 8);
+  const currentDay = date.getDay();
+  const previousDay = new Date(date);
+  previousDay.setDate(date.getDate() - 1);
+  const previousSchedule = getShiftSchedule(previousDay);
+
+  // Check if time is within shift 1
+  if (timeStr >= schedule.shift_1_masuk && timeStr <= schedule.shift_1_keluar) {
+    return true;
+  }
+
+  // Check if time is within shift 2 of current day
+  if (timeStr >= schedule.shift_2_masuk && timeStr <= "23:59:59") {
+    return true;
+  }
+
+  // Check if time is within shift 2 crossing over from previous day
+  if (
+    previousSchedule &&
+    timeStr >= "00:00:00" &&
+    timeStr <= previousSchedule.shift_2_keluar
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 // Jadwal libur
 const jadwalLibur = [
   "2024-12-25", // Hari Natal
@@ -786,6 +918,22 @@ const shiftHarian = [
     shift_1_keluar: "16:00:00",
     shift_2_masuk: "20:00:00",
     shift_2_keluar: "04:00:00",
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Senin",
+        dari: "12:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Senin",
+      },
+      {
+        id: 7,
+        id_shift: "Senin",
+        dari: "18:00:00",
+        sampai: "18:30:00",
+        nama: "Istirahat 2 Senin",
+      },
+    ],
   },
   {
     hari: "Selasa",
@@ -793,6 +941,15 @@ const shiftHarian = [
     shift_1_keluar: "16:00:00",
     shift_2_masuk: "20:00:00",
     shift_2_keluar: "04:00:00",
+    istirahat: [
+      {
+        id: 1,
+        id_shift: "Selasa",
+        dari: "12:00:00",
+        sampai: "13:00:00",
+        nama: "Istirahat 1 Selasa",
+      },
+    ],
   },
   {
     hari: "Rabu",
@@ -819,16 +976,8 @@ const shiftHarian = [
     hari: "Sabtu",
     shift_1_masuk: "08:00:00",
     shift_1_keluar: "13:00:00",
-    shift_2_masuk: "22:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [],
-  },
-  {
-    hari: "Minggu",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "13:00:00",
-    shift_2_masuk: "22:00:00",
-    shift_2_keluar: "06:00:00",
+    shift_2_masuk: "",
+    shift_2_keluar: "",
     istirahat: [],
   },
 ];
