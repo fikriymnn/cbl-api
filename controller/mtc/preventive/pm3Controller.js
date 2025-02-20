@@ -38,7 +38,6 @@ const Pm3Controller = {
 
       const firstDayOfMonth = new Date(year, month - 1, 1);
       const lastDayOfMonth = new Date(year, month, 0);
-      console.log(firstDayOfMonth, lastDayOfMonth);
 
       obj.tgl_approve_from = {
         [Op.between]: [firstDayOfMonth, lastDayOfMonth],
@@ -52,7 +51,6 @@ const Pm3Controller = {
 
       const firstDayOfMonth = new Date(year, monthIndex - 1, 1);
       const lastDayOfMonth = new Date(year, monthIndex, 0);
-      console.log(month);
 
       obj.tgl_approve_from = {
         [Op.between]: [firstDayOfMonth, lastDayOfMonth],
