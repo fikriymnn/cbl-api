@@ -79,6 +79,7 @@ router.use("/", require("./mtc/kpi/kpiActualRoute"));
 //qc
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanRoutes"));
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanResultRoutes"));
+router.use("/", require("./qc/inspeksi/chemical/inspeksiChemicalRoute"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
 router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatRoutes"));

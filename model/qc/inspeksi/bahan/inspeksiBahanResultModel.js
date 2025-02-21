@@ -54,6 +54,18 @@ const InspeksiBahanResult = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    hasil_rumus_kiri: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    hasil_rumus_tengah: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    hasil_rumus_kanan: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     hasil_rata_rata: {
       type: DataTypes.FLOAT,
       allowNull: true,

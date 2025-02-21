@@ -12,7 +12,7 @@ const User = require("../../../../model/userModel");
 const inspeksiCetakPeriodeController = {
   doneCetakPeriode: async (req, res) => {
     const _id = req.params.id;
-    const { catatan } = req.body;
+    const { catatan, sample_1, sample_2, sample_3 } = req.body;
 
     try {
       const inspeksiCetakPeriodePoint = await InspeksiCetakPeriodePoint.findAll(
@@ -25,12 +25,19 @@ const inspeksiCetakPeriodeController = {
         (total, data) => total + data.lama_pengerjaan,
         0
       );
+
       await InspeksiCetakPeriode.update(
         {
           jumlah_periode: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "done",
           catatan: catatan,
+          sample_1,
+          sample_2,
+          sample_3,
+          hasil_sample_1: (sample_1 / 100) * 10000,
+          hasil_sample_2: (sample_2 / 100) * 10000,
+          hasil_sample_3: (sample_3 / 100) * 10000,
         },
         { where: { id: _id } }
       );

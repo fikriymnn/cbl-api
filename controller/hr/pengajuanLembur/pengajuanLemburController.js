@@ -321,8 +321,11 @@ const PengajuanLemburController = {
       target_lembur,
     } = req.body;
     const t = await db.transaction();
+    console.log(req.body);
 
     try {
+      if (karyawan.length == 0)
+        return res.status(404).json({ msg: `id karyawan kosong` });
       const dataKaryawanBiodata = await KaryawanBiodata.findAll({
         where: {
           id_karyawan: {
