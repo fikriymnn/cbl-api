@@ -637,16 +637,16 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           payroll.total += tunjanganKopi;
         }
 
-        if (absen.status_absen === "dinas") {
-          payroll.rincian.push({
-            label: "uangDinas",
-            jumlah: 1,
-            nilai: uangDinas,
-            total: uangDinas,
-          });
+        // if (absen.status_absen === "dinas") {
+        //   payroll.rincian.push({
+        //     label: "uangDinas",
+        //     jumlah: 1,
+        //     nilai: uangDinas,
+        //     total: uangDinas,
+        //   });
 
-          payroll.total += uangDinas;
-        }
+        //   payroll.total += uangDinas;
+        // }
 
         payroll.rincian.push({
           label: "uangHadir",

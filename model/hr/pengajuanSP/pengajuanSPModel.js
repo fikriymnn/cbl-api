@@ -48,19 +48,16 @@ const PengajuanSP = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    jumlah_bulan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    sp_ke: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    alasan_sp: {
+
+    nama_sp_teguran: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    teguran: {
+    masa_berlaku: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    alasan: {
       type: DataTypes.STRING,
       allowNull: true,
     },

@@ -179,6 +179,7 @@ router.use("/", require("./masterdata/hr/masterGradeRoute"));
 router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
 router.use("/", require("./masterdata/hr/masterPayrollRoute"));
 router.use("/", require("./masterdata/hr/masterStatusKaryawanRoute"));
+router.use("/", require("./masterdata/hr/masterSPRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));

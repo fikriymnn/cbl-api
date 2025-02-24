@@ -9,6 +9,8 @@ const AmparLem = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemMo
 const AmparLemPoint = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
 const AmparLemDefect = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
 const User = require("../../../model/userModel");
+const Ticket = require("../../../model/maintenaceTicketModel");
+const ProsesMtc = require("../../../model/mtc/prosesMtc");
 const axios = require("axios");
 
 const ReportWasterQc = {
@@ -30,6 +32,36 @@ const ReportWasterQc = {
       // );
       //console.log(dataP1Waste.data);
       // console.log(data_waste_p1);
+
+      const dataTiketMaintenance = await Ticket.findAll({
+        attributes: ["no_jo", "operator", "kode_lkh", "nama_kendala"],
+        include: [
+          {
+            model: ProsesMtc,
+            attributes: ["waktu_selesai"],
+            include: [
+              {
+                model: User,
+                as: "user_eksekutor",
+                attributes: ["nama"],
+              },
+              {
+                model: User,
+                as: "user_qc",
+                attributes: ["nama"],
+              },
+            ],
+          },
+        ],
+        where: {
+          createdAt: {
+            [Op.between]: [
+              new Date(start_date).setHours(0, 0, 0, 0),
+              new Date(end_date).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
 
       const dataBarangRS = await BarangRusakV2.findAll({
         where: {
@@ -112,9 +144,26 @@ const ReportWasterQc = {
         ],
       });
 
+      let resultTiketMaintenance = [];
       let resultBarangRS = [];
       let resultRabut = [];
       let resultAmparLem = [];
+
+      if (dataTiketMaintenance.length != 0) {
+        dataTiketMaintenance.map((dataMaintenance) => {
+          dataMaintenance.proses_mtcs.map((dataProses) => {
+            resultTiketMaintenance.push({
+              no_jo: dataMaintenance.no_jo,
+              operator: dataMaintenance.operator,
+              kode_lkh: dataMaintenance.kode_lkh,
+              nama_kendala: dataMaintenance.nama_kendala,
+              inspektor_mtc: dataProses.user_eksekutor?.nama,
+              verivikator_qc: dataProses.user_qc?.nama,
+            });
+          });
+        });
+      }
+
       if (dataBarangRS.length != 0) {
         // Proses untuk mengeluarkan data defect BarangRs dengan tambahan no_jo
         resultBarangRS = dataBarangRS
@@ -246,14 +295,16 @@ const ReportWasterQc = {
       //hasil data gabungan di masukan sesuai master waste
       const grupJoinWithMaster = mapKodeToProduksi(
         mergedDataWaste,
-        dataMasterWasteUniq
+        dataMasterWasteUniq,
+        resultTiketMaintenance
       );
       //console.log(datamasterReplace);
 
       const grupJoinWithMasterReplace = mapKodeToProduksiReplace(
         mergedDataWaste,
         datamasterReplace,
-        grupJoinWithMaster
+        grupJoinWithMaster,
+        resultTiketMaintenance
       );
 
       const jumlahAllData = aggregateByKodeProduksiWithWaste(
@@ -300,7 +351,7 @@ const ReportWasterQc = {
       const dataByKategori = getDataByKategoriAll(grupJoinWithMasterReplace);
 
       res.status(200).json({
-        // data2: datamasterReplace,
+        // data2: resultTiketMaintenance,
         //data3: datamasterReplace,
         dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
@@ -346,7 +397,7 @@ const groupedDataBerdasarkanJO = (data) => {
   }));
 };
 
-const mapKodeToProduksi = (inspeksiData, masterData) => {
+const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
   const masterMap = {};
 
   // Buat peta master berdasarkan kode_waste
@@ -375,6 +426,10 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
       const kategoriKendala = defect.sumber_masalah;
       const total_defect = defect.total_defect;
 
+      const findTiketMtc = tiketMtc.find(
+        (tiket) => tiket.kode_lkh == kode && tiket.no_jo == joItem.no_jo
+      );
+
       //vrsi 1 untuk mencocokan berdasarkan master
       // Jika kode ada di master
       if (masterMap[kode]) {
@@ -385,6 +440,7 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
+            verifikator_inspektor: [findTiketMtc],
             operator_inspektor: [
               {
                 mesin: mesin,
@@ -418,6 +474,7 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             kode_lkh: kodeLKH,
             masalah_lkh: masalahLKH,
           });
+          groupedDefects[kode].verifikator_inspektor.push(findTiketMtc);
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -498,7 +555,8 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
 const mapKodeToProduksiReplace = (
   inspeksiData,
   masterData,
-  dataMapToKodeProduksi
+  dataMapToKodeProduksi,
+  tiketMtc
 ) => {
   const masterMap = {};
 
@@ -528,6 +586,10 @@ const mapKodeToProduksiReplace = (
       const kategoriKendala = defect.sumber_masalah;
       const total_defect = defect.total_defect;
 
+      const findTiketMtc = tiketMtc.find(
+        (tiket) => tiket.kode_lkh == kodeLKH && tiket.no_jo == joItem.no_jo
+      );
+
       // Jika kode ada di master
       if (masterMap[kodeLKH]) {
         if (!groupedDefects[kodeLKH]) {
@@ -536,6 +598,7 @@ const mapKodeToProduksiReplace = (
             kendala_desc: masterMap[kodeLKH].kendala_desc,
             total_defect: 0,
             mesin: mesin,
+            verifikator_inspektor: [findTiketMtc],
             operator_inspektor: [
               {
                 mesin: mesin,
@@ -567,6 +630,8 @@ const mapKodeToProduksiReplace = (
             kode_lkh: kodeLKH,
             masalah_lkh: masalahLKH,
           });
+
+          groupedDefects[kodeLKH].verifikator_inspektor.push(findTiketMtc);
         }
 
         // Tambahkan total_defect untuk kode ini

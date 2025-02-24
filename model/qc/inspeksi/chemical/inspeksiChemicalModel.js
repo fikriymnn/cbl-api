@@ -38,6 +38,10 @@ const InspeksiChemical = db.define(
       type: DataTypes.STRING,
       defaultValue: "incoming",
     },
+    tipe: {
+      type: DataTypes.STRING,
+      defaultValue: "chemical",
+    },
     verifikasi: {
       type: DataTypes.STRING,
       allowNull: true,

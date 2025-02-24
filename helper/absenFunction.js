@@ -614,6 +614,7 @@ const absenFunction = {
 
       const namaKaryawan = dataKaryawan?.name;
       const typeKaryawan = dataKaryawanBiodata?.tipe_karyawan;
+      const tipePenggajian = dataKaryawanBiodata?.tipe_penggajian;
       const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
 
@@ -838,6 +839,17 @@ const absenFunction = {
           }
         }
 
+        //untuk shift 2 jika masuk di hari sabtu
+        if (keluar && shift === "Shift 2" && dayName == "Sabtu") {
+          const jamLemburMentah =
+            (waktuKeluarUTC - waktuMasukUTC.getTime()) / 3600000;
+
+          // Pembulatan ke bawah ke kelipatan 0.5
+          jamLembur = Math.floor(jamLemburMentah * 2) / 2;
+
+          statusLembur = "Lembur Libur";
+        }
+
         const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
         const monthKeluar = getMonthName(waktuKeluar.getUTCMonth() + 1);
 
@@ -905,6 +917,7 @@ const absenFunction = {
           hari: dayName2,
           jenis_hari_masuk: jenisHariMasuk,
           tipe_karyawan: typeKaryawan,
+          tipe_penggajian: tipePenggajian,
         };
       } else {
         // waktu masuk absen
@@ -1049,6 +1062,7 @@ const absenFunction = {
           hari: dayName2,
           jenis_hari_masuk: jenisHariMasuk,
           tipe_karyawan: typeKaryawan,
+          tipe_penggajian: tipePenggajian,
         };
       }
     });
@@ -1860,6 +1874,7 @@ const generatekaryawanList = (
         hari: null,
         jenis_hari_masuk: null,
         tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
+        tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
       });
     }
   }

@@ -155,15 +155,8 @@ const PengajuanSPController = {
   },
 
   createPengajuanSP: async (req, res) => {
-    const {
-      id_karyawan,
-      id_pengaju,
-      dari,
-      sampai,
-      jumlah_bulan,
-      alasan_sp,
-      teguran,
-    } = req.body;
+    const { id_karyawan, id_pengaju, alasan, nama_sp_teguran, masa_berlaku } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -174,53 +167,14 @@ const PengajuanSPController = {
       if (!dataKaryawanBiodata)
         return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
 
-      const startToday = new Date().setHours(0, 0, 0, 0);
-      const endToday = new Date().setHours(23, 59, 59, 999);
-
-      const dataPengajuanSpHistory = await PengajuanSP.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: id_karyawan,
-          [Op.or]: [
-            {
-              dari: {
-                [Op.between]: [startToday, endToday],
-              },
-            }, // `from` berada dalam rentang
-            {
-              sampai: {
-                [Op.between]: [startToday, endToday],
-              },
-            }, // `to` berada dalam rentang
-            {
-              [Op.and]: [
-                {
-                  dari: {
-                    [Op.lte]: startToday,
-                  },
-                }, // Rentang cuti mencakup startDate
-                {
-                  sampai: {
-                    [Op.gte]: endToday,
-                  },
-                }, // Rentang cuti mencakup endDate
-              ],
-            },
-          ],
-        },
-      });
-
       const dataPengajuanSP = await PengajuanSP.create(
         {
           id_karyawan,
           id_pengaju: id_pengaju,
           id_department: dataKaryawanBiodata.id_department,
-          dari,
-          sampai,
-          jumlah_bulan,
-          alasan_sp,
-          teguran,
-          sp_ke: dataPengajuanSpHistory.length + 1,
+          alasan,
+          nama_sp_teguran,
+          masa_berlaku,
         },
         { transaction: t }
       );
@@ -244,12 +198,28 @@ const PengajuanSPController = {
       if (!dataPengajuanSP)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
+      const dariTanggal = new Date();
+      const sampaiTanggalObj = new Date(dariTanggal); // Salin objek tanggal
+      sampaiTanggalObj.setDate(
+        sampaiTanggalObj.getDate() + dataPengajuanSP.masa_berlaku
+      ); // Tambah jumlah hari hari
+
+      const tahun = sampaiTanggalObj.getFullYear();
+      const bulan = (sampaiTanggalObj.getMonth() + 1)
+        .toString()
+        .padStart(2, "0"); // Format dua digit
+      const tanggal = sampaiTanggalObj.getDate().toString().padStart(2, "0"); // Format dua digit
+
+      const sampaiTanggal = new Date(`${tahun}-${bulan}-${tanggal}`);
+
       await PengajuanSP.update(
         {
           status: "approved",
           status_tiket: "history",
           id_hr: req.user.id_karyawan,
           catatan_hr: catatan_hr,
+          dari: dariTanggal,
+          sampai: sampaiTanggal,
         },
         {
           where: { id: _id },

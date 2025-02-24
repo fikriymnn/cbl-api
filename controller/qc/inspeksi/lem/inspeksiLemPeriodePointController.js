@@ -51,6 +51,7 @@ const inspeksiLemPeriodepointController = {
       data_defect.length == 0
     )
       return res.status(400).json({ msg: "Incomplite Data" });
+
     try {
       for (let i = 0; i < data_defect.length; i++) {
         if (data_defect[i].hasil == null)

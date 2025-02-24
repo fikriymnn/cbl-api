@@ -1,5 +1,6 @@
 const { Op, Sequelize, where } = require("sequelize");
 const JadwalKaryawan = require("../../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
+const BiodataKaryawan = require("../../../model/hr/karyawan/karyawanBiodataModel");
 
 const db = require("../../../config/database");
 
@@ -117,7 +118,8 @@ const JadwalKaryawanController = {
   },
 
   createJadwalKaryawan: async (req, res) => {
-    const { tanggal, nama_jadwal, produksi, staff } = req.body;
+    const { tanggal, nama_jadwal, produksi, staff, potong_cuti_tahunan } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -136,6 +138,24 @@ const JadwalKaryawanController = {
           nama_jadwal: nama_jadwal,
           jenis_karyawan: "staff",
         });
+      }
+
+      if (produksi === true && potong_cuti_tahunan === true) {
+        await BiodataKaryawan.update(
+          {
+            sisa_cuti: Sequelize.literal("sisa_cuti - 1"),
+          },
+          { where: { tipe_karyawan: "produksi" }, transaction: t }
+        );
+      }
+
+      if (staff === true && potong_cuti_tahunan === true) {
+        await BiodataKaryawan.update(
+          {
+            sisa_cuti: Sequelize.literal("sisa_cuti - 1"),
+          },
+          { where: { tipe_karyawan: "staff" }, transaction: t }
+        );
       }
       await JadwalKaryawan.bulkCreate(dataJadwal, { transaction: t });
 

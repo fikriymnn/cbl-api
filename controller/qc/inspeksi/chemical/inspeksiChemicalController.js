@@ -39,6 +39,7 @@ const inspeksiChemicalController = {
       } else {
         const data = await InspeksiChemical.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }
