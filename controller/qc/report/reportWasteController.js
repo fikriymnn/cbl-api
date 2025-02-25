@@ -285,9 +285,15 @@ const ReportWasterQc = {
 
       // Menggunakan Map untuk menyimpan hanya satu kode_waste yang unik
       const dataMasterWasteUniq = Array.from(
-        new Map(
-          data_waste_master.map((item) => [item.kode_waste, item])
-        ).values()
+        data_waste_master
+          .reduce((map, item) => {
+            const existing = map.get(item.kode_waste);
+            if (!existing || item.waste.length > existing.waste.length) {
+              map.set(item.kode_waste, item);
+            }
+            return map;
+          }, new Map())
+          .values()
       );
 
       const datamasterReplace = transformDataMaster(dataMasterWasteUniq);
