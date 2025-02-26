@@ -78,6 +78,7 @@ const jadwalProduksiController = {
       } else {
         const data = await TiketJadwalProduksi.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         res.status(200).json({ data: data });
       }

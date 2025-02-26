@@ -575,7 +575,7 @@ const ReportMaintenance = {
             Sequelize.fn(
               "GROUP_CONCAT",
               Sequelize.literal(
-                `CONCAT('{ "operator": "', ticket.operator, '","createdAt": "', ticket.createdAt, '", "no_jo": "', ticket.no_jo, '","kode_lkh": "', ticket.kode_lkh, '","nama_kendala": "', ticket.nama_kendala, '"}') SEPARATOR ','`
+                `CONCAT('{ "operator": "', ticket.operator, '","eksekutor": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_eksekutor LIMIT 1), '", "verifikator": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_qc LIMIT 1), '", "createdAt": "', ticket.createdAt, '", "no_jo": "', ticket.no_jo, '","kode_lkh": "', ticket.kode_lkh, '","nama_kendala": "', ticket.nama_kendala, '"}') SEPARATOR ','`
               )
             ),
             "details",

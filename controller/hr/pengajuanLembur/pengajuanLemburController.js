@@ -459,7 +459,7 @@ const PengajuanLemburController = {
 
       // 1 untuk ikut lama lembur absen
       if (penanganan == 1) {
-        lamaLemburAktual = dataPengajuanLembur.lama_lembur_absen;
+        lamaLemburAktual = lama_lembur_absen;
         statusPenanganan = "Sesuai absen";
       }
 
@@ -499,6 +499,7 @@ const PengajuanLemburController = {
         return res.status(404).json({ msg: "data tidak di temukan" });
 
       if (penanganan == 1) {
+        console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
         await PengajuanLembur.update(
           {
             status_ketidaksesuaian: "approved",

@@ -126,6 +126,7 @@ const JadwalKaryawanController = {
       let dataJadwal = [];
       if (produksi === true) {
         dataJadwal.push({
+          potong_cuti_tahunan: potong_cuti_tahunan,
           tanggal: tanggal,
           nama_jadwal: nama_jadwal,
           jenis_karyawan: "produksi",
@@ -134,6 +135,7 @@ const JadwalKaryawanController = {
 
       if (staff === true) {
         dataJadwal.push({
+          potong_cuti_tahunan: potong_cuti_tahunan,
           tanggal: tanggal,
           nama_jadwal: nama_jadwal,
           jenis_karyawan: "staff",
