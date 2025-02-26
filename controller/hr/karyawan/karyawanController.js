@@ -22,6 +22,7 @@ const karyawanController = {
       req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+    let obj2 = {};
     if (search)
       obj = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
@@ -34,7 +35,12 @@ const karyawanController = {
       obj.is_active = false;
     }
 
+    if (id_department) obj2.id_department = id_department;
+
     try {
+      const startToday = new Date().setHours(0, 0, 0, 0);
+      const endToday = new Date().setHours(23, 59, 59, 999);
+
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
@@ -56,6 +62,8 @@ const karyawanController = {
             {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
+              where: obj2,
+              required: true,
               include: [
                 {
                   model: MasterDivisi,
@@ -82,6 +90,49 @@ const karyawanController = {
                   as: "grade",
                 },
               ],
+            },
+            {
+              model: PinjamanKaryawan,
+              as: "pinjaman_karyawan",
+              where: {
+                status_pinjaman: "belum lunas",
+              },
+              required: false,
+            },
+            {
+              model: DataSP,
+              as: "sp_karyawan",
+              required: false,
+              where: {
+                status: "approved",
+
+                [Op.or]: [
+                  {
+                    dari: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `from` berada dalam rentang
+                  {
+                    sampai: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `to` berada dalam rentang
+                  {
+                    [Op.and]: [
+                      {
+                        dari: {
+                          [Op.lte]: startToday,
+                        },
+                      }, // Rentang cuti mencakup startDate
+                      {
+                        sampai: {
+                          [Op.gte]: endToday,
+                        },
+                      }, // Rentang cuti mencakup endDate
+                    ],
+                  },
+                ],
+              },
             },
           ],
           offset,
@@ -194,55 +245,57 @@ const karyawanController = {
           data: data,
           sp_aktif: SpAktif,
         });
-      } else if (id_department) {
-        const data = await KaryawanBiodata.findAll({
-          include: [
-            {
-              model: Karyawan,
-              as: "karyawan",
-              include: [
-                {
-                  model: PinjamanKaryawan,
-                  as: "pinjaman_karyawan",
-                  where: {
-                    status_pinjaman: "belum lunas",
-                  },
-                  required: false,
-                },
-              ],
-            },
-            {
-              model: MasterStatusKaryawan,
-              as: "status",
-            },
-            {
-              model: MasterDivisi,
-              as: "divisi",
-            },
-            {
-              model: MasterDepartment,
-              as: "department",
-            },
-            {
-              model: MasterBagianHr,
-              as: "bagian",
-            },
-            {
-              model: MasterJabatan,
-              as: "jabatan",
-            },
-            {
-              model: MasterGradeHr,
-              as: "grade",
-            },
-          ],
-          where: { id_department: id_department },
-        });
+      }
+      // else if (id_department) {
+      //   const data = await KaryawanBiodata.findAll({
+      //     include: [
+      //       {
+      //         model: Karyawan,
+      //         as: "karyawan",
+      //         include: [
+      //           {
+      //             model: PinjamanKaryawan,
+      //             as: "pinjaman_karyawan",
+      //             where: {
+      //               status_pinjaman: "belum lunas",
+      //             },
+      //             required: false,
+      //           },
+      //         ],
+      //       },
+      //       {
+      //         model: MasterStatusKaryawan,
+      //         as: "status",
+      //       },
+      //       {
+      //         model: MasterDivisi,
+      //         as: "divisi",
+      //       },
+      //       {
+      //         model: MasterDepartment,
+      //         as: "department",
+      //       },
+      //       {
+      //         model: MasterBagianHr,
+      //         as: "bagian",
+      //       },
+      //       {
+      //         model: MasterJabatan,
+      //         as: "jabatan",
+      //       },
+      //       {
+      //         model: MasterGradeHr,
+      //         as: "grade",
+      //       },
+      //     ],
+      //     where: { id_department: id_department },
+      //   });
 
-        return res.status(200).json({
-          data: data,
-        });
-      } else {
+      //   return res.status(200).json({
+      //     data: data,
+      //   });
+      // }
+      else {
         const data = await Karyawan.findAll({
           order: [["createdAt", "DESC"]],
 
@@ -250,6 +303,8 @@ const karyawanController = {
             {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
+              where: obj2,
+              required: true,
               include: [
                 {
                   model: MasterDivisi,
@@ -277,8 +332,51 @@ const karyawanController = {
                 },
               ],
             },
-          ],
+            {
+              model: PinjamanKaryawan,
+              as: "pinjaman_karyawan",
+              where: {
+                status_pinjaman: "belum lunas",
+              },
+              required: false,
+            },
 
+            {
+              model: DataSP,
+              as: "sp_karyawan",
+              required: false,
+              where: {
+                status: "approved",
+
+                [Op.or]: [
+                  {
+                    dari: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `from` berada dalam rentang
+                  {
+                    sampai: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `to` berada dalam rentang
+                  {
+                    [Op.and]: [
+                      {
+                        dari: {
+                          [Op.lte]: startToday,
+                        },
+                      }, // Rentang cuti mencakup startDate
+                      {
+                        sampai: {
+                          [Op.gte]: endToday,
+                        },
+                      }, // Rentang cuti mencakup endDate
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
           where: {
             userid: {
               [Op.in]: karyawanIds, // Gunakan array id_karyawan

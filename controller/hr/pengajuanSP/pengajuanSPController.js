@@ -198,6 +198,9 @@ const PengajuanSPController = {
       if (!dataPengajuanSP)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
+      if (!req.user.id_karyawan)
+        return res.status(404).json({ msg: "id_karyawan hr tidak di temukan" });
+
       const dariTanggal = new Date();
       const sampaiTanggalObj = new Date(dariTanggal); // Salin objek tanggal
       sampaiTanggalObj.setDate(

@@ -34,7 +34,7 @@ const ReportWasterQc = {
       // console.log(data_waste_p1);
 
       const dataTiketMaintenance = await Ticket.findAll({
-        attributes: ["no_jo", "operator", "kode_lkh", "nama_kendala"],
+        attributes: ["no_jo", "operator", "kode_lkh", "nama_kendala", "mesin"],
         include: [
           {
             model: ProsesMtc,
@@ -158,7 +158,8 @@ const ReportWasterQc = {
               kode_lkh: dataMaintenance.kode_lkh,
               nama_kendala: dataMaintenance.nama_kendala,
               inspektor_mtc: dataProses.user_eksekutor?.nama,
-              verivikator_qc: dataProses.user_qc?.nama,
+              verifikator_qc: dataProses.user_qc?.nama,
+              mesin: dataMaintenance.mesin,
             });
           });
         });
@@ -432,9 +433,25 @@ const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
       const kategoriKendala = defect.sumber_masalah;
       const total_defect = defect.total_defect;
 
-      const findTiketMtc = tiketMtc.find(
+      let dataMtc = [];
+
+      const findTiketMtcKode = tiketMtc.filter(
         (tiket) => tiket.kode_lkh == kode && tiket.no_jo == joItem.no_jo
       );
+      const findTiketMtcKodeLKH = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kodeLKH && tiket.no_jo == joItem.no_jo
+      );
+
+      if (findTiketMtcKodeLKH) {
+        findTiketMtcKodeLKH.map((data) => {
+          dataMtc.push(data);
+        });
+      }
+      if (findTiketMtcKode) {
+        findTiketMtcKode.map((data) => {
+          dataMtc.push(data);
+        });
+      }
 
       //vrsi 1 untuk mencocokan berdasarkan master
       // Jika kode ada di master
@@ -446,7 +463,9 @@ const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
-            verifikator_inspektor: [findTiketMtc],
+            verifikator_inspektor: dataMtc.filter(
+              (data) => data.kode_lkh == kode
+            ),
             operator_inspektor: [
               {
                 mesin: mesin,
@@ -458,6 +477,9 @@ const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
                 masalah: kodeMasalah,
                 kode_lkh: kodeLKH,
                 masalah_lkh: masalahLKH,
+                verifikator_inspektor: dataMtc.filter(
+                  (data) => data.kode_lkh == kodeLKH
+                ),
               },
             ],
             waste_desc: masterMap[kode].waste_desc,
@@ -480,7 +502,7 @@ const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
             kode_lkh: kodeLKH,
             masalah_lkh: masalahLKH,
           });
-          groupedDefects[kode].verifikator_inspektor.push(findTiketMtc);
+          groupedDefects[kode].verifikator_inspektor.push(dataMtc);
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -592,9 +614,25 @@ const mapKodeToProduksiReplace = (
       const kategoriKendala = defect.sumber_masalah;
       const total_defect = defect.total_defect;
 
-      const findTiketMtc = tiketMtc.find(
+      let dataMtc = [];
+
+      const findTiketMtcKode = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kode && tiket.no_jo == joItem.no_jo
+      );
+      const findTiketMtcKodeLKH = tiketMtc.filter(
         (tiket) => tiket.kode_lkh == kodeLKH && tiket.no_jo == joItem.no_jo
       );
+
+      if (findTiketMtcKodeLKH) {
+        findTiketMtcKodeLKH.map((data) => {
+          dataMtc.push(data);
+        });
+      }
+      if (findTiketMtcKode) {
+        findTiketMtcKode.map((data) => {
+          dataMtc.push(data);
+        });
+      }
 
       // Jika kode ada di master
       if (masterMap[kodeLKH]) {
@@ -604,7 +642,9 @@ const mapKodeToProduksiReplace = (
             kendala_desc: masterMap[kodeLKH].kendala_desc,
             total_defect: 0,
             mesin: mesin,
-            verifikator_inspektor: [findTiketMtc],
+            verifikator_inspektor: dataMtc.filter(
+              (data) => data.kode_lkh == kodeLKH
+            ),
             operator_inspektor: [
               {
                 mesin: mesin,
@@ -616,6 +656,9 @@ const mapKodeToProduksiReplace = (
                 masalah: kodeMasalah,
                 kode_lkh: kodeLKH,
                 masalah_lkh: masalahLKH,
+                verifikator_inspektor: dataMtc.filter(
+                  (data) => data.kode_lkh == kode
+                ),
               },
             ],
             kategori_kendala: masterMap[kodeLKH].kategori_kendala,
@@ -637,7 +680,7 @@ const mapKodeToProduksiReplace = (
             masalah_lkh: masalahLKH,
           });
 
-          groupedDefects[kodeLKH].verifikator_inspektor.push(findTiketMtc);
+          groupedDefects[kodeLKH].verifikator_inspektor.push(dataMtc);
         }
 
         // Tambahkan total_defect untuk kode ini
