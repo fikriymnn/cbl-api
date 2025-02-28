@@ -617,104 +617,6 @@ const jadwalProduksiController = {
     }
   },
 
-  // updateTiketJadwalProduksi: async (req, res) => {
-  //   const _id = req.params.id;
-  //   const { data_jadwal } = req.body;
-  //   const t = await db.transaction();
-  //   try {
-  //     // Cari data yang akan diubah berdasarkan ID
-  //     const dataToUpdate = await TiketJadwalProduksiPerJam.findByPk(_id);
-
-  //     if (!dataToUpdate) {
-  //       return { message: "Data tidak ditemukan." };
-  //     }
-
-  //     const lastTanggal = new Date(dataToUpdate.tanggal);
-  //     const lastDate = lastTanggal.toISOString().split("T")[0];
-
-  //     const newTanggal = new Date(data_jadwal.tanggal);
-  //     const newDate = newTanggal.toISOString().split("T")[0];
-
-  //     // Menggunakan moment untuk mengonversi waktu ke zona waktu lokal dan UTC
-  //     const originalDateTime = moment.utc(`${lastDate}T${dataToUpdate.jam}`);
-  //     const newDateTime = moment.utc(`${newDate}T${data_jadwal.jam}`);
-
-  //     // Menghitung selisih waktu dalam milidetik
-  //     const timeDifference = newDateTime.diff(originalDateTime);
-
-  //     // Update data yang diubah
-  //     await TiketJadwalProduksiPerJam.update(
-  //       { tanggal: data_jadwal.tanggal, jam: data_jadwal.jam },
-  //       { where: { id: _id }, transaction: t }
-  //     );
-
-  //     // Ambil semua data berikutnya berdasarkan tanggal dan jam
-  //     const subsequentData = await TiketJadwalProduksiPerJam.findAll({
-  //       where: {
-  //         [Op.or]: [
-  //           {
-  //             tanggal: {
-  //               [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
-  //             },
-  //           },
-  //           {
-  //             tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
-  //             jam: {
-  //               [Op.gt]: dataToUpdate.jam,
-  //             },
-  //           },
-  //         ],
-  //         //mesin: data_jadwal.mesin,
-  //         id_tiket_jadwal_produksi: dataToUpdate.id_tiket_jadwal_produksi,
-  //       },
-  //       order: [
-  //         ["tanggal", "ASC"],
-  //         ["jam", "ASC"],
-  //       ],
-  //     });
-
-  //     // Update data berikutnya sesuai dengan selisih waktu dan pertahankan interval antar data
-  //     let lastUpdatedDateTime = newDateTime;
-
-  //     for (const data of subsequentData) {
-  //       const lastTanggal = new Date(data.tanggal);
-  //       const lastDate = lastTanggal.toISOString().split("T")[0];
-
-  //       const currentDateTime = moment.utc(`${lastDate}T${data.jam}`);
-
-  //       // Tambahkan selisih waktu ke data berikutnya
-  //       const updatedDateTime = moment(currentDateTime).add(
-  //         timeDifference,
-  //         "milliseconds"
-  //       );
-
-  //       // Perbarui tanggal dan jam dengan format yang benar
-  //       const updatedDate = updatedDateTime.toISOString().split("T")[0];
-  //       const updatedTime = updatedDateTime
-  //         .toISOString()
-  //         .split("T")[1]
-  //         .split(".")[0];
-
-  //       await TiketJadwalProduksiPerJam.update(
-  //         {
-  //           tanggal: updatedDate,
-  //           jam: updatedTime,
-  //         },
-  //         { where: { id: data.id }, transaction: t }
-  //       );
-
-  //       // Perbarui waktu untuk data selanjutnya
-  //       lastUpdatedDateTime = updatedDateTime;
-  //     }
-  //     await t.commit();
-
-  //     res.status(200).json({ msg: "update success" });
-  //   } catch (error) {
-  //     await t.rollback();
-  //     res.status(400).json({ msg: error.message });
-  //   }
-  // },
-
   updateTiketJadwalProduksi: async (req, res) => {
     const _id = req.params.id;
     const { data_jadwal } = req.body;
@@ -727,13 +629,20 @@ const jadwalProduksiController = {
         return res.status(404).json({ message: "Data tidak ditemukan." });
       }
 
+      const dataTiket = await TiketJadwalProduksi.findByPk(
+        dataToUpdate.id_tiket_jadwal_produksi
+      );
+      if (!dataTiket) {
+        return res.status(404).json({ message: "Data tiket tidak ditemukan." });
+      }
+
       const dataJadwal = await JadwalKaryawan.findAll({
         order: [["createdAt", "DESC"]],
         where: {
           tanggal: {
             [Op.between]: [
               new Date().setHours(0, 0, 0, 0),
-              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
+              new Date(dataTiket.tgl_kirim).setHours(23, 59, 59, 999),
             ],
           },
           jenis_karyawan: "produksi",
@@ -761,6 +670,8 @@ const jadwalProduksiController = {
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
       );
+
+      console.log(jadwalLiburSet);
 
       const lastTanggal = new Date(dataToUpdate.tanggal);
       const lastDate = lastTanggal.toISOString().split("T")[0];
@@ -821,7 +732,7 @@ const jadwalProduksiController = {
 
       // Helper function untuk memeriksa apakah tanggal adalah hari libur
       const isHoliday = (date) => {
-        return jadwalLiburSet.includes(date);
+        return jadwalLiburSet.has(date);
       };
 
       // Helper function untuk mendapatkan informasi shift berdasarkan hari
@@ -904,7 +815,7 @@ const jadwalProduksiController = {
         return { isWorking: false };
       };
 
-      // Fungsi untuk menentukan waktu kerja berikutnya dengan interval yang sudah ditentukan
+      // Ubah fungsi getNextValidDateTime untuk memastikan shift 2 selesai sebelum beralih ke hari berikutnya
       const getNextValidDateTime = (currentDateTime, intervalInMinutes) => {
         // Tambahkan interval waktu ke waktu saat ini
         let nextDateTime = moment(currentDateTime).add(
@@ -920,21 +831,83 @@ const jadwalProduksiController = {
           const time = nextDateTime.format("HH:mm:ss");
           const day = getDayOfWeek(date);
 
+          // Dapatkan data shift untuk hari ini
+          const shiftInfo = getShiftInfo(day);
+
+          // Dapatkan data untuk hari berikutnya untuk memeriksa apakah itu hari libur
+          const nextDate = moment(date).add(1, "days");
+          const nextDay = getDayOfWeek(nextDate.format("YYYY-MM-DD"));
+          const isNextDayHoliday =
+            isHoliday(nextDate.format("YYYY-MM-DD")) || nextDay === "Minggu";
+
+          // Cek jika waktu saat ini masih dalam shift 2 dan hari berikutnya adalah hari libur
+          // Pastikan shift 2 menyelesaikan jadwalnya
+          if (
+            shiftInfo &&
+            shiftInfo.shift_2_masuk &&
+            shiftInfo.shift_2_keluar &&
+            isNextDayHoliday
+          ) {
+            // Cek apakah waktu berada dalam jam kerja shift 2
+            const isShift2 =
+              time >= shiftInfo.shift_2_masuk ||
+              (shiftInfo.shift_2_keluar < shiftInfo.shift_2_masuk &&
+                time <= shiftInfo.shift_2_keluar);
+
+            if (isShift2) {
+              // Jika masih dalam shift 2 dan jam berikutnya valid, gunakan waktu itu
+              const workingHourCheck = isWorkingHour(nextDateTime, shiftInfo);
+              if (workingHourCheck.isWorking && workingHourCheck.shift === 2) {
+                // Periksa apakah waktu berada dalam jam istirahat shift 2
+                const breakCheck = isBreakTime(time, shiftInfo.istirahat);
+                if (breakCheck.isBreak) {
+                  nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
+                  continue;
+                }
+                break; // Waktu valid dalam shift 2, gunakan ini
+              }
+            }
+          }
+
           // Cek apakah hari libur atau Minggu
           if (isHoliday(date) || day === "Minggu") {
-            // Lompat ke hari kerja berikutnya
+            // Periksa apakah ada shift 2 dari hari sebelumnya yang masih berlanjut
+            const prevDate = moment(date).subtract(1, "days");
+            const prevDay = getDayOfWeek(prevDate.format("YYYY-MM-DD"));
+            const prevShiftInfo = getShiftInfo(prevDay);
+
+            if (
+              prevShiftInfo &&
+              prevShiftInfo.shift_2_masuk &&
+              prevShiftInfo.shift_2_keluar &&
+              prevShiftInfo.shift_2_keluar < prevShiftInfo.shift_2_masuk &&
+              time <= prevShiftInfo.shift_2_keluar
+            ) {
+              // Masih dalam shift 2 hari sebelumnya yang berlanjut ke hari libur
+              // Periksa apakah berada dalam waktu istirahat
+              const breakCheck = isBreakTime(time, prevShiftInfo.istirahat);
+              if (breakCheck.isBreak) {
+                nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
+                continue;
+              }
+              break; // Waktu valid dalam shift 2 hari sebelumnya, gunakan ini
+            }
+
+            // Jika tidak ada shift yang berlanjut, lompat ke hari kerja berikutnya
             let nextWorkingDate = moment(date).add(1, "days");
-            let nextDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
+            let nextWorkDay = getDayOfWeek(
+              nextWorkingDate.format("YYYY-MM-DD")
+            );
 
             while (
               isHoliday(nextWorkingDate.format("YYYY-MM-DD")) ||
-              nextDay === "Minggu"
+              nextWorkDay === "Minggu"
             ) {
               nextWorkingDate.add(1, "days");
-              nextDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
+              nextWorkDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
             }
 
-            const nextShiftInfo = getShiftInfo(nextDay);
+            const nextShiftInfo = getShiftInfo(nextWorkDay);
 
             if (nextShiftInfo && nextShiftInfo.shift_1_masuk) {
               nextDateTime = moment(
@@ -945,8 +918,6 @@ const jadwalProduksiController = {
               continue;
             }
           }
-
-          const shiftInfo = getShiftInfo(day);
 
           // Jika tidak ada informasi shift untuk hari ini
           if (!shiftInfo) {
@@ -1310,6 +1281,7 @@ const jadwalLibur = [
   "2025-01-09", // Minggu
   "2025-01-11", // Minggu
   "2025-01-19", // Minggu
+  "2025-03-25", // Minggu
 ];
 
 // Data shift untuk setiap hari

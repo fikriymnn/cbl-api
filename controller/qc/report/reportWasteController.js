@@ -34,7 +34,15 @@ const ReportWasterQc = {
       // console.log(data_waste_p1);
 
       const dataTiketMaintenance = await Ticket.findAll({
-        attributes: ["no_jo", "operator", "kode_lkh", "nama_kendala", "mesin"],
+        attributes: [
+          "no_jo",
+          "operator",
+          "kode_lkh",
+          "nama_kendala",
+          "mesin",
+          "createdAt",
+          "kode_ticket",
+        ],
         include: [
           {
             model: ProsesMtc,
@@ -160,6 +168,8 @@ const ReportWasterQc = {
               inspektor_mtc: dataProses.user_eksekutor?.nama,
               verifikator_qc: dataProses.user_qc?.nama,
               mesin: dataMaintenance.mesin,
+              tanggal_tiket: dataMaintenance.createdAt,
+              kode_mr: dataMaintenance.kode_ticket,
             });
           });
         });
@@ -452,7 +462,6 @@ const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
           dataMtc.push(data);
         });
       }
-
       //vrsi 1 untuk mencocokan berdasarkan master
       // Jika kode ada di master
       if (masterMap[kode]) {
