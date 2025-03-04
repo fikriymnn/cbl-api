@@ -103,7 +103,6 @@ const PengajuanPromosi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-
     masa_kerja: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -112,8 +111,11 @@ const PengajuanPromosi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
     catatan_hr: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    type: {
       type: DataTypes.STRING,
       allowNull: true,
     },

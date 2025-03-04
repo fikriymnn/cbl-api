@@ -13,7 +13,7 @@ const db = require("../../../config/database");
 const PengajuanPromosiController = {
   getPengajuanPromosi: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket } = req.query;
+    const { page, limit, search, status_tiket, type } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -21,6 +21,7 @@ const PengajuanPromosiController = {
     //     [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
+    if (type) obj.type = type;
     try {
       if (page && limit) {
         const length = await PengajuanPromosi.count({ where: obj });
@@ -194,6 +195,7 @@ const PengajuanPromosiController = {
       gaji_promosi,
       masa_kerja,
       alasan_promosi,
+      type,
     } = req.body;
 
     const t = await db.transaction();
@@ -310,6 +312,7 @@ const PengajuanPromosiController = {
           gaji_promosi,
           masa_kerja,
           alasan_promosi,
+          type,
         },
         { transaction: t }
       );
