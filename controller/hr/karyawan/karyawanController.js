@@ -13,6 +13,7 @@ const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganMod
 const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
 const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
 const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
+const HistoriPromosi = require("../../../model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -171,6 +172,10 @@ const karyawanController = {
                       as: "status_karyawan_pengajuan",
                     },
                   ],
+                },
+                {
+                  model: HistoriPromosi,
+                  as: "histori_promosi",
                 },
                 {
                   model: MasterStatusKaryawan,
@@ -387,6 +392,181 @@ const karyawanController = {
           data: data,
         });
       }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getKaryawanRekap: async (req, res) => {
+    const _id = req.params.id;
+    const { search, id_department, tipe_penggajian, is_active } = req.query;
+
+    let obj = {};
+
+    if (search)
+      obj = {
+        [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+      };
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+
+    if (is_active && is_active == "true") {
+      obj.is_active = true;
+    } else if (is_active && is_active == "false") {
+      obj.is_active = false;
+    }
+    if (id_department) obj.id_department = id_department;
+
+    try {
+      const karyawanBiodata = await KaryawanBiodata.findAll({
+        where: obj,
+      });
+      const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+      const data = await Karyawan.findAll({
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: KaryawanBiodata,
+            as: "biodata_karyawan",
+            include: [
+              {
+                model: MasterDivisi,
+                as: "divisi",
+              },
+              {
+                model: MasterStatusKaryawan,
+                as: "status",
+              },
+              {
+                model: MasterDepartment,
+                as: "department",
+              },
+              {
+                model: MasterJabatan,
+                as: "jabatan",
+              },
+              {
+                model: MasterBagianHr,
+                as: "bagian",
+              },
+              {
+                model: MasterGradeHr,
+                as: "grade",
+              },
+            ],
+          },
+        ],
+
+        where: {
+          userid: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+        },
+      });
+
+      const masterDivisi = await MasterDivisi.findAll();
+      const masterDepartment = await MasterDepartment.findAll();
+      const masterJabatan = await MasterJabatan.findAll();
+      const mastergrade = await MasterGradeHr.findAll();
+      const MasterStatus = await MasterStatusKaryawan.findAll();
+
+      let rekap = {
+        //divisi
+        divisi: masterDivisi.map((divisi) => {
+          return {
+            id: divisi.id,
+            nama: divisi.nama_divisi,
+            jumlah: karyawanBiodata.filter((d) => d.id_divisi === divisi.id)
+              .length,
+          };
+        }),
+        //department
+        department: masterDepartment.map((department) => {
+          return {
+            id: department.id,
+            nama: department.nama_department,
+            jumlah: karyawanBiodata.filter(
+              (d) => d.id_department === department.id
+            ).length,
+          };
+        }),
+        //jabatan
+        jabatan: masterJabatan.map((jabatan) => {
+          return {
+            id: jabatan.id,
+            nama: jabatan.nama_jabatan,
+            jumlah: karyawanBiodata.filter((d) => d.id_jabatan === jabatan.id)
+              .length,
+          };
+        }),
+        //grade
+        status_karyawan: MasterStatus.map((status) => {
+          return {
+            id: status.id,
+            nama: status.nama_status,
+            jumlah: karyawanBiodata.filter(
+              (d) => d.id_status_karyawan === status.id
+            ).length,
+          };
+        }),
+        //
+        grade: mastergrade.map((grade) => {
+          return {
+            id: grade.id,
+            nama: grade.kategori,
+            jumlah: karyawanBiodata.filter((d) => d.id_grade === grade.id)
+              .length,
+          };
+        }),
+        //jenis karyawan
+        tipe_karyawan: [
+          {
+            nama: "Staff",
+            jumlah: karyawanBiodata.filter((d) => d.tipe_karyawan === "staff")
+              .length,
+          },
+          {
+            nama: "produksi",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_karyawan === "produksi"
+            ).length,
+          },
+        ],
+        //tipe penggajian
+        tipe_penggajian: [
+          {
+            nama: "Bulanan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_penggajian === "bulanan"
+            ).length,
+          },
+          {
+            nama: "Mingguan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_penggajian === "mingguan"
+            ).length,
+          },
+        ],
+        //tipe penggajian
+        jenis_kelamin: [
+          {
+            nama: "Laki - Laki",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.jenis_kelamin === "Laki-Laki"
+            ).length,
+          },
+          {
+            nama: "Perempuan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.jenis_kelamin === "Perempuan"
+            ).length,
+          },
+        ],
+      };
+
+      return res.status(200).json({
+        rekap: rekap,
+        data: data,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

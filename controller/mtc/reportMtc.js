@@ -8,7 +8,6 @@ const Users = require("../../model/userModel");
 const ReportMaintenance = {
   getDataResponTimeMinggu: async (req, res) => {
     const { tahun, bulan } = req.query;
-    console.log(req.query);
     try {
       const responTime = await TicketOs2.findAll({
         group: ["mesin", "Minggu_ke"],
@@ -142,7 +141,6 @@ const ReportMaintenance = {
 
   getDataResponTimeRange: async (req, res) => {
     const { fromDate, toDate } = req.query;
-    console.log(req.query);
 
     // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
     const startDate = new Date(fromDate);
@@ -256,7 +254,6 @@ const ReportMaintenance = {
             data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
           };
         }
-        console.log([...defaultMonths]);
 
         // Temukan bulan yang sesuai dalam array default bulan
         const foundMonth = acc[mesin].data.find(
@@ -293,7 +290,6 @@ const ReportMaintenance = {
 
   getDataBreakdownTimeMinggu: async (req, res) => {
     const { tahun, bulan } = req.query;
-    console.log(req.query);
     try {
       const breakdownTime = await TicketOs2.findAll({
         group: ["mesin", "Minggu_ke"],
@@ -575,7 +571,7 @@ const ReportMaintenance = {
             Sequelize.fn(
               "GROUP_CONCAT",
               Sequelize.literal(
-                `CONCAT('{ "operator": "', ticket.operator, '","eksekutor": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_eksekutor LIMIT 1), '", "verifikator": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_qc LIMIT 1), '", "createdAt": "', ticket.createdAt, '", "no_jo": "', ticket.no_jo, '","kode_lkh": "', ticket.kode_lkh, '","nama_kendala": "', ticket.nama_kendala, '"}') SEPARATOR ','`
+                `CONCAT('{ "operator": "', ticket.operator, '","eksekutor": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_eksekutor LIMIT 1), '", "verifikator": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_qc LIMIT 1), '", "no_jo": "', ticket.no_jo, '","kode_lkh": "', ticket.kode_lkh, '","nama_kendala": "', ticket.nama_kendala, '", "createdAt": "', ticket.createdAt, '", "waktu_selesai": "', ticket.waktu_selesai, '"}') SEPARATOR ','`
               )
             ),
             "details",

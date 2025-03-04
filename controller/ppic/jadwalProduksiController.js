@@ -671,8 +671,6 @@ const jadwalProduksiController = {
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
       );
 
-      console.log(jadwalLiburSet);
-
       const lastTanggal = new Date(dataToUpdate.tanggal);
       const lastDate = lastTanggal.toISOString().split("T")[0];
 

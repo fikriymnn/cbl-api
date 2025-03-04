@@ -203,6 +203,8 @@ const pengajuanTerlambat = require("./model/hr/pengajuanTerlambat/pengajuanTerla
 const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
 const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
 const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
+const pengajuanPromosiKaryawan = require("./model/hr/pengajuanPromosi/pengajuanPromosiModel");
+const pengajuanPromosiKaryawanHistori = require("./model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -255,7 +257,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MasterKategoriSettingKapasitas.sync({ alter: true });
+//   await pengajuanPromosiKaryawanHistori.sync({ alter: true });
 // })();
 
 // const ip100 = 75

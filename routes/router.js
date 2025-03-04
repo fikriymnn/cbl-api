@@ -202,6 +202,7 @@ router.use(
   "/",
   require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
 );
+router.use("/", require("./hr/pengajuanPromosi/pengajuanPromosiRoute"));
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
 router.use("/", require("./hr/incomingTaskRoute"));
 router.use(
