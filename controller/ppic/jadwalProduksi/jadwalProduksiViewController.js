@@ -31,6 +31,27 @@ const jadwalProduksiViewController = {
     }
   },
 
+  getJadwalProduksiWeeklyView: async (req, res) => {
+    try {
+      const { start_date, end_date } = req.query;
+
+      const data = await JadwalProduksi.findAll({
+        group: ["no_jo", "tanggal", "mesin"],
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date(start_date).setHours(0, 0, 0, 0),
+              new Date(end_date).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
+      res.status(200).json({ data: data });
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
   createJadwalProduksiView: async (req, res) => {
     const t = await db.transaction();
     try {

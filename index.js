@@ -305,6 +305,14 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.use((req, res, next) => {
+  req.setTimeout(30000, () => {
+    // 30000 ms = 30 detik
+    res.status(408).send("Request Timeout");
+  });
+  next();
+});
+
 app.use(
   cors({
     credentials: true,

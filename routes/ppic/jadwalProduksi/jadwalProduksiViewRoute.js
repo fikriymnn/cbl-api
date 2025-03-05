@@ -7,6 +7,11 @@ router.get(
   jadwalProduksiViewController.getJadwalProduksiView
 );
 
+router.get(
+  "/ppic/jadwalProduksiWeekView/:id?",
+  jadwalProduksiViewController.getJadwalProduksiWeeklyView
+);
+
 router.post(
   "/ppic/jadwalProduksiView",
   jadwalProduksiViewController.createJadwalProduksiView
