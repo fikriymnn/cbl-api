@@ -689,7 +689,11 @@ const mapKodeToProduksiReplace = (
             masalah_lkh: masalahLKH,
           });
 
-          groupedDefects[kodeLKH].verifikator_inspektor.push(dataMtc);
+          groupedDefects[kodeLKH].verifikator_inspektor = dataMtc.filter(
+            (data) => data.kode_lkh == kodeLKH
+          );
+
+          //groupedDefects[kodeLKH].verifikator_inspektor.push(dataMtc)
         }
 
         // Tambahkan total_defect untuk kode ini
