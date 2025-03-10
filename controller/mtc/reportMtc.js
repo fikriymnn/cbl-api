@@ -430,12 +430,14 @@ const ReportMaintenance = {
   },
 
   getDataBreakdownTimeRange: async (req, res) => {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, id_eksekutor } = req.query;
 
     // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
     const startDate = new Date(fromDate);
     const endDate = new Date(toDate);
 
+    let obj = {};
+    if (id_eksekutor) obj.id_eksekutor = id_eksekutor;
     // Array nama bulan dalam bahasa Indonesia
     const monthNames = [
       "Januari",
@@ -486,11 +488,12 @@ const ReportMaintenance = {
         include: [
           {
             model: ProsesMtc,
+            where: obj,
             include: [
               {
                 model: Users,
                 as: "user_eksekutor",
-                attributes: ["nama"],
+                attributes: ["nama", "id"],
                 raw: true,
               },
               {
@@ -677,7 +680,7 @@ const ReportMaintenance = {
       const finalResult = Object.values(groupedResults);
 
       res.status(200).json({
-        tes: bereakdownTime,
+        // tes: bereakdownTime,
         queryDari: startDate,
         querySampai: endDate,
         data: finalResult,

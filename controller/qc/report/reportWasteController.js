@@ -263,8 +263,6 @@ const ReportWasterQc = {
           masalah: defect.desc_waste,
           kode_lkh: defect.kode_kendala,
           masalah_lkh: defect.desc_kendala,
-          inspektor: item.inspektor,
-          operator: item.operator,
           tgl: item.tgl,
         })),
         waste: undefined, // Menghapus properti "waste"
@@ -894,17 +892,33 @@ function getDataByKategoriAll(dataAll) {
         result[kategori_kendala].jo.push(joItem);
       }
 
-      // Tambah atau update defect di mesin
-      if (!joItem.mesinMap[namaMesin]) {
-        joItem.mesinMap[namaMesin] = {
-          mesin: namaMesin,
-          total_calculated_defect: 0,
-          operator_inspektor: operator_inspektor,
-        };
-        joItem.mesin.push(joItem.mesinMap[namaMesin]);
-      }
+      operator_inspektor.map((data) => {
+        const mesinOperator = data.mesin || "No Machine";
+        // Tambah atau update defect di mesin
+        if (!joItem.mesinMap[mesinOperator]) {
+          joItem.mesinMap[mesinOperator] = {
+            mesin: mesinOperator,
+            total_calculated_defect: 0,
+            operator_inspektor: [],
+          };
+          joItem.mesin.push(joItem.mesinMap[mesinOperator]);
+        }
 
-      joItem.mesinMap[namaMesin].total_calculated_defect += calculated_defect;
+        const findOperator = joItem.mesinMap[
+          mesinOperator
+        ].operator_inspektor.find(
+          (opr) =>
+            opr.operator == data.operator && opr.inspektor === data.inspektor
+        );
+
+        //untuk operator dan inspektor agar tidak double
+        if (!findOperator) {
+          joItem.mesinMap[mesinOperator].operator_inspektor.push(data);
+        }
+
+        joItem.mesinMap[mesinOperator].total_calculated_defect +=
+          data.calculated_defect;
+      });
 
       return result;
     },
