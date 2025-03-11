@@ -659,29 +659,31 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           if (absen.menit_terlambat > 1) {
             //untuk kondisi potong jam lembur
           }
-        } else if (
-          (typePenggajianKaryawan === "bulanan" || tipeKaryawan === "staff") &&
-          absen.status_masuk === "Terlambat "
-        ) {
-          summaryPayroll.potongan_terlambat.push({
-            label: "potonganTerlambat",
-            jumlah: absen.menit_terlambat,
-            nilai: 20000,
-            total: absen.menit_terlambat * 20000,
-          });
+        }
+        // else if (
+        //   (typePenggajianKaryawan === "bulanan" || tipeKaryawan === "staff") &&
+        //   absen.status_masuk === "Terlambat "
+        // ) {
+        //   summaryPayroll.potongan_terlambat.push({
+        //     label: "potonganTerlambat",
+        //     jumlah: absen.menit_terlambat,
+        //     nilai: 20000,
+        //     total: absen.menit_terlambat * 20000,
+        //   });
 
-          //pengurangan nilai ke total gaji
-          summaryPayroll.total -= absen.menit_terlambat * 20000;
-          summaryPayroll.sub_total -= absen.menit_terlambat * 20000;
-          summaryPayroll.total_potongan += absen.menit_terlambat * 20000;
+        //   //pengurangan nilai ke total gaji
+        //   summaryPayroll.total -= absen.menit_terlambat * 20000;
+        //   summaryPayroll.sub_total -= absen.menit_terlambat * 20000;
+        //   summaryPayroll.total_potongan += absen.menit_terlambat * 20000;
 
-          payroll.rincian.push({
-            label: "uangHadir",
-            jumlah: 1,
-            nilai: uangHadir,
-            total: uangHadir,
-          });
-        } else {
+        //   payroll.rincian.push({
+        //     label: "uangHadir",
+        //     jumlah: 1,
+        //     nilai: uangHadir,
+        //     total: uangHadir,
+        //   });
+        // }
+        else {
           payroll.rincian.push({
             label: "uangHadir",
             jumlah: 1,

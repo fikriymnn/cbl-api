@@ -464,7 +464,9 @@ const karyawanController = {
       });
 
       const masterDivisi = await MasterDivisi.findAll();
-      const masterDepartment = await MasterDepartment.findAll();
+      const masterDepartment = await MasterDepartment.findAll({
+        where: { is_active: true },
+      });
       const masterJabatan = await MasterJabatan.findAll();
       const mastergrade = await MasterGradeHr.findAll();
       const MasterStatus = await MasterStatusKaryawan.findAll();
