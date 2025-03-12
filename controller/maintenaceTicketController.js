@@ -156,6 +156,12 @@ const ticketController = {
         const dataProses = response.proses_mtcs[i];
         dataHasil.status_verifikasi = dataProses.status_qc;
       }
+      
+      if (dataHasil.status_verifikasi == "approved")
+        return res.status(404).json({
+          status: 404,
+          msg: "data not found",
+        });
 
       if (dataHasil.status_verifikasi == "approved")
         return res.status(404).json({
