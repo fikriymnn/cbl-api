@@ -119,13 +119,14 @@ const ticketController = {
 
   getTicketValidasiVerifikasiQc: async (req, res) => {
     try {
-      const { jenis_kendala, no_jo, mesin, operator } = req.query;
+      const { jenis_kendala, no_jo, mesin, operator, kode_lkh } = req.query;
 
       let obj = {};
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
       if (operator) obj.operator = { [Op.like]: `%${operator}%` };
       if (mesin) obj.mesin = mesin;
+      if (kode_lkh) obj.kode_lkh = kode_lkh;
 
       const response = await Ticket.findOne({
         where: obj,
@@ -155,6 +156,12 @@ const ticketController = {
         const dataProses = response.proses_mtcs[i];
         dataHasil.status_verifikasi = dataProses.status_qc;
       }
+
+      if (dataHasil.status_verifikasi == "approved")
+        return res.status(404).json({
+          status: 404,
+          msg: "data not found",
+        });
 
       res.status(200).json({
         status: 200,
