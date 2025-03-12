@@ -100,6 +100,8 @@ const inspeksiRabutpointController = {
       MasterDefect,
       kode_lkh,
       masalah_lkh,
+      mesin,
+      operator,
     } = req.body;
     console.log(req.body);
     const t = await db.transaction();
@@ -120,6 +122,8 @@ const inspeksiRabutpointController = {
           persen_kriteria: MasterDefect.criteria_percent,
           sumber_masalah: MasterDefect.kategori_kendala,
           id_inspeksi_rabut: id_inspeksi_rabut,
+          mesin,
+          operator,
         },
         { transaction: t }
       );

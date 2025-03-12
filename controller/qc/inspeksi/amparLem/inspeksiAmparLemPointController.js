@@ -96,6 +96,8 @@ const inspeksiAmparLempointController = {
       MasterDefect,
       kode_lkh,
       masalah_lkh,
+      mesin,
+      operator,
     } = req.body;
 
     try {
@@ -113,6 +115,8 @@ const inspeksiAmparLempointController = {
         persen_kriteria: MasterDefect.criteria_percent,
         sumber_masalah: MasterDefect.kategori_kendala,
         id_inspeksi_ampar_lem: id_inspeksi_ampar_lem,
+        mesin,
+        operator,
       });
 
       // untuk department ketika data udah dari p1

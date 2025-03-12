@@ -47,6 +47,10 @@ const InspeksiBarangRusakDefectV2 = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    operator: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     nama_pengecekan: {
       type: DataTypes.STRING,
       allowNull: true,
