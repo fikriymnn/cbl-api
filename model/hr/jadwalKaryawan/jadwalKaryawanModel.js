@@ -19,6 +19,11 @@ const JadwalKaryawan = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    potong_cuti_tahunan: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   },
   {
     freezeTableName: true,

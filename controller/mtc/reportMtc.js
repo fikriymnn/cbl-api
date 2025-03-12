@@ -3,10 +3,11 @@ const TicketOs2 = require("../../model/maintenaceTicketModel");
 const masterMesin = require("../../model/masterData/masterMesinModel");
 const MasterKodeAnalisa = require("../../model/masterData/masterKodeAnalisisModel");
 const TicketOs3 = require("../../model/maintenanceTicketOs3Model");
+const ProsesMtc = require("../../model/mtc/prosesMtc");
+const Users = require("../../model/userModel");
 const ReportMaintenance = {
   getDataResponTimeMinggu: async (req, res) => {
     const { tahun, bulan } = req.query;
-    console.log(req.query);
     try {
       const responTime = await TicketOs2.findAll({
         group: ["mesin", "Minggu_ke"],
@@ -140,7 +141,6 @@ const ReportMaintenance = {
 
   getDataResponTimeRange: async (req, res) => {
     const { fromDate, toDate } = req.query;
-    console.log(req.query);
 
     // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
     const startDate = new Date(fromDate);
@@ -254,7 +254,6 @@ const ReportMaintenance = {
             data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
           };
         }
-        console.log([...defaultMonths]);
 
         // Temukan bulan yang sesuai dalam array default bulan
         const foundMonth = acc[mesin].data.find(
@@ -291,7 +290,6 @@ const ReportMaintenance = {
 
   getDataBreakdownTimeMinggu: async (req, res) => {
     const { tahun, bulan } = req.query;
-    console.log(req.query);
     try {
       const breakdownTime = await TicketOs2.findAll({
         group: ["mesin", "Minggu_ke"],
@@ -432,12 +430,14 @@ const ReportMaintenance = {
   },
 
   getDataBreakdownTimeRange: async (req, res) => {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, id_eksekutor } = req.query;
 
     // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
     const startDate = new Date(fromDate);
     const endDate = new Date(toDate);
 
+    let obj = {};
+    if (id_eksekutor) obj.id_eksekutor = id_eksekutor;
     // Array nama bulan dalam bahasa Indonesia
     const monthNames = [
       "Januari",
@@ -485,24 +485,51 @@ const ReportMaintenance = {
     const defaultMonths = generateMonthsRange(startDate, endDate);
     try {
       const bereakdownTime = await TicketOs2.findAll({
+        include: [
+          {
+            model: ProsesMtc,
+            where: obj,
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+                attributes: ["nama", "id"],
+                raw: true,
+              },
+              {
+                model: Users,
+                as: "user_qc",
+                attributes: ["nama"],
+                raw: true,
+              },
+            ],
+            raw: true,
+            order: [["createdAt", "DESC"]], // Ambil proses terakhir berdasarkan waktu
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
+            attributes: ["nama"],
+          },
+        ],
         group: [
-          "mesin",
-          Sequelize.fn("YEAR", Sequelize.col("createdAt")),
-          Sequelize.fn("MONTH", Sequelize.col("createdAt")),
+          "ticket.mesin",
+          Sequelize.fn("YEAR", Sequelize.col("ticket.createdAt")),
+          Sequelize.fn("MONTH", Sequelize.col("ticket.createdAt")),
         ],
         attributes: [
           "mesin",
-          [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"], // Mengambil bulan dari createdAt
-          [Sequelize.fn("YEAR", Sequelize.col("createdAt")), "year"],
-          [fn("MONTHNAME", col("createdAt")), "bulan"],
+          [Sequelize.fn("MONTH", Sequelize.col("ticket.createdAt")), "month"], // Mengambil bulan dari ticket.createdAt
+          [Sequelize.fn("YEAR", Sequelize.col("ticket.createdAt")), "year"],
+          [fn("MONTHNAME", col("ticket.createdAt")), "bulan"],
           [
             fn(
               "SUM",
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_selesai_mtc")
+                col("ticket.waktu_respon_qc"),
+                col("ticket.waktu_selesai_mtc")
               )
             ),
             "jumlah_waktu_menit_mtc",
@@ -513,8 +540,8 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("createdAt"),
-                col("waktu_selesai")
+                col("ticket.createdAt"),
+                col("ticket.waktu_selesai")
               )
             ),
             "jumlah_waktu_menit",
@@ -525,8 +552,8 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_selesai_mtc")
+                col("ticket.waktu_respon_qc"),
+                col("ticket.waktu_selesai_mtc")
               )
             ),
             "rata_rata_waktu_menit_mtc",
@@ -537,13 +564,23 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("createdAt"),
-                col("waktu_selesai")
+                col("ticket.createdAt"),
+                col("ticket.waktu_selesai")
               )
             ),
             "rata_rata_waktu_menit",
           ], // Menghitung rata-rata waktu keseluruhan
+          [
+            Sequelize.fn(
+              "GROUP_CONCAT",
+              Sequelize.literal(
+                `CONCAT('{ "operator": "', ticket.operator, '","eksekutor": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_eksekutor LIMIT 1), '", "verifikator": "', (SELECT nama FROM users WHERE users.id = proses_mtcs.id_qc LIMIT 1), '", "no_jo": "', ticket.no_jo, '","kode_lkh": "', ticket.kode_lkh, '","nama_kendala": "', ticket.nama_kendala, '", "createdAt": "', ticket.createdAt, '", "waktu_selesai": "', ticket.waktu_selesai, '"}') SEPARATOR ','`
+              )
+            ),
+            "details",
+          ], // Menggabungkan data dalam string JSON
         ],
+
         where: {
           // waktu_mulai_mtc: {
           //   [Op.ne]: null,
@@ -557,6 +594,16 @@ const ReportMaintenance = {
         },
         order: [["mesin", "ASC"]],
         raw: true,
+      });
+
+      //mengubah detail menjadi array
+      bereakdownTime.forEach((item) => {
+        try {
+          item.details = item.details ? JSON.parse(`[${item.details}]`) : [];
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          item.details = [];
+        }
       });
 
       // Mengelompokkan data per mesin
@@ -578,6 +625,7 @@ const ReportMaintenance = {
         );
 
         if (foundMonth) {
+          foundMonth.details = row.details;
           // Jika bulan ditemukan, update total
           foundMonth.jumlah_waktu_mtc_menit = parseFloat(
             row.jumlah_waktu_menit_mtc
@@ -632,6 +680,7 @@ const ReportMaintenance = {
       const finalResult = Object.values(groupedResults);
 
       res.status(200).json({
+        // tes: bereakdownTime,
         queryDari: startDate,
         querySampai: endDate,
         data: finalResult,

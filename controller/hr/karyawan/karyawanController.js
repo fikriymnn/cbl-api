@@ -7,11 +7,13 @@ const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentMo
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
 const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
+const DataSP = require("../../../model/hr/pengajuanSP/pengajuanSPModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
 const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
 const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
 const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
+const HistoriPromosi = require("../../../model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -21,6 +23,7 @@ const karyawanController = {
       req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+    let obj2 = {};
     if (search)
       obj = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
@@ -33,7 +36,12 @@ const karyawanController = {
       obj.is_active = false;
     }
 
+    if (id_department) obj2.id_department = id_department;
+
     try {
+      const startToday = new Date().setHours(0, 0, 0, 0);
+      const endToday = new Date().setHours(23, 59, 59, 999);
+
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
@@ -55,6 +63,8 @@ const karyawanController = {
             {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
+              where: obj2,
+              required: true,
               include: [
                 {
                   model: MasterDivisi,
@@ -81,6 +91,49 @@ const karyawanController = {
                   as: "grade",
                 },
               ],
+            },
+            {
+              model: PinjamanKaryawan,
+              as: "pinjaman_karyawan",
+              where: {
+                status_pinjaman: "belum lunas",
+              },
+              required: false,
+            },
+            {
+              model: DataSP,
+              as: "sp_karyawan",
+              required: false,
+              where: {
+                status: "approved",
+
+                [Op.or]: [
+                  {
+                    dari: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `from` berada dalam rentang
+                  {
+                    sampai: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `to` berada dalam rentang
+                  {
+                    [Op.and]: [
+                      {
+                        dari: {
+                          [Op.lte]: startToday,
+                        },
+                      }, // Rentang cuti mencakup startDate
+                      {
+                        sampai: {
+                          [Op.gte]: endToday,
+                        },
+                      }, // Rentang cuti mencakup endDate
+                    ],
+                  },
+                ],
+              },
             },
           ],
           offset,
@@ -121,6 +174,10 @@ const karyawanController = {
                   ],
                 },
                 {
+                  model: HistoriPromosi,
+                  as: "histori_promosi",
+                },
+                {
                   model: MasterStatusKaryawan,
                   as: "status",
                 },
@@ -152,58 +209,98 @@ const karyawanController = {
             },
           ],
         });
-        return res.status(200).json({
-          data: data,
-        });
-      } else if (id_department) {
-        const data = await KaryawanBiodata.findAll({
-          include: [
-            {
-              model: Karyawan,
-              as: "karyawan",
-              include: [
-                {
-                  model: PinjamanKaryawan,
-                  as: "pinjaman_karyawan",
-                  where: {
-                    status_pinjaman: "belum lunas",
-                  },
-                  required: false,
+
+        const startToday = new Date().setHours(0, 0, 0, 0);
+        const endToday = new Date().setHours(23, 59, 59, 999);
+
+        const SpAktif = await DataSP.findAll({
+          where: {
+            status: "approved",
+            id_karyawan: _id,
+            [Op.or]: [
+              {
+                dari: {
+                  [Op.between]: [startToday, endToday],
                 },
-              ],
-            },
-            {
-              model: MasterStatusKaryawan,
-              as: "status",
-            },
-            {
-              model: MasterDivisi,
-              as: "divisi",
-            },
-            {
-              model: MasterDepartment,
-              as: "department",
-            },
-            {
-              model: MasterBagianHr,
-              as: "bagian",
-            },
-            {
-              model: MasterJabatan,
-              as: "jabatan",
-            },
-            {
-              model: MasterGradeHr,
-              as: "grade",
-            },
-          ],
-          where: { id_department: id_department },
+              }, // `from` berada dalam rentang
+              {
+                sampai: {
+                  [Op.between]: [startToday, endToday],
+                },
+              }, // `to` berada dalam rentang
+              {
+                [Op.and]: [
+                  {
+                    dari: {
+                      [Op.lte]: startToday,
+                    },
+                  }, // Rentang cuti mencakup startDate
+                  {
+                    sampai: {
+                      [Op.gte]: endToday,
+                    },
+                  }, // Rentang cuti mencakup endDate
+                ],
+              },
+            ],
+          },
         });
 
         return res.status(200).json({
           data: data,
+          sp_aktif: SpAktif,
         });
-      } else {
+      }
+      // else if (id_department) {
+      //   const data = await KaryawanBiodata.findAll({
+      //     include: [
+      //       {
+      //         model: Karyawan,
+      //         as: "karyawan",
+      //         include: [
+      //           {
+      //             model: PinjamanKaryawan,
+      //             as: "pinjaman_karyawan",
+      //             where: {
+      //               status_pinjaman: "belum lunas",
+      //             },
+      //             required: false,
+      //           },
+      //         ],
+      //       },
+      //       {
+      //         model: MasterStatusKaryawan,
+      //         as: "status",
+      //       },
+      //       {
+      //         model: MasterDivisi,
+      //         as: "divisi",
+      //       },
+      //       {
+      //         model: MasterDepartment,
+      //         as: "department",
+      //       },
+      //       {
+      //         model: MasterBagianHr,
+      //         as: "bagian",
+      //       },
+      //       {
+      //         model: MasterJabatan,
+      //         as: "jabatan",
+      //       },
+      //       {
+      //         model: MasterGradeHr,
+      //         as: "grade",
+      //       },
+      //     ],
+      //     where: { id_department: id_department },
+      //   });
+
+      //   return res.status(200).json({
+      //     data: data,
+      //   });
+      // }
+      else {
         const data = await Karyawan.findAll({
           order: [["createdAt", "DESC"]],
 
@@ -211,6 +308,8 @@ const karyawanController = {
             {
               model: KaryawanBiodata,
               as: "biodata_karyawan",
+              where: obj2,
+              required: true,
               include: [
                 {
                   model: MasterDivisi,
@@ -238,8 +337,51 @@ const karyawanController = {
                 },
               ],
             },
-          ],
+            {
+              model: PinjamanKaryawan,
+              as: "pinjaman_karyawan",
+              where: {
+                status_pinjaman: "belum lunas",
+              },
+              required: false,
+            },
 
+            {
+              model: DataSP,
+              as: "sp_karyawan",
+              required: false,
+              where: {
+                status: "approved",
+
+                [Op.or]: [
+                  {
+                    dari: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `from` berada dalam rentang
+                  {
+                    sampai: {
+                      [Op.between]: [startToday, endToday],
+                    },
+                  }, // `to` berada dalam rentang
+                  {
+                    [Op.and]: [
+                      {
+                        dari: {
+                          [Op.lte]: startToday,
+                        },
+                      }, // Rentang cuti mencakup startDate
+                      {
+                        sampai: {
+                          [Op.gte]: endToday,
+                        },
+                      }, // Rentang cuti mencakup endDate
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
           where: {
             userid: {
               [Op.in]: karyawanIds, // Gunakan array id_karyawan
@@ -250,6 +392,183 @@ const karyawanController = {
           data: data,
         });
       }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getKaryawanRekap: async (req, res) => {
+    const _id = req.params.id;
+    const { search, id_department, tipe_penggajian, is_active } = req.query;
+
+    let obj = {};
+
+    if (search)
+      obj = {
+        [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
+      };
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+
+    if (is_active && is_active == "true") {
+      obj.is_active = true;
+    } else if (is_active && is_active == "false") {
+      obj.is_active = false;
+    }
+    if (id_department) obj.id_department = id_department;
+
+    try {
+      const karyawanBiodata = await KaryawanBiodata.findAll({
+        where: obj,
+      });
+      const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+      const data = await Karyawan.findAll({
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: KaryawanBiodata,
+            as: "biodata_karyawan",
+            include: [
+              {
+                model: MasterDivisi,
+                as: "divisi",
+              },
+              {
+                model: MasterStatusKaryawan,
+                as: "status",
+              },
+              {
+                model: MasterDepartment,
+                as: "department",
+              },
+              {
+                model: MasterJabatan,
+                as: "jabatan",
+              },
+              {
+                model: MasterBagianHr,
+                as: "bagian",
+              },
+              {
+                model: MasterGradeHr,
+                as: "grade",
+              },
+            ],
+          },
+        ],
+
+        where: {
+          userid: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+        },
+      });
+
+      const masterDivisi = await MasterDivisi.findAll();
+      const masterDepartment = await MasterDepartment.findAll({
+        where: { is_active: true },
+      });
+      const masterJabatan = await MasterJabatan.findAll();
+      const mastergrade = await MasterGradeHr.findAll();
+      const MasterStatus = await MasterStatusKaryawan.findAll();
+
+      let rekap = {
+        //divisi
+        divisi: masterDivisi.map((divisi) => {
+          return {
+            id: divisi.id,
+            nama: divisi.nama_divisi,
+            jumlah: karyawanBiodata.filter((d) => d.id_divisi === divisi.id)
+              .length,
+          };
+        }),
+        //department
+        department: masterDepartment.map((department) => {
+          return {
+            id: department.id,
+            nama: department.nama_department,
+            jumlah: karyawanBiodata.filter(
+              (d) => d.id_department === department.id
+            ).length,
+          };
+        }),
+        //jabatan
+        jabatan: masterJabatan.map((jabatan) => {
+          return {
+            id: jabatan.id,
+            nama: jabatan.nama_jabatan,
+            jumlah: karyawanBiodata.filter((d) => d.id_jabatan === jabatan.id)
+              .length,
+          };
+        }),
+        //grade
+        status_karyawan: MasterStatus.map((status) => {
+          return {
+            id: status.id,
+            nama: status.nama_status,
+            jumlah: karyawanBiodata.filter(
+              (d) => d.id_status_karyawan === status.id
+            ).length,
+          };
+        }),
+        //
+        grade: mastergrade.map((grade) => {
+          return {
+            id: grade.id,
+            nama: grade.kategori,
+            jumlah: karyawanBiodata.filter((d) => d.id_grade === grade.id)
+              .length,
+          };
+        }),
+        //jenis karyawan
+        tipe_karyawan: [
+          {
+            nama: "Staff",
+            jumlah: karyawanBiodata.filter((d) => d.tipe_karyawan === "staff")
+              .length,
+          },
+          {
+            nama: "produksi",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_karyawan === "produksi"
+            ).length,
+          },
+        ],
+        //tipe penggajian
+        tipe_penggajian: [
+          {
+            nama: "Bulanan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_penggajian === "bulanan"
+            ).length,
+          },
+          {
+            nama: "Mingguan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.tipe_penggajian === "mingguan"
+            ).length,
+          },
+        ],
+        //tipe penggajian
+        jenis_kelamin: [
+          {
+            nama: "Laki - Laki",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.jenis_kelamin === "Laki-Laki"
+            ).length,
+          },
+          {
+            nama: "Perempuan",
+            jumlah: karyawanBiodata.filter(
+              (d) => d.jenis_kelamin === "Perempuan"
+            ).length,
+          },
+        ],
+      };
+
+      return res.status(200).json({
+        rekap: rekap,
+        data: data,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

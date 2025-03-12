@@ -2,12 +2,21 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const KaryawanModel = require("../karyawanModel");
 const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
+const PayrollPeriodeBulananModel = require("./payrollBulananPeriodeModel");
 
 const { DataTypes } = Sequelize;
 
 const Payroll = db.define(
   "payroll_bulanan",
   {
+    id_payroll_periode_bulanan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PayrollPeriodeBulananModel,
+        key: "id",
+      },
+    },
     id_karyawan: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -43,6 +52,18 @@ const Payroll = db.define(
     },
     total_upah: {
       type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    sub_total_upah: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    pengurangan_penambahan: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+    },
+    note_pengurangan_penambahan: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     total_potongan: {
@@ -95,6 +116,15 @@ DepartmentModel.hasMany(Payroll, {
 Payroll.belongsTo(DepartmentModel, {
   foreignKey: "id_department",
   as: "department",
+});
+
+PayrollPeriodeBulananModel.hasMany(Payroll, {
+  foreignKey: "id_payroll_periode_bulanan",
+  as: "payroll_detail_bulanan",
+});
+Payroll.belongsTo(PayrollPeriodeBulananModel, {
+  foreignKey: "id_payroll_periode_bulanan",
+  as: "payroll_periode",
 });
 
 module.exports = Payroll;

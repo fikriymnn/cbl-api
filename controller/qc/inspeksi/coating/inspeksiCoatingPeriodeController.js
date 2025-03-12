@@ -14,10 +14,16 @@ const { Sequelize } = require("sequelize");
 const inspeksiCoatingController = {
   updateInspeksiCoatingPeriode: async (req, res) => {
     try {
-      const { catatan, point } = req.body;
+      const { catatan, sample_1, sample_2, sample_3 } = req.body;
       const { id } = req.params;
       await InspeksiCoatingSubPeriode.update(
         {
+          sample_1,
+          sample_2,
+          sample_3,
+          hasil_sample_1: (sample_1 / 100) * 10000,
+          hasil_sample_2: (sample_2 / 100) * 10000,
+          hasil_sample_3: (sample_3 / 100) * 10000,
           catatan,
           status: "history",
         },

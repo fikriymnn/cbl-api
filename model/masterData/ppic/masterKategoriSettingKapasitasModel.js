@@ -9,11 +9,7 @@ const MasterKategoriSettingKapasitas = db.define(
   {
     id_mesin: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: MasterMesin,
-        key: "id",
-      },
+      allowNull: true,
     },
     nama_mesin: {
       type: DataTypes.STRING,
@@ -52,14 +48,5 @@ const MasterKategoriSettingKapasitas = db.define(
     freezeTableName: true,
   }
 );
-
-MasterMesin.hasMany(MasterKategoriSettingKapasitas, {
-  foreignKey: "id_mesin",
-  as: "kategori_setting_kapasitas",
-});
-MasterKategoriSettingKapasitas.belongsTo(MasterMesin, {
-  foreignKey: "id_mesin",
-  as: "mesin",
-});
 
 module.exports = MasterKategoriSettingKapasitas;

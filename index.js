@@ -62,6 +62,9 @@ const notif = require("./model/notificationModel");
 const inspeksiBahan = require("./model/qc/inspeksi/bahan/inspeksiBahanModel");
 const inspeksiBahanResult = require("./model/qc/inspeksi/bahan/inspeksiBahanResultModel");
 
+const inspeksiChemical = require("./model/qc/inspeksi/chemical/inspeksiChemicalModel");
+const inspeksiChemicalPoint = require("./model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
+
 const inspeksiPotong = require("./model/qc/inspeksi/potong/inspeksiPotongModel");
 const inspeksiPotongResult = require("./model/qc/inspeksi/potong/inspeksiPotongResultModel");
 
@@ -172,6 +175,7 @@ const WaktuShift = require("./model/masterData/hr/masterShift/masterShiftModel")
 const WaktuIstirahat = require("./model/masterData/hr/masterShift/masterIstirahatModel");
 const masterPayroll = require("./model/masterData/hr/masterPayrollModel");
 const masterStatusKaryawan = require("./model/masterData/hr/masterStatusKaryawanModel");
+const masterSP = require("./model/masterData/hr/masterSPModel");
 
 // absen hr
 const absenModel = require("./model/hr/absenModel");
@@ -188,7 +192,10 @@ const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
 //pengajuan
 const pengajuanCuti = require("./model/hr/pengajuanCuti/pengajuanCutiModel");
 const pengajuanIzin = require("./model/hr/pengajuanIzin/pengajuanIzinModel");
+const pengajuanDinas = require("./model/hr/pengajuanDinas/pengajuanDinasModel");
+const pengajuanSP = require("./model/hr/pengajuanSP/pengajuanSPModel");
 const pengajuanSakit = require("./model/hr/pengajuanSakit/pengajuanSakitModel");
+const pengajuanKaryawan = require("./model/hr/pengajuanKaryawan/pengajuanKaryawanModel");
 const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
@@ -196,6 +203,8 @@ const pengajuanTerlambat = require("./model/hr/pengajuanTerlambat/pengajuanTerla
 const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
 const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
 const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
+const pengajuanPromosiKaryawan = require("./model/hr/pengajuanPromosi/pengajuanPromosiModel");
+const pengajuanPromosiKaryawanHistori = require("./model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
 
 //kendala lkh
 const kendalaLkh = require("./model/kendalaLkh/kendalaLkhModel");
@@ -210,6 +219,7 @@ const SubProject = require("./model/mtc/project/subProjectModel");
 const payrollMingguanPeriode = require("./model/hr/payroll/payrollMingguanPeriodeModel");
 const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
 const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
+const payrollBulananPeriode = require("./model/hr/payroll/payrollBulananPeriodeModel");
 const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
 const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailModel");
 
@@ -248,7 +258,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanLembur.sync({ alter: true });
+//   await TiketJadwalProduksiPerJam.sync({ alter: true });
 // })();
 
 // const ip100 = 75
@@ -293,6 +303,14 @@ app.use(function (req, res, next) {
     "Access-Control-Allow-Headers",
     "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
   );
+  next();
+});
+
+app.use((req, res, next) => {
+  req.setTimeout(30000, () => {
+    // 30000 ms = 30 detik
+    res.status(408).send("Request Timeout");
+  });
   next();
 });
 

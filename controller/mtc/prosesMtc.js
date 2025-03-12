@@ -470,12 +470,10 @@ const ProsessMtc = {
         const diffInMs = Math.abs(new Date() - prosesData.waktu_mulai_mtc);
         const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); //dalam menit
         //const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60)); // Dalam jam
-        console.log(diffInMinutes);
 
         if (diffInMinutes > tiketData.maksimal_waktu_pengerjaan) {
           console.log("masuk ncr");
           const userAnalisis = await Users.findByPk(req.user.id);
-          console.log(userAnalisis);
           const data = await NcrTicket.create(
             {
               id_pelapor: req.user.id,
@@ -730,7 +728,7 @@ const ProsessMtc = {
         status = "monitoring";
       }
 
-      if (prosesData.is_rework == true) {
+      if (prosesData.is_rework == true && ticket.waktu_selesai != null) {
         await Ticket.update(
           {
             status_tiket: status,
@@ -1108,7 +1106,6 @@ const ProsessMtc = {
         const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
 
         if (dateDiff >= waktuMonitor) {
-          console.log(1);
           await Ticket.update(
             { status_tiket: "closed", bagian_tiket: "histori os2" },
             { where: { id: proses[i].id_tiket } }

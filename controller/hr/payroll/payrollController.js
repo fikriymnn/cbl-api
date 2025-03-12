@@ -466,6 +466,91 @@ const payrollController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  getPayrollBulananAll: async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    // const dataKaryawan = await BiodataKaryawan.findAll({
+    //   where: { is_active: true, id_grade: { [Op.ne]: null } },
+    // });
+
+    try {
+      // 1. Ambil semua data karyawan + data yang diperlukan dalam satu query
+      const dataKaryawan = await BiodataKaryawan.findAll({
+        where: { id_grade: { [Op.ne]: null } },
+        include: [
+          {
+            model: KaryawanPotongan,
+            as: "potongan_karyawan",
+          },
+          {
+            model: Karyawan,
+            as: "karyawan",
+          },
+          {
+            model: MasterGradeHr,
+            as: "grade",
+          },
+          {
+            model: MasterDivisi,
+            as: "divisi",
+          },
+          {
+            model: MasterDepartment,
+            as: "department",
+          },
+          {
+            model: MasterBagianHr,
+            as: "bagian",
+          },
+          {
+            model: MasterJabatan,
+            as: "jabatan",
+          },
+        ],
+      });
+
+      let dataResult = {
+        periode_dari: startDate,
+        periode_sampai: endDate,
+        total: 0,
+        detail: [],
+      };
+
+      // //ambil data dari absensi
+      const absenResult = await getAbsensiFunction(startDate, endDate, {});
+
+      for (let i = 0; i < dataKaryawan.length; i++) {
+        const data = dataKaryawan[i];
+        let obj = {};
+        obj.id_karyawan = data.id_karyawan;
+
+        //Ambil data lembur dari array yang sudah ada
+        const absenResultFilter = absenResult.filter(
+          (absen) => absen.userid === data.id_karyawan
+        );
+
+        // hitung payroll berdasarkan data absensi dan pengajuan lembur
+        const payroll = await hitungPayrollBulanan(absenResultFilter, data);
+
+        dataResult.detail.push(payroll);
+      }
+
+      // Menggunakan reduce untuk menjumlahkan nilai total
+      const totalSum = dataResult.detail.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue.summaryPayroll.total;
+      }, 0); // Nilai awal accumulator adalah 0
+
+      dataResult.total = totalSum;
+
+      res.status(200).json({
+        data: dataResult,
+        //  lembur: resultPengajuanLebur
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 // Fungsi untuk menghitung lembur dengan memperhitungkan istirahat
@@ -477,13 +562,14 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
   const uangLemburBiasa = dataKaryawan.grade.lembur_biasa;
   const uangLemburLibur = dataKaryawan.grade.lembur_libur;
   const uangMakanLembur = dataKaryawan.grade.uang_makan_lembur;
+  const uangDinas = dataKaryawan.grade.uang_dinas;
   const tunjanganKerjaMalam = dataKaryawan.grade.tunjangan_kerja_malam;
   const tunjanganKopi = dataKaryawan.grade.tunjangan_kopi;
 
   //data dari karyawan
   const typePenggajianKaryawan = dataKaryawan.tipe_penggajian;
   const potonganKaryawan = dataKaryawan.potongan_karyawan;
-  const typeKaryawan = dataKaryawan.tipe_karyawan;
+  const tipeKaryawan = dataKaryawan.tipe_karyawan;
 
   const masterPayrollData = await MasterPayroll.findByPk(1);
   const pengajuanPinjaman = await PengajuanPinjaman.findOne({
@@ -509,9 +595,11 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     upahHarianSakit: [],
     potonganPinjaman: null,
     potongan: [],
+    potongan_terlambat: [],
     total_potongan: 0,
     total: 0,
     sub_total: 0,
+    pembulatan: false,
     pengurangan_penambahan: 0,
   };
 
@@ -547,6 +635,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     data.map(async (absen) => {
       let payroll = {
         rincian: [],
+        potongan: [],
         total: 0,
         data_pengajuan_lembur: null,
       };
@@ -597,9 +686,10 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
 
       // Perhitungan payroll
       if (
-        absen.status_absen === "masuk" &&
-        (absen.status_keluar === "Keluar" ||
-          absen.status_keluar === "Pulang Cepat")
+        (absen.status_absen === "masuk" &&
+          (absen.status_keluar === "Keluar" ||
+            absen.status_keluar === "Pulang Cepat")) ||
+        absen.status_absen === "dinas"
       ) {
         // const banyakmakan = 1;
         // payroll.rincian.push({
@@ -634,14 +724,58 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           payroll.total += tunjanganKopi;
         }
 
-        payroll.rincian.push({
-          label: "uangHadir",
-          jumlah: 1,
-          nilai: uangHadir,
-          total: uangHadir,
-        });
+        // if (absen.status_absen === "dinas") {
+        //   payroll.rincian.push({
+        //     label: "uangDinas",
+        //     jumlah: 1,
+        //     nilai: uangDinas,
+        //     total: uangDinas,
+        //   });
 
-        payroll.total += uangHadir;
+        //   payroll.total += uangDinas;
+        // }
+
+        //untuk perhitungan terlambat
+        if (
+          typePenggajianKaryawan === "mingguan" &&
+          tipeKaryawan === "produksi" &&
+          absen.status_masuk === "Terlambat "
+        ) {
+          if (absen.menit_terlambat > 1) {
+            //untuk kondisi potong jam lembur
+          }
+        }
+        // else if (
+        //   (typePenggajianKaryawan === "bulanan" || tipeKaryawan === "staff") &&
+        //   absen.status_masuk === "Terlambat "
+        // ) {
+        //   summaryPayroll.potongan_terlambat.push({
+        //     label: "potonganTerlambat",
+        //     jumlah: absen.menit_terlambat,
+        //     nilai: 20000,
+        //     total: absen.menit_terlambat * 20000,
+        //   });
+
+        //   //pengurangan nilai ke total gaji
+        //   summaryPayroll.total -= absen.menit_terlambat * 20000;
+        //   summaryPayroll.sub_total -= absen.menit_terlambat * 20000;
+        //   summaryPayroll.total_potongan += absen.menit_terlambat * 20000;
+
+        //   payroll.rincian.push({
+        //     label: "uangHadir",
+        //     jumlah: 1,
+        //     nilai: uangHadir,
+        //     total: uangHadir,
+        //   });
+        // }
+        else {
+          payroll.rincian.push({
+            label: "uangHadir",
+            jumlah: 1,
+            nilai: uangHadir,
+            total: uangHadir,
+          });
+        }
       }
 
       // Hitung uang lembur jika ada
@@ -731,7 +865,8 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       // Perhitungan sakit khusus untuk karyawan mingguan
       if (
         absen.status_absen === "sakit" &&
-        typePenggajianKaryawan === "mingguan"
+        typePenggajianKaryawan === "mingguan" &&
+        tipeKaryawan === "produksi"
       ) {
         summaryPayroll.upahHarianSakit.push({
           label: "upahHarianSakit",
@@ -739,6 +874,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
           nilai: upahPerHari,
           total: (masterPayrollData.upah_sakit * upahPerHari) / 100,
         });
+
         payroll.rincian.push({
           label: "upahHarianSakit",
           jumlah: `${masterPayrollData.upah_sakit}%`,
@@ -788,6 +924,12 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       return { ...absen, payroll };
     })
   );
+
+  //pembulatan bayaran dua digit terakhir
+  const pembulatanBayaran = pembulatanAngka(summaryPayroll.sub_total);
+  summaryPayroll.total = pembulatanBayaran.nilai;
+  summaryPayroll.sub_total = pembulatanBayaran.nilai;
+  summaryPayroll.pembulatan = pembulatanBayaran.pembulatan;
   // Ubah rincian summaryPayroll menjadi array
   summaryPayroll.rincian = Object.entries(summaryPayroll.rincian).map(
     ([label, { jumlah, nilai, total }]) => ({ label, jumlah, nilai, total })
@@ -811,15 +953,30 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
   const lamaKerja = hitungTahunDari(dataKaryawan.tgl_masuk);
 
   let summaryPayroll = {
+    nama_karyawan: dataKaryawan.karyawan.name,
+    nik: dataKaryawan.nik,
+    id_karyawan: dataKaryawan.id_karyawan,
+    divisi:
+      dataKaryawan.divisi == null ? null : dataKaryawan.divisi?.nama_divisi,
+    department:
+      dataKaryawan.department == null
+        ? null
+        : dataKaryawan.department.nama_department,
+    jabatan:
+      dataKaryawan.jabatan == null ? null : dataKaryawan.jabatan.nama_jabatan,
     gaji: gajiBulanan,
     potonganPinjaman: null,
     potonganSakit: [],
     potonganIzin: [],
     potonganMangkir: [],
     potongan: [],
+    potongan_terlambat: [],
     total_potongan: 0,
     tmk: lamaKerja * 10000,
+    sub_total: gajiBulanan + lamaKerja * 10000,
     total: gajiBulanan + lamaKerja * 10000,
+    pembulatan: false,
+    pengurangan_penambahan: 0,
   };
 
   if (pengajuanPinjaman) {
@@ -827,6 +984,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
 
     //penambahan nilai ke total potongan
     summaryPayroll.total_potongan += pengajuanPinjaman.jumlah_cicilan;
+    summaryPayroll.sub_total -= pengajuanPinjaman.jumlah_cicilan;
 
     //pengurangan nilai ke total gaji
     summaryPayroll.total -= pengajuanPinjaman.jumlah_cicilan;
@@ -845,7 +1003,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
 
     //penambahan nilai ke total potongan
     summaryPayroll.total_potongan += dataPotongan.jumlah_potongan;
-
+    summaryPayroll.sub_total -= dataPotongan.jumlah_potongan;
     //pengurangan nilai ke total gaji
     summaryPayroll.total -= dataPotongan.jumlah_potongan;
   }
@@ -872,6 +1030,9 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         summaryPayroll.total_potongan += Math.floor(
           (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
         );
+        summaryPayroll.sub_total -= Math.floor(
+          (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
+        );
 
         //pengurangan nilai ke total gaji
         summaryPayroll.total -= Math.floor(
@@ -888,7 +1049,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         });
 
         summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
-
+        summaryPayroll.sub_total -= Math.floor(gajiBulanan / 26);
         summaryPayroll.total -= Math.floor(gajiBulanan / 26);
       }
 
@@ -902,8 +1063,25 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         });
 
         summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
-
+        summaryPayroll.sub_total -= Math.floor(gajiBulanan / 26);
         summaryPayroll.total -= Math.floor(gajiBulanan / 26);
+      }
+
+      if (absen.status_masuk === "Terlambat ") {
+        const jumlahPotonganterlambat = (gajiBulanan / 26 / 7).toFixed(0);
+        summaryPayroll.potongan_terlambat.push({
+          label: "potonganTerlambat",
+          jumlah: absen.menit_terlambat,
+          nilai: jumlahPotonganterlambat,
+          total: absen.menit_terlambat * jumlahPotonganterlambat,
+        });
+
+        //pengurangan nilai ke total gaji
+        summaryPayroll.total -= absen.menit_terlambat * jumlahPotonganterlambat;
+        summaryPayroll.sub_total -=
+          absen.menit_terlambat * jumlahPotonganterlambat;
+        summaryPayroll.total_potongan +=
+          absen.menit_terlambat * jumlahPotonganterlambat;
       }
 
       // Tambahkan payroll ke dalam data absen
@@ -941,6 +1119,25 @@ function getMonthName(monthString) {
   } else {
     return months[monthNumber - 1];
   }
+}
+
+// Fungsi untuk membulatkan sesuai aturan
+function pembulatanAngka(angka) {
+  // Ambil dua digit terakhir
+  const duaDigitTerakhir = angka % 100;
+
+  // Jika dua digit terakhir adalah 00, tidak perlu pembulatan
+  if (duaDigitTerakhir === 0) {
+    return { nilai: angka, pembulatan: false };
+  }
+
+  // Tentukan hasil pembulatan
+  let hasil =
+    duaDigitTerakhir >= 50
+      ? angka + (100 - duaDigitTerakhir) // Dibulatkan ke atas
+      : angka - duaDigitTerakhir; // Dibulatkan ke bawah
+
+  return { nilai: hasil, pembulatan: hasil !== angka };
 }
 
 function hitungTahunDari(tanggal) {

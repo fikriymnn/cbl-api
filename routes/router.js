@@ -79,6 +79,7 @@ router.use("/", require("./mtc/kpi/kpiActualRoute"));
 //qc
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanRoutes"));
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanResultRoutes"));
+router.use("/", require("./qc/inspeksi/chemical/inspeksiChemicalRoute"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongRoutes"));
 router.use("/", require("./qc/inspeksi/potong/inspeksiPotongResultRoutes"));
 router.use("/", require("./qc/inspeksi/lipat/inspeksiLipatRoutes"));
@@ -178,6 +179,7 @@ router.use("/", require("./masterdata/hr/masterGradeRoute"));
 router.use("/", require("./masterdata/hr/masterAbsensiRoute"));
 router.use("/", require("./masterdata/hr/masterPayrollRoute"));
 router.use("/", require("./masterdata/hr/masterStatusKaryawanRoute"));
+router.use("/", require("./masterdata/hr/masterSPRoute"));
 
 //HR
 router.use("/", require("./hr/absenRoute"));
@@ -188,6 +190,9 @@ router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
 router.use("/", require("./hr/karyawan/karyawanBagianMesinRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
+router.use("/", require("./hr/pengajuanDinas/pengajuanDinasRoute"));
+router.use("/", require("./hr/pengajuanKaryawan/pengajuanKaryawanRoute"));
+router.use("/", require("./hr/pengajuanSP/pengajuanSPRoute"));
 router.use("/", require("./hr/pengajuanSakit/pengajuanSakitRoute"));
 router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
 router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
@@ -197,6 +202,7 @@ router.use(
   "/",
   require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
 );
+router.use("/", require("./hr/pengajuanPromosi/pengajuanPromosiRoute"));
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
 router.use("/", require("./hr/incomingTaskRoute"));
 router.use(
@@ -211,6 +217,7 @@ router.use(
 //payroll
 router.use("/", require("./hr/payroll/payrollRoute"));
 router.use("/", require("./hr/payroll/payrollBayarRoute"));
+router.use("/", require("./hr/payroll/payrollBayarBulananRoute"));
 
 //kendala lkh
 router.use("/", require("./kendalaLkh/kendalaLkhRoute"));

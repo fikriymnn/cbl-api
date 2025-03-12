@@ -36,17 +36,6 @@ router.put(
   auth,
   payrollBayarMingguanPeriodeController.bayarPayrollBayarMingguanPeriode
 );
-
-router.get(
-  "/hr/payroll/bayarBulanan",
-  payrollBayarBulananController.getPayrollBayarBulanan
-);
-
-router.post(
-  "/hr/payroll/bayarBulanan",
-  auth,
-  payrollBayarBulananController.createPayrollBayarBulanan
-);
 //router.get("/hr/payrollBulanan", payrollController.getPayrollBulanan);
 
 module.exports = router;

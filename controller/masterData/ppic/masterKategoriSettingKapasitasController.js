@@ -24,7 +24,7 @@ const masterkategoriSettingKapisitasModel = {
 
   createMasterkategoriSettingKapisitasModel: async (req, res) => {
     const {
-      id_mesin,
+      mesin,
       nama_kategori,
       setting_a,
       setting_b,
@@ -34,8 +34,7 @@ const masterkategoriSettingKapisitasModel = {
       kapasitas_c,
     } = req.body;
     if (
-      (!id_mesin,
-      !nama_kategori || !setting_a,
+      (!mesin || !nama_kategori || !setting_a,
       !setting_b,
       !setting_c,
       !kapasitas_a,
@@ -43,18 +42,13 @@ const masterkategoriSettingKapisitasModel = {
       !kapasitas_c)
     )
       return res.status(404).json({ msg: "incomplete data!!" });
-    const masterMesin = await MasterMesin.findByPk(id_mesin);
-
-    if (!masterMesin)
-      return res.status(404).json({ msg: "master mesin not found" });
 
     const t = await db.transaction();
 
     try {
       const response = await MasterkategoriSettingKapisitasModel.create(
         {
-          id_mesin,
-          nama_mesin: masterMesin.nama_mesin,
+          nama_mesin: mesin,
           nama_kategori,
           setting_a,
           setting_b,
@@ -76,7 +70,7 @@ const masterkategoriSettingKapisitasModel = {
   updateMasterkategoriSettingKapisitasModel: async (req, res) => {
     const _id = req.params.id;
     const {
-      id_mesin,
+      mesin,
       nama_kategori,
       setting_a,
       setting_b,
@@ -88,13 +82,7 @@ const masterkategoriSettingKapisitasModel = {
 
     let obj = {};
 
-    if (id_mesin) {
-      const masterMesin = await MasterMesin.findByPk(id_mesin);
-      if (!masterMesin)
-        return res.status(404).json({ msg: "master mesin not found" });
-      obj.id_mesin = id_mesin;
-      obj.nama_mesin = masterMesin.nama_mesin;
-    }
+    if (mesin) obj.nama_mesin = mesin;
     if (nama_kategori) obj.nama_kategori = nama_kategori;
     if (setting_a) obj.setting_a = setting_a;
     if (setting_b) obj.setting_b = setting_b;

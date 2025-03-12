@@ -239,7 +239,7 @@ const inspeksiRabutController = {
 
   doneInspeksiRabut: async (req, res) => {
     const _id = req.params.id;
-    const { catatan } = req.body;
+    const { catatan, sample_1, sample_2, sample_3 } = req.body;
 
     try {
       const inspeksiRabut = await InspeksiRabut.findOne({
@@ -255,6 +255,12 @@ const inspeksiRabutController = {
       );
       await InspeksiRabut.update(
         {
+          sample_1,
+          sample_2,
+          sample_3,
+          hasil_sample_1: (sample_1 / 16) * 10000,
+          hasil_sample_2: (sample_2 / 16) * 10000,
+          hasil_sample_3: (sample_3 / 16) * 10000,
           jumlah_periode: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "history",

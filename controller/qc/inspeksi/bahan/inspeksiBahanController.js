@@ -71,7 +71,6 @@ const inspeksiBahanController = {
   },
   createInspeksiBahan: async (req, res) => {
     try {
-      console.log(req.body);
       const {
         tanggal,
         no_surat_jalan,
