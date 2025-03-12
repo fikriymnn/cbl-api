@@ -38,7 +38,6 @@ const Pm3Controller = {
 
       const firstDayOfMonth = new Date(year, month - 1, 1);
       const lastDayOfMonth = new Date(year, month, 0);
-      console.log(firstDayOfMonth, lastDayOfMonth);
 
       obj.tgl_approve_from = {
         [Op.between]: [firstDayOfMonth, lastDayOfMonth],
@@ -52,7 +51,6 @@ const Pm3Controller = {
 
       const firstDayOfMonth = new Date(year, monthIndex - 1, 1);
       const lastDayOfMonth = new Date(year, monthIndex, 0);
-      console.log(month);
 
       obj.tgl_approve_from = {
         [Op.between]: [firstDayOfMonth, lastDayOfMonth],
@@ -343,8 +341,29 @@ const Pm3Controller = {
           {
             tgl_request_from: data[i].tgl_request_from,
             tgl_request_to: data[i].tgl_request_to,
-            tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
-            tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
+            // tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
+            // tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
+          },
+          { where: { id: data[i].id } }
+        );
+      }
+
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  submitAllRequestDatePm3Ppic: async (req, res) => {
+    const { data } = req.body;
+    if (!data) return res.status(404).json({ msg: "incomplete data!!" });
+
+    try {
+      for (let i = 0; i < data.length; i++) {
+        const point = await TicketPm3.update(
+          {
+            tgl_approve_from: data[i].tgl_approve_from, //data[i].tgl_approve_from, nanti ganti jadi ini
+            tgl_approve_to: data[i].tgl_approve_to, //data[i].tgl_approve_to, nanti ganti jadi ini
           },
           { where: { id: data[i].id } }
         );

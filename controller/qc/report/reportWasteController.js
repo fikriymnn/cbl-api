@@ -9,6 +9,8 @@ const AmparLem = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemMo
 const AmparLemPoint = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
 const AmparLemDefect = require("../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
 const User = require("../../../model/userModel");
+const Ticket = require("../../../model/maintenaceTicketModel");
+const ProsesMtc = require("../../../model/mtc/prosesMtc");
 const axios = require("axios");
 
 const ReportWasterQc = {
@@ -30,6 +32,44 @@ const ReportWasterQc = {
       // );
       //console.log(dataP1Waste.data);
       // console.log(data_waste_p1);
+
+      const dataTiketMaintenance = await Ticket.findAll({
+        attributes: [
+          "no_jo",
+          "operator",
+          "kode_lkh",
+          "nama_kendala",
+          "mesin",
+          "createdAt",
+          "kode_ticket",
+        ],
+        include: [
+          {
+            model: ProsesMtc,
+            attributes: ["waktu_selesai"],
+            include: [
+              {
+                model: User,
+                as: "user_eksekutor",
+                attributes: ["nama"],
+              },
+              {
+                model: User,
+                as: "user_qc",
+                attributes: ["nama"],
+              },
+            ],
+          },
+        ],
+        where: {
+          createdAt: {
+            [Op.between]: [
+              new Date(start_date).setHours(0, 0, 0, 0),
+              new Date(end_date).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
 
       const dataBarangRS = await BarangRusakV2.findAll({
         where: {
@@ -112,9 +152,29 @@ const ReportWasterQc = {
         ],
       });
 
+      let resultTiketMaintenance = [];
       let resultBarangRS = [];
       let resultRabut = [];
       let resultAmparLem = [];
+
+      if (dataTiketMaintenance.length != 0) {
+        dataTiketMaintenance.map((dataMaintenance) => {
+          dataMaintenance.proses_mtcs.map((dataProses) => {
+            resultTiketMaintenance.push({
+              no_jo: dataMaintenance.no_jo,
+              operator: dataMaintenance.operator,
+              kode_lkh: dataMaintenance.kode_lkh,
+              nama_kendala: dataMaintenance.nama_kendala,
+              inspektor_mtc: dataProses.user_eksekutor?.nama,
+              verifikator_qc: dataProses.user_qc?.nama,
+              mesin: dataMaintenance.mesin,
+              tanggal_tiket: dataMaintenance.createdAt,
+              kode_mr: dataMaintenance.kode_ticket,
+            });
+          });
+        });
+      }
+
       if (dataBarangRS.length != 0) {
         // Proses untuk mengeluarkan data defect BarangRs dengan tambahan no_jo
         resultBarangRS = dataBarangRS
@@ -127,7 +187,6 @@ const ReportWasterQc = {
               no_io: data.no_io,
               customer: data.customer,
               nama_produk: data.nama_produk,
-
               operator: data.operator,
               tanggal: defect.inspeksi_barang_rusak_point_v2.waktu_mulai,
               inspektor: defect.inspeksi_barang_rusak_point_v2.inspektor.nama,
@@ -204,8 +263,6 @@ const ReportWasterQc = {
           masalah: defect.desc_waste,
           kode_lkh: defect.kode_kendala,
           masalah_lkh: defect.desc_kendala,
-          inspektor: item.inspektor,
-          operator: item.operator,
           tgl: item.tgl,
         })),
         waste: undefined, // Menghapus properti "waste"
@@ -237,9 +294,15 @@ const ReportWasterQc = {
 
       // Menggunakan Map untuk menyimpan hanya satu kode_waste yang unik
       const dataMasterWasteUniq = Array.from(
-        new Map(
-          data_waste_master.map((item) => [item.kode_waste, item])
-        ).values()
+        data_waste_master
+          .reduce((map, item) => {
+            const existing = map.get(item.kode_waste);
+            if (!existing || item.waste.length > existing.waste.length) {
+              map.set(item.kode_waste, item);
+            }
+            return map;
+          }, new Map())
+          .values()
       );
 
       const datamasterReplace = transformDataMaster(dataMasterWasteUniq);
@@ -247,14 +310,16 @@ const ReportWasterQc = {
       //hasil data gabungan di masukan sesuai master waste
       const grupJoinWithMaster = mapKodeToProduksi(
         mergedDataWaste,
-        dataMasterWasteUniq
+        dataMasterWasteUniq,
+        resultTiketMaintenance
       );
       //console.log(datamasterReplace);
 
       const grupJoinWithMasterReplace = mapKodeToProduksiReplace(
         mergedDataWaste,
         datamasterReplace,
-        grupJoinWithMaster
+        grupJoinWithMaster,
+        resultTiketMaintenance
       );
 
       const jumlahAllData = aggregateByKodeProduksiWithWaste(
@@ -301,7 +366,7 @@ const ReportWasterQc = {
       const dataByKategori = getDataByKategoriAll(grupJoinWithMasterReplace);
 
       res.status(200).json({
-        data2: datamasterReplace,
+        // data2: resultTiketMaintenance,
         //data3: datamasterReplace,
         dataWasteAllReplace: resultJumlahAllDataReplace,
         dataWasteAll: resultJumlahAllData,
@@ -347,7 +412,7 @@ const groupedDataBerdasarkanJO = (data) => {
   }));
 };
 
-const mapKodeToProduksi = (inspeksiData, masterData) => {
+const mapKodeToProduksi = (inspeksiData, masterData, tiketMtc) => {
   const masterMap = {};
 
   // Buat peta master berdasarkan kode_waste
@@ -366,12 +431,35 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
 
     joItem.inspeksi_defect.forEach((defect) => {
       const kode = defect.kode;
+      const kodeMasalah = defect.masalah;
       const kodeLKH = defect.kode_lkh;
+      const masalahLKH = defect.masalah_lkh;
       const mesin = defect.mesin;
       const operator = defect.operator;
       const inspektor = defect.inspektor;
       const temuan = defect.temuan;
+      const kategoriKendala = defect.sumber_masalah;
+      const total_defect = defect.total_defect;
 
+      let dataMtc = [];
+
+      const findTiketMtcKode = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kode && tiket.no_jo == joItem.no_jo
+      );
+      const findTiketMtcKodeLKH = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kodeLKH && tiket.no_jo == joItem.no_jo
+      );
+
+      if (findTiketMtcKodeLKH) {
+        findTiketMtcKodeLKH.map((data) => {
+          dataMtc.push(data);
+        });
+      }
+      if (findTiketMtcKode) {
+        findTiketMtcKode.map((data) => {
+          dataMtc.push(data);
+        });
+      }
       //vrsi 1 untuk mencocokan berdasarkan master
       // Jika kode ada di master
       if (masterMap[kode]) {
@@ -382,6 +470,25 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
+            verifikator_inspektor: dataMtc.filter(
+              (data) => data.kode_lkh == kode
+            ),
+            operator_inspektor: [
+              {
+                mesin: mesin,
+                temuan: temuan,
+                operator: operator,
+                inspektor: inspektor,
+                calculated_defect: total_defect,
+                kode_waste: kode,
+                masalah: kodeMasalah,
+                kode_lkh: kodeLKH,
+                masalah_lkh: masalahLKH,
+                verifikator_inspektor: dataMtc.filter(
+                  (data) => data.kode_lkh == kodeLKH
+                ),
+              },
+            ],
             waste_desc: masterMap[kode].waste_desc,
             kategori: getCategoryWaste(kode),
             total_defect: 0,
@@ -390,6 +497,19 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
               calculated_defect: 0, // Inisialisasi hasil perhitungan defect berdasarkan kode_lkh
             })),
           };
+        } else {
+          groupedDefects[kode].operator_inspektor.push({
+            mesin: mesin,
+            temuan: temuan,
+            operator: operator,
+            inspektor: inspektor,
+            calculated_defect: total_defect,
+            kode_waste: kode,
+            masalah: kodeMasalah,
+            kode_lkh: kodeLKH,
+            masalah_lkh: masalahLKH,
+          });
+          groupedDefects[kode].verifikator_inspektor.push(dataMtc);
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -420,6 +540,7 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
             mesin: mesin,
             operator: operator,
             inspektor: inspektor,
+
             waste_desc: masterMap[kode].waste_desc,
             kategori: getCategoryWaste(kode),
             total_defect: 0,
@@ -469,7 +590,8 @@ const mapKodeToProduksi = (inspeksiData, masterData) => {
 const mapKodeToProduksiReplace = (
   inspeksiData,
   masterData,
-  dataMapToKodeProduksi
+  dataMapToKodeProduksi,
+  tiketMtc
 ) => {
   const masterMap = {};
 
@@ -489,8 +611,35 @@ const mapKodeToProduksiReplace = (
 
     joItem.inspeksi_defect.forEach((defect) => {
       const kode = defect.kode;
+      const kodeMasalah = defect.masalah;
       const kodeLKH = defect.kode_lkh;
+      const masalahLKH = defect.masalah_lkh;
       const mesin = defect.mesin;
+      const operator = defect.operator;
+      const inspektor = defect.inspektor;
+      const temuan = defect.temuan;
+      const kategoriKendala = defect.sumber_masalah;
+      const total_defect = defect.total_defect;
+
+      let dataMtc = [];
+
+      const findTiketMtcKode = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kode && tiket.no_jo == joItem.no_jo
+      );
+      const findTiketMtcKodeLKH = tiketMtc.filter(
+        (tiket) => tiket.kode_lkh == kodeLKH && tiket.no_jo == joItem.no_jo
+      );
+
+      if (findTiketMtcKodeLKH) {
+        findTiketMtcKodeLKH.map((data) => {
+          dataMtc.push(data);
+        });
+      }
+      if (findTiketMtcKode) {
+        findTiketMtcKode.map((data) => {
+          dataMtc.push(data);
+        });
+      }
 
       // Jika kode ada di master
       if (masterMap[kodeLKH]) {
@@ -500,12 +649,49 @@ const mapKodeToProduksiReplace = (
             kendala_desc: masterMap[kodeLKH].kendala_desc,
             total_defect: 0,
             mesin: mesin,
+            verifikator_inspektor: dataMtc.filter(
+              (data) => data.kode_lkh == kodeLKH
+            ),
+            operator_inspektor: [
+              {
+                mesin: mesin,
+                temuan: temuan,
+                operator: operator,
+                inspektor: inspektor,
+                calculated_defect: total_defect,
+                kode_waste: kode,
+                masalah: kodeMasalah,
+                kode_lkh: kodeLKH,
+                masalah_lkh: masalahLKH,
+                verifikator_inspektor: dataMtc.filter(
+                  (data) => data.kode_lkh == kode
+                ),
+              },
+            ],
             kategori_kendala: masterMap[kodeLKH].kategori_kendala,
             kendala: masterMap[kodeLKH].kendala.map((kendala) => ({
               ...kendala,
               calculated_defect: 0, // Inisialisasi hasil perhitungan defect berdasarkan kode_lkh
             })),
           };
+        } else {
+          groupedDefects[kodeLKH].operator_inspektor.push({
+            mesin: mesin,
+            temuan: temuan,
+            operator: operator,
+            inspektor: inspektor,
+            calculated_defect: total_defect,
+            kode_waste: kode,
+            masalah: kodeMasalah,
+            kode_lkh: kodeLKH,
+            masalah_lkh: masalahLKH,
+          });
+
+          groupedDefects[kodeLKH].verifikator_inspektor = dataMtc.filter(
+            (data) => data.kode_lkh == kodeLKH
+          );
+
+          //groupedDefects[kodeLKH].verifikator_inspektor.push(dataMtc)
         }
 
         // Tambahkan total_defect untuk kode ini
@@ -660,6 +846,7 @@ function getDataByKategoriAll(dataAll) {
         total_defect: item2.total_defect,
         calculated_defect: item2.total_defect,
         mesin: item2.mesin,
+        operator_inspektor: item2.operator_inspektor,
       });
     });
   });
@@ -671,28 +858,67 @@ function getDataByKategoriAll(dataAll) {
 
   const dataKendalaByKategori = filterDataAllKendala.reduce(
     (result, current) => {
-      const { no_jo, kategori_kendala, calculated_defect } = current;
+      const {
+        no_jo,
+        kategori_kendala,
+        calculated_defect,
+        mesin,
+        operator_inspektor,
+      } = current;
+      const namaMesin = mesin || "No Machine";
 
-      // Jika kategori_kendala sudah ada dalam result
-      if (result[kategori_kendala]) {
-        result[kategori_kendala].total_calculated_defect += calculated_defect;
-
-        const existingJo = result[kategori_kendala].jo.find(
-          (dataJo) => dataJo.no_jo === no_jo
-        );
-
-        if (!existingJo) {
-          result[kategori_kendala].jo.push({ no_jo: no_jo });
-        }
-      } else {
-        // Jika kategori_kendala belum ada, buat kategori baru
+      // Jika kategori_kendala belum ada, buat kategori baru
+      if (!result[kategori_kendala]) {
         result[kategori_kendala] = {
-          total_calculated_defect: calculated_defect,
+          total_calculated_defect: 0,
           kategori_kendala,
+          joMap: {}, // Digunakan untuk mempercepat akses
           jo: [],
         };
-        result[kategori_kendala].jo.push({ no_jo: no_jo });
       }
+
+      // Tambah total defect di kategori
+      result[kategori_kendala].total_calculated_defect += calculated_defect;
+
+      // Ambil atau buat entri jo
+      let joItem = result[kategori_kendala].joMap[no_jo];
+      if (!joItem) {
+        joItem = {
+          no_jo: no_jo,
+          mesinMap: {}, // Map untuk akses mesin yang lebih cepat
+          mesin: [],
+        };
+        result[kategori_kendala].joMap[no_jo] = joItem;
+        result[kategori_kendala].jo.push(joItem);
+      }
+
+      operator_inspektor.map((data) => {
+        const mesinOperator = data.mesin || "No Machine";
+        // Tambah atau update defect di mesin
+        if (!joItem.mesinMap[mesinOperator]) {
+          joItem.mesinMap[mesinOperator] = {
+            mesin: mesinOperator,
+            total_calculated_defect: 0,
+            operator_inspektor: [],
+          };
+          joItem.mesin.push(joItem.mesinMap[mesinOperator]);
+        }
+
+        const findOperator = joItem.mesinMap[
+          mesinOperator
+        ].operator_inspektor.find(
+          (opr) =>
+            opr.operator == data.operator && opr.inspektor === data.inspektor
+        );
+
+        //untuk operator dan inspektor agar tidak double
+        if (!findOperator) {
+          joItem.mesinMap[mesinOperator].operator_inspektor.push(data);
+        }
+
+        joItem.mesinMap[mesinOperator].total_calculated_defect +=
+          data.calculated_defect;
+      });
 
       return result;
     },

@@ -62,6 +62,10 @@ const Payroll = db.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    note_pengurangan_penambahan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     total_potongan: {
       type: DataTypes.DOUBLE,
       allowNull: true,

@@ -12,6 +12,7 @@ const AbsensiController = {
     const { idDepartment, is_active, startDate, endDate } = req.query;
 
     let obj = {};
+    let day = null;
     if (idDepartment) obj.id_department = idDepartment;
     // if (is_active && is_active == "true") {
     //   console.log(1);
@@ -21,16 +22,67 @@ const AbsensiController = {
     //   console.log(2);
     // }
 
-    if (startDate === endDate) obj.is_active = true;
+    if (startDate === endDate) {
+      obj.is_active = true;
+      // Konversi ke objek Date
+      const dateObj = new Date(startDate);
+
+      // Mendapatkan nama hari dalam bahasa Indonesia
+      const hariIndonesia = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+      ];
+
+      day = hariIndonesia[dateObj.getDay()]; // Ambil nama hari
+    }
 
     try {
-      const absenResult = await getAbsensiFunction(
-        startDate,
-        endDate,
-        obj,
-        true
-      );
-      res.status(200).json({ data: absenResult });
+      if (startDate === endDate && day === "Sabtu") {
+        // Mendapatkan tanggal sehari sebelumnya
+        const yesterdayObj = new Date(startDate);
+        yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+
+        const yesterday = yesterdayObj.toISOString().split("T")[0];
+
+        const absenResultYesterday = await getAbsensiFunction(
+          yesterday,
+          yesterday,
+          obj,
+          true
+        );
+
+        const absenResultYesterdayShift2 = absenResultYesterday.filter(
+          (data) => data.shift == "Shift 2"
+        );
+
+        const absenResult = await getAbsensiFunction(
+          startDate,
+          endDate,
+          obj,
+          true
+        );
+
+        const filteredToday = absenResult.filter(
+          (entry) =>
+            !absenResultYesterdayShift2.some(
+              (yesterday) => yesterday.userid === entry.userid
+            )
+        );
+        res.status(200).json({ data: filteredToday });
+      } else {
+        const absenResult = await getAbsensiFunction(
+          startDate,
+          endDate,
+          obj,
+          true
+        );
+        res.status(200).json({ data: absenResult });
+      }
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

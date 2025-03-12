@@ -31,9 +31,18 @@ const inspeksiBahanResultController = {
       };
       if (hasil) obj.hasil = hasil;
       if (coating) obj.coating = coating;
-      if (hasil_kiri) obj.hasil_kiri = hasil_kiri;
-      if (hasil_tengah) obj.hasil_tengah = hasil_tengah;
-      if (hasil_kanan) obj.hasil_kanan = hasil_kanan;
+      if (hasil_kiri) {
+        obj.hasil_kiri = hasil_kiri;
+        obj.hasil_rumus_kiri = (hasil_kiri / 100) * 10000;
+      }
+      if (hasil_tengah) {
+        obj.hasil_tengah = hasil_tengah;
+        obj.hasil_rumus_tengah = (hasil_tengah / 100) * 10000;
+      }
+      if (hasil_kanan) {
+        obj.hasil_kanan = hasil_kanan;
+        obj.hasil_rumus_kanan = (hasil_kanan / 100) * 10000;
+      }
       if (hasil_rata_rata) {
         const hasil_rata =
           (parseInt(hasil_kiri) +

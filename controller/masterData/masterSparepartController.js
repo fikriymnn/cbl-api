@@ -164,6 +164,7 @@ const masterSparepartController = {
       actual_umur,
       sisa_umur,
       keterangan,
+      qty,
     } = req.body;
 
     let obj = {};
@@ -178,6 +179,7 @@ const masterSparepartController = {
     if (actual_umur) obj.actual_umur = actual_umur;
     if (sisa_umur) obj.sisa_umur = sisa_umur;
     if (keterangan) obj.keterangan = keterangan;
+    if (qty) obj.qty = qty;
 
     try {
       await masterSparepart.update(obj, { where: { id: _id } }),
