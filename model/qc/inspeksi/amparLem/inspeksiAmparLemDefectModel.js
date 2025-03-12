@@ -35,6 +35,14 @@ const InspeksiAmparLemDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    operator: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     masalah_lkh: {
       type: DataTypes.STRING,
       allowNull: true,
