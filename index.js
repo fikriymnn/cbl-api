@@ -219,6 +219,7 @@ const SubProject = require("./model/mtc/project/subProjectModel");
 const payrollMingguanPeriode = require("./model/hr/payroll/payrollMingguanPeriodeModel");
 const payrollMingguan = require("./model/hr/payroll/payrollMingguanModel");
 const payrollMingguanDetail = require("./model/hr/payroll/payrollMingguanDetailModel");
+const payrollBulananPeriode = require("./model/hr/payroll/payrollBulananPeriodeModel");
 const payrollBulanan = require("./model/hr/payroll/payrollBulananModel");
 const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailModel");
 
@@ -257,7 +258,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanPromosiKaryawan.sync({ alter: true });
+//   await TiketJadwalProduksiPerJam.sync({ alter: true });
 // })();
 
 // const ip100 = 75

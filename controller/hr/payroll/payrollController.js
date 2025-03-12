@@ -466,6 +466,91 @@ const payrollController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  getPayrollBulananAll: async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    // const dataKaryawan = await BiodataKaryawan.findAll({
+    //   where: { is_active: true, id_grade: { [Op.ne]: null } },
+    // });
+
+    try {
+      // 1. Ambil semua data karyawan + data yang diperlukan dalam satu query
+      const dataKaryawan = await BiodataKaryawan.findAll({
+        where: { id_grade: { [Op.ne]: null } },
+        include: [
+          {
+            model: KaryawanPotongan,
+            as: "potongan_karyawan",
+          },
+          {
+            model: Karyawan,
+            as: "karyawan",
+          },
+          {
+            model: MasterGradeHr,
+            as: "grade",
+          },
+          {
+            model: MasterDivisi,
+            as: "divisi",
+          },
+          {
+            model: MasterDepartment,
+            as: "department",
+          },
+          {
+            model: MasterBagianHr,
+            as: "bagian",
+          },
+          {
+            model: MasterJabatan,
+            as: "jabatan",
+          },
+        ],
+      });
+
+      let dataResult = {
+        periode_dari: startDate,
+        periode_sampai: endDate,
+        total: 0,
+        detail: [],
+      };
+
+      // //ambil data dari absensi
+      const absenResult = await getAbsensiFunction(startDate, endDate, {});
+
+      for (let i = 0; i < dataKaryawan.length; i++) {
+        const data = dataKaryawan[i];
+        let obj = {};
+        obj.id_karyawan = data.id_karyawan;
+
+        //Ambil data lembur dari array yang sudah ada
+        const absenResultFilter = absenResult.filter(
+          (absen) => absen.userid === data.id_karyawan
+        );
+
+        // hitung payroll berdasarkan data absensi dan pengajuan lembur
+        const payroll = await hitungPayrollBulanan(absenResultFilter, data);
+
+        dataResult.detail.push(payroll);
+      }
+
+      // Menggunakan reduce untuk menjumlahkan nilai total
+      const totalSum = dataResult.detail.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue.summaryPayroll.total;
+      }, 0); // Nilai awal accumulator adalah 0
+
+      dataResult.total = totalSum;
+
+      res.status(200).json({
+        data: dataResult,
+        //  lembur: resultPengajuanLebur
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 // Fungsi untuk menghitung lembur dengan memperhitungkan istirahat
@@ -868,15 +953,30 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
   const lamaKerja = hitungTahunDari(dataKaryawan.tgl_masuk);
 
   let summaryPayroll = {
+    nama_karyawan: dataKaryawan.karyawan.name,
+    nik: dataKaryawan.nik,
+    id_karyawan: dataKaryawan.id_karyawan,
+    divisi:
+      dataKaryawan.divisi == null ? null : dataKaryawan.divisi?.nama_divisi,
+    department:
+      dataKaryawan.department == null
+        ? null
+        : dataKaryawan.department.nama_department,
+    jabatan:
+      dataKaryawan.jabatan == null ? null : dataKaryawan.jabatan.nama_jabatan,
     gaji: gajiBulanan,
     potonganPinjaman: null,
     potonganSakit: [],
     potonganIzin: [],
     potonganMangkir: [],
     potongan: [],
+    potongan_terlambat: [],
     total_potongan: 0,
     tmk: lamaKerja * 10000,
+    sub_total: gajiBulanan + lamaKerja * 10000,
     total: gajiBulanan + lamaKerja * 10000,
+    pembulatan: false,
+    pengurangan_penambahan: 0,
   };
 
   if (pengajuanPinjaman) {
@@ -884,6 +984,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
 
     //penambahan nilai ke total potongan
     summaryPayroll.total_potongan += pengajuanPinjaman.jumlah_cicilan;
+    summaryPayroll.sub_total -= pengajuanPinjaman.jumlah_cicilan;
 
     //pengurangan nilai ke total gaji
     summaryPayroll.total -= pengajuanPinjaman.jumlah_cicilan;
@@ -902,7 +1003,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
 
     //penambahan nilai ke total potongan
     summaryPayroll.total_potongan += dataPotongan.jumlah_potongan;
-
+    summaryPayroll.sub_total -= dataPotongan.jumlah_potongan;
     //pengurangan nilai ke total gaji
     summaryPayroll.total -= dataPotongan.jumlah_potongan;
   }
@@ -929,6 +1030,9 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         summaryPayroll.total_potongan += Math.floor(
           (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
         );
+        summaryPayroll.sub_total -= Math.floor(
+          (masterPayrollData.upah_sakit * gajiBulanan) / 100 / 26
+        );
 
         //pengurangan nilai ke total gaji
         summaryPayroll.total -= Math.floor(
@@ -945,7 +1049,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         });
 
         summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
-
+        summaryPayroll.sub_total -= Math.floor(gajiBulanan / 26);
         summaryPayroll.total -= Math.floor(gajiBulanan / 26);
       }
 
@@ -959,8 +1063,25 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
         });
 
         summaryPayroll.total_potongan += Math.floor(gajiBulanan / 26);
-
+        summaryPayroll.sub_total -= Math.floor(gajiBulanan / 26);
         summaryPayroll.total -= Math.floor(gajiBulanan / 26);
+      }
+
+      if (absen.status_masuk === "Terlambat ") {
+        const jumlahPotonganterlambat = (gajiBulanan / 26 / 7).toFixed(0);
+        summaryPayroll.potongan_terlambat.push({
+          label: "potonganTerlambat",
+          jumlah: absen.menit_terlambat,
+          nilai: jumlahPotonganterlambat,
+          total: absen.menit_terlambat * jumlahPotonganterlambat,
+        });
+
+        //pengurangan nilai ke total gaji
+        summaryPayroll.total -= absen.menit_terlambat * jumlahPotonganterlambat;
+        summaryPayroll.sub_total -=
+          absen.menit_terlambat * jumlahPotonganterlambat;
+        summaryPayroll.total_potongan +=
+          absen.menit_terlambat * jumlahPotonganterlambat;
       }
 
       // Tambahkan payroll ke dalam data absen

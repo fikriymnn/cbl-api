@@ -103,6 +103,14 @@ const PengajuanPromosi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    tanggal_from: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tanggal_to: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     masa_kerja: {
       type: DataTypes.STRING,
       allowNull: true,

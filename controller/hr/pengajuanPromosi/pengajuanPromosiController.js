@@ -196,6 +196,8 @@ const PengajuanPromosiController = {
       masa_kerja,
       alasan_promosi,
       type,
+      tanggal_from,
+      tanggal_to,
     } = req.body;
 
     const t = await db.transaction();
@@ -313,6 +315,8 @@ const PengajuanPromosiController = {
           masa_kerja,
           alasan_promosi,
           type,
+          tanggal_from,
+          tanggal_to,
         },
         { transaction: t }
       );

@@ -100,6 +100,10 @@ const JadwalProduksiPerJam = db.define(
       type: DataTypes.TIME,
       allowNull: true,
     },
+    is_lembur: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

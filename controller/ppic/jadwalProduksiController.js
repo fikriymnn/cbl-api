@@ -145,6 +145,38 @@ const jadwalProduksiController = {
         });
       }
 
+      const findTahapFG = dataTahapan.find((data) => data.tahapan === "FG");
+
+      if (!findTahapFG) {
+        // Buat objek tahapan FG
+        let tahapanFG = {
+          id_tiket_jadwal_produksi: dataTiket.id,
+          item: item,
+          tahapan: "FG",
+          tahapan_ke: 0,
+          from: "tgl",
+          nama_kategori: "",
+          kategori: "",
+          kategori_drying_time: "",
+          mesin: "",
+          kapasitas_per_jam: 0,
+          drying_time: 0,
+          setting: 0,
+          toleransi: 0,
+        };
+
+        // Tentukan posisi kedua terakhir (sebelum "Kirim")
+        let insertIndex = dataTahapan.length - 1;
+
+        // Sisipkan tahapan FG pada posisi kedua terakhir
+        dataTahapan.splice(insertIndex, 0, tahapanFG);
+
+        // Perbarui tahapan_ke secara otomatis
+        dataTahapan.forEach((item, index) => {
+          item.tahapan_ke = index + 1;
+        });
+      }
+
       await TiketJadwalProduksiTahapan.bulkCreate(dataTahapan, {
         transaction: t,
       });
@@ -159,6 +191,7 @@ const jadwalProduksiController = {
 
   calculateTiketJadwalProduksi: async (req, res) => {
     const { id } = req.params;
+    const { is_lembur } = req.query;
     const t = await db.transaction();
     try {
       const dataTiket = await TiketJadwalProduksi.findByPk(id, {
@@ -243,14 +276,29 @@ const jadwalProduksiController = {
         ],
       });
 
+      //untuk mengecek apakah calculate dengan lembut atau tidak, jika dengan lembur maka modifikasi jam shift
+      if (is_lembur === true || is_lembur === "true") {
+        dataShift.forEach((shift) => {
+          shift.shift_1_masuk = "08:00:00";
+          shift.shift_1_keluar = "19:00:00";
+          shift.shift_2_masuk = "20:00:00";
+          shift.shift_2_keluar = "07:00:00";
+        });
+      }
+
       // Jadwal libur
       let jadwalLibur = [];
 
-      dataJadwal.map((jadwal) => {
-        const date = new Date(jadwal.tanggal);
-        const formattedDate = date.toISOString().slice(0, 10);
-        jadwalLibur.push(formattedDate);
-      });
+      //untuk mengecek apakah calculate dengan lembut atau tidak, jika dengan lembur maka jadwal libut tidak di set
+      if (is_lembur === true || is_lembur === "true") {
+        // dibuat seperti ini karena ada bug ketika menggunakan operator !=
+      } else {
+        dataJadwal.map((jadwal) => {
+          const date = new Date(jadwal.tanggal);
+          const formattedDate = date.toISOString().slice(0, 10);
+          jadwalLibur.push(formattedDate);
+        });
+      }
 
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
@@ -340,6 +388,7 @@ const jadwalProduksiController = {
                 total_waktu: stage.total_waktu,
                 tgl: formatNowDateOnly(currentDate),
                 jam: formatNowTimeOnly(currentDate),
+                is_lembur: is_lembur,
               });
 
               currentDate.setHours(currentDate.getHours() - 1);
@@ -658,14 +707,29 @@ const jadwalProduksiController = {
         ],
       });
 
+      //untuk mengecek apakah calculate dengan lembut atau tidak, jika dengan lembur maka modifikasi jam shift
+      if (data_jadwal.is_lembur === true || data_jadwal.is_lembur === "true") {
+        dataShift.forEach((shift) => {
+          shift.shift_1_masuk = "08:00:00";
+          shift.shift_1_keluar = "19:00:00";
+          shift.shift_2_masuk = "20:00:00";
+          shift.shift_2_keluar = "07:00:00";
+        });
+      }
+
       // Jadwal libur
       let jadwalLibur = [];
 
-      dataJadwal.map((jadwal) => {
-        const date = new Date(jadwal.tanggal);
-        const formattedDate = date.toISOString().slice(0, 10);
-        jadwalLibur.push(formattedDate);
-      });
+      //untuk mengecek apakah calculate dengan lembut atau tidak, jika dengan lembur maka jadwal libut tidak di set
+      if (data_jadwal.is_lembur === true || data_jadwal.is_lembur === "true") {
+        // dibuat seperti ini karena ada bug ketika menggunakan operator !=
+      } else {
+        dataJadwal.map((jadwal) => {
+          const date = new Date(jadwal.tanggal);
+          const formattedDate = date.toISOString().slice(0, 10);
+          jadwalLibur.push(formattedDate);
+        });
+      }
 
       const jadwalLiburSet = new Set(
         jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
@@ -835,8 +899,8 @@ const jadwalProduksiController = {
           // Dapatkan data untuk hari berikutnya untuk memeriksa apakah itu hari libur
           const nextDate = moment(date).add(1, "days");
           const nextDay = getDayOfWeek(nextDate.format("YYYY-MM-DD"));
-          const isNextDayHoliday =
-            isHoliday(nextDate.format("YYYY-MM-DD")) || nextDay === "Minggu";
+          const isNextDayHoliday = isHoliday(nextDate.format("YYYY-MM-DD"));
+          //|| nextDay === "Minggu";
 
           // Cek jika waktu saat ini masih dalam shift 2 dan hari berikutnya adalah hari libur
           // Pastikan shift 2 menyelesaikan jadwalnya
@@ -868,7 +932,10 @@ const jadwalProduksiController = {
           }
 
           // Cek apakah hari libur atau Minggu
-          if (isHoliday(date) || day === "Minggu") {
+          if (
+            isHoliday(date)
+            //|| day === "Minggu"
+          ) {
             // Periksa apakah ada shift 2 dari hari sebelumnya yang masih berlanjut
             const prevDate = moment(date).subtract(1, "days");
             const prevDay = getDayOfWeek(prevDate.format("YYYY-MM-DD"));
@@ -898,8 +965,9 @@ const jadwalProduksiController = {
             );
 
             while (
-              isHoliday(nextWorkingDate.format("YYYY-MM-DD")) ||
-              nextWorkDay === "Minggu"
+              isHoliday(nextWorkingDate.format("YYYY-MM-DD"))
+              //  ||
+              // nextWorkDay === "Minggu"
             ) {
               nextWorkingDate.add(1, "days");
               nextWorkDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
@@ -962,8 +1030,9 @@ const jadwalProduksiController = {
 
             // Jika hari berikutnya bukan hari libur atau Minggu dan memiliki shift
             if (
-              !isHoliday(nextDate.format("YYYY-MM-DD")) &&
-              nextDay !== "Minggu"
+              !isHoliday(nextDate.format("YYYY-MM-DD"))
+              // &&
+              // nextDay !== "Minggu"
             ) {
               const nextShiftInfo = getShiftInfo(nextDay);
 
@@ -983,7 +1052,7 @@ const jadwalProduksiController = {
 
             while (
               isHoliday(validWorkDate.format("YYYY-MM-DD")) ||
-              validWorkDay === "Minggu" ||
+              //validWorkDay === "Minggu" ||
               !getShiftInfo(validWorkDay)
             ) {
               validWorkDate.add(1, "days");

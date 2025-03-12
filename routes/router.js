@@ -217,6 +217,7 @@ router.use(
 //payroll
 router.use("/", require("./hr/payroll/payrollRoute"));
 router.use("/", require("./hr/payroll/payrollBayarRoute"));
+router.use("/", require("./hr/payroll/payrollBayarBulananRoute"));
 
 //kendala lkh
 router.use("/", require("./kendalaLkh/kendalaLkhRoute"));
