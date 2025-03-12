@@ -149,12 +149,32 @@ const ticketController = {
         operator: response.operator,
         status_validasi:
           response.status_qc == null ? "belum di validasi" : response.status_qc,
+        status_mtc: response.status_tiket,
         status_verifikasi: "belum di verifikasi",
       };
 
       for (let i = 0; i < response.proses_mtcs.length; i++) {
         const dataProses = response.proses_mtcs[i];
         dataHasil.status_verifikasi = dataProses.status_qc;
+      }
+
+      if (
+        dataHasil.status_validasi === "belum di validasi" ||
+        dataHasil.status_validasi == "di tolak"
+      ) {
+        dataHasil.status_mtc = "-";
+        dataHasil.status_verifikasi = "-";
+      }
+
+      if (
+        dataHasil.status_mtc === "pending" ||
+        dataHasil.status_mtc === "open"
+      ) {
+        dataHasil.status_verifikasi = "-";
+      }
+
+      if (dataHasil.status_mtc === "request to qc") {
+        dataHasil.status_verifikasi = "open";
       }
 
       if (dataHasil.status_verifikasi == "approved")
