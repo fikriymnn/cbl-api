@@ -39,6 +39,14 @@ const InspeksiRabutDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    operator: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     sumber_masalah: {
       type: DataTypes.STRING,
       allowNull: true,
