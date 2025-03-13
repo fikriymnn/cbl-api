@@ -96,7 +96,7 @@ const ticketController = {
         des.push("createdAt", "DESC");
       }
       options.where = obj;
-      console.log(obj);
+      //console.log(obj);
       options.order = [des];
 
       if (page && limit) {

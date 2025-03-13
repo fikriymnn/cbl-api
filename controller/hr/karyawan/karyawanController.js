@@ -619,7 +619,7 @@ const karyawanController = {
       );
       // Setelah entitas dibuat, kita set badgenumber secara manual
       const formattedBadgeNumber = String(dataKaryawan.userid).padStart(9, "0");
-      console.log(formattedBadgeNumber);
+      //console.log(formattedBadgeNumber);
 
       // Simpan perubahan
       const dataKaryawanupdate = await Karyawan.update(
@@ -705,7 +705,7 @@ const karyawanController = {
       bagian_mesin,
     } = req.body;
     const t = await db.transaction();
-    console.log(_id);
+    //console.log(_id);
 
     try {
       let obj = {};

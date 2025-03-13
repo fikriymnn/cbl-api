@@ -206,7 +206,7 @@ const userController = {
       bagian,
     } = req.body;
     let hashPassword;
-    console.log(password);
+    //console.log(password);
     if (password === "" || password === null) {
       hashPassword = users.password;
     } else {
