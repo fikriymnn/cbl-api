@@ -130,6 +130,7 @@ const ticketController = {
 
       const response = await Ticket.findOne({
         where: obj,
+        order: [["id", "DESC"]], // Ambil data dengan ID paling baru
         include: [
           {
             model: ProsesMtc,
