@@ -1,3 +1,4 @@
+const { Op, Sequelize } = require("sequelize");
 const InspeksiChemical = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalModel");
 const InspeksiChemicalPoint = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
 const axios = require("axios");
@@ -9,11 +10,20 @@ dotenv.config();
 const inspeksiChemicalController = {
   getInspeksiChemical: async (req, res) => {
     try {
-      const { status, page, limit } = req.query;
+      const { status, page, limit, search } = req.query;
       const { id } = req.params;
       let obj = {};
 
       if (status) obj.status = status;
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_lot: { [Op.like]: `%${search}%` } },
+            { no_surat_jalan: { [Op.like]: `%${search}%` } },
+            { supplier: { [Op.like]: `%${search}%` } },
+            { jenis_chemical: { [Op.like]: `%${search}%` } },
+          ],
+        };
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiChemical.findAll({

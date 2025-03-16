@@ -39,6 +39,10 @@ const CapaKetidaksesuaian = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tanggal_pencegahan_efektif_dilakukan: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     keterangan_ketidak_sesuaian: {
       type: DataTypes.STRING,
       allowNull: true,
