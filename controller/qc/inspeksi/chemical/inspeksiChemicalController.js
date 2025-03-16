@@ -1,6 +1,7 @@
 const { Op, Sequelize } = require("sequelize");
 const InspeksiChemical = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalModel");
 const InspeksiChemicalPoint = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
+const Users = require("../../../../model/userModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 const db = require("../../../../config/database");
@@ -27,6 +28,12 @@ const inspeksiChemicalController = {
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiChemical.findAll({
+          include: [
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -39,16 +46,28 @@ const inspeksiChemicalController = {
         });
       } else if (id) {
         const data = await InspeksiChemical.findByPk(id, {
-          include: {
-            model: InspeksiChemicalPoint,
-            as: "inspeksi_chemical_point",
-          },
+          include: [
+            {
+              model: InspeksiChemicalPoint,
+              as: "inspeksi_chemical_point",
+            },
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
         });
 
         return res.status(200).json({ data });
       } else {
         const data = await InspeksiChemical.findAll({
           order: [["createdAt", "DESC"]],
+          include: [
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
           where: obj,
         });
         return res.status(200).json({ data });
