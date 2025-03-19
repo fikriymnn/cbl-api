@@ -10,6 +10,7 @@ const {
   injectDataTicket,
   validasiQcTiket,
   rejectQcTiket,
+  startStopIstirahat,
 } = require("../controller/maintenaceTicketController");
 const { auth } = require("../middlewares/authMiddlewares");
 
@@ -21,6 +22,7 @@ router.post("/ticket", createTiket);
 router.put("/ticket/:id", auth, updateTiket);
 router.put("/ticket/validate/:id", auth, validasiQcTiket);
 router.put("/ticket/tolak/:id", auth, rejectQcTiket);
+router.put("/ticketStartStopIstirahat", startStopIstirahat);
 router.post("/injectData", injectDataTicket);
 
 module.exports = router;

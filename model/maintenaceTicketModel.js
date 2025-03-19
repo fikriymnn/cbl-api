@@ -149,7 +149,14 @@ const Ticket = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-
+    waktu_mulai_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    waktu_selesai_istirahat: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     skor_mtc: {
       type: DataTypes.INTEGER,
       allowNull: true,

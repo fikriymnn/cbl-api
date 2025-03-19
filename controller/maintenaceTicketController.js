@@ -534,6 +534,42 @@ const ticketController = {
   //   }
   // },
 
+  startStopIstirahat: async (req, res) => {
+    const {
+      no_jo,
+      mesin,
+      kode_lkh,
+      waktu_mulai_istirahat,
+      waktu_selesai_istirahat,
+    } = req.body;
+
+    let obj = {};
+    if (no_jo) obj.no_jo = no_jo;
+    if (mesin) obj.mesin = mesin;
+    if (kode_lkh) obj.kode_lkh = kode_lkh;
+
+    let objUpdate = {};
+    if (waktu_mulai_istirahat)
+      objUpdate.waktu_mulai_istirahat = waktu_mulai_istirahat;
+    if (waktu_selesai_istirahat)
+      objUpdate.waktu_selesai_istirahat = waktu_selesai_istirahat;
+
+    try {
+      const ticket = await Ticket.findOne({
+        order: [["id", "DESC"]], // Ambil data dengan ID paling baru
+        where: obj,
+      });
+
+      if (ticket) {
+        await Ticket.update(objUpdate, { where: { id: ticket.id } });
+      }
+
+      res.status(201).json({ msg: "Ticket update Successfuly", d: ticket });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
   selectMtc: async (req, res) => {
     const _id = req.params.id;
     const { id_eksekutor, id_eksekutor_old, rework } = req.body;
