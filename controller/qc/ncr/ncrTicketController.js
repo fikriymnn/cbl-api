@@ -205,25 +205,26 @@ const NcrTicketController = {
         no_io,
         nama_produk,
       });
+      console.log(data_department);
 
-      for (let index = 0; index < data_department.length; index++) {
-        const department = await NcrDepartment.create({
-          id_ncr_tiket: data.id,
-          id_department: data_department[index].id_department,
-          department: data_department[index].department,
-        });
-        for (
-          let i = 0;
-          i < data_department[index].ketidaksesuaian.length;
-          i++
-        ) {
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian:
-              data_department[index].ketidaksesuaian[i].ketidaksesuaian,
-          });
-        }
-      }
+      // for (let index = 0; index < data_department.length; index++) {
+      //   const department = await NcrDepartment.create({
+      //     id_ncr_tiket: data.id,
+      //     id_department: data_department[index].id_department,
+      //     department: data_department[index].department,
+      //   });
+      //   for (
+      //     let i = 0;
+      //     i < data_department[index].ketidaksesuaian.length;
+      //     i++
+      //   ) {
+      //     await NcrKetidaksesuain.create({
+      //       id_department: department.id,
+      //       ketidaksesuaian:
+      //         data_department[index].ketidaksesuaian[i].ketidaksesuaian,
+      //     });
+      //   }
+      // }
 
       return res.status(201).json({ msg: "create success" });
     } catch (err) {
@@ -234,12 +235,41 @@ const NcrTicketController = {
   updateNcrTicket: async (req, res) => {
     try {
       const _id = req.params.id;
-      const { status, catatan_qa, catatan_mr } = req.body;
+      const {
+        status,
+        catatan_qa,
+        catatan_mr,
+        no_jo,
+        no_io,
+        nama_produk,
+        kategori_laporan,
+        data_department,
+      } = req.body;
       let obj = {};
       if (status) obj.status = status;
       if (catatan_qa) obj.catatan_qa = catatan_qa;
       if (catatan_mr) obj.catatan_mr = catatan_mr;
+      if (no_jo) obj.no_jo = no_jo;
+      if (no_io) obj.no_io = no_io;
+      if (nama_produk) obj.nama_produk = nama_produk;
+      if (kategori_laporan) obj.kategori_laporan = kategori_laporan;
       const data = await NcrTicket.update(obj, { where: { id: _id } });
+
+      for (let i = 0; i < data_department.length; i++) {
+        const data = data_department[i];
+        await NcrDepartment.update(
+          { id_department: data.id_department, department: data.department },
+          { where: { id: data.id } }
+        );
+
+        for (let ii = 0; ii < data.data_ketidaksesuaian.length; ii++) {
+          const data2 = data.data_ketidaksesuaian[ii];
+          await NcrKetidaksesuain.update(
+            { ketidaksesuaian: data2.ketidaksesuaian, file: data2.file },
+            { where: { id: data2.id } }
+          );
+        }
+      }
 
       return res.status(201).json({ msg: "update success" });
     } catch (err) {
@@ -252,6 +282,7 @@ const NcrTicketController = {
       const { department } = req.body;
       let obj = {};
       if (department) obj.department = department;
+
       const data = await NcrDepartment.update(obj, { where: { id: _id } });
       return res.status(201).json({ msg: "update success" });
     } catch (err) {

@@ -486,7 +486,14 @@ const inspeksiCoatingController = {
   },
   updateInspeksiCoatingAwal: async (req, res) => {
     try {
-      const { jumlah_periode_check, waktu_check, masterMasalah } = req.body;
+      const {
+        jumlah_periode_check,
+        waktu_check,
+        masterMasalah,
+        sample_1,
+        sample_2,
+        sample_3,
+      } = req.body;
       const { id } = req.params;
 
       // const masterMasalah = await axios.get(
@@ -508,6 +515,12 @@ const inspeksiCoatingController = {
           jumlah_periode_check: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "history",
+          sample_1,
+          sample_2,
+          sample_3,
+          hasil_sample_1: (sample_1 / 100) * 10000,
+          hasil_sample_2: (sample_2 / 100) * 10000,
+          hasil_sample_3: (sample_3 / 100) * 10000,
         },
         {
           where: {
@@ -576,12 +589,14 @@ const inspeksiCoatingController = {
   pendingInspeksiCoating: async (req, res) => {
     try {
       const { id } = req.params;
+      const { alasan_pending } = req.body;
       const data = await InspeksiCoating.findByPk(id);
       if (data) {
         await InspeksiCoating.update(
           {
             status: "pending",
             jumlah_pending: data.jumlah_pending + 1,
+            alasan_pending: alasan_pending,
           },
           {
             where: { id },

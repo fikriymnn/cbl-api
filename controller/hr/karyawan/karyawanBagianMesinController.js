@@ -50,7 +50,7 @@ const karyawanBagianMesinController = {
     const { id_bagian_mesin, nama_bagian_mesin } = req.body;
     const t = await db.transaction();
     let obj = {};
-    console.log(req.body);
+    //console.log(req.body);
 
     if (id_bagian_mesin) obj.id_bagian_mesin = id_bagian_mesin;
     if (nama_bagian_mesin) obj.nama_bagian_mesin = nama_bagian_mesin;

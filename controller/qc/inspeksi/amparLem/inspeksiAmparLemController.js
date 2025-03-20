@@ -357,9 +357,10 @@ const inspeksiAmparLemController = {
 
   pendingAmparLemPeriode: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       await InspeksiAmparLem.update(
-        { status: "pending" },
+        { status: "pending", alasan_pending: alasan_pending },
         {
           where: { id: _id },
         }

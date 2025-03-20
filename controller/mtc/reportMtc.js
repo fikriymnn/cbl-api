@@ -200,6 +200,7 @@ const ReportMaintenance = {
         ],
         attributes: [
           "mesin",
+          [Sequelize.literal("COUNT(*)"), "jumlah_tiket"],
           [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"], // Mengambil bulan dari createdAt
           [Sequelize.fn("YEAR", Sequelize.col("createdAt")), "year"],
           [fn("MONTHNAME", col("createdAt")), "bulan"],
@@ -295,6 +296,7 @@ const ReportMaintenance = {
         group: ["mesin", "Minggu_ke"],
         attributes: [
           "mesin",
+          [Sequelize.literal("COUNT(*)"), "jumlah_tiket"],
           [fn("MONTHNAME", col("createdAt")), "bulan"],
           [
             fn(
@@ -302,8 +304,8 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_mulai_mtc"),
-                col("waktu_selesai_mtc")
+                col("createdAt"),
+                col("waktu_selesai")
               )
             ),
             "jumlah_waktu_menit",
@@ -314,8 +316,8 @@ const ReportMaintenance = {
               fn(
                 "TIMESTAMPDIFF",
                 literal("MINUTE"),
-                col("waktu_mulai_mtc"),
-                col("waktu_selesai_mtc")
+                col("createdAt"),
+                col("waktu_selesai")
               )
             ),
             "rata_rata_waktu_menit",
@@ -328,10 +330,10 @@ const ReportMaintenance = {
           ],
         ],
         where: {
-          waktu_mulai_mtc: {
-            [Op.ne]: null,
-          },
-          waktu_selesai_mtc: {
+          // waktu_mulai_mtc: {
+          //   [Op.ne]: null,
+          // },
+          waktu_selesai: {
             [Op.ne]: null,
           },
           createdAt: {
@@ -354,10 +356,12 @@ const ReportMaintenance = {
         const mingguKe = result.dataValues.Minggu_ke;
         const jumlahWaktuMenit = result.dataValues.jumlah_waktu_menit || 0;
         const rataRataWaktuMenit = result.dataValues.rata_rata_waktu_menit || 0;
-        const jumlahWaktuJam =
-          parseFloat(result.dataValues.jumlah_waktu_menit) / 60 || 0;
-        const rataRataWaktuJam =
-          parseFloat(result.dataValues.rata_rata_waktu_menit) / 60 || 0;
+        const jumlahWaktuJam = (
+          parseFloat(result.dataValues.jumlah_waktu_menit) / 60
+        ).toFixed(3);
+        const rataRataWaktuJam = (
+          parseFloat(result.dataValues.rata_rata_waktu_menit) / 60
+        ).toFixed(3);
 
         // Cari mesin dalam hasil yang sudah diproses
         let mesinData = acc.find((item) => item.mesin === mesin);
@@ -385,15 +389,12 @@ const ReportMaintenance = {
         // Update minggu yang sesuai
         if (mingguKe >= 1 && mingguKe <= 5) {
           //menit
-          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit =
-            parseFloat(jumlahWaktuMenit).toFixed(2);
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit = jumlahWaktuMenit;
           mesinData.minggu[mingguKe - 1].rata_rata_waktu_menit =
-            parseFloat(rataRataWaktuMenit).toFixed(3);
+            rataRataWaktuMenit;
           //jam
-          mesinData.minggu[mingguKe - 1].jumlah_waktu_jam =
-            parseFloat(jumlahWaktuJam).toFixed(3);
-          mesinData.minggu[mingguKe - 1].rata_rata_waktu_jam =
-            parseFloat(rataRataWaktuJam).toFixed(3);
+          mesinData.minggu[mingguKe - 1].jumlah_waktu_jam = jumlahWaktuJam;
+          mesinData.minggu[mingguKe - 1].rata_rata_waktu_jam = rataRataWaktuJam;
         }
 
         // Update jumlah total waktu dan rata-rata waktu untuk mesin
@@ -423,7 +424,7 @@ const ReportMaintenance = {
         return acc;
       }, []);
 
-      res.status(200).json({ data: data });
+      res.status(200).json({ data: data, t: breakdownTime });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -519,6 +520,7 @@ const ReportMaintenance = {
         ],
         attributes: [
           "mesin",
+          [Sequelize.literal("COUNT(*)"), "jumlah_tiket"],
           [Sequelize.fn("MONTH", Sequelize.col("ticket.createdAt")), "month"], // Mengambil bulan dari ticket.createdAt
           [Sequelize.fn("YEAR", Sequelize.col("ticket.createdAt")), "year"],
           [fn("MONTHNAME", col("ticket.createdAt")), "bulan"],
@@ -680,7 +682,7 @@ const ReportMaintenance = {
       const finalResult = Object.values(groupedResults);
 
       res.status(200).json({
-        // tes: bereakdownTime,
+        //tes: bereakdownTime,
         queryDari: startDate,
         querySampai: endDate,
         data: finalResult,

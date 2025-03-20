@@ -131,7 +131,7 @@ const OutstandingKaryawanController = {
           },
         },
       });
-      console.log(DaysFromNow);
+      //console.log(DaysFromNow);
 
       for (let i = 0; i < dataBiodataKaryawan.length; i++) {
         const data = dataBiodataKaryawan[i];

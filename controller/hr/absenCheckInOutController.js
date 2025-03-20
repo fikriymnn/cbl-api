@@ -104,7 +104,7 @@ const AbsensiCheckInOutController = {
     if (type_check != null) obj.checktype = type_check;
     if (date && jam) {
       const dateCheck = new Date(`${date}T${jam}Z`);
-      console.log(dateCheck);
+      //console.log(dateCheck);
       obj.checktime = dateCheck;
     }
 

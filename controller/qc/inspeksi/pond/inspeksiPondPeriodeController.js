@@ -133,6 +133,7 @@ const inspeksiPondPeriodeController = {
   },
   pendingPondPeriode: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       const pondPeriode = await InspeksiPondPeriode.findByPk(_id);
       // await InspeksiPondPeriode.update(
@@ -145,7 +146,11 @@ const inspeksiPondPeriodeController = {
         pondPeriode.id_inspeksi_pond
       );
       await InspeksiPond.update(
-        { status: "pending", jumlah_pending: inspeksipond.jumlah_pending + 1 },
+        {
+          status: "pending",
+          jumlah_pending: inspeksipond.jumlah_pending + 1,
+          alasan_pending: alasan_pending,
+        },
         {
           where: { id: pondPeriode.id_inspeksi_pond },
         }
