@@ -127,7 +127,7 @@ const inspeksiBahanController = {
         total_skor,
         jumlah_pallet,
       } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       let obj = {
         status: "history",
       };

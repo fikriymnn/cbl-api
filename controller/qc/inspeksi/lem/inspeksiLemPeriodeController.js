@@ -81,12 +81,12 @@ const inspeksiLemPeriodeController = {
         let persen_kriteria = pointDefect[index].persen_kriteria;
         let department = pointDefect[index].sumber_masalah;
 
-        console.log(persen, persen_kriteria);
+        //console.log(persen, persen_kriteria);
         if (
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
-          console.log("masuk ncr");
+          //console.log("masuk ncr");
           const userQc = await User.findByPk(req.user.id);
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
@@ -115,7 +115,7 @@ const inspeksiLemPeriodeController = {
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah == "Mesin"
         ) {
-          console.log("masuk os");
+          //console.log("masuk os");
         }
       }
 

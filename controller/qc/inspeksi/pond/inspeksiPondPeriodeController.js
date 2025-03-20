@@ -88,7 +88,7 @@ const inspeksiPondPeriodeController = {
         } else if (department == "persiapan") {
           department_tujuan = "persiapan";
         }
-        console.log(persen, persen_kriteria);
+        //console.log(persen, persen_kriteria);
         if (
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah != "Mesin"

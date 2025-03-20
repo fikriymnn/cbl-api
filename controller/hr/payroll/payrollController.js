@@ -234,7 +234,6 @@ const payrollController = {
   //     await Promise.all(
   //       dataKaryawan.map(async (data, i) => {
   //         if (i % 50 === 0)
-  //           console.log(`Processing ${i}/${dataKaryawan.length}`);
 
   //         let obj = { id_karyawan: data.id_karyawan };
 
@@ -245,8 +244,6 @@ const payrollController = {
 
   //         // 5. Ambil data absensi & hitung payroll secara paralel
   //         const absenResult = await getAbsensiFunction(startDate, endDate, obj);
-
-  //         // console.log(absenResult);
 
   //         const payroll = await hitungPayroll(
   //           absenResult,
@@ -516,9 +513,11 @@ const payrollController = {
         total: 0,
         detail: [],
       };
+      //console.log(1);
 
       // //ambil data dari absensi
       const absenResult = await getAbsensiFunction(startDate, endDate, {});
+      // console.log(2);
 
       for (let i = 0; i < dataKaryawan.length; i++) {
         const data = dataKaryawan[i];
@@ -535,6 +534,7 @@ const payrollController = {
 
         dataResult.detail.push(payroll);
       }
+      //console.log(3);
 
       // Menggunakan reduce untuk menjumlahkan nilai total
       const totalSum = dataResult.detail.reduce((accumulator, currentValue) => {
@@ -1069,12 +1069,22 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
 
       if (absen.status_masuk === "Terlambat ") {
         const jumlahPotonganterlambat = (gajiBulanan / 26 / 7).toFixed(0);
-        summaryPayroll.potongan_terlambat.push({
-          label: "potonganTerlambat",
-          jumlah: absen.menit_terlambat,
-          nilai: jumlahPotonganterlambat,
-          total: absen.menit_terlambat * jumlahPotonganterlambat,
-        });
+
+        const findTerlambat = summaryPayroll.potongan_terlambat.find(
+          (dataT) => dataT.label === "potonganTerlambat"
+        );
+        if (!findTerlambat) {
+          summaryPayroll.potongan_terlambat.push({
+            label: "potonganTerlambat",
+            jumlah: absen.menit_terlambat,
+            nilai: jumlahPotonganterlambat,
+            total: absen.menit_terlambat * jumlahPotonganterlambat,
+          });
+        } else {
+          findTerlambat.jumlah += absen.menit_terlambat;
+          findTerlambat.total +=
+            absen.menit_terlambat * jumlahPotonganterlambat;
+        }
 
         //pengurangan nilai ke total gaji
         summaryPayroll.total -= absen.menit_terlambat * jumlahPotonganterlambat;

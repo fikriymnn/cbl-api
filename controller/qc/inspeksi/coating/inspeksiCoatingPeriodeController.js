@@ -63,7 +63,7 @@ const inspeksiCoatingController = {
       });
 
       let pointDefectDepartment = [];
-      console.log(pointDefect);
+      //console.log(pointDefect);
       for (let index = 0; index < pointDefect.length; index++) {
         const dataaa =
           await InspeksiCoatingResultPointPeriodeDepartment.findAll({
@@ -71,12 +71,12 @@ const inspeksiCoatingController = {
               id_inspeksi_coating_periode_point_defect: pointDefect[index].id,
             },
           });
-        pointDefectDepartment.push(dataaa);
+        //pointDefectDepartment.push(dataaa);
       }
-      console.log(pointDefectDepartment);
+      //console.log(pointDefectDepartment);
 
       for (let index = 0; index < pointDefect.length; index++) {
-        console.log(pointDefect[index].jumlah_defect);
+        //console.log(pointDefect[index].jumlah_defect);
         let defect = pointDefect[index].jumlah_defect;
         let pcs = inspeksiCoating.jumlah_pcs;
         let persen = (defect / pcs) * 100;

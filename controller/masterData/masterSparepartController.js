@@ -79,8 +79,8 @@ const masterSparepartController = {
     } = req.body;
 
     const stokSparepart = await StokSparepart.findByPk(id_stok);
-    console.log(stokSparepart);
-    console.log(id_stok);
+    // console.log(stokSparepart);
+    // console.log(id_stok);
 
     if (!stokSparepart)
       return res.status(404).json({ msg: "Stok tidak ditemukan" });
@@ -109,7 +109,7 @@ const masterSparepartController = {
       // }
       const percent = UmurGrade / 100;
       const actualUmur = stokSparepart.umur_sparepart * percent;
-      console.log(actualUmur, UmurGrade);
+      //console.log(actualUmur, UmurGrade);
       if (jenis_part == "ganti") {
         const response = await masterSparepart.create({
           id_mesin: stokSparepart.id_mesin,

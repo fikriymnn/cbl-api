@@ -34,7 +34,7 @@ const IncomingOutsourcingController = {
           ],
         };
 
-      console.log(search);
+      //console.log(search);
       if (page && limit && (status || no_jo || mesin)) {
         if (status) obj.status = status;
         if (no_jo) obj.no_jo = no_jo;

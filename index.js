@@ -311,7 +311,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use((req, res, next) => {
-  req.setTimeout(30000, () => {
+  req.setTimeout(50000, () => {
     // 30000 ms = 30 detik
     res.status(408).send("Request Timeout");
   });

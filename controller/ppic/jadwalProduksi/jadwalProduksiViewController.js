@@ -91,7 +91,7 @@ const jadwalProduksiViewController = {
       // Menghitung selisih waktu dalam milidetik
       const timeDifference = newDateTime.diff(originalDateTime);
 
-      console.log(originalDateTime);
+      //console.log(originalDateTime);
 
       // Update data yang diubah
       await JadwalProduksi.update(

@@ -321,7 +321,7 @@ const PengajuanLemburController = {
       target_lembur,
     } = req.body;
     const t = await db.transaction();
-    console.log(req.body);
+    //console.log(req.body);
 
     try {
       if (karyawan.length == 0)
@@ -499,7 +499,7 @@ const PengajuanLemburController = {
         return res.status(404).json({ msg: "data tidak di temukan" });
 
       if (penanganan == 1) {
-        console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
+        // console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
         await PengajuanLembur.update(
           {
             status_ketidaksesuaian: "approved",

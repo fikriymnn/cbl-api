@@ -331,7 +331,7 @@ const inspeksiCetakController = {
           httpsAgent: agent,
         }
       );
-      console.log(masterKodeCetak.data);
+      //console.log(masterKodeCetak.data);
       let iii = masterKodeCetak.data;
 
       res.status(200).json({ msg: "Done Successful", data: iii });

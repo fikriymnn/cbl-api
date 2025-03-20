@@ -141,7 +141,7 @@ const NcrTicketController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
-        console.log(id);
+        // console.log(id);
         const data = await NcrTicket.findByPk(id, {
           include: [
             {
@@ -205,7 +205,7 @@ const NcrTicketController = {
         no_io,
         nama_produk,
       });
-      console.log(data_department);
+      //console.log(data_department);
 
       // for (let index = 0; index < data_department.length; index++) {
       //   const department = await NcrDepartment.create({

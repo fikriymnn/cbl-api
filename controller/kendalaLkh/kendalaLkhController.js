@@ -282,7 +282,7 @@ const KendalaLkhController = {
         },
       });
 
-      console.log(jumlahKendalaLkh.length);
+      //console.log(jumlahKendalaLkh.length);
 
       if (jumlahKendalaLkh.length + 1 > kendalaLkh.maksimal_kedatangan_tiket) {
         console.log("masuk ncr");
