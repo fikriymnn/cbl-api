@@ -1,3 +1,4 @@
+const { Op, Sequelize } = require("sequelize");
 const InspeksiBahan = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanModel");
 const InspeksiBahanResult = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanResultModel");
 const axios = require("axios");
@@ -8,38 +9,30 @@ dotenv.config();
 const inspeksiBahanController = {
   getInspeksiBahan: async (req, res) => {
     try {
-      const { status, page, limit } = req.query;
+      const { status, search, page, limit } = req.query;
       const { id } = req.params;
+      let obj = {};
+      if (status) obj.status = status;
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_lot: { [Op.like]: `%${search}%` } },
+            { no_surat_jalan: { [Op.like]: `%${search}%` } },
+            { supplier: { [Op.like]: `%${search}%` } },
+            { jenis_kertas: { [Op.like]: `%${search}%` } },
+            { ukuran: { [Op.like]: `%${search}%` } },
+            { jumlah: { [Op.like]: `%${search}%` } },
+          ],
+        };
       const offset = (parseInt(page) - 1) * parseInt(limit);
-      if (page && limit && status) {
+      if (page && limit) {
         const data = await InspeksiBahan.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
-          where: { status },
+          where: obj,
         });
-        const length = await InspeksiBahan.count({ where: { status } });
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiBahan.findAll({
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiBahan.count();
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status) {
-        const data = await InspeksiBahan.findAll({
-          order: [["createdAt", "DESC"]],
-          where: { status },
-        });
-        const length = await InspeksiBahan.count({ where: { status } });
+        const length = await InspeksiBahan.count({ where: obj });
         return res.status(200).json({
           data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -62,6 +55,7 @@ const inspeksiBahanController = {
       } else {
         const data = await InspeksiBahan.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }

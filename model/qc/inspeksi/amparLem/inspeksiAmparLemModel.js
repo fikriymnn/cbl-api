@@ -53,6 +53,10 @@ const InspeksiAmparLem = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    alasan_pending: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status_jo: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -154,6 +154,7 @@ const ProsessMtc = {
       type_mtc,
       jenis_kendala,
       no_jo,
+      no_io,
       nama_customer,
       bagian_tiket,
       mesin,
@@ -204,6 +205,7 @@ const ProsessMtc = {
     if (nama_customer) obj2.nama_customer = nama_customer;
     if (bagian_tiket) obj2.bagian_tiket = bagian_tiket;
     if (no_jo) obj2.no_jo = { [Op.like]: `%${no_jo}%` };
+    if (no_io) obj2.no_io = { [Op.like]: `%${no_io}%` };
     if (mesin) obj2.mesin = mesin;
 
     try {

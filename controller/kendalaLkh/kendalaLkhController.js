@@ -18,6 +18,8 @@ const KendalaLkhController = {
       nama_customer,
       nama_produk,
       no_jo,
+      no_io,
+      no_so,
       mesin,
       kode_kendala,
       start_date,
@@ -46,6 +48,8 @@ const KendalaLkhController = {
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
       if (no_jo) obj.no_jo = { [Op.like]: `%${no_jo}%` };
+      if (no_io) obj.no_io = { [Op.like]: `%${no_io}%` };
+      if (no_so) obj.no_so = { [Op.like]: `%${no_so}%` };
       if (nama_produk) obj.nama_produk = { [Op.like]: `%${nama_produk}%` };
       if (nama_customer)
         obj.nama_customer = { [Op.like]: `%${nama_customer}%` };

@@ -9,7 +9,9 @@ const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/
 const InspeksiCetakPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectDeparmentMOdel");
 const User = require("../../../../model/userModel");
 const axios = require("axios");
+const https = require("https");
 
+const agent = new https.Agent({ rejectUnauthorized: false });
 dotenv.config();
 
 const inspeksiCetakController = {
@@ -324,7 +326,10 @@ const inspeksiCetakController = {
   testingApi: async (req, res) => {
     try {
       const masterKodeCetak = await axios.get(
-        `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=3`
+        `${process.env.LINK_P1}/api/list-kendala?criteria=true&proses=3`,
+        {
+          httpsAgent: agent,
+        }
       );
       console.log(masterKodeCetak.data);
       let iii = masterKodeCetak.data;

@@ -1,5 +1,7 @@
+const { Op, Sequelize } = require("sequelize");
 const InspeksiChemical = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalModel");
 const InspeksiChemicalPoint = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
+const Users = require("../../../../model/userModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 const db = require("../../../../config/database");
@@ -9,14 +11,29 @@ dotenv.config();
 const inspeksiChemicalController = {
   getInspeksiChemical: async (req, res) => {
     try {
-      const { status, page, limit } = req.query;
+      const { status, page, limit, search } = req.query;
       const { id } = req.params;
       let obj = {};
 
       if (status) obj.status = status;
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_lot: { [Op.like]: `%${search}%` } },
+            { no_surat_jalan: { [Op.like]: `%${search}%` } },
+            { supplier: { [Op.like]: `%${search}%` } },
+            { jenis_chemical: { [Op.like]: `%${search}%` } },
+          ],
+        };
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiChemical.findAll({
+          include: [
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -29,16 +46,28 @@ const inspeksiChemicalController = {
         });
       } else if (id) {
         const data = await InspeksiChemical.findByPk(id, {
-          include: {
-            model: InspeksiChemicalPoint,
-            as: "inspeksi_chemical_point",
-          },
+          include: [
+            {
+              model: InspeksiChemicalPoint,
+              as: "inspeksi_chemical_point",
+            },
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
         });
 
         return res.status(200).json({ data });
       } else {
         const data = await InspeksiChemical.findAll({
           order: [["createdAt", "DESC"]],
+          include: [
+            {
+              model: Users,
+              as: "inspektor",
+            },
+          ],
           where: obj,
         });
         return res.status(200).json({ data });

@@ -77,6 +77,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    alasan_pending: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

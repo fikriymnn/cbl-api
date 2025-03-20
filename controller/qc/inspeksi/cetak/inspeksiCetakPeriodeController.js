@@ -137,6 +137,7 @@ const inspeksiCetakPeriodeController = {
 
   pendingCetakPeriode: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(_id);
       // await InspeksiCetakPeriode.update(
@@ -149,7 +150,11 @@ const inspeksiCetakPeriodeController = {
         cetakPeriode.id_inspeksi_cetak
       );
       await InspeksiCetak.update(
-        { status: "pending", jumlah_pending: inspeksiCetak.jumlah_pending + 1 },
+        {
+          status: "pending",
+          jumlah_pending: inspeksiCetak.jumlah_pending + 1,
+          alasan_pending: alasan_pending,
+        },
         {
           where: { id: cetakPeriode.id_inspeksi_cetak },
         }

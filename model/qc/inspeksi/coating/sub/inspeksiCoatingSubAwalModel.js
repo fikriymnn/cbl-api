@@ -22,6 +22,30 @@ const InspeksiCoatingSubAwal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    sample_1: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    sample_2: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    sample_3: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    hasil_sample_1: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    hasil_sample_2: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    hasil_sample_3: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "incoming",

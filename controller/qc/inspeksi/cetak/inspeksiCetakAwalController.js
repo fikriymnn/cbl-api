@@ -16,7 +16,7 @@ dotenv.config();
 const inspeksiCetakAwalController = {
   doneCetakAwal: async (req, res) => {
     const _id = req.params.id;
-    const { masterKodeCetak, masterKodeCetak2 } = req.body;
+    const { masterKodeCetak, sample_1, sample_2, sample_3 } = req.body;
 
     try {
       // const masterKodeCetak = await axios.get(
@@ -38,6 +38,12 @@ const inspeksiCetakAwalController = {
           jumlah_periode: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "done",
+          sample_1,
+          sample_2,
+          sample_3,
+          hasil_sample_1: (sample_1 / 100) * 10000,
+          hasil_sample_2: (sample_2 / 100) * 10000,
+          hasil_sample_3: (sample_3 / 100) * 10000,
         },
         { where: { id: _id } }
       );
@@ -113,6 +119,7 @@ const inspeksiCetakAwalController = {
 
   pendingCetakAwal: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       const cetakAwal = await InspeksiCetakAwal.findByPk(_id);
       // await InspeksiCetakAwal.update(
@@ -126,7 +133,11 @@ const inspeksiCetakAwalController = {
       );
 
       await InspeksiCetak.update(
-        { status: "pending", jumlah_pending: inspeksiCetak.jumlah_pending + 1 },
+        {
+          status: "pending",
+          jumlah_pending: inspeksiCetak.jumlah_pending + 1,
+          alasan_pending: alasan_pending,
+        },
         {
           where: { id: cetakAwal.id_inspeksi_cetak },
         }

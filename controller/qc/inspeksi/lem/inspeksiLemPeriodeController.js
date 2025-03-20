@@ -127,6 +127,7 @@ const inspeksiLemPeriodeController = {
 
   pendingLemPeriode: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       const lemPeriode = await InspeksiLemPeriode.findByPk(_id);
       // await InspeksiLemPeriode.update(
@@ -140,7 +141,11 @@ const inspeksiLemPeriodeController = {
         lemPeriode.id_inspeksi_lem
       );
       await InspeksiLem.update(
-        { status: "pending", jumlah_pending: inspeksiLem.jumlah_pending + 1 },
+        {
+          status: "pending",
+          jumlah_pending: inspeksiLem.jumlah_pending + 1,
+          alasan_pending: alasan_pending,
+        },
         {
           where: { id: lemPeriode.id_inspeksi_lem },
         }

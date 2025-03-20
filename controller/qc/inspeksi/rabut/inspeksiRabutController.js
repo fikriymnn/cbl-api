@@ -356,9 +356,10 @@ const inspeksiRabutController = {
 
   pendingLemPeriode: async (req, res) => {
     const _id = req.params.id;
+    const { alasan_pending } = req.body;
     try {
       await InspeksiRabut.update(
-        { status: "pending" },
+        { status: "pending", alasan_pending: alasan_pending },
         {
           where: { id: _id },
         }
