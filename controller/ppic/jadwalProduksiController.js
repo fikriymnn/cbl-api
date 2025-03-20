@@ -324,7 +324,20 @@ const jadwalProduksiController = {
           tahap.kapasitas = 0;
         }
 
-        tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
+        let hoursDryingTimeUp = 0;
+        let hoursSettingUp = 0;
+
+        if (tahap.drying_time != 0) {
+          let hoursDryingTime = tahap.drying_time / 60; // Konversi menit ke jam (desimal)
+          hoursDryingTimeUp = Math.ceil(hoursDryingTime / 0.5) * 0.5;
+        }
+        if (tahap.setting != 0) {
+          let hoursSetting = tahap.setting / 60; // Konversi menit ke jam (desimal)
+          hoursSettingUp = Math.ceil(hoursSetting / 0.5) * 0.5;
+        }
+
+        tahap.total_waktu =
+          hoursDryingTimeUp + hoursSettingUp + tahap.kapasitas;
       });
 
       const tgl_kirim = dataById.tgl_kirim;
