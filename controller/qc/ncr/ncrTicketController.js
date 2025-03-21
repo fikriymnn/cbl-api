@@ -207,24 +207,24 @@ const NcrTicketController = {
       });
       //console.log(data_department);
 
-      // for (let index = 0; index < data_department.length; index++) {
-      //   const department = await NcrDepartment.create({
-      //     id_ncr_tiket: data.id,
-      //     id_department: data_department[index].id_department,
-      //     department: data_department[index].department,
-      //   });
-      //   for (
-      //     let i = 0;
-      //     i < data_department[index].ketidaksesuaian.length;
-      //     i++
-      //   ) {
-      //     await NcrKetidaksesuain.create({
-      //       id_department: department.id,
-      //       ketidaksesuaian:
-      //         data_department[index].ketidaksesuaian[i].ketidaksesuaian,
-      //     });
-      //   }
-      // }
+      for (let index = 0; index < data_department.length; index++) {
+        const department = await NcrDepartment.create({
+          id_ncr_tiket: data.id,
+          id_department: data_department[index].id_department,
+          department: data_department[index].department,
+        });
+        for (
+          let i = 0;
+          i < data_department[index].ketidaksesuaian.length;
+          i++
+        ) {
+          await NcrKetidaksesuain.create({
+            id_department: department.id,
+            ketidaksesuaian:
+              data_department[index].ketidaksesuaian[i].ketidaksesuaian,
+          });
+        }
+      }
 
       return res.status(201).json({ msg: "create success" });
     } catch (err) {
