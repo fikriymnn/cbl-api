@@ -8,6 +8,7 @@ const InspeksiRabutPeriodeDefectDepartment = require("../../../../model/qc/inspe
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiRabutController = {
@@ -242,6 +243,7 @@ const inspeksiRabutController = {
     const { catatan, sample_1, sample_2, sample_3 } = req.body;
 
     try {
+      const noDoc = await MasterKodeDoc.findByPk(8);
       const inspeksiRabut = await InspeksiRabut.findOne({
         where: { id: _id },
       });
@@ -265,6 +267,7 @@ const inspeksiRabutController = {
           waktu_check: totalWaktuCheck,
           status: "history",
           catatan,
+          no_doc: noDoc.kode,
         },
         { where: { id: _id } }
       );

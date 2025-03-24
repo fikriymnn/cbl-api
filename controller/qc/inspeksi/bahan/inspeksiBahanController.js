@@ -1,6 +1,7 @@
 const { Op, Sequelize } = require("sequelize");
 const InspeksiBahan = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanModel");
 const InspeksiBahanResult = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanResultModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 
@@ -137,6 +138,9 @@ const inspeksiBahanController = {
       if (catatan) obj.catatan = catatan;
       if (total_skor) obj.total_skor = total_skor;
       if (jumlah_pallet) obj.jumlah_pallet = jumlah_pallet;
+
+      const noDoc = await MasterKodeDoc.findByPk(1);
+      if (noDoc) obj.no_doc = noDoc.kode;
 
       await InspeksiBahan.update(obj, {
         where: { id: id },

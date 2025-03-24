@@ -2,6 +2,7 @@ const { Op, Sequelize } = require("sequelize");
 const InspeksiBarangRusakV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Model");
 const InspeksiBarangRusakPointV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
 const InspeksiBarangRusakDefectV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 
 const User = require("../../../../model/userModel");
 
@@ -256,7 +257,9 @@ const inspeksiBarangRusakV2Controller = {
       return res
         .status(400)
         .json({ msg: "Barang Baik Aktual tidak boleh kosong" });
+
     try {
+      const noDoc = await MasterKodeDoc.findByPk(9);
       await InspeksiBarangRusakV2.update(
         {
           status: "history",
@@ -264,6 +267,7 @@ const inspeksiBarangRusakV2Controller = {
           catatan,
           lama_pengerjaan,
           barang_baik_aktual,
+          no_doc: noDoc.kode,
         },
         {
           where: { id: _id },

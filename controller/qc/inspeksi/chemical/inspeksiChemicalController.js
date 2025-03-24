@@ -2,6 +2,7 @@ const { Op, Sequelize } = require("sequelize");
 const InspeksiChemical = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalModel");
 const InspeksiChemicalPoint = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
 const Users = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 const db = require("../../../../config/database");
@@ -124,9 +125,10 @@ const inspeksiChemicalController = {
       if (!verifikasi)
         return res.status(404).json({ msg: "verifikasi wajib di isi" });
       if (!no_lot) return res.status(404).json({ msg: "no lot wajib di isi" });
+      const noDoc = await MasterKodeDoc.findByPk(1);
 
       await InspeksiChemical.update(
-        { status: "history", catatan, verifikasi, no_lot },
+        { status: "history", no_doc: noDoc.kode, catatan, verifikasi, no_lot },
         {
           where: { id: id },
           transaction: t,

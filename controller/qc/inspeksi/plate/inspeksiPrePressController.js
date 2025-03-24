@@ -3,6 +3,7 @@ const InspeksiPraPlate = require("../../../../model/qc/inspeksi/plate/inspeksiPr
 const InspeksiKelengkapanPlate = require("../../../../model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const InspeksiPraPlateResult = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
 const Users = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 
 const { Op, Sequelize } = require("sequelize");
 
@@ -118,12 +119,14 @@ const inspeksiPrePressController = {
     const date = new Date();
     try {
       const PressProses = await InspeksiPrePress.findByPk(id);
+      const noDoc = await MasterKodeDoc.findByPk(16);
       await InspeksiPrePress.update(
         {
           id_inspektor: req.user.id,
           catatan: catatan,
           hasil_check: hasil_check,
           status: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id: id } }
       );

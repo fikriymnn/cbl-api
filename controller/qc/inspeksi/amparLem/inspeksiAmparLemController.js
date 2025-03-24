@@ -8,6 +8,7 @@ const InspeksiAmparLemPeriodeDefectDepartment = require("../../../../model/qc/in
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiAmparLemController = {
@@ -252,6 +253,7 @@ const inspeksiAmparLemController = {
       const inspeksiAmparLem = await InspeksiAmparLem.findOne({
         where: { id: _id },
       });
+      const noDoc = await MasterKodeDoc.findByPk(11);
       const inspeksiAmparLemPoint = await InspeksiAmparLemPoint.findAll({
         where: { id_inspeksi_ampar_lem: _id },
       });
@@ -266,6 +268,7 @@ const inspeksiAmparLemController = {
           waktu_check: totalWaktuCheck,
           status: "history",
           catatan,
+          no_doc: noDoc.kode,
         },
         { where: { id: _id } }
       );

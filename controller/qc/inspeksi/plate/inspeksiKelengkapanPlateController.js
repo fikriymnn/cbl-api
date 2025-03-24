@@ -1,6 +1,6 @@
 const InspeksiKelengkapanPlate = require("../../../../model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const Users = require("../../../../model/userModel");
-
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 
 const inspeksiKelengkapanPlateController = {
@@ -114,11 +114,13 @@ const inspeksiKelengkapanPlateController = {
     const { catatan, hasil_check } = req.body;
     const date = new Date();
     try {
+      const noDoc = await MasterKodeDoc.findByPk(15);
       await InspeksiKelengkapanPlate.update(
         {
           id_inspektor: req.user.id,
           catatan: catatan,
           hasil_check: hasil_check,
+          no_doc: noDoc.kode,
           status: "history",
         },
         { where: { id: id } }

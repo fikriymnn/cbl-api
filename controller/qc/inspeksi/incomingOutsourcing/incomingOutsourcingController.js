@@ -1,6 +1,7 @@
 const IncomingOutsourcing = require("../../../../model/qc/inspeksi/incomingOutsourcing/incomingOutsourcingModel");
 const IncomingOutsourcingResult = require("../../../../model/qc/inspeksi/incomingOutsourcing/incomingOutsourcingResultModel");
 const { Op, Sequelize } = require("sequelize");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const Users = require("../../../../model/userModel");
 
 const IncomingOutsourcingController = {
@@ -278,6 +279,7 @@ const IncomingOutsourcingController = {
         waktu_sortir,
       } = req.body;
       const date = new Date();
+      const noDoc = await MasterKodeDoc.findByPk(12);
       let obj = {
         status: "history",
         waktu_selesai: date,
@@ -289,6 +291,7 @@ const IncomingOutsourcingController = {
         jenis_hasil: jenis_hasil,
         status_jo: status_jo,
         waktu_sortir: waktu_sortir,
+        no_doc: noDoc.kode,
       };
 
       await IncomingOutsourcing.update(obj, {

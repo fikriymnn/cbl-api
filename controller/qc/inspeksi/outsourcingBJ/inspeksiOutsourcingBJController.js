@@ -3,6 +3,7 @@ const InspeksiMasterSubFinal = require("../../../../model/masterData/qc/inspeksi
 const InspeksiOutsourcingBJ = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJModel");
 const InspeksiOutsourcingBJPoint = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjPoint");
 const InspeksiOutsourcingBJSub = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjSubModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 const { Op } = require("sequelize");
 
@@ -326,6 +327,8 @@ const inspeksiOutsourcingBJController = {
         0
       );
 
+      const noDoc = await MasterKodeDoc.findByPk(13);
+
       await InspeksiOutsourcingBJ.update(
         {
           inspector: req.user.id,
@@ -339,6 +342,7 @@ const inspeksiOutsourcingBJController = {
           lama_pengerjaan,
           waktu_selesai: new Date(),
           bagian_tiket: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id } }
       );

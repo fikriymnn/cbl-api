@@ -1,6 +1,7 @@
 const InspeksiLipat = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatModel");
 const InspeksiLipatResult = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatResultModel");
 const InspeksiLipatPoint = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatPointModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 const User = require("../../../../model/userModel");
 
@@ -355,6 +356,7 @@ const inspeksiLipatController = {
       const { id } = req.params;
       const { catatan } = req.body;
 
+      const noDoc = await MasterKodeDoc.findByPk(10);
       const inspeksiLipatPoint = await InspeksiLipatPoint.findAll({
         where: { id_inspeksi_lipat: id },
       });
@@ -368,6 +370,7 @@ const inspeksiLipatController = {
         jumlah_periode: jumlahPeriode,
         waktu_check: totalWaktuCheck,
         catatan: catatan,
+        no_doc: noDoc.kode,
       };
 
       await InspeksiLipat.update(obj, {

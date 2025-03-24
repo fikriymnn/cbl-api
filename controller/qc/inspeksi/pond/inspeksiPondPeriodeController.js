@@ -7,6 +7,7 @@ const InspeksiPondPeriodeDefectDepartment = require("../../../../model/qc/inspek
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiPondPeriodeController = {
@@ -15,6 +16,7 @@ const inspeksiPondPeriodeController = {
     const { catatan } = req.body;
 
     try {
+      const noDoc = await MasterKodeDoc.findByPk(6);
       const inspeksiPondPeriodePoint = await InspeksiPondPeriodePoint.findAll({
         where: { id_inspeksi_pond_periode: _id },
       });
@@ -35,7 +37,7 @@ const inspeksiPondPeriodeController = {
       const pondPeriode = await InspeksiPondPeriode.findByPk(_id);
 
       await InspeksiPond.update(
-        { status: "history" },
+        { status: "history", no_doc: noDoc.kode },
         { where: { id: pondPeriode.id_inspeksi_pond } }
       );
 

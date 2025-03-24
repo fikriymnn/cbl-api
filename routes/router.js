@@ -38,6 +38,7 @@ router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
 router.use("/", require("./masterdata/mtc/masterGradeRoute"));
 
 //master data qc
+router.use("/", require("./masterdata/qc/inspeksi/masterKodeDocRoute"));
 router.use(
   "/",
   require("./masterdata/qc/inspeksi/masterKodeMasalahCetakRoute")

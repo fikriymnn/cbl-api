@@ -1,5 +1,6 @@
 const InspeksiPotong = require("../../../../model/qc/inspeksi/potong/inspeksiPotongModel");
 const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspeksiPotongResultModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 
 const inspeksiPotongController = {
@@ -362,12 +363,14 @@ const inspeksiPotongController = {
       const { id } = req.params;
       const { hasil_check, lama_pengerjaan, catatan, merk } = req.body;
       const date = new Date();
+      const noDoc = await MasterKodeDoc.findByPk(3);
       let obj = {
         status: "history",
         waktu_selesai: date,
         lama_pengerjaan: lama_pengerjaan,
         catatan: catatan,
         merk: merk,
+        no_doc: noDoc.kode,
       };
 
       const inspeksi = await InspeksiPotong.update(obj, {

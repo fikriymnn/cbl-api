@@ -4,6 +4,7 @@ const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinal
 const InspeksiFinalPoint = require("../../../../model/qc/inspeksi/final/inspeksiFinalPoint");
 const InspeksiFinalSub = require("../../../../model/qc/inspeksi/final/inspeksiFinalSubModel");
 const User = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op } = require("sequelize");
 const db = require("../../../../config/database");
 
@@ -325,6 +326,8 @@ const inspeksiFinalController = {
         return total + parseInt(item.qty);
       }, 0);
 
+      const noDoc = await MasterKodeDoc.findByPk(14);
+
       await InspeksiFinal.update(
         {
           inspector: req.user.id,
@@ -338,6 +341,7 @@ const inspeksiFinalController = {
           lama_pengerjaan,
           waktu_selesai: new Date(),
           bagian_tiket: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id } }
       );

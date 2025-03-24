@@ -77,6 +77,10 @@ const InspeksiBahan = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    no_doc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
