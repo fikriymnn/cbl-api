@@ -128,6 +128,7 @@ const OutstandingAbsenController = {
               new Date(today).setHours(23, 59, 59, 999),
             ],
           },
+          is_active: true,
         },
       });
 

@@ -5,6 +5,7 @@ const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
 const db = require("../../../config/database");
 
 const PengajuanLemburController = {
@@ -332,6 +333,10 @@ const PengajuanLemburController = {
             [Op.in]: karyawan, // Gunakan array id_karyawan
           },
         },
+        include: {
+          model: KaryawanBagianMesin,
+          as: "bagian_mesin_karyawan",
+        },
       });
       //set untuk karyawan biodata
       const idSet = new Set(
@@ -359,6 +364,10 @@ const PengajuanLemburController = {
             lama_lembur_aktual: lama_lembur,
             alasan_lembur,
             target_lembur,
+            bagian_mesin:
+              data.bagian_mesin_karyawan.length === 0
+                ? null
+                : data.bagian_mesin_karyawan[0].nama_bagian_mesin,
           },
           { transaction: t }
         );

@@ -88,6 +88,10 @@ const PengajuanLembur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    bagian_mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     catatan_hr: {
       type: DataTypes.STRING,
       allowNull: true,

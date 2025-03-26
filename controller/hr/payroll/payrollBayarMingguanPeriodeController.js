@@ -172,18 +172,12 @@ const PayrollBayarPeriodeController = {
 
       for (let i = 0; i < data_payroll.detail.length; i++) {
         const data = data_payroll.detail[i].summaryPayroll;
-        const dataKaryawanBiodata = await KaryawanBiodata.findOne({
-          where: { id_karyawan: data.id_karyawan },
-        });
-
-        if (!dataKaryawanBiodata)
-          return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
         const dataPayrollbayar = await PayrollMingguan.create(
           {
             id_payroll_periode: dataPayrollPeriode.id,
-            id_karyawan: dataKaryawanBiodata.id_karyawan,
+            id_karyawan: data.id_karyawan,
             id_hr: req.user.id_karyawan,
-            id_department: dataKaryawanBiodata.id_department,
+            id_department: data.id_department,
             periode_dari: data_payroll.periode_dari,
             periode_sampai: data_payroll.periode_sampai,
             total_upah: parseInt(data.total),
@@ -191,7 +185,8 @@ const PayrollBayarPeriodeController = {
             pengurangan_penambahan: parseInt(data.pengurangan_penambahan),
             note_pengurangan_penambahan: data.note_pengurangan_penambahan,
             total_potongan: data.total_potongan,
-            tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
+            tipe_penggajian: data.tipe_penggajian,
+            tipe_karyawan: data.tipe_karyawan,
           },
           { transaction: t }
         );

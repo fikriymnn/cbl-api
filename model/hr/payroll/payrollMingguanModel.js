@@ -74,6 +74,10 @@ const Payroll = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tipe_karyawan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     insentif: {
       type: DataTypes.DOUBLE,
       allowNull: true,

@@ -137,7 +137,7 @@ const AbsensiCheckInOutController = {
         },
         transaction: t,
       });
-      await db.commit();
+      await t.commit();
       res.status(200).json({ msg: "delete success" });
     } catch (error) {
       await t.rollback();

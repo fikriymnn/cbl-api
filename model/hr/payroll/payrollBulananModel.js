@@ -82,6 +82,14 @@ const Payroll = db.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    tipe_karyawan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tipe_penggajian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

@@ -214,6 +214,7 @@ router.use(
   "/",
   require("./hr/outstanding/outstandingKaryawan/outstandingKaryawanRoute")
 );
+router.use("/", require("./hr/outstanding/outstandingIncomingRoute"));
 
 //payroll
 router.use("/", require("./hr/payroll/payrollRoute"));
