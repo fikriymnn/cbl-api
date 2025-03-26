@@ -71,6 +71,10 @@ const karyawanController = {
                   as: "divisi",
                 },
                 {
+                  model: KaryawanBagianMesin,
+                  as: "bagian_mesin_karyawan",
+                },
+                {
                   model: MasterStatusKaryawan,
                   as: "status",
                 },
@@ -314,6 +318,10 @@ const karyawanController = {
                 {
                   model: MasterDivisi,
                   as: "divisi",
+                },
+                {
+                  model: KaryawanBagianMesin,
+                  as: "bagian_mesin_karyawan",
                 },
                 {
                   model: MasterStatusKaryawan,

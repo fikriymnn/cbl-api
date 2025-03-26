@@ -6,6 +6,8 @@ const PayrollMingguan = require("../../../model/hr/payroll/payrollMingguanModel"
 const PayrollMingguanPeriode = require("../../../model/hr/payroll/payrollMingguanPeriodeModel");
 const PayrollMingguanDetail = require("../../../model/hr/payroll/payrollMingguanDetailModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
+const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
+const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
 
 const db = require("../../../config/database");
 
@@ -57,6 +59,18 @@ const PayrollBayarPeriodeController = {
                   model: Karyawan,
                   as: "karyawan_hr",
                 },
+                {
+                  model: MasterDepartment,
+                  as: "department",
+                },
+                {
+                  model: MasterDivisi,
+                  as: "divisi",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
+                },
               ],
             },
           ],
@@ -98,6 +112,18 @@ const PayrollBayarPeriodeController = {
                   model: Karyawan,
                   as: "karyawan_hr",
                 },
+                {
+                  model: MasterDepartment,
+                  as: "department",
+                },
+                {
+                  model: MasterDivisi,
+                  as: "divisi",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
+                },
               ],
             },
           ],
@@ -137,6 +163,18 @@ const PayrollBayarPeriodeController = {
                 {
                   model: Karyawan,
                   as: "karyawan_hr",
+                },
+                {
+                  model: MasterDepartment,
+                  as: "department",
+                },
+                {
+                  model: MasterDivisi,
+                  as: "divisi",
+                },
+                {
+                  model: MasterJabatan,
+                  as: "jabatan",
                 },
               ],
             },
@@ -178,6 +216,11 @@ const PayrollBayarPeriodeController = {
             id_karyawan: data.id_karyawan,
             id_hr: req.user.id_karyawan,
             id_department: data.id_department,
+            id_divisi: data.id_divisi,
+            id_jabatan: data.id_jabatan,
+            nama_department: data.department,
+            nama_divisi: data.divisi,
+            nama_jabatan: data.jabatan,
             periode_dari: data_payroll.periode_dari,
             periode_sampai: data_payroll.periode_sampai,
             total_upah: parseInt(data.total),

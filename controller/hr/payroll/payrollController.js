@@ -585,6 +585,10 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     id_karyawan: dataKaryawan.id_karyawan,
     divisi:
       dataKaryawan.divisi == null ? null : dataKaryawan.divisi?.nama_divisi,
+    id_divisi: dataKaryawan.id_divisi,
+    jabatan:
+      dataKaryawan.jabatan == null ? null : dataKaryawan.jabatan?.nama_jabatan,
+    id_jabatan: dataKaryawan.id_jabatan,
     department:
       dataKaryawan.department == null
         ? null
@@ -963,6 +967,10 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
     id_karyawan: dataKaryawan.id_karyawan,
     divisi:
       dataKaryawan.divisi == null ? null : dataKaryawan.divisi?.nama_divisi,
+    id_divisi: dataKaryawan.id_divisi,
+    jabatan:
+      dataKaryawan.jabatan == null ? null : dataKaryawan.jabatan?.nama_jabatan,
+    id_jabatan: dataKaryawan.id_jabatan,
     department:
       dataKaryawan.department == null
         ? null
