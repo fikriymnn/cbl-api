@@ -10,7 +10,7 @@ dotenv.config();
 const inspeksiBahanController = {
   getInspeksiBahan: async (req, res) => {
     try {
-      const { status, search, page, limit } = req.query;
+      const { status, search, page, limit, start_date, end_date } = req.query;
       const { id } = req.params;
       let obj = {};
       if (status) obj.status = status;
@@ -25,6 +25,22 @@ const inspeksiBahanController = {
             { jumlah: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiBahan.findAll({

@@ -21,10 +21,22 @@ const IncomingOutsourcingController = {
 
   getIncomingOutsourcing: async (req, res) => {
     try {
-      const { status, no_jo, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        no_jo,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (no_jo) obj.no_jo = no_jo;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -34,12 +46,25 @@ const IncomingOutsourcingController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
 
       //console.log(search);
-      if (page && limit && (status || no_jo || mesin)) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
+      if (page && limit) {
         const data = await IncomingOutsourcing.findAll({
           order: [["createdAt", "DESC"]],
           include: {
@@ -48,39 +73,6 @@ const IncomingOutsourcingController = {
           },
           limit: parseInt(limit),
           offset,
-          where: obj,
-        });
-        const length = await IncomingOutsourcing.count({ where: obj });
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await IncomingOutsourcing.findAll({
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await IncomingOutsourcing.count();
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || no_jo || mesin) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await IncomingOutsourcing.findAll({
-          order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
           where: obj,
         });
         const length = await IncomingOutsourcing.count({ where: obj });
@@ -110,6 +102,7 @@ const IncomingOutsourcingController = {
             model: Users,
             as: "inspektor",
           },
+          where: obj,
         });
         return res.status(200).json({ data });
       }

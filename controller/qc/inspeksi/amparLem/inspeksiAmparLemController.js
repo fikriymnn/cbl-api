@@ -14,10 +14,14 @@ const User = require("../../../../model/userModel");
 const inspeksiAmparLemController = {
   getInspeksiAmparLem: async (req, res) => {
     try {
-      const { status, tgl, mesin, page, limit, search } = req.query;
+      const { status, tgl, start_date, end_date, mesin, page, limit, search } =
+        req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (tgl) obj.tanggal = tgl;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -28,47 +32,33 @@ const inspeksiAmparLemController = {
           ],
         };
 
-      if (page && limit && (status || tgl || mesin)) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
 
-        const length = await InspeksiAmparLem.count({ where: obj });
+      if (page && limit) {
         const data = await InspeksiAmparLem.findAll({
           order: [["createdAt", "DESC"]],
-          limit: parseInt(limit),
           offset,
+          limit: parseInt(limit),
           where: obj,
         });
-
+        const length = await InspeksiAmparLem.count({ where: obj });
         return res.status(200).json({
           data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiAmparLem.findAll({
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-          where: obj,
-        });
-        const length = await InspeksiAmparLem.count({ where: obj });
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || tgl || mesin) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiAmparLem.findAll({
-          order: [["createdAt", "DESC"]],
-          where: obj,
-        });
-        const length = await InspeksiAmparLem.count({ where: obj });
-        return res.status(200).json({
-          data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {

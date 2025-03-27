@@ -16,7 +16,15 @@ dotenv.config();
 const inspeksiCoatingController = {
   getInspeksiCoating: async (req, res) => {
     try {
-      const { status, page, limit, jenis_pengecekan, search } = req.query;
+      const {
+        status,
+        page,
+        limit,
+        jenis_pengecekan,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
@@ -30,6 +38,22 @@ const inspeksiCoatingController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       if (page && limit && (status || jenis_pengecekan)) {
         if (status) obj.status = status;
 
@@ -315,6 +339,7 @@ const inspeksiCoatingController = {
       } else {
         const data = await InspeksiCoating.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }

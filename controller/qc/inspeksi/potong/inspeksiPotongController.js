@@ -20,7 +20,16 @@ const inspeksiPotongController = {
 
   getInspeksiPotong: async (req, res) => {
     try {
-      const { status, jenis_potong, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        jenis_potong,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
@@ -33,6 +42,22 @@ const inspeksiPotongController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       if (page && limit && (status || jenis_potong || mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
