@@ -42,6 +42,11 @@ const CheckInOut = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
   },
   {
     freezeTableName: true,

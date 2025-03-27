@@ -83,6 +83,7 @@ const absenFunction = {
       absensiMasuk = await absensi.findAll({
         where: {
           checktype: "0",
+          is_active: true,
           checktime: {
             [Op.between]: [fromDateUTC, toDateMasukUTC],
           },
@@ -96,6 +97,7 @@ const absenFunction = {
       absensiKeluar = await absensi.findAll({
         where: {
           checktype: "1",
+          is_active: true,
           checktime: {
             [Op.between]: [fromDateUTC, toDateKeluarUTC],
           },
@@ -104,6 +106,7 @@ const absenFunction = {
           },
         },
       });
+
       dataCuti = await DataCuti.findAll({
         where: {
           status: "approved",
@@ -343,6 +346,7 @@ const absenFunction = {
       absensiMasuk = await absensi.findAll({
         where: {
           checktype: "0",
+          is_active: true,
           userid: {
             [Op.in]: karyawanIds, // Gunakan array id_karyawan
           },
@@ -353,6 +357,7 @@ const absenFunction = {
       absensiKeluar = await absensi.findAll({
         where: {
           checktype: "1",
+          is_active: true,
           userid: {
             [Op.in]: karyawanIds, // Gunakan array id_karyawan
           },
@@ -542,7 +547,6 @@ const absenFunction = {
           const isSameUser = k.userid === masuk.userid;
           const isAfterMasuk = keluarTime > masukTime;
           const isWithin12Hours = keluarTime - masukTime <= 16 * 60 * 60 * 1000; // 12 jam dalam milidetik
-
           return isSameUser && isAfterMasuk && isWithin12Hours;
         })
         .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
