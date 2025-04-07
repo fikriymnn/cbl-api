@@ -22,4 +22,9 @@ router.put(
   jadwalProduksiViewController.updateJadwalProduksiView
 );
 
+router.put(
+  "/ppic/jadwalProduksiView/lembur/:id",
+  jadwalProduksiViewController.changeLemburJadwalProduksiView
+);
+
 module.exports = router;
