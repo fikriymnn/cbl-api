@@ -171,6 +171,7 @@ const jadwalProduksiViewController = {
   changeLemburJadwalProduksiView: async (req, res) => {
     const _id = req.params.id;
     const { data_jadwal, mesin, tgl_lembur } = req.body;
+
     const t = await db.transaction();
     try {
       // Cari data yang akan diubah berdasarkan ID
@@ -278,30 +279,47 @@ const jadwalProduksiViewController = {
         return jadwalLiburSet.has(date);
       };
 
-      // Helper function untuk mendapatkan informasi shift berdasarkan hari
-      // const getShiftInfo = (day) => {
-      //   return dataShift.find((shift) => shift.hari === day) || null;
-      // };
+      // Modified helper function untuk memeriksa apakah tanggal adalah hari lembur
+      const isOvertimeDay = (date, time = null) => {
+        if (!tgl_lembur) return false;
 
-      const lemburDate = new Date(tgl_lembur).toISOString().split("T")[0];
-      // Buat salinan dataShift agar tidak mengubah data aslinya
-      const adjustedShift = JSON.parse(JSON.stringify(dataShift));
+        // Konversi date ke format YYYY-MM-DD untuk perbandingan
+        const formattedDate = new Date(date).toISOString().split("T")[0];
+        const formattedOvertimeDate = new Date(tgl_lembur)
+          .toISOString()
+          .split("T")[0];
 
-      const getShiftInfo = (day, date = null) => {
-        if (date === lemburDate) {
-          const changeShift =
-            adjustedShift.find((shift) => shift.hari === day) || null;
-
-          return {
-            ...changeShift,
-            shift_1_masuk: "08:00:00",
-            shift_1_keluar: "19:00:00",
-            shift_2_masuk: "20:00:00",
-            shift_2_keluar: "07:00:00",
-          };
+        // Check if this is the overtime day
+        if (formattedDate === formattedOvertimeDate) {
+          return true;
         }
 
-        return adjustedShift.find((shift) => shift.hari === day) || null;
+        // Check if this is early morning hours (00:00-04:00) of the day after overtime
+        if (time) {
+          const hourOfDay = parseInt(time.split(":")[0], 10);
+
+          // If it's between midnight and 4 AM
+          if (hourOfDay < 4) {
+            // Check if previous day was the overtime day
+            const prevDate = moment(date)
+              .subtract(1, "days")
+              .format("YYYY-MM-DD");
+            const formattedPrevDate = new Date(prevDate)
+              .toISOString()
+              .split("T")[0];
+
+            if (formattedPrevDate === formattedOvertimeDate) {
+              return true; // This is the continuation of overtime into early morning
+            }
+          }
+        }
+
+        return false;
+      };
+
+      // Helper function untuk mendapatkan informasi shift berdasarkan hari
+      const getShiftInfo = (day) => {
+        return dataShift.find((shift) => shift.hari === day) || null;
       };
 
       // Helper function untuk memeriksa apakah waktu tertentu berada dalam jam istirahat
@@ -329,17 +347,31 @@ const jadwalProduksiViewController = {
         return { isBreak: false };
       };
 
-      // Helper function yang diperbaiki untuk memeriksa apakah waktu berada dalam jam kerja shift
+      // Helper function untuk memeriksa apakah waktu berada dalam jam kerja shift
+      // Modifikasi untuk menangani jam lembur (24 jam) dengan menyertakan overnight
       const isWorkingHour = (dateTime, shiftInfo) => {
         if (!shiftInfo) return { isWorking: false };
 
         const time = dateTime.format("HH:mm:ss");
         const date = dateTime.format("YYYY-MM-DD");
 
+        // Jika hari ini adalah hari lembur, tentukan shift berdasarkan jam
+        if (isOvertimeDay(date, time)) {
+          // Untuk lembur, kita menentukan shift berdasarkan jam:
+          // - Shift 1: 00:00:00 - 11:59:59
+          // - Shift 2: 12:00:00 - 23:59:59
+          const hourOfDay = parseInt(time.split(":")[0], 10);
+          if (hourOfDay < 12) {
+            return { isWorking: true, shift: 1, isOvertimeShift: true };
+          } else {
+            return { isWorking: true, shift: 2, isOvertimeShift: true };
+          }
+        }
+
         // Dapatkan hari sebelumnya untuk mengecek shift yang melewati tengah malam
         const prevDate = moment(date).subtract(1, "days").format("YYYY-MM-DD");
         const prevDay = getDayOfWeek(prevDate);
-        const prevShiftInfo = getShiftInfo(prevDay, prevDate);
+        const prevShiftInfo = getShiftInfo(prevDay);
 
         // Cek shift 1
         if (
@@ -379,7 +411,8 @@ const jadwalProduksiViewController = {
         return { isWorking: false };
       };
 
-      // Ubah fungsi getNextValidDateTime untuk memastikan shift 2 selesai sebelum beralih ke hari berikutnya
+      // Ubah fungsi getNextValidDateTime untuk menangani hari lembur (24 jam)
+      // termasuk periode 18:00-04:00
       const getNextValidDateTime = (currentDateTime, intervalInMinutes) => {
         // Tambahkan interval waktu ke waktu saat ini
         let nextDateTime = moment(currentDateTime).add(
@@ -394,23 +427,55 @@ const jadwalProduksiViewController = {
           const date = nextDateTime.format("YYYY-MM-DD");
           const time = nextDateTime.format("HH:mm:ss");
           const day = getDayOfWeek(date);
+          const hourOfDay = parseInt(time.split(":")[0], 10);
+
+          // Cek jika hari ini adalah hari lembur (24 jam) termasuk early morning
+          if (isOvertimeDay(date, time)) {
+            // Special handling for overnight hours (18:00-04:00)
+            if (hourOfDay >= 18 || hourOfDay < 4) {
+              // During overnight hours of overtime, just return the time with interval
+              return nextDateTime;
+            }
+
+            // Pada hari lembur, semua waktu valid kecuali waktu istirahat
+            const shiftInfo = getShiftInfo(day);
+            if (shiftInfo && shiftInfo.istirahat) {
+              const breakCheck = isBreakTime(time, shiftInfo.istirahat);
+              if (breakCheck.isBreak) {
+                // Lewati waktu istirahat
+                nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
+                continue;
+              }
+            }
+
+            // Handle transition between shifts on overtime day
+            if (hourOfDay === 11 && parseInt(time.split(":")[1], 10) >= 59) {
+              nextDateTime = moment(`${date}T12:00:00`);
+              continue;
+            }
+
+            // Jika bukan jam istirahat, waktu valid untuk lembur
+            break;
+          }
 
           // Dapatkan data shift untuk hari ini
-          const shiftInfo = getShiftInfo(day, date);
+          const shiftInfo = getShiftInfo(day);
 
           // Dapatkan data untuk hari berikutnya untuk memeriksa apakah itu hari libur
           const nextDate = moment(date).add(1, "days");
           const nextDay = getDayOfWeek(nextDate.format("YYYY-MM-DD"));
           const isNextDayHoliday = isHoliday(nextDate.format("YYYY-MM-DD"));
-          //|| nextDay === "Minggu";
+          const isNextDayOvertime = isOvertimeDay(
+            nextDate.format("YYYY-MM-DD")
+          );
 
           // Cek jika waktu saat ini masih dalam shift 2 dan hari berikutnya adalah hari libur
-          // Pastikan shift 2 menyelesaikan jadwalnya
+          // atau hari lembur, pastikan shift 2 menyelesaikan jadwalnya
           if (
             shiftInfo &&
             shiftInfo.shift_2_masuk &&
             shiftInfo.shift_2_keluar &&
-            isNextDayHoliday
+            (isNextDayHoliday || isNextDayOvertime)
           ) {
             // Cek apakah waktu berada dalam jam kerja shift 2
             const isShift2 =
@@ -433,15 +498,21 @@ const jadwalProduksiViewController = {
             }
           }
 
-          // Cek apakah hari libur atau Minggu
-          if (
-            isHoliday(date)
-            //|| day === "Minggu"
-          ) {
+          // Cek apakah hari libur
+          if (isHoliday(date)) {
             // Periksa apakah ada shift 2 dari hari sebelumnya yang masih berlanjut
             const prevDate = moment(date).subtract(1, "days");
             const prevDay = getDayOfWeek(prevDate.format("YYYY-MM-DD"));
-            const prevShiftInfo = getShiftInfo(prevDay, prevDate);
+            const prevShiftInfo = getShiftInfo(prevDay);
+            const isPrevDayOvertime = isOvertimeDay(
+              prevDate.format("YYYY-MM-DD")
+            );
+
+            // Check if previous day was overtime and this is early morning
+            if (isPrevDayOvertime && hourOfDay < 4) {
+              // Still in overtime period, valid time
+              break;
+            }
 
             if (
               prevShiftInfo &&
@@ -466,20 +537,25 @@ const jadwalProduksiViewController = {
               nextWorkingDate.format("YYYY-MM-DD")
             );
 
+            // Terus geser sampai menemukan hari kerja atau hari lembur
             while (
-              isHoliday(nextWorkingDate.format("YYYY-MM-DD"))
-              //  ||
-              // nextWorkDay === "Minggu"
+              isHoliday(nextWorkingDate.format("YYYY-MM-DD")) &&
+              !isOvertimeDay(nextWorkingDate.format("YYYY-MM-DD"))
             ) {
               nextWorkingDate.add(1, "days");
               nextWorkDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
             }
 
-            const nextShiftInfo = getShiftInfo(
-              nextWorkDay,
-              nextWorkingDate.format("YYYY-MM-DD")
-            );
+            // Jika hari berikutnya adalah hari lembur, gunakan jam pertama hari tersebut
+            if (isOvertimeDay(nextWorkingDate.format("YYYY-MM-DD"))) {
+              nextDateTime = moment(
+                `${nextWorkingDate.format("YYYY-MM-DD")}T00:00:00`
+              );
+              continue;
+            }
 
+            // Jika bukan hari lembur, gunakan shift 1 hari kerja tersebut
+            const nextShiftInfo = getShiftInfo(nextWorkDay);
             if (nextShiftInfo && nextShiftInfo.shift_1_masuk) {
               nextDateTime = moment(
                 `${nextWorkingDate.format("YYYY-MM-DD")}T${
@@ -529,43 +605,55 @@ const jadwalProduksiViewController = {
             }
 
             // Jika setelah semua shift hari ini atau tidak ada shift lagi,
-            // periksa apakah bisa masuk ke shift 1 hari berikutnya
-            const nextDate = moment(date).add(1, "days");
-            const nextDay = getDayOfWeek(nextDate.format("YYYY-MM-DD"));
+            // periksa apakah bisa masuk ke hari berikutnya
 
-            // Jika hari berikutnya bukan hari libur atau Minggu dan memiliki shift
-            if (
-              !isHoliday(nextDate.format("YYYY-MM-DD"))
-              // &&
-              // nextDay !== "Minggu"
-            ) {
-              const nextShiftInfo = getShiftInfo(nextDay, nextDate);
+            // Cek apakah hari besok adalah hari lembur
+            const nextDate = moment(date).add(1, "days");
+            const nextDayDate = nextDate.format("YYYY-MM-DD");
+
+            if (isOvertimeDay(nextDayDate)) {
+              // Jika besok hari lembur, mulai jam 00:00
+              nextDateTime = moment(`${nextDayDate}T00:00:00`);
+              continue;
+            }
+
+            const nextDay = getDayOfWeek(nextDayDate);
+
+            // Jika hari berikutnya bukan hari libur dan memiliki shift
+            if (!isHoliday(nextDayDate)) {
+              const nextShiftInfo = getShiftInfo(nextDay);
 
               if (nextShiftInfo && nextShiftInfo.shift_1_masuk) {
                 nextDateTime = moment(
-                  `${nextDate.format("YYYY-MM-DD")}T${
-                    nextShiftInfo.shift_1_masuk
-                  }`
+                  `${nextDayDate}T${nextShiftInfo.shift_1_masuk}`
                 );
                 continue;
               }
             }
 
-            // Jika tidak bisa masuk ke hari berikutnya, cari hari kerja terdekat
+            // Jika tidak bisa masuk ke hari berikutnya, cari hari kerja atau lembur terdekat
             let validWorkDate = moment(nextDate);
             let validWorkDay = nextDay;
 
             while (
-              isHoliday(validWorkDate.format("YYYY-MM-DD")) ||
-              //validWorkDay === "Minggu" ||
-              !getShiftInfo(validWorkDay, validWorkDate)
+              isHoliday(validWorkDate.format("YYYY-MM-DD")) &&
+              !isOvertimeDay(validWorkDate.format("YYYY-MM-DD")) &&
+              !getShiftInfo(validWorkDay)
             ) {
               validWorkDate.add(1, "days");
               validWorkDay = getDayOfWeek(validWorkDate.format("YYYY-MM-DD"));
             }
 
-            const validShiftInfo = getShiftInfo(validWorkDay, validWorkDate);
+            // Jika hari valid berikutnya adalah hari lembur
+            if (isOvertimeDay(validWorkDate.format("YYYY-MM-DD"))) {
+              nextDateTime = moment(
+                `${validWorkDate.format("YYYY-MM-DD")}T00:00:00`
+              );
+              continue;
+            }
 
+            // Jika bukan hari lembur, pakai shift 1
+            const validShiftInfo = getShiftInfo(validWorkDay);
             if (validShiftInfo && validShiftInfo.shift_1_masuk) {
               nextDateTime = moment(
                 `${validWorkDate.format("YYYY-MM-DD")}T${
@@ -583,15 +671,58 @@ const jadwalProduksiViewController = {
         return nextDateTime;
       };
 
-      // Update data berikutnya dengan mempertimbangkan shift dan hari libur
+      // Update data berikutnya dengan mempertimbangkan shift, hari libur, dan hari lembur
       let updatedDateTime = newDateTime;
 
-      // Interval waktu tetap (biasanya 60 menit)
-      const fixedInterval = 60;
+      // Interval waktu pada hari normal vs hari lembur
+      const normalInterval = 60; // 60 menit untuk hari normal
+      const overtimeInterval = 60; // 60 menit untuk hari lembur, bisa disesuaikan
 
+      // Proses update jadwal
       for (const data of subsequentData) {
+        // Debug info - uncomment if needed
+        // console.log(`Processing ID ${data.id}: Current time ${updatedDateTime.format('YYYY-MM-DD HH:mm:ss')}`);
+
         // Mendapatkan waktu valid berikutnya
-        updatedDateTime = getNextValidDateTime(updatedDateTime, fixedInterval);
+        const currentDate = updatedDateTime.format("YYYY-MM-DD");
+        const currentTime = updatedDateTime.format("HH:mm:ss");
+        const hourOfDay = parseInt(currentTime.split(":")[0], 10);
+
+        // Special handling for overnight hours during overtime
+        const isOvernightOvertime =
+          isOvertimeDay(currentDate, currentTime) &&
+          (hourOfDay >= 18 || hourOfDay < 4);
+
+        // Use appropriate interval
+        const interval = isOvertimeDay(currentDate, currentTime)
+          ? overtimeInterval
+          : normalInterval;
+
+        // Special case for overnight hours during overtime
+        if (isOvernightOvertime) {
+          // For overnight hours, just increment by interval without other checks
+          updatedDateTime = moment(updatedDateTime).add(interval, "minutes");
+
+          // Handle day transition at midnight
+          if (updatedDateTime.format("HH:mm:ss") === "00:00:00") {
+            // We've crossed midnight - ensure we're using the correct date
+            const nextDate = moment(currentDate)
+              .add(1, "days")
+              .format("YYYY-MM-DD");
+            updatedDateTime = moment(`${nextDate}T00:00:00`);
+          }
+        } else if (
+          isOvertimeDay(currentDate, currentTime) &&
+          hourOfDay === 11 &&
+          parseInt(currentTime.split(":")[1], 10) >= 59
+        ) {
+          // Special case for transition from shift 1 to shift 2 on overtime days
+          const shiftChangeTime = moment(`${currentDate}T12:00:00`);
+          updatedDateTime = shiftChangeTime;
+        } else {
+          // Regular scheduling with all the checks
+          updatedDateTime = getNextValidDateTime(updatedDateTime, interval);
+        }
 
         // Perbarui tanggal dan jam dengan format yang benar
         const updatedDate = updatedDateTime.format("YYYY-MM-DD");
@@ -604,6 +735,9 @@ const jadwalProduksiViewController = {
           },
           { where: { id: data.id }, transaction: t }
         );
+
+        // Debug info - uncomment if needed
+        // console.log(`Updated to: ${updatedDate} ${updatedTime}`);
       }
 
       await t.commit();
