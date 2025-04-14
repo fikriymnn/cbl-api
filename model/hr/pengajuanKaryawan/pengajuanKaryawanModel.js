@@ -78,6 +78,10 @@ const PengajuanKaryawan = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    batas_waktu: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     catatan_hr: {
       type: DataTypes.STRING,
       allowNull: true,

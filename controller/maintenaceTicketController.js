@@ -19,6 +19,7 @@ const ticketController = {
   getTicket: async (req, res) => {
     try {
       const {
+        search,
         status_tiket,
         status_qc,
         type_mtc,
@@ -48,6 +49,9 @@ const ticketController = {
               {
                 model: Users,
                 as: "user_qc",
+              },
+              {
+                model: MasalahSparepart,
               },
             ],
           },
@@ -91,6 +95,17 @@ const ticketController = {
           [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
         };
       }
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
 
       if (bagian_tiket == "os2") {
         des.push("waktu_respon", "DESC");
@@ -121,7 +136,8 @@ const ticketController = {
 
   getTicketValidasiVerifikasiQc: async (req, res) => {
     try {
-      const { jenis_kendala, no_jo, mesin, operator, kode_lkh } = req.query;
+      const { jenis_kendala, no_jo, mesin, operator, kode_lkh, search } =
+        req.query;
 
       let obj = {};
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
@@ -129,6 +145,17 @@ const ticketController = {
       if (operator) obj.operator = { [Op.like]: `%${operator}%` };
       if (mesin) obj.mesin = mesin;
       if (kode_lkh) obj.kode_lkh = kode_lkh;
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
 
       const response = await Ticket.findOne({
         where: obj,

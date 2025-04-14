@@ -128,6 +128,11 @@ const masterSparepartController = {
           keterangan,
           peruntukan,
         });
+
+        await StokSparepart.update(
+          { stok: stokSparepart.stok - 1 },
+          { where: { id: stokSparepart.id } }
+        );
         res.status(200).json(response);
       } else {
         const response = await masterSparepart.create({
