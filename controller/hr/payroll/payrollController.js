@@ -608,6 +608,7 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
     sub_total: 0,
     pembulatan: false,
     pengurangan_penambahan: 0,
+    note_pengurangan_penambahan: null,
   };
 
   //tambah data pengajuan pinjaman
@@ -993,6 +994,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
     total: gajiBulanan + lamaKerja * 10000,
     pembulatan: false,
     pengurangan_penambahan: 0,
+    note_pengurangan_penambahan: null,
   };
 
   if (pengajuanPinjaman) {
