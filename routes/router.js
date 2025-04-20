@@ -37,6 +37,15 @@ router.use("/", require("./masterdata/mtc/preventive/masterTaskPm3Route"));
 router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
 router.use("/", require("./masterdata/mtc/masterGradeRoute"));
 
+router.use("/", require("./mtc/spbStokSparepart"));
+router.use("/", require("./mtc/spbServiceSparepartRoutes"));
+router.use("/", require("./mtc/stokSparepartRoutes"));
+router.use("/", require("./mtc/problemSparepartRoutes"));
+router.use("/", require("./mtc/prosessMtcRoutes"));
+router.use("/", require("./mtc/prosesMtcOs3Routes"));
+router.use("/", require("./mtc/kpi/kpiActualRoute"));
+router.use("/", require("./mtc/stokOpname/adjusmentRoute"));
+
 //master data qc
 router.use("/", require("./masterdata/qc/inspeksi/masterKodeDocRoute"));
 router.use(
@@ -68,14 +77,6 @@ router.use(
   require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
 );
 router.use("/", require("./masterdata/qc/department/masterDepartmentRoutes"));
-
-router.use("/", require("./mtc/spbStokSparepart"));
-router.use("/", require("./mtc/spbServiceSparepartRoutes"));
-router.use("/", require("./mtc/stokSparepartRoutes"));
-router.use("/", require("./mtc/problemSparepartRoutes"));
-router.use("/", require("./mtc/prosessMtcRoutes"));
-router.use("/", require("./mtc/prosesMtcOs3Routes"));
-router.use("/", require("./mtc/kpi/kpiActualRoute"));
 
 //qc
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanRoutes"));

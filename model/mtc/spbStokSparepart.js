@@ -13,7 +13,7 @@ const RequestStokSparepart = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Users,
+        model: StokSparepart,
         key: "id",
       },
     },

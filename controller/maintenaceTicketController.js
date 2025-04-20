@@ -35,35 +35,30 @@ const ticketController = {
         limit,
         page,
         historiQc,
+        id_eksekutor,
       } = req.query;
 
       let options = {
-        include: [
-          {
-            model: ProsesMtc,
-            include: [
-              {
-                model: Users,
-                as: "user_eksekutor",
-              },
-              {
-                model: Users,
-                as: "user_qc",
-              },
-              {
-                model: MasalahSparepart,
-              },
-            ],
-          },
-          {
-            model: Users,
-            as: "user_respon_qc",
-          },
-        ],
+        include: null,
       };
       let obj = {};
+      let objEksekutor = {};
       let des = [];
       const offset = (page - 1) * limit;
+
+      if (search) {
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_kendala: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
+      }
 
       if (status_tiket) obj.status_tiket = status_tiket;
       if (status_qc) obj.status_qc = status_qc;
@@ -95,17 +90,8 @@ const ticketController = {
           [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
         };
       }
-      if (search)
-        obj = {
-          [Op.or]: [
-            { no_jo: { [Op.like]: `%${search}%` } },
-            { no_io: { [Op.like]: `%${search}%` } },
-            { no_so: { [Op.like]: `%${search}%` } },
-            { kode_lkh: { [Op.like]: `%${search}%` } },
-            { nama_produk: { [Op.like]: `%${search}%` } },
-            { nama_customer: { [Op.like]: `%${search}%` } },
-          ],
-        };
+
+      if (id_eksekutor) objEksekutor.id_eksekutor = id_eksekutor;
 
       if (bagian_tiket == "os2") {
         des.push("waktu_respon", "DESC");
@@ -116,11 +102,37 @@ const ticketController = {
       //console.log(obj);
       options.order = [des];
 
+      options.include = [
+        {
+          model: ProsesMtc,
+          require: true,
+          where: objEksekutor,
+          include: [
+            {
+              model: Users,
+              as: "user_eksekutor",
+            },
+            {
+              model: Users,
+              as: "user_qc",
+            },
+            {
+              model: MasalahSparepart,
+            },
+          ],
+        },
+        {
+          model: Users,
+          as: "user_respon_qc",
+        },
+      ];
+      console.log;
+
       if (page && limit) {
         options.limit = parseInt(limit);
         options.offset = parseInt(offset);
       }
-      const data = await Ticket.count({ where: obj });
+      const data = await Ticket.count(options);
       const response = await Ticket.findAll(options);
 
       res.status(200).json({
