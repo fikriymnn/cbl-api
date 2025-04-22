@@ -28,7 +28,7 @@ const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 const KurangUmur = require("./model/mtc/kurangUmurMesinModel");
 const adjusmentSparepart = require("./model/mtc/stokOpname/adjusmentSparepartModel");
 const msMainGrupAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterMainGrupKodeAnalisisModel");
-const msMainChildAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterChildGrupKodeAnalisisModel");
+const msChildGrupAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterChildGrupKodeAnalisisModel");
 
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
@@ -233,6 +233,7 @@ const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel"
 
 //ppic
 const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
+const JadwalProduksiLembur = require("./model/ppic/jadwalProduksi/jadwalLemburModel");
 const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
@@ -262,7 +263,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await msMainChildAnalisis.sync({ alter: true });
+//   await JadwalProduksiLembur.sync({ alter: true });
 // })();
 
 // const ip100 = 75
