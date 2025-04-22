@@ -36,6 +36,7 @@ router.use("/", require("./masterdata/mtc/preventive/masterTaskPm2Route"));
 router.use("/", require("./masterdata/mtc/preventive/masterTaskPm3Route"));
 router.use("/", require("./masterdata/mtc/kpi/masterKPIRoute"));
 router.use("/", require("./masterdata/mtc/masterGradeRoute"));
+router.use("/", require("./masterdata/mtc/grupKodeAnalisisRoute"));
 
 router.use("/", require("./mtc/spbStokSparepart"));
 router.use("/", require("./mtc/spbServiceSparepartRoutes"));

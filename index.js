@@ -27,6 +27,8 @@ const kpiActual = require("./model/mtc/kpi/kpiActual");
 const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 const KurangUmur = require("./model/mtc/kurangUmurMesinModel");
 const adjusmentSparepart = require("./model/mtc/stokOpname/adjusmentSparepartModel");
+const msMainGrupAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterMainGrupKodeAnalisisModel");
+const msMainChildAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterChildGrupKodeAnalisisModel");
 
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
@@ -260,7 +262,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await adjusmentSparepart.sync({ alter: true });
+//   await msMainChildAnalisis.sync({ alter: true });
 // })();
 
 // const ip100 = 75
