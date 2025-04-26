@@ -102,31 +102,56 @@ const ticketController = {
       //console.log(obj);
       options.order = [des];
 
-      options.include = [
-        {
-          model: ProsesMtc,
-          require: true,
-          where: objEksekutor,
-          include: [
-            {
-              model: Users,
-              as: "user_eksekutor",
-            },
-            {
-              model: Users,
-              as: "user_qc",
-            },
-            {
-              model: MasalahSparepart,
-            },
-          ],
-        },
-        {
-          model: Users,
-          as: "user_respon_qc",
-        },
-      ];
-      console.log;
+      if (id_eksekutor) {
+        options.include = [
+          {
+            model: ProsesMtc,
+            //require: false,
+            where: objEksekutor,
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+              {
+                model: Users,
+                as: "user_qc",
+              },
+              {
+                model: MasalahSparepart,
+              },
+            ],
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
+          },
+        ];
+      } else {
+        options.include = [
+          {
+            model: ProsesMtc,
+
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+              {
+                model: Users,
+                as: "user_qc",
+              },
+              {
+                model: MasalahSparepart,
+              },
+            ],
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
+          },
+        ];
+      }
 
       if (page && limit) {
         options.limit = parseInt(limit);
