@@ -9,225 +9,21 @@ const ReportMaintenance = {
   getDataResponTimeMinggu: async (req, res) => {
     const { tahun, bulan } = req.query;
     try {
-      const responTime = await TicketOs2.findAll({
-        group: ["mesin", "Minggu_ke"],
+      // Tanggal awal dan akhir bulan
+      const startDate = new Date(tahun, bulan - 1, 1);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(tahun, bulan, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Dapatkan semua tiket untuk bulan ini
+      const allTickets = await TicketOs2.findAll({
         attributes: [
+          "id",
           "mesin",
-          [fn("MONTHNAME", col("createdAt")), "bulan"],
-          [
-            fn(
-              "SUM",
-              fn(
-                "TIMESTAMPDIFF",
-                literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_respon")
-              )
-            ),
-            "jumlah_waktu_menit",
-          ], // Menghitung jumlah waktu dalam menit
-          [
-            fn(
-              "AVG",
-              fn(
-                "TIMESTAMPDIFF",
-                literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_respon")
-              )
-            ),
-            "rata_rata_waktu_menit",
-          ], // Menghitung rata-rata waktu
-          [
-            literal(
-              `(DAY(createdAt) - 1 + WEEKDAY(DATE_SUB(createdAt, INTERVAL DAY(createdAt) - 1 DAY))) DIV 7 + 1`
-            ),
-            "Minggu_ke",
-          ],
-        ],
-        where: {
-          waktu_respon_qc: {
-            [Op.ne]: null,
-          },
-          waktu_respon: {
-            [Op.ne]: null,
-          },
-          createdAt: {
-            [Op.between]: [
-              new Date(parseInt(tahun), parseInt(bulan) - 1, 1), // Awal bulan
-              new Date(parseInt(tahun), parseInt(bulan), 0), // Akhir bulan
-            ],
-          },
-        },
-        order: [
-          ["mesin", "ASC"],
-          ["Minggu_ke", "ASC"],
-        ],
-      });
-
-      // Mengelompokkan data sesuai format JSON yang diinginkan dengan 5 minggu per bulan
-      const data = responTime.reduce((acc, result) => {
-        const mesin = result.mesin;
-        const bulan = result.dataValues.bulan;
-        const mingguKe = result.dataValues.Minggu_ke;
-        const jumlahWaktuMenit = result.dataValues.jumlah_waktu_menit || 0;
-        const rataRataWaktuMenit = result.dataValues.rata_rata_waktu_menit || 0;
-
-        // Cari mesin dalam hasil yang sudah diproses
-        let mesinData = acc.find((item) => item.mesin === mesin);
-
-        // Jika tidak ditemukan, buat data baru untuk mesin tersebut
-        if (!mesinData) {
-          mesinData = {
-            mesin: mesin,
-            bulan: bulan,
-            jumlah_waktu_menit: 0,
-            rata_rata_waktu_menit: 0,
-            jumlah_waktu_jam: 0,
-            rata_rata_waktu_jam: 0,
-            minggu: Array.from({ length: 5 }, (_, index) => ({
-              Minggu_ke: index + 1,
-              jumlah_waktu_menit: 0,
-              rata_rata_waktu_menit: 0,
-              jumlah_waktu_jam: 0,
-              rata_rata_waktu_jam: 0,
-            })),
-          };
-          acc.push(mesinData);
-        }
-
-        // Update minggu yang sesuai
-        if (mingguKe >= 1 && mingguKe <= 5) {
-          mesinData.minggu[mingguKe - 1].jumlah_waktu_menit = jumlahWaktuMenit;
-          mesinData.minggu[mingguKe - 1].rata_rata_waktu_menit =
-            rataRataWaktuMenit;
-
-          mesinData.minggu[mingguKe - 1].jumlah_waktu_jam =
-            parseFloat(jumlahWaktuMenit) / 60;
-          mesinData.minggu[mingguKe - 1].rata_rata_waktu_jam =
-            parseFloat(rataRataWaktuMenit) / 60;
-        }
-
-        // Update jumlah total waktu dan rata-rata waktu untuk mesin
-        mesinData.jumlah_waktu_menit = mesinData.minggu.reduce(
-          (sum, m) => sum + parseFloat(m.jumlah_waktu_menit),
-          0
-        );
-        mesinData.rata_rata_waktu_menit =
-          mesinData.minggu.reduce(
-            (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit),
-            0
-          ) / 5;
-
-        // Update jumlah total waktu jam dan rata-rata waktu jam untuk mesin
-        mesinData.jumlah_waktu_jam = mesinData.minggu.reduce(
-          (sum, m) => sum + parseFloat(m.jumlah_waktu_menit) / 60,
-          0
-        );
-        mesinData.rata_rata_waktu_jam =
-          mesinData.minggu.reduce(
-            (sum, m) => sum + parseFloat(m.rata_rata_waktu_menit) / 60,
-            0
-          ) / 5;
-
-        return acc;
-      }, []);
-
-      res.status(200).json({ data: data });
-    } catch (error) {
-      res.status(400).json({ msg: error.message });
-    }
-  },
-
-  getDataResponTimeRange: async (req, res) => {
-    const { fromDate, toDate } = req.query;
-
-    // Rentang tanggal yang diinginkan (misalnya, ambil dari variabel)
-    const startDate = new Date(fromDate);
-    const endDate = new Date(toDate);
-
-    // Array nama bulan dalam bahasa Indonesia
-    const monthNames = [
-      "Januari",
-      "Februari",
-      "Maret",
-      "April",
-      "Mei",
-      "Juni",
-      "Juli",
-      "Agustus",
-      "September",
-      "Oktober",
-      "November",
-      "Desember",
-    ];
-
-    // Fungsi untuk mengubah nomor bulan menjadi nama bulan
-    function getMonthName(monthNumber) {
-      return monthNames[monthNumber - 1]; // -1 karena array index dimulai dari 0
-    }
-
-    // Fungsi untuk menghasilkan array bulan antara startDate dan endDate
-    function generateMonthsRange(startDate, endDate) {
-      const months = [];
-      const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-
-      while (start <= end) {
-        months.push({
-          month: start.getMonth() + 1, // Mendapatkan bulan
-          nama_bulan: getMonthName(start.getMonth() + 1), //mendapatkan nama bulan
-          year: start.getFullYear(), // Mendapatkan tahun
-          rata_rata_waktu_menit: 0, // Default rata rata
-          jumlah_waktu_menit: 0, //Default jumlah
-          rata_rata_waktu_jam: 0, // Default rata rata jam
-          jumlah_waktu_jam: 0, //Default jumlah jam
-        });
-        start.setMonth(start.getMonth() + 1); // Pindah ke bulan berikutnya
-      }
-
-      return months;
-    }
-
-    // Membuat array bulan dari rentang tanggal
-    const defaultMonths = generateMonthsRange(startDate, endDate);
-    try {
-      const responTime = await TicketOs2.findAll({
-        group: [
-          "mesin",
-          Sequelize.fn("YEAR", Sequelize.col("createdAt")),
-          Sequelize.fn("MONTH", Sequelize.col("createdAt")),
-        ],
-        attributes: [
-          "mesin",
-          [Sequelize.literal("COUNT(*)"), "jumlah_tiket"],
-          [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"], // Mengambil bulan dari createdAt
-          [Sequelize.fn("YEAR", Sequelize.col("createdAt")), "year"],
-          [fn("MONTHNAME", col("createdAt")), "bulan"],
-          [
-            fn(
-              "SUM",
-              fn(
-                "TIMESTAMPDIFF",
-                literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_respon")
-              )
-            ),
-            "jumlah_waktu_menit",
-          ], // Menghitung jumlah waktu dalam menit
-          [
-            fn(
-              "AVG",
-              fn(
-                "TIMESTAMPDIFF",
-                literal("MINUTE"),
-                col("waktu_respon_qc"),
-                col("waktu_respon")
-              )
-            ),
-            "rata_rata_waktu_menit",
-          ], // Menghitung rata-rata waktu
+          "createdAt",
+          "waktu_respon",
+          "waktu_respon_qc",
         ],
         where: {
           waktu_respon_qc: {
@@ -240,49 +36,365 @@ const ReportMaintenance = {
             [Op.between]: [startDate, endDate],
           },
         },
-        order: [["mesin", "ASC"]],
         raw: true,
       });
 
-      // Mengelompokkan data per mesin
-      const groupedResults = responTime.reduce((acc, row) => {
-        const mesin = row.mesin;
+      console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
 
-        // Jika mesin belum ada di objek, buat entry baru dengan key mesin
-        if (!acc[mesin]) {
-          acc[mesin] = {
-            mesin: mesin,
-            data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan (rentang yang dihasilkan dari generateMonthsRange)
+      // Fungsi untuk menentukan minggu (Minggu-Sabtu)
+      function getWeekNumber(date) {
+        // Dapatkan hari pertama bulan
+        const firstDayOfMonth = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          1
+        );
+
+        // Tentukan tanggal Minggu pertama
+        const firstSunday = new Date(firstDayOfMonth);
+        const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Minggu, 1 = Senin, dst.
+
+        // Jika bukan Minggu, kembali ke Minggu sebelumnya
+        if (firstDayOfWeek > 0) {
+          firstSunday.setDate(firstSunday.getDate() - firstDayOfWeek);
+        }
+
+        // Hitung berapa minggu sudah berlalu sejak Minggu pertama
+        const diffTime = date - firstSunday;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const weekNumber = Math.floor(diffDays / 7) + 1;
+
+        return weekNumber;
+      }
+
+      // Fungsi untuk mendapatkan rentang tanggal untuk minggu tertentu
+      function getWeekDateRange(year, month, weekNum) {
+        const firstDayOfMonth = new Date(year, month - 1, 1);
+        const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Minggu, 1 = Senin, dst.
+
+        // Tentukan tanggal Minggu pertama
+        const firstSunday = new Date(firstDayOfMonth);
+        if (firstDayOfWeek > 0) {
+          firstSunday.setDate(firstSunday.getDate() - firstDayOfWeek);
+        }
+
+        // Hitung tanggal awal minggu yang diminta
+        const weekStartDate = new Date(firstSunday);
+        weekStartDate.setDate(firstSunday.getDate() + (weekNum - 1) * 7);
+
+        // Hitung tanggal akhir minggu (Sabtu)
+        const weekEndDate = new Date(weekStartDate);
+        weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+        // Batasi tanggal dalam bulan yang diminta
+        const monthStartDate = new Date(year, month - 1, 1);
+        const monthEndDate = new Date(year, month, 0);
+
+        const actualStartDate = new Date(
+          Math.max(weekStartDate, monthStartDate)
+        );
+        const actualEndDate = new Date(Math.min(weekEndDate, monthEndDate));
+
+        return {
+          startDate: actualStartDate,
+          endDate: actualEndDate,
+        };
+      }
+
+      // Format tanggal untuk Indonesia (DD/MM/YYYY)
+      function formatDate(date) {
+        return `${date.getDate().toString().padStart(2, "0")}/${(
+          date.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, "0")}/${date.getFullYear()}`;
+      }
+
+      // Hitung respon time per mesin dari data mentah
+      const mesinTotals = {};
+      allTickets.forEach((ticket) => {
+        const mesin = ticket.mesin;
+        const responQC = new Date(ticket.waktu_respon_qc);
+        const respon = new Date(ticket.waktu_respon);
+        const createdAt = new Date(ticket.createdAt);
+
+        // Hitung waktu respon dalam menit
+        const responTimeMinutes = (respon - responQC) / (1000 * 60);
+
+        if (!mesinTotals[mesin]) {
+          mesinTotals[mesin] = {
+            totalMinutes: 0,
+            ticketCount: 0,
+            tickets: [],
           };
         }
 
-        // Temukan bulan yang sesuai dalam array default bulan
-        const foundMonth = acc[mesin].data.find(
-          (m) => m.month === row.month && m.year === row.year
+        mesinTotals[mesin].totalMinutes += responTimeMinutes;
+        mesinTotals[mesin].ticketCount += 1;
+        mesinTotals[mesin].tickets.push({
+          id: ticket.id,
+          responTimeMinutes,
+          createdAt,
+          // Hitung minggu berdasarkan hari Minggu-Sabtu
+          week: getWeekNumber(createdAt),
+        });
+      });
+
+      // Mengelompokkan data sesuai format yang diinginkan
+      const data = [];
+
+      // Untuk setiap mesin, tambahkan data total dan data per minggu
+      Object.keys(mesinTotals).forEach((mesin) => {
+        const mesinData = mesinTotals[mesin];
+        const totalMinutes = mesinData.totalMinutes;
+        const avgMinutes =
+          mesinData.ticketCount > 0 ? totalMinutes / mesinData.ticketCount : 0;
+
+        // Format dengan presisi 3 digit desimal
+        const jumlahWaktuMenit = parseFloat(totalMinutes).toFixed(3);
+        const rataRataWaktuMenit = parseFloat(avgMinutes).toFixed(3);
+        const jumlahWaktuJam = (parseFloat(jumlahWaktuMenit) / 60).toFixed(3);
+        const rataRataWaktuJam = (parseFloat(rataRataWaktuMenit) / 60).toFixed(
+          3
         );
 
-        if (foundMonth) {
-          // Jika bulan ditemukan, update total
-          foundMonth.jumlah_waktu_menit = row.jumlah_waktu_menit;
-          foundMonth.rata_rata_waktu_menit = row.rata_rata_waktu_menit;
-
-          // Jika bulan ditemukan, update total jam
-          foundMonth.jumlah_waktu_jam = parseFloat(row.jumlah_waktu_menit) / 60;
-          foundMonth.rata_rata_waktu_jam =
-            parseFloat(row.rata_rata_waktu_menit) / 60;
+        // Hitung total per minggu - selalu 5 minggu
+        const weeklyData = {};
+        // Inisialisasi data untuk 5 minggu
+        for (let i = 1; i <= 5; i++) {
+          weeklyData[i] = {
+            totalMinutes: 0,
+            ticketCount: 0,
+          };
         }
 
-        return acc;
-      }, {});
+        // Isi data dari tiket
+        mesinData.tickets.forEach((ticket) => {
+          const weekNum = ticket.week;
+          // Hanya mencatat minggu 1-5, minggu lainnya diabaikan
+          if (weekNum >= 1 && weekNum <= 5) {
+            weeklyData[weekNum].totalMinutes += ticket.responTimeMinutes;
+            weeklyData[weekNum].ticketCount += 1;
+          }
+        });
+
+        // Buat objek mesin dengan semua data yang diperlukan
+        const mesinResult = {
+          mesin: mesin,
+          bulan: new Intl.DateTimeFormat("id-ID", { month: "long" }).format(
+            startDate
+          ),
+          jumlah_waktu_menit: jumlahWaktuMenit,
+          rata_rata_waktu_menit: rataRataWaktuMenit,
+          jumlah_waktu_jam: jumlahWaktuJam,
+          rata_rata_waktu_jam: rataRataWaktuJam,
+          minggu: [],
+        };
+
+        // Tambahkan data per minggu - selalu 5 minggu
+        for (let i = 1; i <= 5; i++) {
+          const weekly = weeklyData[i];
+          const weeklyTotalMinutes = parseFloat(weekly.totalMinutes).toFixed(3);
+          const weeklyAvgMinutes =
+            weekly.ticketCount > 0
+              ? parseFloat(weekly.totalMinutes / weekly.ticketCount).toFixed(3)
+              : "0.000";
+
+          // Dapatkan rentang tanggal untuk minggu ini
+          const dateRange = getWeekDateRange(
+            parseInt(tahun),
+            parseInt(bulan),
+            i
+          );
+          const tanggalMulai = formatDate(dateRange.startDate);
+          const tanggalSelesai = formatDate(dateRange.endDate);
+
+          mesinResult.minggu.push({
+            Minggu_ke: i,
+            tanggal_mulai: tanggalMulai,
+            tanggal_selesai: tanggalSelesai,
+            jumlah_waktu_menit: weeklyTotalMinutes,
+            rata_rata_waktu_menit: weeklyAvgMinutes,
+            jumlah_waktu_jam: (parseFloat(weeklyTotalMinutes) / 60).toFixed(3),
+            rata_rata_waktu_jam: (parseFloat(weeklyAvgMinutes) / 60).toFixed(3),
+          });
+        }
+
+        data.push(mesinResult);
+      });
+
+      res.status(200).json({
+        data: data,
+        totalTickets: allTickets.length,
+      });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  getDataResponTimeRange: async (req, res) => {
+    const { fromDate, toDate } = req.query;
+    try {
+      // Rentang tanggal yang diinginkan
+      const startDate = new Date(fromDate);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(toDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Dapatkan semua tiket untuk rentang tanggal ini, mirip dengan metode weekly
+      const allTickets = await TicketOs2.findAll({
+        attributes: [
+          "id",
+          "mesin",
+          "createdAt",
+          "waktu_respon",
+          "waktu_respon_qc",
+        ],
+        where: {
+          waktu_respon_qc: {
+            [Op.ne]: null,
+          },
+          waktu_respon: {
+            [Op.ne]: null,
+          },
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+        raw: true,
+      });
+
+      console.log(
+        `Total tickets for range ${fromDate} to ${toDate}: ${allTickets.length}`
+      );
+
+      // Array nama bulan dalam bahasa Indonesia
+      const monthNames = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+      ];
+
+      // Fungsi untuk membuat rentang bulan
+      function generateMonthsRange(startDate, endDate) {
+        const months = [];
+        const start = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          1
+        );
+        const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+        while (start <= end) {
+          months.push({
+            month: start.getMonth() + 1,
+            nama_bulan: monthNames[start.getMonth()],
+            year: start.getFullYear(),
+            rata_rata_waktu_menit: "0.000",
+            jumlah_waktu_menit: "0.000",
+            rata_rata_waktu_jam: "0.000",
+            jumlah_waktu_jam: "0.000",
+          });
+          start.setMonth(start.getMonth() + 1);
+        }
+        return months;
+      }
+
+      // Membuat array bulan dari rentang tanggal
+      const defaultMonths = generateMonthsRange(startDate, endDate);
+
+      // Mengelompokkan data per mesin dan bulan
+      const mesinMonthTotals = {};
+
+      // Proses semua tiket untuk menghitung respon time
+      allTickets.forEach((ticket) => {
+        const mesin = ticket.mesin;
+        const responQC = new Date(ticket.waktu_respon_qc);
+        const respon = new Date(ticket.waktu_respon);
+        const createdAt = new Date(ticket.createdAt);
+        const ticketMonth = createdAt.getMonth() + 1;
+        const ticketYear = createdAt.getFullYear();
+
+        // Hitung waktu respon dalam menit (sama dengan metode weekly)
+        const responTimeMinutes = (respon - responQC) / (1000 * 60);
+
+        // Inisialisasi data mesin jika belum ada
+        if (!mesinMonthTotals[mesin]) {
+          mesinMonthTotals[mesin] = {
+            mesin: mesin,
+            data: JSON.parse(JSON.stringify(defaultMonths)), // Copy default bulan
+            tickets: [],
+          };
+        }
+
+        // Tambahkan data tiket ke array tiket mesin tersebut
+        mesinMonthTotals[mesin].tickets.push({
+          id: ticket.id,
+          responTimeMinutes,
+          createdAt,
+          month: ticketMonth,
+          year: ticketYear,
+        });
+      });
+
+      // Hitung total dan rata-rata per bulan untuk setiap mesin
+      Object.keys(mesinMonthTotals).forEach((mesin) => {
+        const mesinData = mesinMonthTotals[mesin];
+
+        // Mengelompokkan tiket berdasarkan bulan dan tahun
+        const monthData = {};
+        mesinData.tickets.forEach((ticket) => {
+          const key = `${ticket.year}-${ticket.month}`;
+          if (!monthData[key]) {
+            monthData[key] = {
+              totalMinutes: 0,
+              ticketCount: 0,
+            };
+          }
+          monthData[key].totalMinutes += ticket.responTimeMinutes;
+          monthData[key].ticketCount += 1;
+        });
+
+        // Mengisi data per bulan
+        mesinData.data.forEach((month) => {
+          const key = `${month.year}-${month.month}`;
+          if (monthData[key]) {
+            const totalMinutes = monthData[key].totalMinutes;
+            const ticketCount = monthData[key].ticketCount;
+            const avgMinutes = ticketCount > 0 ? totalMinutes / ticketCount : 0;
+
+            // Format dengan 3 digit desimal sama seperti di metode weekly
+            month.jumlah_waktu_menit = parseFloat(totalMinutes).toFixed(3);
+            month.rata_rata_waktu_menit = parseFloat(avgMinutes).toFixed(3);
+            month.jumlah_waktu_jam = (parseFloat(totalMinutes) / 60).toFixed(3);
+            month.rata_rata_waktu_jam = (parseFloat(avgMinutes) / 60).toFixed(
+              3
+            );
+          }
+        });
+      });
 
       // Konversi objek hasil grouping ke dalam array
-      const finalResult = Object.values(groupedResults);
+      const finalResult = Object.values(mesinMonthTotals).map((item) => {
+        const { tickets, ...rest } = item; // Hapus array tickets dari output
+        return rest;
+      });
 
       res.status(200).json({
         queryDari: startDate,
         querySampai: endDate,
         data: finalResult,
         listBulan: defaultMonths,
+        totalTickets: allTickets.length,
       });
     } catch (error) {
       res.status(400).json({ msg: error.message });
@@ -293,9 +405,6 @@ const ReportMaintenance = {
     const { tahun, bulan } = req.query;
     try {
       // Tanggal awal dan akhir bulan
-      // const startDate = new Date(parseInt(tahun), parseInt(bulan) - 1, 1);
-      // const endDate = new Date(parseInt(tahun), parseInt(bulan), 0);
-
       const startDate = new Date(tahun, bulan - 1, 1);
       startDate.setHours(0, 0, 0, 0);
 
@@ -317,6 +426,68 @@ const ReportMaintenance = {
       });
 
       console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
+
+      // Fungsi untuk menentukan minggu (Minggu-Sabtu)
+      function getWeekNumber(date) {
+        // Dapatkan hari pertama bulan
+        const firstDayOfMonth = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          1
+        );
+
+        // Tentukan tanggal Minggu pertama
+        // Jika hari pertama bulan adalah Minggu (0), gunakan tanggal tersebut
+        // Jika tidak, hitung tanggal Minggu sebelumnya
+        const firstSunday = new Date(firstDayOfMonth);
+        const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Minggu, 1 = Senin, dst.
+
+        // Jika bukan Minggu, kembali ke Minggu sebelumnya
+        if (firstDayOfWeek > 0) {
+          firstSunday.setDate(firstSunday.getDate() - firstDayOfWeek);
+        }
+
+        // Hitung berapa minggu sudah berlalu sejak Minggu pertama
+        const diffTime = date - firstSunday;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const weekNumber = Math.floor(diffDays / 7) + 1;
+
+        return weekNumber;
+      }
+
+      // Fungsi untuk mendapatkan rentang tanggal untuk minggu tertentu
+      function getWeekDateRange(year, month, weekNum) {
+        const firstDayOfMonth = new Date(year, month - 1, 1);
+        const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Minggu, 1 = Senin, dst.
+
+        // Tentukan tanggal Minggu pertama
+        const firstSunday = new Date(firstDayOfMonth);
+        if (firstDayOfWeek > 0) {
+          firstSunday.setDate(firstSunday.getDate() - firstDayOfWeek);
+        }
+
+        // Hitung tanggal awal minggu yang diminta
+        const weekStartDate = new Date(firstSunday);
+        weekStartDate.setDate(firstSunday.getDate() + (weekNum - 1) * 7);
+
+        // Hitung tanggal akhir minggu (Sabtu)
+        const weekEndDate = new Date(weekStartDate);
+        weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+        // Batasi tanggal dalam bulan yang diminta
+        const monthStartDate = new Date(year, month - 1, 1);
+        const monthEndDate = new Date(year, month, 0);
+
+        const actualStartDate = new Date(
+          Math.max(weekStartDate, monthStartDate)
+        );
+        const actualEndDate = new Date(Math.min(weekEndDate, monthEndDate));
+
+        return {
+          startDate: actualStartDate,
+          endDate: actualEndDate,
+        };
+      }
 
       // Pertama, hitung total waktu per mesin dari data mentah
       const mesinTotals = {};
@@ -342,13 +513,22 @@ const ReportMaintenance = {
           id: ticket.id,
           durationMinutes,
           createdAt,
-          // Hitung minggu dari tanggal
-          week: Math.floor((createdAt.getDate() - 1) / 7) + 1,
+          // Hitung minggu berdasarkan hari Minggu-Sabtu
+          week: getWeekNumber(createdAt),
         });
       });
 
       // Mengelompokkan data sesuai format yang diinginkan
       const data = [];
+
+      // Format tanggal untuk Indonesia (DD/MM/YYYY)
+      function formatDate(date) {
+        return `${date.getDate().toString().padStart(2, "0")}/${(
+          date.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, "0")}/${date.getFullYear()}`;
+      }
 
       // Untuk setiap mesin, tambahkan data total dan data per minggu
       Object.keys(mesinTotals).forEach((mesin) => {
@@ -365,8 +545,9 @@ const ReportMaintenance = {
           3
         );
 
-        // Hitung total per minggu
+        // Hitung total per minggu - selalu 5 minggu
         const weeklyData = {};
+        // Inisialisasi data untuk 5 minggu
         for (let i = 1; i <= 5; i++) {
           weeklyData[i] = {
             totalMinutes: 0,
@@ -374,10 +555,13 @@ const ReportMaintenance = {
           };
         }
 
+        // Isi data dari tiket
         mesinData.tickets.forEach((ticket) => {
-          if (ticket.week >= 1 && ticket.week <= 5) {
-            weeklyData[ticket.week].totalMinutes += ticket.durationMinutes;
-            weeklyData[ticket.week].ticketCount += 1;
+          const weekNum = ticket.week;
+          // Hanya mencatat minggu 1-5, minggu lainnya diabaikan
+          if (weekNum >= 1 && weekNum <= 5) {
+            weeklyData[weekNum].totalMinutes += ticket.durationMinutes;
+            weeklyData[weekNum].ticketCount += 1;
           }
         });
 
@@ -394,7 +578,7 @@ const ReportMaintenance = {
           minggu: [],
         };
 
-        // Tambahkan data per minggu
+        // Tambahkan data per minggu - selalu 5 minggu
         for (let i = 1; i <= 5; i++) {
           const weekly = weeklyData[i];
           const weeklyTotalMinutes = parseFloat(weekly.totalMinutes).toFixed(3);
@@ -403,8 +587,19 @@ const ReportMaintenance = {
               ? parseFloat(weekly.totalMinutes / weekly.ticketCount).toFixed(3)
               : "0.000";
 
+          // Dapatkan rentang tanggal untuk minggu ini
+          const dateRange = getWeekDateRange(
+            parseInt(tahun),
+            parseInt(bulan),
+            i
+          );
+          const tanggalMulai = formatDate(dateRange.startDate);
+          const tanggalSelesai = formatDate(dateRange.endDate);
+
           mesinResult.minggu.push({
             Minggu_ke: i,
+            tanggal_mulai: tanggalMulai,
+            tanggal_selesai: tanggalSelesai,
             jumlah_waktu_menit: weeklyTotalMinutes,
             rata_rata_waktu_menit: weeklyAvgMinutes,
             jumlah_waktu_jam: (parseFloat(weeklyTotalMinutes) / 60).toFixed(3),
@@ -516,6 +711,7 @@ const ReportMaintenance = {
           "createdAt",
           "waktu_selesai",
           "waktu_respon_qc",
+          "waktu_respon",
           "waktu_selesai_mtc",
           "operator",
           "no_jo",
@@ -591,17 +787,21 @@ const ReportMaintenance = {
         let ticketDetails = {
           operator: ticket.operator || "",
           eksekutor:
-            ticket.ProsesMtcs?.length > 0
-              ? ticket.ProsesMtcs[0].user_eksekutor?.nama || ""
+            ticket.proses_mtcs?.length > 0
+              ? ticket.proses_mtcs[0].user_eksekutor?.nama || ""
               : "",
           verifikator:
-            ticket.ProsesMtcs?.length > 0
-              ? ticket.ProsesMtcs[0].user_qc?.nama || ""
+            ticket.proses_mtcs?.length > 0
+              ? ticket.proses_mtcs[0].user_qc?.nama || ""
               : "",
           no_jo: ticket.no_jo || "",
           kode_lkh: ticket.kode_lkh || "",
           nama_kendala: ticket.nama_kendala || "",
           createdAt: ticket.createdAt,
+          waktu_respon_qc: ticket.waktu_respon_qc,
+          waktu_respon_mtc: ticket.waktu_respon,
+          waktu_mulai_mtc: ticket.waktu_mulai_mtc,
+          waktu_selesai_mtc: ticket.waktu_selesai_mtc,
           waktu_selesai: ticket.waktu_selesai,
         };
 
