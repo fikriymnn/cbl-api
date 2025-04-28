@@ -7,6 +7,7 @@ const InspeksiLemPeriodeDefectDepartment = require("../../../../model/qc/inspeks
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiLemPeriodeController = {
@@ -15,6 +16,7 @@ const inspeksiLemPeriodeController = {
     const { catatan } = req.body;
 
     try {
+      const noDoc = await MasterKodeDoc.findByPk(7);
       const inspeksiLemPeriodePoint = await InspeksiLemPeriodePoint.findAll({
         where: { id_inspeksi_lem_periode: _id },
       });
@@ -35,7 +37,7 @@ const inspeksiLemPeriodeController = {
       const lemPeriode = await InspeksiLemPeriode.findByPk(_id);
 
       await InspeksiLem.update(
-        { status: "history" },
+        { status: "history", no_doc: noDoc.kode },
         { where: { id: lemPeriode.id_inspeksi_lem } }
       );
 
@@ -81,12 +83,12 @@ const inspeksiLemPeriodeController = {
         let persen_kriteria = pointDefect[index].persen_kriteria;
         let department = pointDefect[index].sumber_masalah;
 
-        console.log(persen, persen_kriteria);
+        //console.log(persen, persen_kriteria);
         if (
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah != "Mesin"
         ) {
-          console.log("masuk ncr");
+          //console.log("masuk ncr");
           const userQc = await User.findByPk(req.user.id);
           const data = await NcrTicket.create({
             id_pelapor: req.user.id,
@@ -115,7 +117,7 @@ const inspeksiLemPeriodeController = {
           persen >= persen_kriteria &&
           pointDefect[index].sumber_masalah == "Mesin"
         ) {
-          console.log("masuk os");
+          //console.log("masuk os");
         }
       }
 

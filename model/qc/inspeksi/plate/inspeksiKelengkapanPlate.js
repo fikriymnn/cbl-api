@@ -76,6 +76,10 @@ const InspeksiKelengkapanPlate = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_doc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

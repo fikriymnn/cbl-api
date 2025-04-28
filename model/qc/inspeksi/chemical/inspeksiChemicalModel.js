@@ -66,6 +66,10 @@ const InspeksiChemical = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_doc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     waktu_check: {
       type: DataTypes.INTEGER,
       allowNull: true,

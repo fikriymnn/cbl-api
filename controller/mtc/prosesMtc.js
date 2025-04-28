@@ -131,6 +131,7 @@ const ProsessMtc = {
 
   getProsesHistoryQcMtc: async (req, res) => {
     const {
+      search,
       id_tiket,
       id_eksekutor,
       id_qc,
@@ -207,6 +208,18 @@ const ProsessMtc = {
     if (no_jo) obj2.no_jo = { [Op.like]: `%${no_jo}%` };
     if (no_io) obj2.no_io = { [Op.like]: `%${no_io}%` };
     if (mesin) obj2.mesin = mesin;
+
+    if (search)
+      obj2 = {
+        [Op.or]: [
+          { no_jo: { [Op.like]: `%${search}%` } },
+          { no_io: { [Op.like]: `%${search}%` } },
+          { no_so: { [Op.like]: `%${search}%` } },
+          { kode_lkh: { [Op.like]: `%${search}%` } },
+          { nama_produk: { [Op.like]: `%${search}%` } },
+          { nama_customer: { [Op.like]: `%${search}%` } },
+        ],
+      };
 
     try {
       if (page && limit) {
@@ -408,65 +421,64 @@ const ProsessMtc = {
     )
       return res.status(401).json({ msg: "incomplite data" });
 
-    const monitoring = await MasterMonitoring.findByPk(1);
-    const prosesData = await ProsesMtc.findByPk(id_proses);
-    const tiketData = await Ticket.findByPk(_id, {
-      include: [
-        {
-          model: TicketDepartment,
-          as: "data_department",
-        },
-      ],
-    });
+    const t = await db.transaction();
 
-    let status = "";
-    if (skor_mtc < monitoring.minimal_skor) {
-      status = "temporary";
-    } else if (skor_mtc >= monitoring.minimal_skor) {
-      status = "monitoring";
-    }
+    try {
+      const monitoring = await MasterMonitoring.findByPk(1);
+      const prosesData = await ProsesMtc.findByPk(id_proses);
+      const tiketData = await Ticket.findByPk(_id, {
+        include: [
+          {
+            model: TicketDepartment,
+            as: "data_department",
+          },
+        ],
+      });
 
-    let obj = {};
-    if (prosesData.is_rework == true) {
-      obj = {
-        status_tiket: "request to qc",
-        kode_analisis_mtc: kode_analisis_mtc,
-        nama_analisis_mtc: nama_analisis_mtc,
-        jenis_analisis_mtc: jenis_analisis_mtc,
-        skor_mtc: skor_mtc,
-        cara_perbaikan: cara_perbaikan,
-      };
-    } else {
-      obj = {
-        status_tiket: "request to qc",
+      let status = "";
+      if (skor_mtc < monitoring.minimal_skor) {
+        status = "temporary";
+      } else if (skor_mtc >= monitoring.minimal_skor) {
+        status = "monitoring";
+      }
+
+      let obj = {};
+      if (prosesData.is_rework == true) {
+        obj = {
+          status_tiket: "request to qc",
+          kode_analisis_mtc: kode_analisis_mtc,
+          nama_analisis_mtc: nama_analisis_mtc,
+          jenis_analisis_mtc: jenis_analisis_mtc,
+          skor_mtc: skor_mtc,
+          cara_perbaikan: cara_perbaikan,
+        };
+      } else {
+        obj = {
+          status_tiket: "request to qc",
+          kode_analisis_mtc: kode_analisis_mtc,
+          nama_analisis_mtc: nama_analisis_mtc,
+          jenis_analisis_mtc: jenis_analisis_mtc,
+          waktu_selesai_mtc: new Date(),
+          skor_mtc: skor_mtc,
+          cara_perbaikan: cara_perbaikan,
+        };
+      }
+
+      let obj_proses = {
+        status_proses: status,
+        status_qc: "requested",
         kode_analisis_mtc: kode_analisis_mtc,
         nama_analisis_mtc: nama_analisis_mtc,
         jenis_analisis_mtc: jenis_analisis_mtc,
         waktu_selesai_mtc: new Date(),
         skor_mtc: skor_mtc,
         cara_perbaikan: cara_perbaikan,
+        note_mtc: note_mtc,
+        note_analisis: note_analisis,
+        unit: unit,
+        bagian_mesin: bagian_mesin,
+        //image_url: image_url,
       };
-    }
-
-    let obj_proses = {
-      status_proses: status,
-      status_qc: "requested",
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-      jenis_analisis_mtc: jenis_analisis_mtc,
-      waktu_selesai_mtc: new Date(),
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-      note_mtc: note_mtc,
-      note_analisis: note_analisis,
-      unit: unit,
-      bagian_mesin: bagian_mesin,
-      //image_url: image_url,
-    };
-
-    const t = await db.transaction();
-
-    try {
       if (prosesData.is_rework == false) {
         // Perbedaan dalam milidetik
         const diffInMs = Math.abs(new Date() - prosesData.waktu_mulai_mtc);
@@ -616,12 +628,14 @@ const ProsessMtc = {
             lokasi_sparepart_baru: sparepartStok.lokasi,
             grade_sparepart_baru: sparepartStok.grade,
             tgl_ganti: new Date(),
-            status: "done",
+            status: "incoming",
             use_qty: 1,
           });
         }
 
-        await MasalahSparepart.bulkCreate(sparepart_masalah_data);
+        await MasalahSparepart.bulkCreate(sparepart_masalah_data, {
+          transaction: t,
+        });
 
         // for (let i = 0; i < sparepart_masalah_data.length; i++) {
         //   StokSparepart.findOne({
@@ -768,7 +782,7 @@ const ProsessMtc = {
 
       if (masalahSparepart) {
         for (let i = 0; i < masalahSparepart.length; i++) {
-          StokSparepart.findOne({
+          await StokSparepart.findOne({
             where: { id: masalahSparepart[i].id_stok_sparepart },
           }).then(async (stokSparepart) => {
             const stok = stokSparepart.stok - masalahSparepart[i].use_qty;
@@ -814,6 +828,11 @@ const ProsessMtc = {
             await StokSparepart.update(
               { stok: stok },
               { where: { id: stokSparepart.id }, transaction: t }
+            );
+
+            await MasalahSparepart.update(
+              { status: "done" },
+              { where: { id: masalahSparepart[i].id } }
             );
           });
         }

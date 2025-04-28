@@ -8,15 +8,20 @@ const InspeksiRabutPeriodeDefectDepartment = require("../../../../model/qc/inspe
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiRabutController = {
   getInspeksiRabut: async (req, res) => {
     try {
-      const { status, tgl, mesin, page, limit, search } = req.query;
+      const { status, tgl, mesin, page, limit, search, start_date, end_date } =
+        req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (tgl) obj.tanggal = tgl;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -26,11 +31,23 @@ const inspeksiRabutController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || tgl || mesin)) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
-
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const length = await InspeksiRabut.count({ where: obj });
         const data = await InspeksiRabut.findAll({
           order: [["createdAt", "DESC"]],
@@ -41,31 +58,6 @@ const inspeksiRabutController = {
 
         return res.status(200).json({
           data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiRabut.findAll({
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiRabut.count();
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || tgl || mesin) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiRabut.findAll({
-          order: [["createdAt", "DESC"]],
-          where: obj,
-        });
-        const length = await InspeksiRabut.count({ where: obj });
-        return res.status(200).json({
-          data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
@@ -135,6 +127,7 @@ const inspeksiRabutController = {
       } else {
         const data = await InspeksiRabut.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -242,6 +235,7 @@ const inspeksiRabutController = {
     const { catatan, sample_1, sample_2, sample_3 } = req.body;
 
     try {
+      const noDoc = await MasterKodeDoc.findByPk(8);
       const inspeksiRabut = await InspeksiRabut.findOne({
         where: { id: _id },
       });
@@ -265,6 +259,7 @@ const inspeksiRabutController = {
           waktu_check: totalWaktuCheck,
           status: "history",
           catatan,
+          no_doc: noDoc.kode,
         },
         { where: { id: _id } }
       );

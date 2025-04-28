@@ -5,6 +5,7 @@ const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
+const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
 const db = require("../../../config/database");
 
 const PengajuanLemburController = {
@@ -321,7 +322,7 @@ const PengajuanLemburController = {
       target_lembur,
     } = req.body;
     const t = await db.transaction();
-    console.log(req.body);
+    //console.log(req.body);
 
     try {
       if (karyawan.length == 0)
@@ -331,6 +332,10 @@ const PengajuanLemburController = {
           id_karyawan: {
             [Op.in]: karyawan, // Gunakan array id_karyawan
           },
+        },
+        include: {
+          model: KaryawanBagianMesin,
+          as: "bagian_mesin_karyawan",
         },
       });
       //set untuk karyawan biodata
@@ -359,6 +364,10 @@ const PengajuanLemburController = {
             lama_lembur_aktual: lama_lembur,
             alasan_lembur,
             target_lembur,
+            bagian_mesin:
+              data.bagian_mesin_karyawan.length === 0
+                ? null
+                : data.bagian_mesin_karyawan[0].nama_bagian_mesin,
           },
           { transaction: t }
         );
@@ -499,7 +508,7 @@ const PengajuanLemburController = {
         return res.status(404).json({ msg: "data tidak di temukan" });
 
       if (penanganan == 1) {
-        console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
+        // console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
         await PengajuanLembur.update(
           {
             status_ketidaksesuaian: "approved",

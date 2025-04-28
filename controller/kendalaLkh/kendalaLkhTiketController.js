@@ -24,7 +24,7 @@ const KendalaLkhTiketController = {
       department,
     } = req.query;
     try {
-      console.log(req.query);
+      //console.log(req.query);
       let obj = {};
       let des = ["createdAt", "DESC"];
       let options = {};
@@ -118,7 +118,7 @@ const KendalaLkhTiketController = {
       const diffInMs = Math.abs(new Date() - dataKendalaLkhTiket.start);
       const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); //dalam menit
       //const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60)); // Dalam jam
-      console.log(diffInMinutes);
+      //console.log(diffInMinutes);
 
       await KendalaLkhTiket.update(obj, { where: { id: _id }, transaction: t });
 

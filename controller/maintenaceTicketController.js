@@ -19,6 +19,7 @@ const ticketController = {
   getTicket: async (req, res) => {
     try {
       const {
+        search,
         status_tiket,
         status_qc,
         type_mtc,
@@ -34,32 +35,30 @@ const ticketController = {
         limit,
         page,
         historiQc,
+        id_eksekutor,
       } = req.query;
 
       let options = {
-        include: [
-          {
-            model: ProsesMtc,
-            include: [
-              {
-                model: Users,
-                as: "user_eksekutor",
-              },
-              {
-                model: Users,
-                as: "user_qc",
-              },
-            ],
-          },
-          {
-            model: Users,
-            as: "user_respon_qc",
-          },
-        ],
+        include: null,
       };
       let obj = {};
+      let objEksekutor = {};
       let des = [];
       const offset = (page - 1) * limit;
+
+      if (search) {
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_kendala: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
+      }
 
       if (status_tiket) obj.status_tiket = status_tiket;
       if (status_qc) obj.status_qc = status_qc;
@@ -92,6 +91,8 @@ const ticketController = {
         };
       }
 
+      if (id_eksekutor) objEksekutor.id_eksekutor = id_eksekutor;
+
       if (bagian_tiket == "os2") {
         des.push("waktu_respon", "DESC");
       } else {
@@ -101,11 +102,62 @@ const ticketController = {
       //console.log(obj);
       options.order = [des];
 
+      if (id_eksekutor) {
+        options.include = [
+          {
+            model: ProsesMtc,
+            //require: false,
+            where: objEksekutor,
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+              {
+                model: Users,
+                as: "user_qc",
+              },
+              {
+                model: MasalahSparepart,
+              },
+            ],
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
+          },
+        ];
+      } else {
+        options.include = [
+          {
+            model: ProsesMtc,
+
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+              {
+                model: Users,
+                as: "user_qc",
+              },
+              {
+                model: MasalahSparepart,
+              },
+            ],
+          },
+          {
+            model: Users,
+            as: "user_respon_qc",
+          },
+        ];
+      }
+
       if (page && limit) {
         options.limit = parseInt(limit);
         options.offset = parseInt(offset);
       }
-      const data = await Ticket.count({ where: obj });
+      const data = await Ticket.count(options);
       const response = await Ticket.findAll(options);
 
       res.status(200).json({
@@ -121,7 +173,8 @@ const ticketController = {
 
   getTicketValidasiVerifikasiQc: async (req, res) => {
     try {
-      const { jenis_kendala, no_jo, mesin, operator, kode_lkh } = req.query;
+      const { jenis_kendala, no_jo, mesin, operator, kode_lkh, search } =
+        req.query;
 
       let obj = {};
       if (jenis_kendala) obj.jenis_kendala = jenis_kendala;
@@ -129,6 +182,17 @@ const ticketController = {
       if (operator) obj.operator = { [Op.like]: `%${operator}%` };
       if (mesin) obj.mesin = mesin;
       if (kode_lkh) obj.kode_lkh = kode_lkh;
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+          ],
+        };
 
       const response = await Ticket.findOne({
         where: obj,

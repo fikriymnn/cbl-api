@@ -151,7 +151,7 @@ const Pm1Controller = {
           ],
           where: obj,
         });
-        console.log(obj);
+        //console.log(obj);
         res.status(200).json(response);
       }
     } catch (error) {
@@ -217,7 +217,7 @@ const Pm1Controller = {
   createTicketPm1: async (req, res) => {
     try {
       const masterMesin = await MasterMesin.findAll();
-      console.log(masterMesin);
+      //console.log(masterMesin);
 
       for (let i = 0; i < masterMesin.length; i++) {
         const idMesin = masterMesin[i].id;
@@ -228,7 +228,7 @@ const Pm1Controller = {
             nama_mesin: namaMesin,
             tgl: new Date(),
           });
-          console.log(ticket);
+          //console.log(ticket);
           const masterPoint = await MasterPointPm1.findAll({
             where: { id_mesin: idMesin },
             include: [
@@ -334,7 +334,7 @@ const Pm1Controller = {
   stopTaskPm1: async (req, res) => {
     const _id = req.params.id;
     const { waktu_selesai, lama_pengerjaan, hasil, catatan, file } = req.body;
-    console.log(req.body);
+    //console.log(req.body);
     if (!lama_pengerjaan || !waktu_selesai)
       return res.status(401).json({ msg: "incomplite data" });
     if (!catatan) return res.status(401).json({ msg: "catatan wajib di isi" });

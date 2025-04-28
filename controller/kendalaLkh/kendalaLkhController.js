@@ -12,6 +12,7 @@ const KendalaLkhController = {
   getKendalaLkh: async (req, res) => {
     const _id = req.params.id;
     const {
+      search,
       status_tiket,
       bagian_tiket,
       jenis_kendala,
@@ -71,6 +72,19 @@ const KendalaLkhController = {
           [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
         };
       }
+
+      if (search)
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
+            { no_so: { [Op.like]: `%${search}%` } },
+            { kode_lkh: { [Op.like]: `%${search}%` } },
+            { nama_produk: { [Op.like]: `%${search}%` } },
+            { nama_customer: { [Op.like]: `%${search}%` } },
+            { jenis_kendala: { [Op.like]: `%${search}%` } },
+          ],
+        };
 
       options.where = obj;
       options.order = [des];
@@ -282,7 +296,7 @@ const KendalaLkhController = {
         },
       });
 
-      console.log(jumlahKendalaLkh.length);
+      //console.log(jumlahKendalaLkh.length);
 
       if (jumlahKendalaLkh.length + 1 > kendalaLkh.maksimal_kedatangan_tiket) {
         console.log("masuk ncr");

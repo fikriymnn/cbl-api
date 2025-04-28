@@ -19,22 +19,32 @@ const db = require("../../../config/database");
 const karyawanController = {
   getKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, id_department, tipe_penggajian, is_active } =
-      req.query;
+    const {
+      page,
+      limit,
+      search,
+      id_department,
+      tipe_penggajian,
+      is_active,
+      is_cutoff,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     let obj2 = {};
+    if (is_active && is_active == "true" && is_cutoff && is_cutoff == "true") {
+      obj = { [Op.or]: [{ is_active: true }, { status_active: "cut off" }] };
+    } else if (is_active && is_active == "true") {
+      obj.is_active = true;
+    } else if (is_active && is_active == "false") {
+      obj.is_active = false;
+    } else if (is_cutoff && is_cutoff == "true") {
+      obj.status_active = "cut off";
+    }
     if (search)
       obj = {
         [Op.or]: [{ name: { [Op.like]: `%${search}%` } }],
       };
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
-
-    if (is_active && is_active == "true") {
-      obj.is_active = true;
-    } else if (is_active && is_active == "false") {
-      obj.is_active = false;
-    }
 
     if (id_department) obj2.id_department = id_department;
 
@@ -69,6 +79,10 @@ const karyawanController = {
                 {
                   model: MasterDivisi,
                   as: "divisi",
+                },
+                {
+                  model: KaryawanBagianMesin,
+                  as: "bagian_mesin_karyawan",
                 },
                 {
                   model: MasterStatusKaryawan,
@@ -314,6 +328,10 @@ const karyawanController = {
                 {
                   model: MasterDivisi,
                   as: "divisi",
+                },
+                {
+                  model: KaryawanBagianMesin,
+                  as: "bagian_mesin_karyawan",
                 },
                 {
                   model: MasterStatusKaryawan,

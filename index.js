@@ -26,6 +26,9 @@ const mskpi = require("./model/masterData/mtc/kpi/masterKpiModel");
 const kpiActual = require("./model/mtc/kpi/kpiActual");
 const kpiTicket = require("./model/mtc/kpi/kpiTicket");
 const KurangUmur = require("./model/mtc/kurangUmurMesinModel");
+const adjusmentSparepart = require("./model/mtc/stokOpname/adjusmentSparepartModel");
+const msMainGrupAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterMainGrupKodeAnalisisModel");
+const msChildGrupAnalisis = require("./model/masterData/mtc/grupKodeAnalisis/masterChildGrupKodeAnalisisModel");
 
 const tcpm1 = require("./model/mtc/preventive/pm1/ticketPm1");
 const pointpm1 = require("./model/mtc/preventive/pm1/pointPm1");
@@ -123,6 +126,7 @@ const msPointFinal = require("./model/masterData/qc/inspeksi/masterPointFinalMod
 const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel");
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
 const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
+const msKodeDocInspeksi = require("./model/masterData/qc/inspeksi/masterKodeDocModel");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
 const msdepartment = require("./model/masterData/qc/department/masterDepartmentModel");
@@ -229,6 +233,7 @@ const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel"
 
 //ppic
 const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
+const JadwalProduksiLembur = require("./model/ppic/jadwalProduksi/jadwalLemburModel");
 const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
@@ -256,9 +261,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// model sync to table (pancingan)
+// // model sync to table (pancingan)
 // (async () => {
-//   await tc.sync({ alter: true });
+//   await TiketJadwalProduksi.sync({ alter: true });
 // })();
 
 // const ip100 = 75
@@ -311,7 +316,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use((req, res, next) => {
-  req.setTimeout(30000, () => {
+  req.setTimeout(50000, () => {
     // 30000 ms = 30 detik
     res.status(408).send("Request Timeout");
   });

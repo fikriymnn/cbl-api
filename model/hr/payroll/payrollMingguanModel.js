@@ -3,6 +3,8 @@ const db = require("../../../config/database");
 const KaryawanModel = require("../karyawanModel");
 const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 const PayrollPeriodeModel = require("./payrollMingguanPeriodeModel");
+const DivisiModel = require("../../masterData/hr/masterDivisiModel");
+const JabatanModel = require("../../masterData/hr/masterJabatanModel");
 
 const { DataTypes } = Sequelize;
 
@@ -42,6 +44,34 @@ const Payroll = db.define(
         key: "id",
       },
     },
+    id_divisi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: DivisiModel,
+        key: "id",
+      },
+    },
+    id_jabatan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JabatanModel,
+        key: "id",
+      },
+    },
+    nama_department: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_divisi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_jabatan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     periode_dari: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -71,6 +101,10 @@ const Payroll = db.define(
       allowNull: true,
     },
     tipe_penggajian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tipe_karyawan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -112,6 +146,26 @@ DepartmentModel.hasMany(Payroll, {
 Payroll.belongsTo(DepartmentModel, {
   foreignKey: "id_department",
   as: "department",
+});
+
+//relasi master divisi
+DivisiModel.hasMany(Payroll, {
+  foreignKey: "id_divisi",
+  as: "payroll_divisi",
+});
+Payroll.belongsTo(DivisiModel, {
+  foreignKey: "id_divisi",
+  as: "divisi",
+});
+
+//relasi master jabatan
+JabatanModel.hasMany(Payroll, {
+  foreignKey: "id_jabatan",
+  as: "payroll_jabatan",
+});
+Payroll.belongsTo(JabatanModel, {
+  foreignKey: "id_jabatan",
+  as: "jabatan",
 });
 
 //relasi master department

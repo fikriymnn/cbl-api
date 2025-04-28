@@ -1,5 +1,6 @@
 const InspeksiPotong = require("../../../../model/qc/inspeksi/potong/inspeksiPotongModel");
 const InspeksiPotongResult = require("../../../../model/qc/inspeksi/potong/inspeksiPotongResultModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 
 const inspeksiPotongController = {
@@ -19,7 +20,16 @@ const inspeksiPotongController = {
 
   getInspeksiPotong: async (req, res) => {
     try {
-      const { status, jenis_potong, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        jenis_potong,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
@@ -32,6 +42,22 @@ const inspeksiPotongController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       if (page && limit && (status || jenis_potong || mesin)) {
         if (status) obj.status = status;
         if (jenis_potong) obj.jenis_potong = jenis_potong;
@@ -362,12 +388,14 @@ const inspeksiPotongController = {
       const { id } = req.params;
       const { hasil_check, lama_pengerjaan, catatan, merk } = req.body;
       const date = new Date();
+      const noDoc = await MasterKodeDoc.findByPk(3);
       let obj = {
         status: "history",
         waktu_selesai: date,
         lama_pengerjaan: lama_pengerjaan,
         catatan: catatan,
         merk: merk,
+        no_doc: noDoc.kode,
       };
 
       const inspeksi = await InspeksiPotong.update(obj, {

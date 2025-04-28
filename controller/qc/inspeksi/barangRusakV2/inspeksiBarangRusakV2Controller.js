@@ -2,17 +2,20 @@ const { Op, Sequelize } = require("sequelize");
 const InspeksiBarangRusakV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Model");
 const InspeksiBarangRusakPointV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
 const InspeksiBarangRusakDefectV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 
 const User = require("../../../../model/userModel");
 
 const inspeksiBarangRusakV2Controller = {
   getInspeksiBarangRusakV2: async (req, res) => {
     try {
-      const { status, tgl, page, limit, search } = req.query;
+      const { status, tgl, page, limit, search, start_date, end_date } =
+        req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-
+      if (status) obj.status = status;
+      if (tgl) obj.tanggal = tgl;
       if (search)
         obj = {
           [Op.or]: [
@@ -22,10 +25,23 @@ const inspeksiBarangRusakV2Controller = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || tgl || mesin)) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const length = await InspeksiBarangRusakV2.count({ where: obj });
         const data = await InspeksiBarangRusakV2.findAll({
           order: [["createdAt", "DESC"]],
@@ -36,30 +52,6 @@ const inspeksiBarangRusakV2Controller = {
 
         return res.status(200).json({
           data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiBarangRusakV2.findAll({
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiBarangRusakV2.count({ where: obj });
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || tgl) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-
-        const data = await InspeksiBarangRusakV2.findAll({
-          order: [["createdAt", "DESC"]],
-          where: obj,
-        });
-        const length = await InspeksiBarangRusakV2.count({ where: obj });
-        return res.status(200).json({
-          data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
@@ -137,6 +129,7 @@ const inspeksiBarangRusakV2Controller = {
       } else {
         const data = await InspeksiBarangRusakV2.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data: data });
       }
@@ -256,7 +249,9 @@ const inspeksiBarangRusakV2Controller = {
       return res
         .status(400)
         .json({ msg: "Barang Baik Aktual tidak boleh kosong" });
+
     try {
+      const noDoc = await MasterKodeDoc.findByPk(9);
       await InspeksiBarangRusakV2.update(
         {
           status: "history",
@@ -264,6 +259,7 @@ const inspeksiBarangRusakV2Controller = {
           catatan,
           lama_pengerjaan,
           barang_baik_aktual,
+          no_doc: noDoc.kode,
         },
         {
           where: { id: _id },

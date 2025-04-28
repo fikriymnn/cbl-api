@@ -9,6 +9,7 @@ const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuaian = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const User = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Sequelize } = require("sequelize");
 
 const inspeksiCoatingController = {
@@ -16,6 +17,7 @@ const inspeksiCoatingController = {
     try {
       const { catatan, sample_1, sample_2, sample_3 } = req.body;
       const { id } = req.params;
+      const noDoc = await MasterKodeDoc.findByPk(5);
       await InspeksiCoatingSubPeriode.update(
         {
           sample_1,
@@ -36,6 +38,7 @@ const inspeksiCoatingController = {
       await InspeksiCoating.update(
         {
           status: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id } }
       );
@@ -63,7 +66,7 @@ const inspeksiCoatingController = {
       });
 
       let pointDefectDepartment = [];
-      console.log(pointDefect);
+      //console.log(pointDefect);
       for (let index = 0; index < pointDefect.length; index++) {
         const dataaa =
           await InspeksiCoatingResultPointPeriodeDepartment.findAll({
@@ -71,12 +74,12 @@ const inspeksiCoatingController = {
               id_inspeksi_coating_periode_point_defect: pointDefect[index].id,
             },
           });
-        pointDefectDepartment.push(dataaa);
+        //pointDefectDepartment.push(dataaa);
       }
-      console.log(pointDefectDepartment);
+      //console.log(pointDefectDepartment);
 
       for (let index = 0; index < pointDefect.length; index++) {
-        console.log(pointDefect[index].jumlah_defect);
+        //console.log(pointDefect[index].jumlah_defect);
         let defect = pointDefect[index].jumlah_defect;
         let pcs = inspeksiCoating.jumlah_pcs;
         let persen = (defect / pcs) * 100;

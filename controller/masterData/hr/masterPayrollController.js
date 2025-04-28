@@ -3,7 +3,7 @@ const masterPayroll = require("../../../model/masterData/hr/masterPayrollModel")
 const masterShiftController = {
   getMasterPayroll: async (req, res) => {
     const _id = req.params.id;
-    console.log(_id);
+    //console.log(_id);
     try {
       if (_id) {
         const response = await masterPayroll.findByPk(_id);
