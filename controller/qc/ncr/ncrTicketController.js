@@ -141,7 +141,7 @@ const NcrTicketController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
-        console.log(id);
+        // console.log(id);
         const data = await NcrTicket.findByPk(id, {
           include: [
             {
@@ -205,26 +205,26 @@ const NcrTicketController = {
         no_io,
         nama_produk,
       });
-      console.log(data_department);
+      //console.log(data_department);
 
-      // for (let index = 0; index < data_department.length; index++) {
-      //   const department = await NcrDepartment.create({
-      //     id_ncr_tiket: data.id,
-      //     id_department: data_department[index].id_department,
-      //     department: data_department[index].department,
-      //   });
-      //   for (
-      //     let i = 0;
-      //     i < data_department[index].ketidaksesuaian.length;
-      //     i++
-      //   ) {
-      //     await NcrKetidaksesuain.create({
-      //       id_department: department.id,
-      //       ketidaksesuaian:
-      //         data_department[index].ketidaksesuaian[i].ketidaksesuaian,
-      //     });
-      //   }
-      // }
+      for (let index = 0; index < data_department.length; index++) {
+        const department = await NcrDepartment.create({
+          id_ncr_tiket: data.id,
+          id_department: data_department[index].id_department,
+          department: data_department[index].department,
+        });
+        for (
+          let i = 0;
+          i < data_department[index].ketidaksesuaian.length;
+          i++
+        ) {
+          await NcrKetidaksesuain.create({
+            id_department: department.id,
+            ketidaksesuaian:
+              data_department[index].ketidaksesuaian[i].ketidaksesuaian,
+          });
+        }
+      }
 
       return res.status(201).json({ msg: "create success" });
     } catch (err) {

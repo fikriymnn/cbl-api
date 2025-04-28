@@ -11,7 +11,7 @@ const AbsensiCheckInOutController = {
     const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
     const toDateMasukUTC = new Date(`${endDate}T23:59:59.999Z`);
 
-    let obj = {};
+    let obj = { is_active: true };
     let obj2 = {};
     if (id_karyawan) {
       (obj.userid = id_karyawan), (obj2.id_karyawan = id_karyawan);
@@ -64,6 +64,7 @@ const AbsensiCheckInOutController = {
           checkTime: dataAbsen.checktime,
           tglCheck: `${tglCheck} ${jamCheck}`,
           checkType: dataAbsen.checktype == "0" ? "Masuk" : "Keluar",
+          is_active: dataAbsen.is_active,
         });
       }
       res.status(200).json({ data: dataResult });
@@ -130,14 +131,17 @@ const AbsensiCheckInOutController = {
 
     const t = await db.transaction();
     try {
-      await absensi.destroy({
-        where: {
-          userid: id_karyawan,
-          checktime: checktime,
-        },
-        transaction: t,
-      });
-      await db.commit();
+      await absensi.update(
+        { is_active: false },
+        {
+          where: {
+            userid: id_karyawan,
+            checktime: checktime,
+          },
+          transaction: t,
+        }
+      );
+      await t.commit();
       res.status(200).json({ msg: "delete success" });
     } catch (error) {
       await t.rollback();

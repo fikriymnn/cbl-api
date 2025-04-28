@@ -17,6 +17,7 @@ const JadwalKaryawan = require("../model/hr/jadwalKaryawan/jadwalKaryawanModel")
 
 const absenFunction = {
   getAbsensiFunction: async (startDate, endDate, obj, isLibur) => {
+    // console.log(1);
     const masterAbsensi = await MasterAbsensi.findByPk(1);
     const masterDepartment = await MasterDepartment.findAll();
     const karyawanBiodata = await KaryawanBiodata.findAll({
@@ -32,6 +33,7 @@ const absenFunction = {
         },
       },
     });
+    //console.log(2);
 
     let absensiMasuk = [];
     let absensiKeluar = [];
@@ -81,6 +83,7 @@ const absenFunction = {
       absensiMasuk = await absensi.findAll({
         where: {
           checktype: "0",
+          is_active: true,
           checktime: {
             [Op.between]: [fromDateUTC, toDateMasukUTC],
           },
@@ -94,6 +97,7 @@ const absenFunction = {
       absensiKeluar = await absensi.findAll({
         where: {
           checktype: "1",
+          is_active: true,
           checktime: {
             [Op.between]: [fromDateUTC, toDateKeluarUTC],
           },
@@ -102,6 +106,7 @@ const absenFunction = {
           },
         },
       });
+
       dataCuti = await DataCuti.findAll({
         where: {
           status: "approved",
@@ -341,6 +346,7 @@ const absenFunction = {
       absensiMasuk = await absensi.findAll({
         where: {
           checktype: "0",
+          is_active: true,
           userid: {
             [Op.in]: karyawanIds, // Gunakan array id_karyawan
           },
@@ -351,6 +357,7 @@ const absenFunction = {
       absensiKeluar = await absensi.findAll({
         where: {
           checktype: "1",
+          is_active: true,
           userid: {
             [Op.in]: karyawanIds, // Gunakan array id_karyawan
           },
@@ -419,6 +426,8 @@ const absenFunction = {
         },
       },
     });
+
+    //console.log(3);
 
     // Memecah cuti menjadi entri harian
     let cutiEntries = [];
@@ -524,6 +533,8 @@ const absenFunction = {
       ];
     });
 
+    //console.log(4);
+
     // Ambil shift untuk semua hari
     const shifts = await masterShift.findAll();
 
@@ -536,7 +547,6 @@ const absenFunction = {
           const isSameUser = k.userid === masuk.userid;
           const isAfterMasuk = keluarTime > masukTime;
           const isWithin12Hours = keluarTime - masukTime <= 16 * 60 * 60 * 1000; // 12 jam dalam milidetik
-
           return isSameUser && isAfterMasuk && isWithin12Hours;
         })
         .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
@@ -826,7 +836,7 @@ const absenFunction = {
 
             // Pembulatan ke bawah ke kelipatan 0.5
             jamLembur = Math.floor(jamLemburMentah * 2) / 2;
-            console.log(jamLembur);
+            // console.log(jamLembur);
             statusLembur = "Lembur Libur";
           } else if (shift === "Shift 2") {
             const jamLemburMentah =
@@ -1081,6 +1091,8 @@ const absenFunction = {
     // Sorting berdasarkan tanggal (terbaru ke terlama)
     results.sort((a, b) => b.waktu_masuk - a.waktu_masuk);
 
+    //console.log(5);
+
     //cek apakah filter date hanya 1 hari (untuk menampilkan semua karyawan jika hanya satu hari)
     if (startDate === endDate) {
       const dataKaryawanGenerete = generatekaryawanList(
@@ -1154,6 +1166,7 @@ const absenFunction = {
       const resultAbsen = dataKaryawanGenerete.sort(
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
+      // console.log(6);
       // console.log(dataKaryawanGenerete);
 
       return resultAbsen;

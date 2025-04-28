@@ -7,6 +7,7 @@ const InspeksiCetakPeriodeDefectDepartment = require("../../../../model/qc/inspe
 const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 
 const inspeksiCetakPeriodeController = {
@@ -15,6 +16,7 @@ const inspeksiCetakPeriodeController = {
     const { catatan, sample_1, sample_2, sample_3 } = req.body;
 
     try {
+      const noDoc = await MasterKodeDoc.findByPk(4);
       const inspeksiCetakPeriodePoint = await InspeksiCetakPeriodePoint.findAll(
         {
           where: { id_inspeksi_cetak_periode: _id },
@@ -44,7 +46,7 @@ const inspeksiCetakPeriodeController = {
       const cetakPeriode = await InspeksiCetakPeriode.findByPk(_id);
 
       await InspeksiCetak.update(
-        { status: "history" },
+        { status: "history", no_doc: noDoc.kode },
         { where: { id: cetakPeriode.id_inspeksi_cetak } }
       );
 

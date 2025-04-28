@@ -1,6 +1,7 @@
 const { Op, Sequelize } = require("sequelize");
 const InspeksiBahan = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanModel");
 const InspeksiBahanResult = require("../../../../model/qc/inspeksi/bahan/inspeksiBahanResultModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 
@@ -9,7 +10,7 @@ dotenv.config();
 const inspeksiBahanController = {
   getInspeksiBahan: async (req, res) => {
     try {
-      const { status, search, page, limit } = req.query;
+      const { status, search, page, limit, start_date, end_date } = req.query;
       const { id } = req.params;
       let obj = {};
       if (status) obj.status = status;
@@ -24,6 +25,22 @@ const inspeksiBahanController = {
             { jumlah: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiBahan.findAll({
@@ -127,7 +144,7 @@ const inspeksiBahanController = {
         total_skor,
         jumlah_pallet,
       } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       let obj = {
         status: "history",
       };
@@ -137,6 +154,9 @@ const inspeksiBahanController = {
       if (catatan) obj.catatan = catatan;
       if (total_skor) obj.total_skor = total_skor;
       if (jumlah_pallet) obj.jumlah_pallet = jumlah_pallet;
+
+      const noDoc = await MasterKodeDoc.findByPk(1);
+      if (noDoc) obj.no_doc = noDoc.kode;
 
       await InspeksiBahan.update(obj, {
         where: { id: id },

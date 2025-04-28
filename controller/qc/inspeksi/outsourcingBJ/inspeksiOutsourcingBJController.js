@@ -3,6 +3,7 @@ const InspeksiMasterSubFinal = require("../../../../model/masterData/qc/inspeksi
 const InspeksiOutsourcingBJ = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJModel");
 const InspeksiOutsourcingBJPoint = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjPoint");
 const InspeksiOutsourcingBJSub = require("../../../../model/qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBjSubModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const User = require("../../../../model/userModel");
 const { Op } = require("sequelize");
 
@@ -12,10 +13,20 @@ const dotenv = require("dotenv");
 const inspeksiOutsourcingBJController = {
   getInspeksiOutsourcingBJ: async (req, res) => {
     try {
-      const { status, bagian_tiket, page, limit, search } = req.query;
+      const {
+        status,
+        bagian_tiket,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (search)
         obj = {
           [Op.or]: [
@@ -25,10 +36,23 @@ const inspeksiOutsourcingBJController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || bagian_tiket)) {
-        if (status) obj.status = status;
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const length = await InspeksiOutsourcingBJ.count({ where: obj });
         const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
@@ -50,32 +74,6 @@ const inspeksiOutsourcingBJController = {
 
         return res.status(200).json({
           data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiOutsourcingBJ.findAll({
-          order: [["createdAt", "DESC"]],
-          include: [{ model: User, as: "data_inspector" }],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiOutsourcingBJ.count();
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || bagian_tiket) {
-        if (status) obj.status = status;
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-
-        const data = await InspeksiOutsourcingBJ.findAll({
-          order: [["createdAt", "DESC"]],
-          include: [{ model: User, as: "data_inspector" }],
-          where: obj,
-        });
-        const length = await InspeksiOutsourcingBJ.count({ where: obj });
-        return res.status(200).json({
-          data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
@@ -106,6 +104,7 @@ const inspeksiOutsourcingBJController = {
         const data = await InspeksiOutsourcingBJ.findAll({
           order: [["createdAt", "DESC"]],
           include: [{ model: User, as: "data_inspector" }],
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -326,6 +325,8 @@ const inspeksiOutsourcingBJController = {
         0
       );
 
+      const noDoc = await MasterKodeDoc.findByPk(13);
+
       await InspeksiOutsourcingBJ.update(
         {
           inspector: req.user.id,
@@ -339,6 +340,7 @@ const inspeksiOutsourcingBJController = {
           lama_pengerjaan,
           waktu_selesai: new Date(),
           bagian_tiket: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id } }
       );

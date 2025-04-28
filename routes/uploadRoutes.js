@@ -32,7 +32,7 @@ router.post("/images", upload.single("file"), (req, res) => {
 router.delete("/images/:file", (req, res) => {
   fs.unlink(path.join(__dirname, `../file/${req.params.file}`), (err) => {
     if (err) throw err;
-    console.log("path/file.txt was deleted");
+    //console.log("path/file.txt was deleted");
   });
   res.json({
     data: "Delete image successfully!",

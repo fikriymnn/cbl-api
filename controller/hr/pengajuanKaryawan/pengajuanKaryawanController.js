@@ -178,6 +178,7 @@ const PengajuanKaryawanController = {
       usia,
       pengalaman,
       syarat_khusus,
+      batas_waktu,
     } = req.body;
     const t = await db.transaction();
 
@@ -214,6 +215,7 @@ const PengajuanKaryawanController = {
           pengalaman,
           syarat_khusus,
           diajukan_tanggal: new Date(),
+          batas_waktu: batas_waktu,
         },
         { transaction: t }
       );

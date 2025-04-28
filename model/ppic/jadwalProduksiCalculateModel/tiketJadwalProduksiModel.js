@@ -18,6 +18,10 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    tgl_kirim_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
     tgl_cetak: {
       type: DataTypes.STRING,
       allowNull: true,

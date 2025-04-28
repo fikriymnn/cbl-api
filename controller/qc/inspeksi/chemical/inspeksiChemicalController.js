@@ -2,6 +2,7 @@ const { Op, Sequelize } = require("sequelize");
 const InspeksiChemical = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalModel");
 const InspeksiChemicalPoint = require("../../../../model/qc/inspeksi/chemical/inspeksiChemicalPointModel");
 const Users = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const axios = require("axios");
 const dotenv = require("dotenv");
 const db = require("../../../../config/database");
@@ -11,7 +12,7 @@ dotenv.config();
 const inspeksiChemicalController = {
   getInspeksiChemical: async (req, res) => {
     try {
-      const { status, page, limit, search } = req.query;
+      const { status, page, limit, search, start_date, end_date } = req.query;
       const { id } = req.params;
       let obj = {};
 
@@ -25,6 +26,22 @@ const inspeksiChemicalController = {
             { jenis_chemical: { [Op.like]: `%${search}%` } },
           ],
         };
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const data = await InspeksiChemical.findAll({
@@ -124,9 +141,10 @@ const inspeksiChemicalController = {
       if (!verifikasi)
         return res.status(404).json({ msg: "verifikasi wajib di isi" });
       if (!no_lot) return res.status(404).json({ msg: "no lot wajib di isi" });
+      const noDoc = await MasterKodeDoc.findByPk(1);
 
       await InspeksiChemical.update(
-        { status: "history", catatan, verifikasi, no_lot },
+        { status: "history", no_doc: noDoc.kode, catatan, verifikasi, no_lot },
         {
           where: { id: id },
           transaction: t,

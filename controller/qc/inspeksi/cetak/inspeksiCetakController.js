@@ -17,10 +17,14 @@ dotenv.config();
 const inspeksiCetakController = {
   getInspeksiCetak: async (req, res) => {
     try {
-      const { status, tgl, mesin, page, limit, search } = req.query;
+      const { status, tgl, mesin, page, limit, search, start_date, end_date } =
+        req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (tgl) obj.tanggal = tgl;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -30,11 +34,23 @@ const inspeksiCetakController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || tgl || mesin)) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
-
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const length = await InspeksiCetak.count({ where: obj });
         const data = await InspeksiCetak.findAll({
           order: [["createdAt", "DESC"]],
@@ -45,31 +61,6 @@ const inspeksiCetakController = {
 
         return res.status(200).json({
           data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiCetak.findAll({
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiCetak.count();
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || tgl || mesin) {
-        if (status) obj.status = status;
-        if (tgl) obj.tanggal = tgl;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiCetak.findAll({
-          order: [["createdAt", "DESC"]],
-          where: obj,
-        });
-        const length = await InspeksiCetak.count({ where: obj });
-        return res.status(200).json({
-          data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (id) {
@@ -187,6 +178,7 @@ const inspeksiCetakController = {
       } else {
         const data = await InspeksiCetak.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data: data });
       }
@@ -331,7 +323,7 @@ const inspeksiCetakController = {
           httpsAgent: agent,
         }
       );
-      console.log(masterKodeCetak.data);
+      //console.log(masterKodeCetak.data);
       let iii = masterKodeCetak.data;
 
       res.status(200).json({ msg: "Done Successful", data: iii });

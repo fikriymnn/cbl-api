@@ -3,6 +3,7 @@ const InspeksiPraPlate = require("../../../../model/qc/inspeksi/plate/inspeksiPr
 const InspeksiKelengkapanPlate = require("../../../../model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const InspeksiPraPlateResult = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
 const Users = require("../../../../model/userModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 
 const { Op, Sequelize } = require("sequelize");
 
@@ -23,10 +24,22 @@ const inspeksiPrePressController = {
 
   getInspeksiPrePress: async (req, res) => {
     try {
-      const { status, no_jo, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        no_jo,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (no_jo) obj.no_jo = no_jo;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -36,10 +49,23 @@ const inspeksiPrePressController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || no_jo || mesin)) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const data = await InspeksiPrePress.findAll({
           order: [["createdAt", "DESC"]],
           include: {
@@ -48,39 +74,6 @@ const inspeksiPrePressController = {
           },
           limit: parseInt(limit),
           offset,
-          where: obj,
-        });
-        const length = await InspeksiPrePress.count({ where: obj });
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiPrePress.findAll({
-          order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiPrePress.count();
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || no_jo || mesin) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiPrePress.findAll({
-          order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
           where: obj,
         });
         const length = await InspeksiPrePress.count({ where: obj });
@@ -104,6 +97,7 @@ const inspeksiPrePressController = {
             model: Users,
             as: "inspektor",
           },
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -118,12 +112,14 @@ const inspeksiPrePressController = {
     const date = new Date();
     try {
       const PressProses = await InspeksiPrePress.findByPk(id);
+      const noDoc = await MasterKodeDoc.findByPk(16);
       await InspeksiPrePress.update(
         {
           id_inspektor: req.user.id,
           catatan: catatan,
           hasil_check: hasil_check,
           status: "history",
+          no_doc: noDoc.kode,
         },
         { where: { id: id } }
       );

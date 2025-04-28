@@ -29,17 +29,44 @@ const jadwalProduksiController = {
   // },
   getTiketJadwalProduksi: async (req, res) => {
     try {
-      const { status, status_tiket, tgl, page, limit, search } = req.query;
+      const {
+        status,
+        status_tiket,
+        tgl,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+
+      if (search) {
+        obj = {
+          [Op.or]: [
+            { no_jo: { [Op.like]: `%${search}%` } },
+            { item: { [Op.like]: `%${search}%` } },
+          ],
+        };
+      }
       if (status) obj.status = status;
       if (status_tiket) obj.status_tiket = status_tiket;
       if (tgl) obj.tgl = tgl;
+      if (start_date && end_date) {
+        obj.tgl_kirim_date = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      }
 
       if (page && limit) {
         const length = await TiketJadwalProduksi.count({ where: obj });
         const data = await TiketJadwalProduksi.findAll({
+          order: [["tgl_kirim_date", "DESC"]],
           where: obj,
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
@@ -77,7 +104,7 @@ const jadwalProduksiController = {
         res.status(200).json({ data: data });
       } else {
         const data = await TiketJadwalProduksi.findAll({
-          order: [["createdAt", "DESC"]],
+          order: [["tgl_kirim_date", "DESC"]],
           where: obj,
         });
         res.status(200).json({ data: data });
@@ -98,6 +125,7 @@ const jadwalProduksiController = {
           item,
           no_jo,
           tgl_kirim,
+          tgl_kirim_date: tgl_kirim,
           tgl_cetak,
           qty_pcs,
           qty_druk,
@@ -323,8 +351,15 @@ const jadwalProduksiController = {
         } else {
           tahap.kapasitas = 0;
         }
+        let hoursSettingUp = 0;
 
-        tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
+        if (tahap.setting != 0) {
+          let hoursSetting = tahap.setting / 60; // Konversi menit ke jam (desimal)
+          hoursSettingUp = Math.ceil(hoursSetting / 0.5) * 0.5;
+        }
+
+        tahap.total_waktu =
+          tahap.drying_time + hoursSettingUp + tahap.kapasitas;
       });
 
       const tgl_kirim = dataById.tgl_kirim;

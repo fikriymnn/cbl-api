@@ -103,7 +103,7 @@ const inspeksiRabutpointController = {
       mesin,
       operator,
     } = req.body;
-    console.log(req.body);
+    //console.log(req.body);
     const t = await db.transaction();
 
     try {

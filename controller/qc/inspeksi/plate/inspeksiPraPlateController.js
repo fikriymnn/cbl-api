@@ -2,6 +2,7 @@ const InspeksiPrePress = require("../../../../model/qc/inspeksi/plate/inspeksiPr
 const InspeksiPraPlate = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateModel");
 const InspeksiKelengkapanPlate = require("../../../../model/qc/inspeksi/plate/inspeksiKelengkapanPlate");
 const InspeksiPraPlateResult = require("../../../../model/qc/inspeksi/plate/inspeksiPraPlateResultModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 const Users = require("../../../../model/userModel");
 
@@ -22,10 +23,22 @@ const inspeksiPraPlateController = {
 
   getInspeksiPraPlate: async (req, res) => {
     try {
-      const { status, no_jo, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        no_jo,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (no_jo) obj.no_jo = no_jo;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -35,10 +48,23 @@ const inspeksiPraPlateController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || no_jo || mesin)) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const data = await InspeksiPraPlate.findAll({
           order: [["createdAt", "DESC"]],
           include: {
@@ -47,39 +73,6 @@ const inspeksiPraPlateController = {
           },
           limit: parseInt(limit),
           offset,
-          where: obj,
-        });
-        const length = await InspeksiPraPlate.count({ where: obj });
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiPraPlate.findAll({
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiPraPlate.count();
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || no_jo || mesin) {
-        if (status) obj.status = status;
-        if (no_jo) obj.no_jo = no_jo;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiPraPlate.findAll({
-          order: [["createdAt", "DESC"]],
-          include: {
-            model: Users,
-            as: "inspektor",
-          },
           where: obj,
         });
         const length = await InspeksiPraPlate.count({ where: obj });
@@ -109,6 +102,7 @@ const inspeksiPraPlateController = {
             model: Users,
             as: "inspektor",
           },
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -244,12 +238,14 @@ const inspeksiPraPlateController = {
       const { id } = req.params;
       const { hasil_check, lama_pengerjaan, catatan, hasil } = req.body;
       const date = new Date();
+      const noDoc = await MasterKodeDoc.findByPk(14);
       let obj = {
         status: "history",
         waktu_selesai: date,
         lama_pengerjaan: lama_pengerjaan,
         catatan: catatan,
         hasil_check: hasil,
+        no_doc: noDoc.kode,
       };
 
       await InspeksiPraPlate.update(obj, {

@@ -36,7 +36,7 @@ const masterTaskPm1Controller = {
 
   createMasterPointPm1: async (req, res) => {
     const { id_mesin, nama_mesin, inspection_point } = req.body;
-    console.log(req.body);
+    //console.log(req.body);
     if (!nama_mesin || !id_mesin || !inspection_point)
       return res.status(404).json({ msg: "incomplete data!!" });
 

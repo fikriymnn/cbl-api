@@ -22,15 +22,15 @@ const projectControllers = {
         });
         res.json({ message: "OK", data });
       } else if (task || start || end || days || done || work_days) {
-        console.log(obj);
-        console.log("test");
+        // console.log(obj);
+        // console.log("test");
         const data = await Project.findAll({
           include: { model: SubProject, as: "sub_project" },
           where: obj,
         });
         res.json({ message: "OK", data });
       } else if (page && limit) {
-        console.log("test 2");
+        //console.log("test 2");
         const data = await Project.findAll({
           include: { model: SubProject, as: "sub_project" },
           offset: parseInt(offset),
@@ -49,7 +49,7 @@ const projectControllers = {
   },
   createProject: async (req, res) => {
     const { task, start, end, days, done, work_days, subProject } = req.body;
-    console.log("test");
+    //console.log("test");
     if (!task && !start && !end && !days && !done && !work_days) {
       res.status(400).json({ msg: "Field is incomplete!" });
     }
@@ -62,7 +62,7 @@ const projectControllers = {
         done,
         work_days,
       });
-      console.log(data);
+      //console.log(data);
       if (data && subProject) {
         for (let i = 0; i < subProject.length; i++) {
           await SubProject.create({

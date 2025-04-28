@@ -45,7 +45,7 @@ const Pm2Controller = {
         startOfWeek.getDate() + 6
       );
 
-      console.log(startOfWeek, endOfWeek);
+      //console.log(startOfWeek, endOfWeek);
 
       obj.tgl = {
         [Op.between]: [startOfWeek, endOfWeek],
@@ -340,10 +340,10 @@ const Pm2Controller = {
         attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
-      console.log(dataPoint.hasil);
+      //console.log(dataPoint.hasil);
 
       if (dataPoint.hasil == "jelek" || "tidak terpasang") {
-        console.log(1);
+        //console.log(1);
         const ticketPm2 = await TicketPm2.findOne({
           where: { id: dataPoint.id_ticket },
         });

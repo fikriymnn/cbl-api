@@ -1,6 +1,7 @@
 const InspeksiLipat = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatModel");
 const InspeksiLipatResult = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatResultModel");
 const InspeksiLipatPoint = require("../../../../model/qc/inspeksi/lipat/inspeksiLipatPointModel");
+const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { Op, Sequelize } = require("sequelize");
 const User = require("../../../../model/userModel");
 
@@ -21,10 +22,22 @@ const inspeksiLipatController = {
 
   getInspeksiLipat: async (req, res) => {
     try {
-      const { status, jenis_potong, mesin, page, limit, search } = req.query;
+      const {
+        status,
+        jenis_potong,
+        mesin,
+        page,
+        limit,
+        search,
+        start_date,
+        end_date,
+      } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
+      if (status) obj.status = status;
+      if (jenis_potong) obj.jenis_potong = jenis_potong;
+      if (mesin) obj.mesin = mesin;
       if (search)
         obj = {
           [Op.or]: [
@@ -34,42 +47,28 @@ const inspeksiLipatController = {
             { customer: { [Op.like]: `%${search}%` } },
           ],
         };
-      if (page && limit && (status || jenis_potong || mesin)) {
-        if (status) obj.status = status;
-        if (jenis_potong) obj.jenis_potong = jenis_potong;
-        if (mesin) obj.mesin = mesin;
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
+      if (page && limit) {
         const data = await InspeksiLipat.findAll({
           include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
-          where: obj,
-        });
-        const length = await InspeksiLipat.count({ where: obj });
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (page && limit) {
-        const data = await InspeksiLipat.findAll({
-          include: { model: User, as: "inspektor" },
-          order: [["createdAt", "DESC"]],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await InspeksiLipat.count();
-        return res.status(200).json({
-          data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || jenis_potong || mesin) {
-        if (status) obj.status = status;
-        if (jenis_potong) obj.jenis_potong = jenis_potong;
-        if (mesin) obj.mesin = mesin;
-
-        const data = await InspeksiLipat.findAll({
-          include: { model: User, as: "inspektor" },
-          order: [["createdAt", "DESC"]],
           where: obj,
         });
         const length = await InspeksiLipat.count({ where: obj });
@@ -106,6 +105,7 @@ const inspeksiLipatController = {
       } else {
         const data = await InspeksiLipat.findAll({
           order: [["createdAt", "DESC"]],
+          where: obj,
         });
         return res.status(200).json({ data });
       }
@@ -355,6 +355,7 @@ const inspeksiLipatController = {
       const { id } = req.params;
       const { catatan } = req.body;
 
+      const noDoc = await MasterKodeDoc.findByPk(10);
       const inspeksiLipatPoint = await InspeksiLipatPoint.findAll({
         where: { id_inspeksi_lipat: id },
       });
@@ -368,6 +369,7 @@ const inspeksiLipatController = {
         jumlah_periode: jumlahPeriode,
         waktu_check: totalWaktuCheck,
         catatan: catatan,
+        no_doc: noDoc.kode,
       };
 
       await InspeksiLipat.update(obj, {
