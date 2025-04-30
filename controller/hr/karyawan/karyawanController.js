@@ -602,78 +602,261 @@ const karyawanController = {
   getKaryawanPresensi: async (req, res) => {
     const { id_karyawan, start_date, end_date } = req.query;
     try {
-      const lengthCutiTahunan = await PengajuanCuti.count({
-        where: {
-          id_karyawan: id_karyawan,
-          status_tiket: "history",
-          status: "approved",
-          tipe_cuti: "tahunan",
-          [Op.or]: [
-            {
-              dari: {
-                [Op.between]: [
-                  new Date(start_date).setHours(0, 0, 0, 0),
-                  new Date(end_date).setHours(23, 59, 59, 999),
-                ],
-              },
-            }, // `from` berada dalam rentang
-            {
-              sampai: {
-                [Op.between]: [
-                  new Date(start_date).setHours(0, 0, 0, 0),
-                  new Date(end_date).setHours(23, 59, 59, 999),
-                ],
-              },
-            }, // `to` berada dalam rentang
-            {
-              [Op.and]: [
-                {
-                  dari: {
-                    [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
-                  },
-                }, // Rentang cuti mencakup startDate
-                {
-                  sampai: {
-                    [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
-                  },
-                }, // Rentang cuti mencakup endDate
+      if (!id_karyawan)
+        return res.status(404).json({ msg: "id_karyawan required" });
+      if (!start_date)
+        return res.status(404).json({ msg: "start_date required" });
+      if (!end_date) return res.status(404).json({ msg: "end_date required" });
+
+      const whereCalauseCutiTahunan = {
+        id_karyawan: id_karyawan,
+        status_tiket: "history",
+        status: "approved",
+        tipe_cuti: "tahunan",
+        [Op.or]: [
+          {
+            dari: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
               ],
             },
-          ],
-        },
+          }, // `from` berada dalam rentang
+          {
+            sampai: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `to` berada dalam rentang
+          {
+            [Op.and]: [
+              {
+                dari: {
+                  [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                },
+              }, // Rentang cuti mencakup startDate
+              {
+                sampai: {
+                  [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                },
+              }, // Rentang cuti mencakup endDate
+            ],
+          },
+        ],
+      };
+      const whereCalauseCutiKhusus = {
+        id_karyawan: id_karyawan,
+        status_tiket: "history",
+        status: "approved",
+        tipe_cuti: "khusus",
+        [Op.or]: [
+          {
+            dari: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `from` berada dalam rentang
+          {
+            sampai: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `to` berada dalam rentang
+          {
+            [Op.and]: [
+              {
+                dari: {
+                  [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                },
+              }, // Rentang cuti mencakup startDate
+              {
+                sampai: {
+                  [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                },
+              }, // Rentang cuti mencakup endDate
+            ],
+          },
+        ],
+      };
+      const lengthCutiTahunanHari = await PengajuanCuti.sum("jumlah_hari", {
+        where: whereCalauseCutiTahunan,
       });
-      const lengthCutiKhusus = await PengajuanCuti.count({
+      const lengthCutiTahunanTiket = await PengajuanCuti.count({
+        where: whereCalauseCutiTahunan,
+      });
+      const lengthCutiKhususHari = await PengajuanCuti.sum("jumlah_hari", {
+        where: whereCalauseCutiKhusus,
+      });
+      const lengthCutiKhususTiket = await PengajuanCuti.count({
+        where: whereCalauseCutiKhusus,
+      });
+
+      const whereCalauseIzin = {
+        id_karyawan: id_karyawan,
+        status_tiket: "history",
+        status: "approved",
+        [Op.or]: [
+          {
+            dari: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `from` berada dalam rentang
+          {
+            sampai: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `to` berada dalam rentang
+          {
+            [Op.and]: [
+              {
+                dari: {
+                  [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                },
+              }, // Rentang cuti mencakup startDate
+              {
+                sampai: {
+                  [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                },
+              }, // Rentang cuti mencakup endDate
+            ],
+          },
+        ],
+      };
+      const lengthIzinHari = await PengajuanIzin.sum("jumlah_hari", {
+        where: whereCalauseIzin,
+      });
+      const lengthIzinTiket = await PengajuanIzin.count({
+        where: whereCalauseIzin,
+      });
+
+      const whereCalauseSakit = {
+        id_karyawan: id_karyawan,
+        status_tiket: "history",
+        status: "approved",
+        [Op.or]: [
+          {
+            dari: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `from` berada dalam rentang
+          {
+            sampai: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `to` berada dalam rentang
+          {
+            [Op.and]: [
+              {
+                dari: {
+                  [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                },
+              }, // Rentang cuti mencakup startDate
+              {
+                sampai: {
+                  [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                },
+              }, // Rentang cuti mencakup endDate
+            ],
+          },
+        ],
+      };
+      const lengthSakitHari = await PengajuanSakit.sum("jumlah_hari", {
+        where: whereCalauseSakit,
+      });
+      const lengthSakitTiket = await PengajuanSakit.count({
+        where: whereCalauseSakit,
+      });
+
+      const whereCalauseDinas = {
+        id_karyawan: id_karyawan,
+        status_tiket: "history",
+        status: "approved",
+        [Op.or]: [
+          {
+            dari: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `from` berada dalam rentang
+          {
+            sampai: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }, // `to` berada dalam rentang
+          {
+            [Op.and]: [
+              {
+                dari: {
+                  [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                },
+              }, // Rentang cuti mencakup startDate
+              {
+                sampai: {
+                  [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                },
+              }, // Rentang cuti mencakup endDate
+            ],
+          },
+        ],
+      };
+
+      const lengthDinasHari = await pengajuanDinas.sum("jumlah_hari", {
+        where: whereCalauseDinas,
+      });
+      const lengthDinasTiket = await pengajuanDinas.count({
+        where: whereCalauseDinas,
+      });
+
+      const lengthMangkir = await PengajuanMangkir.count({
         where: {
           id_karyawan: id_karyawan,
           status_tiket: "history",
           status: "approved",
-          tipe_cuti: "khusus",
+          tanggal: {
+            [Op.between]: [
+              new Date(start_date).setHours(0, 0, 0, 0),
+              new Date(end_date).setHours(23, 59, 59, 999),
+            ],
+          },
         },
-      });
-      const lengthIzin = await PengajuanIzin.count({
-        where: { status_tiket: "incoming" },
-      });
-      const lengthMangkir = await PengajuanMangkir.count({
-        where: { status_tiket: "incoming" },
-      });
-      const lengthSakit = await PengajuanSakit.count({
-        where: { status_tiket: "incoming" },
-      });
-      const lengthTerlambat = await pengajuanTerlambat.count({
-        where: { status_tiket: "incoming" },
-      });
-      const lengthDinas = await pengajuanDinas.count({
-        where: { status_tiket: "incoming" },
       });
 
       res.status(200).json({
-        cuti_tahunan: lengthCutiTahunan,
-        cuti_khusus: lengthCutiKhusus,
-        izin: lengthIzin,
-        mangkir: lengthMangkir,
-        sakit: lengthSakit,
-        terlambat: lengthTerlambat,
-        dinas: lengthDinas,
+        cuti_tahunan_hari: lengthCutiTahunanHari || 0,
+        cuti_tahunan_tiket: lengthCutiTahunanTiket,
+        cuti_khusus_hari: lengthCutiKhususHari || 0,
+        cuti_khusus_tiket: lengthCutiKhususTiket,
+        izin_hari: lengthIzinHari || 0,
+        izin_tiket: lengthIzinTiket,
+        sakit_hari: lengthSakitHari || 0,
+        sakit_tiket: lengthSakitTiket,
+        dinas_hari: lengthDinasHari || 0,
+        dinas_sakit: lengthDinasTiket,
+        mangkir_hari: lengthMangkir,
+        mangkir_tiket: lengthMangkir,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });

@@ -415,6 +415,7 @@ const PengajuanPromosiController = {
         obj.id_grade = dataPengajuanPromosi.id_grade_promosi;
       if (dataPengajuanPromosi.gaji_promosi)
         obj.gaji = dataPengajuanPromosi.gaji_promosi;
+      console.log(obj);
 
       await PengajuanPromosi.update(
         {
@@ -430,7 +431,7 @@ const PengajuanPromosiController = {
       );
 
       await KaryawanBiodata.update(obj, {
-        where: { id: dataPengajuanPromosi.id_karyawan },
+        where: { id_karyawan: dataPengajuanPromosi.id_karyawan },
         transaction: t,
       });
 
