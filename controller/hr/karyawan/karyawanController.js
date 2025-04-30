@@ -14,6 +14,13 @@ const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMe
 const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
 const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 const HistoriPromosi = require("../../../model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
+const PengajuanCuti = require("../../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const PengajuanIzin = require("../../../model/hr/pengajuanIzin/pengajuanIzinModel");
+const PengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
+const PengajuanMangkir = require("../../../model/hr/pengajuanMangkir/pengajuanMangkirModel");
+const pengajuanTerlambat = require("../../../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const pengajuanDinas = require("../../../model/hr/pengajuanDinas/pengajuanDinasModel");
+const PengajuanSakit = require("../../../model/hr/pengajuanSakit/pengajuanSakitModel");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -586,6 +593,87 @@ const karyawanController = {
       return res.status(200).json({
         rekap: rekap,
         data: data,
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getKaryawanPresensi: async (req, res) => {
+    const { id_karyawan, start_date, end_date } = req.query;
+    try {
+      const lengthCutiTahunan = await PengajuanCuti.count({
+        where: {
+          id_karyawan: id_karyawan,
+          status_tiket: "history",
+          status: "approved",
+          tipe_cuti: "tahunan",
+          [Op.or]: [
+            {
+              dari: {
+                [Op.between]: [
+                  new Date(start_date).setHours(0, 0, 0, 0),
+                  new Date(end_date).setHours(23, 59, 59, 999),
+                ],
+              },
+            }, // `from` berada dalam rentang
+            {
+              sampai: {
+                [Op.between]: [
+                  new Date(start_date).setHours(0, 0, 0, 0),
+                  new Date(end_date).setHours(23, 59, 59, 999),
+                ],
+              },
+            }, // `to` berada dalam rentang
+            {
+              [Op.and]: [
+                {
+                  dari: {
+                    [Op.lte]: new Date(start_date).setHours(0, 0, 0, 0),
+                  },
+                }, // Rentang cuti mencakup startDate
+                {
+                  sampai: {
+                    [Op.gte]: new Date(end_date).setHours(23, 59, 59, 999),
+                  },
+                }, // Rentang cuti mencakup endDate
+              ],
+            },
+          ],
+        },
+      });
+      const lengthCutiKhusus = await PengajuanCuti.count({
+        where: {
+          id_karyawan: id_karyawan,
+          status_tiket: "history",
+          status: "approved",
+          tipe_cuti: "khusus",
+        },
+      });
+      const lengthIzin = await PengajuanIzin.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthMangkir = await PengajuanMangkir.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthSakit = await PengajuanSakit.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthTerlambat = await pengajuanTerlambat.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthDinas = await pengajuanDinas.count({
+        where: { status_tiket: "incoming" },
+      });
+
+      res.status(200).json({
+        cuti_tahunan: lengthCutiTahunan,
+        cuti_khusus: lengthCutiKhusus,
+        izin: lengthIzin,
+        mangkir: lengthMangkir,
+        sakit: lengthSakit,
+        terlambat: lengthTerlambat,
+        dinas: lengthDinas,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
