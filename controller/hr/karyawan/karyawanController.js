@@ -854,7 +854,7 @@ const karyawanController = {
         sakit_hari: lengthSakitHari || 0,
         sakit_tiket: lengthSakitTiket,
         dinas_hari: lengthDinasHari || 0,
-        dinas_sakit: lengthDinasTiket,
+        dinas_tiket: lengthDinasTiket,
         mangkir_hari: lengthMangkir,
         mangkir_tiket: lengthMangkir,
       });
