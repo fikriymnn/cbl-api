@@ -376,7 +376,7 @@ const lemburFunction = {
               const breakCheck = isBreakTime(time, overtimeShiftInfo.istirahat);
               if (breakCheck.isBreak) {
                 nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
-                console.log(nextDateTime);
+
                 continue;
               }
             }
