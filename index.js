@@ -263,7 +263,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await TiketJadwalProduksiPerJam.sync({ alter: true });
+//   await inspeksiBahan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

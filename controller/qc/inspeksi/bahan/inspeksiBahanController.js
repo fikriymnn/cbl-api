@@ -19,6 +19,7 @@ const inspeksiBahanController = {
           [Op.or]: [
             { no_lot: { [Op.like]: `%${search}%` } },
             { no_surat_jalan: { [Op.like]: `%${search}%` } },
+            { no_jo: { [Op.like]: `%${search}%` } },
             { supplier: { [Op.like]: `%${search}%` } },
             { jenis_kertas: { [Op.like]: `%${search}%` } },
             { ukuran: { [Op.like]: `%${search}%` } },
@@ -91,6 +92,7 @@ const inspeksiBahanController = {
         jam,
         jumlah,
         jumlah_pallet,
+        no_jo,
       } = req.body;
 
       if (!tanggal)
@@ -110,6 +112,7 @@ const inspeksiBahanController = {
       const data = await InspeksiBahan.create({
         tanggal,
         no_surat_jalan,
+        no_jo,
         supplier,
         jenis_kertas,
         ukuran,

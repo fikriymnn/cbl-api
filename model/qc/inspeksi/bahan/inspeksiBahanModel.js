@@ -17,6 +17,10 @@ const InspeksiBahan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     supplier: {
       type: DataTypes.STRING,
       allowNull: true,

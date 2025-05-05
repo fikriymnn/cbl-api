@@ -164,6 +164,7 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 
 //qc report
 router.use("/", require("./qc/report/reportWasteRoute"));
+router.use("/", require("./qc/report/reportRoute"));
 
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));
