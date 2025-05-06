@@ -50,6 +50,42 @@ const inspeksiPondController = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
+                  attributes: ["id"],
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         });
 
         return res.status(200).json({

@@ -62,6 +62,34 @@ const inspeksiCoatingController = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiCoatingResultPeriode,
+              as: "inspeksi_coating_result_periode",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiCoatingResultPointPeriode,
+                  as: "inspeksi_coating_result_point_periode",
+                  attributes: ["id"],
+                },
+                {
+                  model: User,
+                  as: "inspektor",
+                },
+              ],
+            },
+
+            {
+              model: InspeksiCoatingResultAwal,
+              as: "inspeksi_coating_result_awal",
+              attributes: ["id"],
+              include: {
+                model: User,
+                as: "inspektor",
+              },
+            },
+          ],
         });
         const length = await InspeksiCoating.count({ where: obj });
         return res.status(200).json({

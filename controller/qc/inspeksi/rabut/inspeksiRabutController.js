@@ -54,6 +54,17 @@ const inspeksiRabutController = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: {
+            model: InspeksiRabutPoint,
+            as: "inspeksi_rabut_point",
+            attributes: ["id"],
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+            ],
+          },
         });
 
         return res.status(200).json({

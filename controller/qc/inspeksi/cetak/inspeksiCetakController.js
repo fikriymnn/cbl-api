@@ -57,6 +57,42 @@ const inspeksiCetakController = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiCetakAwal,
+              as: "inspeksi_cetak_awal",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiCetakAwalPoint,
+                  as: "inspeksi_cetak_awal_point",
+                  attributes: ["id"],
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiCetakPeriode,
+              as: "inspeksi_cetak_periode",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiCetakPeriodePoint,
+                  as: "inspeksi_cetak_periode_point",
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         });
 
         return res.status(200).json({

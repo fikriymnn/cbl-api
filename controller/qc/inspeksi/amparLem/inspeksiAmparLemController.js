@@ -55,6 +55,17 @@ const inspeksiAmparLemController = {
           offset,
           limit: parseInt(limit),
           where: obj,
+          include: {
+            model: InspeksiAmparLemPoint,
+            as: "inspeksi_ampar_lem_point",
+            attributes: ["id"],
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+            ],
+          },
         });
         const length = await InspeksiAmparLem.count({ where: obj });
         return res.status(200).json({
