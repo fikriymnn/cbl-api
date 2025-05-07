@@ -238,6 +238,7 @@ router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 //ppic
 router.use("/", require("./ppic/jadwalProduksiRoute"));
 router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
+router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

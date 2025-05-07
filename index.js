@@ -237,6 +237,7 @@ const JadwalProduksiLembur = require("./model/ppic/jadwalProduksi/jadwalLemburMo
 const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
+const BookingJadwal = require("./model/ppic/bookingJadwal/bookingJadwalModel");
 
 //hak akses
 const MasterRole = require("./model/masterData/masterRoleModel");
@@ -263,7 +264,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiBahan.sync({ alter: true });
+//   await BookingJadwal.sync({ alter: true });
 // })();
 
 // const ip100 = 75
