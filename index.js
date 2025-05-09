@@ -264,7 +264,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await BookingJadwal.sync({ alter: true });
+//   await TiketJadwalProduksiTahapan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

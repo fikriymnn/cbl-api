@@ -49,32 +49,32 @@ const TiketJadwalProduksitahap = db.define(
     },
     kapasitas_per_jam: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     drying_time: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     setting: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     kapasitas: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     toleransi: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     total_waktu: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0,
     },
     tgl_from: {
