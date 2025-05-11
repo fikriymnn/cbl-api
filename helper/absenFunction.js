@@ -546,8 +546,14 @@ const absenFunction = {
           const keluarTime = new Date(k.checktime);
           const isSameUser = k.userid === masuk.userid;
           const isAfterMasuk = keluarTime > masukTime;
-          const isWithin12Hours = keluarTime - masukTime <= 16 * 60 * 60 * 1000; // 12 jam dalam milidetik
-          return isSameUser && isAfterMasuk && isWithin12Hours;
+          const duration = keluarTime - masukTime;
+
+          const isAtLeast1Hour = duration >= 1 * 60 * 60 * 1000; // minimal 1 jam
+          const isWithin16Hours = duration <= 16 * 60 * 60 * 1000; // maksimal 16 jam
+
+          return (
+            isSameUser && isAfterMasuk && isAtLeast1Hour && isWithin16Hours
+          );
         })
         .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
 

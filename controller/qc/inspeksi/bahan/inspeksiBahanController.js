@@ -190,7 +190,11 @@ const inspeksiBahanController = {
     const date = new Date();
     try {
       await InspeksiBahan.update(
-        { waktu_mulai: date, inspector: req.user.name },
+        {
+          waktu_mulai: date,
+          inspector: req.user.name,
+          id_inspektor: req.user.id,
+        },
         { where: { id: id } }
       ),
         res.status(200).json({ msg: "start successfuly" });
