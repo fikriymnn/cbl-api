@@ -251,47 +251,60 @@ const getPotongBahan = async (startDate, endDate) => {
       jenis_potong: "potong bahan",
     },
   });
-  return dataPotongBahan;
+
+  const dataPotongResult = dataPotongBahan.map((data) => {
+    let waktu = 0;
+    if (data.waktu_mulai && data.waktu_selesai) {
+      waktu += hitungDurasiDetik(data.waktu_mulai, data.waktu_selesai);
+    }
+    return {
+      ...data.toJSON(),
+      lama_pengerjaan: waktu,
+    };
+  });
+  return dataPotongResult;
 };
 
 const getCetak = async (startDate, endDate) => {
   const dataCetak = await InspeksiCetak.findAll({
-    // include: [
-    //   {
-    //     model: InspeksiCetakAwal,
-    //     as: "inspeksi_cetak_awal",
-    //     include: [
-    //       {
-    //         model: InspeksiCetakAwalPoint,
-    //         as: "inspeksi_cetak_awal_point",
-    //         include: {
-    //           model: User,
-    //           as: "inspektor",
-    //         },
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     model: InspeksiCetakPeriode,
-    //     as: "inspeksi_cetak_periode",
-    //     include: [
-    //       {
-    //         model: InspeksiCetakPeriodePoint,
-    //         as: "inspeksi_cetak_periode_point",
-    //         include: [
-    //           {
-    //             model: User,
-    //             as: "inspektor",
-    //           },
-    //           {
-    //             model: InspeksiCetakPeriodeDefect,
-    //             as: "inspeksi_cetak_periode_defect",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiCetakAwal,
+        as: "inspeksi_cetak_awal",
+        attributes: ["id"],
+        include: [
+          {
+            model: InspeksiCetakAwalPoint,
+            as: "inspeksi_cetak_awal_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: {
+              model: User,
+              as: "inspektor",
+              attributes: ["id", "nama"],
+            },
+          },
+        ],
+      },
+      {
+        model: InspeksiCetakPeriode,
+        as: "inspeksi_cetak_periode",
+        attributes: ["id"],
+        include: [
+          {
+            model: InspeksiCetakPeriodePoint,
+            as: "inspeksi_cetak_periode_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+                attributes: ["id", "nama"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -299,43 +312,71 @@ const getCetak = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataCetak;
+
+  const dataCetakResult = dataCetak.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_cetak_awal?.[0]?.inspeksi_cetak_awal_point?.length > 0) {
+      data.inspeksi_cetak_awal[0].inspeksi_cetak_awal_point.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+    }
+
+    if (
+      data.inspeksi_cetak_periode?.[0]?.inspeksi_cetak_periode_point?.length > 0
+    ) {
+      const pointList =
+        data.inspeksi_cetak_periode[0].inspeksi_cetak_periode_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_cetak_awal, inspeksi_cetak_periode, ...flatData } =
+      data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataCetakResult;
 };
 
 const getCoating = async (startDate, endDate) => {
   const dataCoating = await InspeksiCoating.findAll({
-    // include: [
-    //   {
-    //     model: InspeksiCoatingResultPeriode,
-    //     as: "inspeksi_coating_result_periode",
-    //     include: [
-    //       {
-    //         model: InspeksiCoatingResultPointPeriode,
-    //         as: "inspeksi_coating_result_point_periode",
-    //       },
-    //       {
-    //         model: User,
-    //         as: "inspektor",
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     model: InspeksiCoatingSubPeriode,
-    //     as: "inspeksi_coating_sub_periode",
-    //   },
-    //   {
-    //     model: InspeksiCoatingResultAwal,
-    //     as: "inspeksi_coating_result_awal",
-    //     include: {
-    //       model: User,
-    //       as: "inspektor",
-    //     },
-    //   },
-    //   {
-    //     model: InspeksiCoatingSubAwal,
-    //     as: "inspeksi_coating_sub_awal",
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiCoatingResultPeriode,
+        as: "inspeksi_coating_result_periode",
+        attributes: ["id", "waktu_mulai", "waktu_selesai"],
+        include: [
+          {
+            model: User,
+            as: "inspektor",
+            attributes: ["id", "nama"],
+          },
+        ],
+      },
+
+      {
+        model: InspeksiCoatingResultAwal,
+        as: "inspeksi_coating_result_awal",
+        attributes: ["id", "waktu_mulai", "waktu_selesai"],
+        include: {
+          model: User,
+          as: "inspektor",
+          attributes: ["id", "nama"],
+        },
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -343,47 +384,83 @@ const getCoating = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataCoating;
+
+  const dataCoatingResult = dataCoating.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_coating_result_periode?.length > 0) {
+      data.inspeksi_coating_result_periode.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+    }
+
+    if (data.inspeksi_coating_result_awal?.length > 0) {
+      const pointList = data.inspeksi_coating_result_awal;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const {
+      inspeksi_coating_result_periode,
+      inspeksi_coating_result_awal,
+      ...flatData
+    } = data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataCoatingResult;
 };
 
 const getPond = async (startDate, endDate) => {
   const dataPond = await InspeksiPond.findAll({
-    // include: [
-    //   {
-    //     model: InspeksiPondAwal,
-    //     as: "inspeksi_pond_awal",
-    //     include: [
-    //       {
-    //         model: InspeksiPondAwalPoint,
-    //         as: "inspeksi_pond_awal_point",
-    //         include: {
-    //           model: User,
-    //           as: "inspektor",
-    //         },
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     model: InspeksiPondPeriode,
-    //     as: "inspeksi_pond_periode",
-    //     include: [
-    //       {
-    //         model: InspeksiPondPeriodePoint,
-    //         as: "inspeksi_pond_periode_point",
-    //         include: [
-    //           {
-    //             model: User,
-    //             as: "inspektor",
-    //           },
-    //           {
-    //             model: InspeksiPondPeriodeDefect,
-    //             as: "inspeksi_pond_periode_defect",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiPondAwal,
+        as: "inspeksi_pond_awal",
+        attributes: ["id"],
+        include: [
+          {
+            model: InspeksiPondAwalPoint,
+            as: "inspeksi_pond_awal_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: {
+              model: User,
+              as: "inspektor",
+              attributes: ["id", "nama"],
+            },
+          },
+        ],
+      },
+      {
+        model: InspeksiPondPeriode,
+        as: "inspeksi_pond_periode",
+        include: [
+          {
+            model: InspeksiPondPeriodePoint,
+            as: "inspeksi_pond_periode_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+                attributes: ["id", "nama"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -391,31 +468,60 @@ const getPond = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataPond;
+
+  const dataPondResult = dataPond.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_pond_awal?.[0]?.inspeksi_pond_awal_point?.length > 0) {
+      data.inspeksi_pond_awal[0].inspeksi_pond_awal_point.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+    }
+
+    if (
+      data.inspeksi_pond_periode?.[0]?.inspeksi_pond_periode_point?.length > 0
+    ) {
+      const pointList =
+        data.inspeksi_pond_periode[0].inspeksi_pond_periode_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_pond_awal, inspeksi_pond_periode, ...flatData } =
+      data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataPondResult;
 };
 
 const getSortirRs = async (startDate, endDate) => {
   const dataSortirRS = await InspeksiBarangRusakV2.findAll({
-    // include: [
-    //   {
-    //     model: InspeksiBarangRusakPointV2,
-    //     as: "inspeksi_barang_rusak_point_v2",
-    //     include: [
-    //       {
-    //         model: InspeksiBarangRusakDefectV2,
-    //         as: "inspeksi_barang_rusak_defect_v2",
-    //       },
-    //       {
-    //         model: User,
-    //         as: "inspektor",
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     model: User,
-    //     as: "inspektor",
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiBarangRusakPointV2,
+        as: "inspeksi_barang_rusak_point_v2",
+        attributes: ["id", "waktu_mulai", "waktu_selesai"],
+        include: [
+          {
+            model: User,
+            as: "inspektor",
+            attributes: ["id", "nama"],
+          },
+        ],
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -423,25 +529,48 @@ const getSortirRs = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataSortirRS;
+
+  const dataSortirRSResult = dataSortirRS.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_barang_rusak_point_v2?.length > 0) {
+      const pointList = data.inspeksi_barang_rusak_point_v2;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_barang_rusak_point_v2, ...flatData } = data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataSortirRSResult;
 };
 
 const getSamplingRabut = async (startDate, endDate) => {
   const dataSamplingRabut = await InspeksiRabut.findAll({
-    // include: {
-    //   model: InspeksiRabutPoint,
-    //   as: "inspeksi_rabut_point",
-    //   include: [
-    //     {
-    //       model: User,
-    //       as: "inspektor",
-    //     },
-    //     {
-    //       model: InspeksiRabutDefect,
-    //       as: "inspeksi_rabut_defect",
-    //     },
-    //   ],
-    // },
+    include: {
+      model: InspeksiRabutPoint,
+      as: "inspeksi_rabut_point",
+      attributes: ["id", "waktu_mulai", "waktu_selesai"],
+      include: [
+        {
+          model: User,
+          as: "inspektor",
+          attributes: ["id", "nama"],
+        },
+      ],
+    },
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -449,47 +578,74 @@ const getSamplingRabut = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataSamplingRabut;
+
+  const dataSamplingRabutResult = dataSamplingRabut.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_rabut_point?.length > 0) {
+      const pointList = data.inspeksi_rabut_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_rabut_point, ...flatData } = data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataSamplingRabutResult;
 };
 
 const getLem = async (startDate, endDate) => {
   const dataLem = await InspeksiLem.findAll({
-    // include: [
-    //   {
-    //     model: InspeksiLemAwal,
-    //     as: "inspeksi_lem_awal",
-    //     include: [
-    //       {
-    //         model: InspeksiLemAwalPoint,
-    //         as: "inspeksi_lem_awal_point",
-    //         include: {
-    //           model: User,
-    //           as: "inspektor",
-    //         },
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     model: InspeksiLemPeriode,
-    //     as: "inspeksi_lem_periode",
-    //     include: [
-    //       {
-    //         model: InspeksiLemPeriodePoint,
-    //         as: "inspeksi_lem_periode_point",
-    //         include: [
-    //           {
-    //             model: User,
-    //             as: "inspektor",
-    //           },
-    //           {
-    //             model: InspeksiLemPeriodeDefect,
-    //             as: "inspeksi_lem_periode_defect",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiLemAwal,
+        as: "inspeksi_lem_awal",
+        attributes: ["id"],
+        include: [
+          {
+            model: InspeksiLemAwalPoint,
+            as: "inspeksi_lem_awal_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: {
+              model: User,
+              as: "inspektor",
+              attributes: ["id", "nama"],
+            },
+          },
+        ],
+      },
+      {
+        model: InspeksiLemPeriode,
+        as: "inspeksi_lem_periode",
+        attributes: ["id"],
+        include: [
+          {
+            model: InspeksiLemPeriodePoint,
+            as: "inspeksi_lem_periode_point",
+            attributes: ["id", "waktu_mulai", "waktu_selesai"],
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+                attributes: ["id", "nama"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -497,25 +653,57 @@ const getLem = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataLem;
+
+  const dataLemResult = dataLem.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_lem_awal?.[0]?.inspeksi_lem_awal_point?.length > 0) {
+      data.inspeksi_lem_awal[0].inspeksi_lem_awal_point.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+    }
+
+    if (
+      data.inspeksi_lem_periode?.[0]?.inspeksi_lem_periode_point?.length > 0
+    ) {
+      const pointList = data.inspeksi_lem_periode[0].inspeksi_lem_periode_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_lem_awal, inspeksi_lem_periode, ...flatData } =
+      data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataLemResult;
 };
 
 const getAmparLem = async (startDate, endDate) => {
   const dataAmparLem = await InspeksiAmparLem.findAll({
-    // include: {
-    //   model: InspeksiAmparLemPoint,
-    //   as: "inspeksi_ampar_lem_point",
-    //   include: [
-    //     {
-    //       model: User,
-    //       as: "inspektor",
-    //     },
-    //     {
-    //       model: InspeksiAmparLemDefect,
-    //       as: "inspeksi_ampar_lem_defect",
-    //     },
-    //   ],
-    // },
+    include: {
+      model: InspeksiAmparLemPoint,
+      as: "inspeksi_ampar_lem_point",
+      attributes: ["id", "waktu_mulai", "waktu_selesai"],
+      include: [
+        {
+          model: User,
+          as: "inspektor",
+          attributes: ["id", "nama"],
+        },
+      ],
+    },
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -523,7 +711,32 @@ const getAmparLem = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataAmparLem;
+
+  const dataAmparLemResult = dataAmparLem.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_ampar_lem_point?.length > 0) {
+      const pointList = data.inspeksi_ampar_lem_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_ampar_lem_point, ...flatData } = data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataAmparLemResult;
 };
 
 const getPotongJadi = async (startDate, endDate) => {
@@ -540,25 +753,29 @@ const getPotongJadi = async (startDate, endDate) => {
       jenis_potong: "potong jadi",
     },
   });
-  return dataPotongJadi;
+  const dataPotongResult = dataPotongJadi.map((data) => {
+    let waktu = 0;
+    if (data.waktu_mulai && data.waktu_selesai) {
+      waktu += hitungDurasiDetik(data.waktu_mulai, data.waktu_selesai);
+    }
+    return {
+      ...data.toJSON(),
+      lama_pengerjaan: waktu,
+    };
+  });
+  return dataPotongResult;
 };
 
 const getLipat = async (startDate, endDate) => {
   const dataLipat = await InspeksiLipat.findAll({
-    // include: [
-    //   { model: User, as: "inspektor" },
-    //   {
-    //     model: InspeksiLipatPoint,
-    //     as: "inspeksi_lipat_point",
-    //     include: [
-    //       {
-    //         model: InspeksiLipatResult,
-    //         as: "inspeksi_lipat_result",
-    //       },
-    //       { model: User, as: "inspektor" },
-    //     ],
-    //   },
-    // ],
+    include: [
+      {
+        model: InspeksiLipatPoint,
+        as: "inspeksi_lipat_point",
+        attributes: ["id", "waktu_mulai", "waktu_selesai"],
+        include: [{ model: User, as: "inspektor", attributes: ["id", "nama"] }],
+      },
+    ],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -566,16 +783,37 @@ const getLipat = async (startDate, endDate) => {
       status: "history",
     },
   });
-  return dataLipat;
+
+  const dataLipatResult = dataLipat.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+
+    if (data.inspeksi_lipat_point?.length > 0) {
+      const pointList = data.inspeksi_lipat_point;
+
+      pointList.forEach((dA) => {
+        waktu += hitungDurasiDetik(dA.waktu_mulai, dA.waktu_selesai);
+      });
+
+      // Ambil inspektor terakhir (berdasarkan urutan array)
+      const lastPoint = pointList[pointList.length - 1];
+      namaInspektorTerakhir = lastPoint?.inspektor?.nama || null;
+    }
+
+    const { inspeksi_lipat_point, ...flatData } = data.toJSON();
+
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+  return dataLipatResult;
 };
 
 const getFinalInspection = async (startDate, endDate) => {
   const dataFinalInspection = await InspeksiFinal.findAll({
-    // include: [
-    //   { model: InspeksiFinalSub, as: "inspeksi_final_sub" },
-    //   { model: InspeksiFinalPoint, as: "inspeksi_final_point" },
-    //   { model: User, as: "data_inspector" },
-    // ],
+    include: [{ model: User, as: "data_inspector" }],
     where: {
       createdAt: {
         [Op.between]: [startDate, endDate],
@@ -583,7 +821,27 @@ const getFinalInspection = async (startDate, endDate) => {
       bagian_tiket: "history",
     },
   });
-  return dataFinalInspection;
+
+  const dataFinalInspectionResult = dataFinalInspection.map((data) => {
+    let waktu = 0;
+    let namaInspektorTerakhir = null;
+    if (data.waktu_mulai && data.waktu_selesai) {
+      waktu += hitungDurasiDetik(data.waktu_mulai, data.waktu_selesai);
+    }
+
+    namaInspektorTerakhir = data.data_inspector?.nama || null;
+    const { data_inspector, ...flatData } = data.toJSON();
+    return {
+      ...flatData,
+      lama_pengerjaan: waktu,
+      inspektor: namaInspektorTerakhir,
+    };
+  });
+
+  return dataFinalInspectionResult;
 };
+
+const hitungDurasiDetik = (mulai, selesai) =>
+  Math.floor((new Date(selesai) - new Date(mulai)) / 1000);
 
 module.exports = ReportQC;
