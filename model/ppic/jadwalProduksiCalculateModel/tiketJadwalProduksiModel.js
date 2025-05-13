@@ -12,7 +12,16 @@ const TiketJadwalProduksi = db.define(
     },
     no_jo: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_booking: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    type: {
+      type: DataTypes.STRING,
       allowNull: false,
+      defaultValue: "jadwal",
     },
     tgl_kirim: {
       type: DataTypes.STRING,

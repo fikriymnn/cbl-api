@@ -41,6 +41,14 @@ const InspeksiBahan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    merk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    gramature: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     jam: {
       type: DataTypes.STRING,
       allowNull: true,

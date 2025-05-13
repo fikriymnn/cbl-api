@@ -22,6 +22,11 @@ const MasterAbsensi = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    minimal_pengajuan_cuti_hari: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 3,
+    },
   },
   {
     freezeTableName: true,

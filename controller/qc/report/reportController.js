@@ -60,28 +60,67 @@ const User = require("../../../model/userModel");
 
 const ReportQC = {
   getReportCheckseet: async (req, res) => {
-    const { start_date, end_date } = req.query;
+    const { start_date, end_date, no_jo } = req.query;
     try {
       if (!start_date)
         return res.status(404).json({ msg: "start_date required!!" });
       if (!end_date)
         return res.status(404).json({ msg: "end_date required!!" });
+      let obj = {};
+      let objPotongBahan = {};
+      let objPotongJadi = {};
+      let objFinalInspection = {};
+      if (start_date && end_date) {
+        const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+        const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+        obj.createdAt = {
+          [Op.between]: [startDate, endDate],
+        };
+        obj.status = "history";
 
-      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
-      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+        objPotongBahan.createdAt = {
+          [Op.between]: [startDate, endDate],
+        };
+        objPotongBahan.status = "history";
+        (objPotongBahan.jenis_potong = "potong bahan"),
+          (objPotongJadi.createdAt = {
+            [Op.between]: [startDate, endDate],
+          });
+        objPotongJadi.status = "history";
+        (objPotongJadi.jenis_potong = "potong jadi"),
+          (objFinalInspection.createdAt = {
+            [Op.between]: [startDate, endDate],
+          });
+        objFinalInspection.bagian_tiket = "history";
+      }
 
-      const dataBahan = await getIncomingBahan(startDate, endDate);
-      const dataPotongBahan = await getPotongBahan(startDate, endDate);
-      const dataCetak = await getCetak(startDate, endDate);
-      const dataCoating = await getCoating(startDate, endDate);
-      const dataPond = await getPond(startDate, endDate);
-      const dataSortirRS = await getSortirRs(startDate, endDate);
-      const dataSamplingRabut = await getSamplingRabut(startDate, endDate);
-      const dataLem = await getLem(startDate, endDate);
-      const dataAmparLem = await getAmparLem(startDate, endDate);
-      const dataPotongJadi = await getPotongJadi(startDate, endDate);
-      const dataLipat = await getLipat(startDate, endDate);
-      const dataFinalInspection = await getFinalInspection(startDate, endDate);
+      if (no_jo) {
+        obj = { no_jo: no_jo, status: "history" };
+        objPotongBahan = {
+          no_jo: no_jo,
+          status: "history",
+          jenis_potong: "potong bahan",
+        };
+        objPotongJadi = {
+          no_jo: no_jo,
+          status: "history",
+          jenis_potong: "potong jadi",
+        };
+        objFinalInspection = { no_jo: no_jo, bagian_tiket: "history" };
+      }
+
+      const dataBahan = await getIncomingBahan(obj);
+      const dataPotongBahan = await getPotongBahan(objPotongBahan);
+      const dataCetak = await getCetak(obj);
+      const dataCoating = await getCoating(obj);
+      const dataPond = await getPond(obj);
+      const dataSortirRS = await getSortirRs(obj);
+      const dataSamplingRabut = await getSamplingRabut(obj);
+      const dataLem = await getLem(obj);
+      const dataAmparLem = await getAmparLem(obj);
+      const dataPotongJadi = await getPotongJadi(objPotongJadi);
+      const dataLipat = await getLipat(obj);
+      const dataFinalInspection = await getFinalInspection(objFinalInspection);
 
       const dataGrupMap = new Map();
 
@@ -224,32 +263,21 @@ const ReportQC = {
   },
 };
 
-const getIncomingBahan = async (startDate, endDate) => {
+const getIncomingBahan = async (obj) => {
   const dataBahan = await InspeksiBahan.findAll({
     // include: { model: InspeksiBahanResult, as: "inspeksi_bahan_result" },
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
   return dataBahan;
 };
 
-const getPotongBahan = async (startDate, endDate) => {
+const getPotongBahan = async (obj) => {
   const dataPotongBahan = await InspeksiPotong.findAll({
     // include: {
     //   model: InspeksiPotongResult,
     //   as: "inspeksi_potong_result",
     // },
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-      jenis_potong: "potong bahan",
-    },
+    where: obj,
   });
 
   const dataPotongResult = dataPotongBahan.map((data) => {
@@ -265,7 +293,7 @@ const getPotongBahan = async (startDate, endDate) => {
   return dataPotongResult;
 };
 
-const getCetak = async (startDate, endDate) => {
+const getCetak = async (obj) => {
   const dataCetak = await InspeksiCetak.findAll({
     include: [
       {
@@ -305,12 +333,7 @@ const getCetak = async (startDate, endDate) => {
         ],
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataCetakResult = dataCetak.map((data) => {
@@ -350,7 +373,7 @@ const getCetak = async (startDate, endDate) => {
   return dataCetakResult;
 };
 
-const getCoating = async (startDate, endDate) => {
+const getCoating = async (obj) => {
   const dataCoating = await InspeksiCoating.findAll({
     include: [
       {
@@ -377,12 +400,7 @@ const getCoating = async (startDate, endDate) => {
         },
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataCoatingResult = dataCoating.map((data) => {
@@ -422,7 +440,7 @@ const getCoating = async (startDate, endDate) => {
   return dataCoatingResult;
 };
 
-const getPond = async (startDate, endDate) => {
+const getPond = async (obj) => {
   const dataPond = await InspeksiPond.findAll({
     include: [
       {
@@ -461,12 +479,7 @@ const getPond = async (startDate, endDate) => {
         ],
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataPondResult = dataPond.map((data) => {
@@ -506,7 +519,7 @@ const getPond = async (startDate, endDate) => {
   return dataPondResult;
 };
 
-const getSortirRs = async (startDate, endDate) => {
+const getSortirRs = async (obj) => {
   const dataSortirRS = await InspeksiBarangRusakV2.findAll({
     include: [
       {
@@ -522,12 +535,7 @@ const getSortirRs = async (startDate, endDate) => {
         ],
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataSortirRSResult = dataSortirRS.map((data) => {
@@ -557,7 +565,7 @@ const getSortirRs = async (startDate, endDate) => {
   return dataSortirRSResult;
 };
 
-const getSamplingRabut = async (startDate, endDate) => {
+const getSamplingRabut = async (obj) => {
   const dataSamplingRabut = await InspeksiRabut.findAll({
     include: {
       model: InspeksiRabutPoint,
@@ -571,12 +579,7 @@ const getSamplingRabut = async (startDate, endDate) => {
         },
       ],
     },
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataSamplingRabutResult = dataSamplingRabut.map((data) => {
@@ -606,7 +609,7 @@ const getSamplingRabut = async (startDate, endDate) => {
   return dataSamplingRabutResult;
 };
 
-const getLem = async (startDate, endDate) => {
+const getLem = async (obj) => {
   const dataLem = await InspeksiLem.findAll({
     include: [
       {
@@ -646,12 +649,7 @@ const getLem = async (startDate, endDate) => {
         ],
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataLemResult = dataLem.map((data) => {
@@ -690,7 +688,7 @@ const getLem = async (startDate, endDate) => {
   return dataLemResult;
 };
 
-const getAmparLem = async (startDate, endDate) => {
+const getAmparLem = async (obj) => {
   const dataAmparLem = await InspeksiAmparLem.findAll({
     include: {
       model: InspeksiAmparLemPoint,
@@ -704,12 +702,7 @@ const getAmparLem = async (startDate, endDate) => {
         },
       ],
     },
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataAmparLemResult = dataAmparLem.map((data) => {
@@ -739,19 +732,13 @@ const getAmparLem = async (startDate, endDate) => {
   return dataAmparLemResult;
 };
 
-const getPotongJadi = async (startDate, endDate) => {
+const getPotongJadi = async (obj) => {
   const dataPotongJadi = await InspeksiPotong.findAll({
     // include: {
     //   model: InspeksiPotongResult,
     //   as: "inspeksi_potong_result",
     // },
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-      jenis_potong: "potong jadi",
-    },
+    where: obj,
   });
   const dataPotongResult = dataPotongJadi.map((data) => {
     let waktu = 0;
@@ -766,7 +753,7 @@ const getPotongJadi = async (startDate, endDate) => {
   return dataPotongResult;
 };
 
-const getLipat = async (startDate, endDate) => {
+const getLipat = async (obj) => {
   const dataLipat = await InspeksiLipat.findAll({
     include: [
       {
@@ -776,12 +763,7 @@ const getLipat = async (startDate, endDate) => {
         include: [{ model: User, as: "inspektor", attributes: ["id", "nama"] }],
       },
     ],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      status: "history",
-    },
+    where: obj,
   });
 
   const dataLipatResult = dataLipat.map((data) => {
@@ -811,15 +793,10 @@ const getLipat = async (startDate, endDate) => {
   return dataLipatResult;
 };
 
-const getFinalInspection = async (startDate, endDate) => {
+const getFinalInspection = async (obj) => {
   const dataFinalInspection = await InspeksiFinal.findAll({
     include: [{ model: User, as: "data_inspector" }],
-    where: {
-      createdAt: {
-        [Op.between]: [startDate, endDate],
-      },
-      bagian_tiket: "history",
-    },
+    where: obj,
   });
 
   const dataFinalInspectionResult = dataFinalInspection.map((data) => {
