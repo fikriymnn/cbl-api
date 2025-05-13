@@ -153,6 +153,10 @@ router.use(
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 
+// qc kalibrasi alat ukur
+router.use("/", require("./qc/kalibrasiAlatUkur/kalibrasiAlatUkurRoute"));
+router.use("/", require("./qc/kalibrasiAlatUkur/kalibrasiAlatUkurTiketRoute"));
+
 // qc outsourcing barang jadi
 router.use(
   "/",
