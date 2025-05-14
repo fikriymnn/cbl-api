@@ -65,11 +65,18 @@ const inspeksiLipatController = {
       }
       if (page && limit) {
         const data = await InspeksiLipat.findAll({
-          include: { model: User, as: "inspektor" },
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiLipatPoint,
+              as: "inspeksi_lipat_point",
+              attributes: ["id"],
+              include: [{ model: User, as: "inspektor" }],
+            },
+          ],
         });
         const length = await InspeksiLipat.count({ where: obj });
         return res.status(200).json({

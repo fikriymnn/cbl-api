@@ -48,6 +48,19 @@ const inspeksiBarangRusakV2Controller = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiBarangRusakPointV2,
+              as: "inspeksi_barang_rusak_point_v2",
+              attributes: ["id"],
+              include: [
+                {
+                  model: User,
+                  as: "inspektor",
+                },
+              ],
+            },
+          ],
         });
 
         return res.status(200).json({

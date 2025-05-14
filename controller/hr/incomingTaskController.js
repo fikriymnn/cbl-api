@@ -5,6 +5,10 @@ const PengajuanLembur = require("../../model/hr/pengajuanLembur/pengajuanLemburM
 const PengajuanMangkir = require("../../model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const PengajuanPinjaman = require("../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const PengajuanPromosiStatusKaryawan = require("../../model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
+const pengajuanTerlambat = require("../../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const pengajuanDinas = require("../../model/hr/pengajuanDinas/pengajuanDinasModel");
+const pengajuanSP = require("../../model/hr/pengajuanSP/pengajuanSPModel");
+const pengajuanKaryawan = require("../../model/hr/pengajuanKaryawan/pengajuanKaryawanModel");
 const PengajuanSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
 
 const db = require("../../config/database");
@@ -35,6 +39,20 @@ const IncomingTask = {
           where: { status_tiket: "incoming" },
         });
 
+      const lengthTerlambat = await pengajuanTerlambat.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthDinas = await pengajuanDinas.count({
+        where: { status_tiket: "incoming" },
+      });
+      const lengthSP = await pengajuanSP.count({
+        where: { status_tiket: "incoming" },
+      });
+
+      const lengthPenambahanKaryawan = await pengajuanKaryawan.count({
+        where: { status_tiket: "incoming" },
+      });
+
       res.status(200).json({
         pengajuan_cuti: lengthCuti,
         pengajuan_izin: lengthIzin,
@@ -43,6 +61,10 @@ const IncomingTask = {
         pengajuan_pinjaman: lengthPinjaman,
         pengajuan_sakit: lengthSakit,
         pengajuan_promosi_status_karayawan: lengthPromosiStatusKaryawan,
+        pengajuan_terlambat: lengthTerlambat,
+        pengajuan_dinas: lengthDinas,
+        pengajuan_sp: lengthSP,
+        pengajuan_penambahan_karyawan: lengthPenambahanKaryawan,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });

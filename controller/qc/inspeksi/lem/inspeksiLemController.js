@@ -50,6 +50,42 @@ const inspeksiLemController = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: InspeksiLemAwal,
+              as: "inspeksi_lem_awal",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiLemAwalPoint,
+                  as: "inspeksi_lem_awal_point",
+                  attributes: ["id"],
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiLemPeriode,
+              as: "inspeksi_lem_periode",
+              attributes: ["id"],
+              include: [
+                {
+                  model: InspeksiLemPeriodePoint,
+                  as: "inspeksi_lem_periode_point",
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         });
 
         return res.status(200).json({

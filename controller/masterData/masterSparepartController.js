@@ -76,6 +76,7 @@ const masterSparepartController = {
       keterangan,
       jenis_part,
       peruntukan,
+      file,
     } = req.body;
 
     const stokSparepart = await StokSparepart.findByPk(id_stok);
@@ -127,6 +128,7 @@ const masterSparepartController = {
           sisa_umur: actualUmur,
           keterangan,
           peruntukan,
+          file,
         });
 
         await StokSparepart.update(
@@ -147,6 +149,7 @@ const masterSparepartController = {
           umur_service: sisa_umur,
           keterangan,
           peruntukan,
+          file,
         });
         res.status(200).json(response);
       }
@@ -170,6 +173,7 @@ const masterSparepartController = {
       sisa_umur,
       keterangan,
       qty,
+      file,
     } = req.body;
 
     let obj = {};
@@ -185,6 +189,7 @@ const masterSparepartController = {
     if (sisa_umur) obj.sisa_umur = sisa_umur;
     if (keterangan) obj.keterangan = keterangan;
     if (qty) obj.qty = qty;
+    if (file) obj.file = file;
 
     try {
       await masterSparepart.update(obj, { where: { id: _id } }),

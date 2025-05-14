@@ -13,7 +13,7 @@ const db = require("../../../config/database");
 const PengajuanPromosiController = {
   getPengajuanPromosi: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket, type } = req.query;
+    const { page, limit, search, status_tiket, type, id_karyawan } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -22,6 +22,7 @@ const PengajuanPromosiController = {
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
     if (type) obj.type = type;
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
     try {
       if (page && limit) {
         const length = await PengajuanPromosi.count({ where: obj });
@@ -414,6 +415,7 @@ const PengajuanPromosiController = {
         obj.id_grade = dataPengajuanPromosi.id_grade_promosi;
       if (dataPengajuanPromosi.gaji_promosi)
         obj.gaji = dataPengajuanPromosi.gaji_promosi;
+      console.log(obj);
 
       await PengajuanPromosi.update(
         {
@@ -429,7 +431,7 @@ const PengajuanPromosiController = {
       );
 
       await KaryawanBiodata.update(obj, {
-        where: { id: dataPengajuanPromosi.id_karyawan },
+        where: { id_karyawan: dataPengajuanPromosi.id_karyawan },
         transaction: t,
       });
 

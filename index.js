@@ -154,6 +154,9 @@ const inspeksiBarangRusakV2 = require("./model/qc/inspeksi/barangRusakV2/inspeks
 const inspeksiBarangRusakPointV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
 const inspeksiBarangRusakDefectV2 = require("./model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
 
+const kalibrasiAlatUkur = require("./model/qc/kalibrasiAlatUkur/kalibrasiAlatUkurModel");
+const kalibrasiAlatUkurTiket = require("./model/qc/kalibrasiAlatUkur/kalibrasiAlatUkurTiketModel");
+
 const NcrTiket = require("./model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("./model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("./model/qc/ncr/ncrKetidaksesuaianModel");
@@ -237,6 +240,7 @@ const JadwalProduksiLembur = require("./model/ppic/jadwalProduksi/jadwalLemburMo
 const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
+const BookingJadwal = require("./model/ppic/bookingJadwal/bookingJadwalModel");
 
 //hak akses
 const MasterRole = require("./model/masterData/masterRoleModel");
@@ -263,7 +267,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await TiketJadwalProduksi.sync({ alter: true });
+//   await kalibrasiAlatUkurTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75

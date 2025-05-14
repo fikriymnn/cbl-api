@@ -206,8 +206,8 @@ const lemburFunction = {
       };
 
       // Helper function untuk memeriksa apakah waktu tertentu berada dalam jam istirahat
-      const isBreakTime = (time, breakTimes) => {
-        if (!breakTimes || breakTimes.length === 0) return false;
+      const isBreakTime = (time, breakTimes, roundToMinutes = 60) => {
+        if (!breakTimes || breakTimes.length === 0) return { isBreak: false };
 
         const timeInMinutes = moment.duration(time).asMinutes();
 
@@ -219,10 +219,28 @@ const lemburFunction = {
             timeInMinutes >= breakStartMinutes &&
             timeInMinutes < breakEndMinutes
           ) {
+            // Hitung durasi istirahat
+            const duration = breakEndMinutes - breakStartMinutes;
+
+            // Ambil waktu breakEnd asli sebagai moment object
+            let endTime = moment(breakTime.sampai, "HH:mm:ss");
+
+            // Bulatkan ke atas ke kelipatan roundToMinutes
+            const minutes = endTime.minutes();
+            const remainder = minutes % roundToMinutes;
+
+            if (remainder !== 0) {
+              const extra = roundToMinutes - remainder;
+              endTime = endTime.add(extra, "minutes");
+            }
+
+            // Pastikan detik diset ke 0
+            endTime.seconds(0);
+
             return {
               isBreak: true,
-              breakEndTime: breakTime.sampai,
-              breakDuration: breakEndMinutes - breakStartMinutes,
+              breakEndTime: endTime.format("HH:mm:ss"),
+              breakDuration: duration,
             };
           }
         }
@@ -352,6 +370,16 @@ const lemburFunction = {
 
           if (isCurrentTimeOvertime) {
             const hourOfDay = parseInt(time.split(":")[0], 10);
+
+            const overtimeShiftInfo = getShiftInfo(day);
+            if (overtimeShiftInfo) {
+              const breakCheck = isBreakTime(time, overtimeShiftInfo.istirahat);
+              if (breakCheck.isBreak) {
+                nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
+
+                continue;
+              }
+            }
 
             // Overnight hours handling (20:00-06:59) for shift 2 overtime
             if (hourOfDay >= 20 || hourOfDay < 8) {

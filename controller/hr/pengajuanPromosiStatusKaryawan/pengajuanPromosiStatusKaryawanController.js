@@ -13,7 +13,8 @@ const db = require("../../../config/database");
 const PengajuanStatusKaryawanController = {
   getPengajuanStatusKaryawan: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket, id_department } = req.query;
+    const { page, limit, search, status_tiket, id_department, id_karyawan } =
+      req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -22,6 +23,7 @@ const PengajuanStatusKaryawanController = {
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
     if (id_department) obj.id_department = id_department;
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
     try {
       if (page && limit) {
         const length = await PengajuanStatusKaryawan.count({ where: obj });

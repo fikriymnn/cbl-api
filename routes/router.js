@@ -153,6 +153,10 @@ router.use(
 // qc final
 router.use("/", require("./qc/inspeksi/final/inspeksiFinalRoutes"));
 
+// qc kalibrasi alat ukur
+router.use("/", require("./qc/kalibrasiAlatUkur/kalibrasiAlatUkurRoute"));
+router.use("/", require("./qc/kalibrasiAlatUkur/kalibrasiAlatUkurTiketRoute"));
+
 // qc outsourcing barang jadi
 router.use(
   "/",
@@ -164,6 +168,7 @@ router.use("/", require("./qc/ncr/ncrRoutes"));
 
 //qc report
 router.use("/", require("./qc/report/reportWasteRoute"));
+router.use("/", require("./qc/report/reportRoute"));
 
 //capa
 router.use("/", require("./qc/capa/capaRoutes"));
@@ -237,6 +242,8 @@ router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 //ppic
 router.use("/", require("./ppic/jadwalProduksiRoute"));
 router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
+router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
+router.use("/", require("./ppic/report/reportKapasitasRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

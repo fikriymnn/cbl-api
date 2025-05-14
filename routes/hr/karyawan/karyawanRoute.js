@@ -4,6 +4,7 @@ const karyawanController = require("../../../controller/hr/karyawan/karyawanCont
 //utama
 router.get("/hr/karyawan/:id?", karyawanController.getKaryawan);
 router.get("/hr/karyawanRekap", karyawanController.getKaryawanRekap);
+router.get("/hr/karyawanPresensi", karyawanController.getKaryawanPresensi);
 router.post("/hr/karyawan", karyawanController.createKaryawan);
 router.put("/hr/karyawan/:id", karyawanController.updateKaryawan);
 router.put("/hr/karyawan/cutOff/:id", karyawanController.cutOffKaryawan);

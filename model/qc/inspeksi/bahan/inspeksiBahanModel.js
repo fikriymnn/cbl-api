@@ -1,10 +1,18 @@
 const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../../config/database");
+const User = require("../../../userModel");
 
 const InspeksiBahan = db.define(
   "cs_inspeksi_bahan",
   {
+    id_inspektor: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
+        key: "id",
+      },
+    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -17,6 +25,10 @@ const InspeksiBahan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     supplier: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -26,6 +38,14 @@ const InspeksiBahan = db.define(
       allowNull: true,
     },
     ukuran: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    merk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    gramature: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -86,5 +106,13 @@ const InspeksiBahan = db.define(
     freezeTableName: true,
   }
 );
+
+User.hasMany(InspeksiBahan, {
+  foreignKey: "id_inspektor",
+});
+InspeksiBahan.belongsTo(User, {
+  foreignKey: "id_inspektor",
+  as: "data_inspektor",
+});
 
 module.exports = InspeksiBahan;
