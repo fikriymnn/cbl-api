@@ -32,6 +32,10 @@ const JadwalProduksiPerJam = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_booking: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     qty_pcs: {
       type: DataTypes.INTEGER,
       allowNull: true,

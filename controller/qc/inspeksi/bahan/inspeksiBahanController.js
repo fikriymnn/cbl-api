@@ -19,6 +19,7 @@ const inspeksiBahanController = {
           [Op.or]: [
             { no_lot: { [Op.like]: `%${search}%` } },
             { no_surat_jalan: { [Op.like]: `%${search}%` } },
+            { no_jo: { [Op.like]: `%${search}%` } },
             { supplier: { [Op.like]: `%${search}%` } },
             { jenis_kertas: { [Op.like]: `%${search}%` } },
             { ukuran: { [Op.like]: `%${search}%` } },
@@ -91,6 +92,9 @@ const inspeksiBahanController = {
         jam,
         jumlah,
         jumlah_pallet,
+        no_jo,
+        merk,
+        gramature,
       } = req.body;
 
       if (!tanggal)
@@ -110,12 +114,15 @@ const inspeksiBahanController = {
       const data = await InspeksiBahan.create({
         tanggal,
         no_surat_jalan,
+        no_jo,
         supplier,
         jenis_kertas,
         ukuran,
         jam,
         jumlah,
         jumlah_pallet,
+        merk,
+        gramature,
       });
 
       if (data) {
@@ -187,7 +194,11 @@ const inspeksiBahanController = {
     const date = new Date();
     try {
       await InspeksiBahan.update(
-        { waktu_mulai: date, inspector: req.user.name },
+        {
+          waktu_mulai: date,
+          inspector: req.user.name,
+          id_inspektor: req.user.id,
+        },
         { where: { id: id } }
       ),
         res.status(200).json({ msg: "start successfuly" });

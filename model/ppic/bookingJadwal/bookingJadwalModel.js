@@ -3,37 +3,28 @@ const db = require("../../../config/database");
 
 const { DataTypes } = Sequelize;
 
-const TiketJadwalProduksi = db.define(
-  "tiket_jadwal_produksi",
+const BookingJadwal = db.define(
+  "booking_jadwal",
   {
-    item: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    no_jo: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    no_booking: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "jadwal",
-    },
-    tgl_kirim: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    tgl_kirim_date: {
+    tanggal: {
       type: DataTypes.DATE,
       allowNull: false,
     },
-    tgl_cetak: {
+    mesin: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
+    },
+    no_io: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    nama_customer: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    nama_item: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     qty_pcs: {
       type: DataTypes.INTEGER,
@@ -45,12 +36,7 @@ const TiketJadwalProduksi = db.define(
     },
     status: {
       type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "non calculated",
-    },
-    status_tiket: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
       defaultValue: "incoming",
     },
   },
@@ -59,4 +45,4 @@ const TiketJadwalProduksi = db.define(
   }
 );
 
-module.exports = TiketJadwalProduksi;
+module.exports = BookingJadwal;

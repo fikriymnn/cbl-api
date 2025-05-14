@@ -16,6 +16,7 @@ const masterShiftController = {
       toleransi_pulang_menit,
       terhitung_lembur_menit,
       outstanding_karyawan_hari,
+      minimal_pengajuan_cuti_hari,
     } = req.body;
 
     let obj = {};
@@ -27,6 +28,8 @@ const masterShiftController = {
       obj.terhitung_lembur_menit = terhitung_lembur_menit;
     if (outstanding_karyawan_hari)
       obj.outstanding_karyawan_hari = outstanding_karyawan_hari;
+    if (minimal_pengajuan_cuti_hari)
+      obj.minimal_pengajuan_cuti_hari = minimal_pengajuan_cuti_hari;
 
     try {
       await masterAbsensi.update(obj, { where: { id: 1 } }),

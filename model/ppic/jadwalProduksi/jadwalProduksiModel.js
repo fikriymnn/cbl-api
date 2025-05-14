@@ -14,6 +14,10 @@ const JadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    no_booking: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     qty_pcs: {
       type: DataTypes.INTEGER,
       allowNull: false,
