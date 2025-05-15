@@ -144,8 +144,8 @@ const jadwalProduksiController = {
           { where: { no_booking: no_booking }, transaction: t }
         );
         await TiketJadwalProduksi.update(
-          { status_tiket: "history" },
-          { where: { no_booking: no_booking } }
+          { status_tiket: "history", no_jo: no_jo },
+          { where: { no_booking: no_booking }, transaction: t }
         );
         await t.commit();
         res.status(200).json({ msg: "update booking with jo success" });
