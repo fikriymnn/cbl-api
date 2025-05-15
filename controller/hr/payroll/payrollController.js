@@ -675,7 +675,8 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       const jamKeluar = new Date(absen.waktu_keluar);
       // jamLembur = (jamKeluar - jamKeluarShift) / (1000 * 60 * 60); // Hasil dalam jam
       //   jamLembur = payroll.data_pengajuan_lembur.lama_lembur_aktual;
-      jamLembur = absen.jam_lembur_spl;
+
+      jamLembur = absen.jam_lembur;
 
       // // Jika ada waktu istirahat, kita akan kurangi durasi lembur dengan jam istirahat
       // istirahat.forEach((rest) => {
@@ -787,15 +788,20 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
       }
 
       // Hitung uang lembur jika ada
-      if (absen.status_lembur === "Lembur" && jamLembur > 0) {
+      if (
+        (absen.status_lembur === "Lembur" && jamLembur > 0) ||
+        (absen.status_lembur === "Lembur Libur" && jamLembur > 0)
+      ) {
         const banyakMakanLembur = Math.floor(
           jamLembur / masterPayrollData.uang_makan_lembur_per
         );
 
         // menghitung uang lembur karyawan bulanan, jika jenis hari masuk libur makan dihitung uang lembur libur
+
         if (
           absen.jenis_hari_masuk === "Libur" &&
-          tipePenggajianKaryawan === "bulanan"
+          tipePenggajianKaryawan === "bulanan" &&
+          absen.jam_lembur === absen.jam_lembur_spl
         ) {
           payroll.rincian.push({
             label: "uangLemburLibur",
@@ -804,7 +810,10 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
             total: jamLembur * uangLemburLibur,
           });
           payroll.total += jamLembur * uangLemburLibur;
-        } else if (tipePenggajianKaryawan === "bulanan") {
+        } else if (
+          tipePenggajianKaryawan === "bulanan" &&
+          absen.jam_lembur === absen.jam_lembur_spl
+        ) {
           payroll.rincian.push({
             label: "uangLembur",
             jumlah: jamLembur,
@@ -815,7 +824,10 @@ const hitungPayroll = async (data, dataKaryawan, pengajuanLembur) => {
         }
 
         // menghitung uang lembur karyawan mingguan
-        if (tipePenggajianKaryawan === "mingguan") {
+        if (
+          tipePenggajianKaryawan === "mingguan" &&
+          absen.jam_lembur === absen.jam_lembur_spl
+        ) {
           payroll.rincian.push({
             label: "uangLembur",
             jumlah: jamLembur,

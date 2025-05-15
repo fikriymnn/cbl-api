@@ -914,6 +914,9 @@ const absenFunction = {
         );
 
         if (lemburFind) {
+          if (lemburFind.status_ketidaksesuaian === "approved") {
+            jamLembur = lemburFind.jam_lembur;
+          }
           statusLemburSPL = "dengan SPL";
           jamLemburSPL = lemburFind.jam_lembur;
           id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
