@@ -18,7 +18,7 @@ router.put(
 );
 router.delete(
   "/master/shift/istirahat/:id",
-  auth,
+
   masterIstirahatController.deleteMasteristirahat
 );
 

@@ -928,7 +928,7 @@ const absenFunction = {
 
         return {
           id_pengajuan_lembur: id_pengajuan_lembur,
-          tgl_absen: tglMasuk,
+          tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
           waktu_keluar: keluar ? keluar.checktime : null,
@@ -1075,7 +1075,7 @@ const absenFunction = {
 
         return {
           id_pengajuan_lembur: id_pengajuan_lembur,
-          tgl_absen: tglMasuk,
+          tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
           waktu_keluar: keluar ? keluar.checktime : null,
@@ -1299,6 +1299,7 @@ const generateDailyCuti = (
       userid: cuti.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1406,6 +1407,7 @@ const generateDailyIzin = (
       userid: izin.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1513,6 +1515,7 @@ const generateDailyDinas = (
       userid: dinas.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1619,6 +1622,7 @@ const generateDailySakit = (
       userid: sakit.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1727,6 +1731,7 @@ const generateDailyMangkir = (
     userid: mangkir.id_karyawan,
     waktu_masuk: new Date(startDate),
     waktu_keluar: null,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     tgl_masuk: tglMasuk,
     tgl_keluar: null,
     jam_masuk: null,
@@ -1832,6 +1837,7 @@ const generateDailyTerlambat = (
     userid: Terlambat.id_karyawan,
     waktu_masuk: new Date(startDate),
     waktu_keluar: null,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     tgl_masuk: tglMasuk,
     tgl_keluar: null,
     jam_masuk: null,
@@ -1911,6 +1917,7 @@ const generateDailyLembur = (
     userid: Lembur.id_karyawan,
     waktu_masuk: new Date(startDate),
     tgl_masuk: tglMasuk,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     jam_lembur: Lembur.lama_lembur_aktual,
     name: namaKaryawan,
     id_department: namaKaryawanBiodata,
@@ -1934,6 +1941,7 @@ const generatekaryawanList = (
   let dataKaryawan = [];
   // Dapatkan tanggal berdasarkan tanggal absensi masuk
   const waktuHariIni = new Date(date);
+
   const tglMasukUtc = new Date(
     Date.UTC(
       waktuHariIni.getUTCFullYear(),
@@ -2036,6 +2044,32 @@ function getMonthName(monthString) {
   } else {
     return months[monthNumber - 1];
   }
+}
+
+function convertTanggalIndonesiaToISO(tanggal) {
+  const bulanMap = {
+    Januari: "01",
+    Februari: "02",
+    Maret: "03",
+    April: "04",
+    Mei: "05",
+    Juni: "06",
+    Juli: "07",
+    Agustus: "08",
+    September: "09",
+    Oktober: "10",
+    November: "11",
+    Desember: "12",
+  };
+
+  const [hari, namaBulan, tahun] = tanggal.split("-");
+  const bulan = bulanMap[namaBulan];
+
+  if (!bulan) {
+    throw new Error(`Bulan "${namaBulan}" tidak dikenali`);
+  }
+
+  return `${tahun}-${bulan}-${hari.padStart(2, "0")}`;
 }
 
 module.exports = absenFunction;

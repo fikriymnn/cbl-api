@@ -267,7 +267,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await masterAbsensi.sync({ alter: true });
+//   await WaktuIstirahat.sync({ alter: true });
 // })();
 
 // const ip100 = 75
