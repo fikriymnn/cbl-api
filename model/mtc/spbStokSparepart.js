@@ -50,6 +50,16 @@ const RequestStokSparepart = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    qty_mtc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_purchase: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     tgl_permintaan_kedatangan: {
       type: DataTypes.DATE,
       allowNull: true,
