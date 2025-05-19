@@ -302,7 +302,7 @@ const SpbStokSparepartController = {
   },
 
   createManySpbStokSparepart: async (req, res) => {
-    const { sparepartRequest, note } = req.body;
+    const { sparepartRequest, no_spb, note } = req.body;
 
     if (!sparepartRequest || sparepartRequest == [])
       return res.status(404).json({ msg: "incomplite data" });
@@ -317,7 +317,7 @@ const SpbStokSparepartController = {
           id_stok_sparepart: sparepart.id,
           qty: sparepartRequest[i].qty,
           tgl_spb: new Date(),
-          no_spb: "",
+          no_spb: no_spb,
           tgl_permintaan_kedatangan:
             sparepartRequest[i].tgl_permintaan_kedatangan,
           note: note,
@@ -486,6 +486,7 @@ const SpbStokSparepartController = {
         {
           status: "nok",
           status_pengajuan: "section head rejected",
+          status_spb: "done",
           note_verifikasi: note_verifikasi,
         },
         { where: { id: _id } }
