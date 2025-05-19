@@ -18,6 +18,18 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_po: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_io: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -31,9 +43,29 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
+    tgl_kirim_update: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    tgl_kirim_update_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    tgl_so: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tgl_so_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     tgl_cetak: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    qty_po: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     qty_pcs: {
       type: DataTypes.INTEGER,
