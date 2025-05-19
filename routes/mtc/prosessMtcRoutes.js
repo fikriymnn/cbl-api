@@ -35,7 +35,7 @@ router.put("/ticket/approveDate/:id", approveDate);
 router.put("/ticket/tolakDate/:id", tolakDate);
 router.put("/ticket/approve/:id", approveTiket);
 router.put("/ticket/tolak/:id", tolakTiket);
-router.put("/ticket/rework/:id", reworkMtc);
+router.put("/ticket/rework/:id", auth, reworkMtc);
 router.get("/cekMonitoringOs2", cekMonitoring);
 router.get("/prosessMtc", getProsesMtc);
 

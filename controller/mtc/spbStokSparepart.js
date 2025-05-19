@@ -17,29 +17,30 @@ const SpbStokSparepartController = {
       suplier,
       status_pengajuan,
       tgl_aktual,
+      status_spb,
       limit,
       page,
     } = req.query;
 
     let offset = (page - 1) * limit;
     let obj = {
-      [Op.and]: [
-        {
-          status_pengajuan: {
-            [Op.ne]: "done",
-          },
-        },
-        {
-          status_pengajuan: {
-            [Op.ne]: "spb rejected",
-          },
-        },
-        // {
-        //   incoming_sparepart: {
-        //     [Op.ne]: "oke",
-        //   },
-        // },
-      ],
+      // [Op.and]: [
+      //   {
+      //     status_pengajuan: {
+      //       [Op.ne]: "done",
+      //     },
+      //   },
+      //   {
+      //     status_pengajuan: {
+      //       [Op.ne]: "spb rejected",
+      //     },
+      //   },
+      //   {
+      //     incoming_sparepart: {
+      //       [Op.ne]: "oke",
+      //     },
+      //   },
+      // ],
     };
     if (no_spb) obj.no_spb = no_spb;
     if (tgl_spb) obj.tgl_spb = tgl_spb;
@@ -51,6 +52,7 @@ const SpbStokSparepartController = {
     if (no_po) obj.no_po = no_po;
     if (suplier) obj.suplier = suplier;
     if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
+    if (status_spb) obj.status_spb = status_spb;
     if (tgl_aktual) obj.tgl_aktual = tgl_aktual;
 
     try {
@@ -300,7 +302,7 @@ const SpbStokSparepartController = {
   },
 
   createManySpbStokSparepart: async (req, res) => {
-    const { sparepartRequest, note } = req.body;
+    const { sparepartRequest, no_spb, note } = req.body;
 
     if (!sparepartRequest || sparepartRequest == [])
       return res.status(404).json({ msg: "incomplite data" });
@@ -315,7 +317,7 @@ const SpbStokSparepartController = {
           id_stok_sparepart: sparepart.id,
           qty: sparepartRequest[i].qty,
           tgl_spb: new Date(),
-          no_spb: "",
+          no_spb: no_spb,
           tgl_permintaan_kedatangan:
             sparepartRequest[i].tgl_permintaan_kedatangan,
           note: note,
@@ -367,6 +369,7 @@ const SpbStokSparepartController = {
     }
   },
 
+  //ini yg di pake
   updateMonitoringSpbStokSparepart: async (req, res) => {
     const _id = req.params.id;
     const {
@@ -375,7 +378,6 @@ const SpbStokSparepartController = {
       suplier,
       harga_satuan,
       total_harga,
-      status_pengajuan,
       tgl_aktual,
       qty_update,
     } = req.body;
@@ -386,9 +388,57 @@ const SpbStokSparepartController = {
     if (suplier) obj.suplier = suplier;
     if (harga_satuan) obj.harga_satuan = harga_satuan;
     if (total_harga) obj.total_harga = total_harga;
-    if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
+    //if (status_pengajuan) obj.status_pengajuan = status_pengajuan;
     if (tgl_aktual) obj.tgl_aktual = tgl_aktual;
-    if (qty_update) obj.qty_update = qty_update;
+
+    try {
+      if (!qty_update) {
+        obj.status_pengajuan = "verifikasi qty mtc";
+      } else if (qty_update) {
+        const checkDataSpb = await SpbStokSparepart.findByPk(_id);
+        const jumlahQty = checkDataSpb.qty_update + qty_update;
+        const jumlahQtyPermintaan = checkDataSpb.qty;
+        if (jumlahQty == jumlahQtyPermintaan) {
+          obj.status_pengajuan = "done";
+          obj.qty_update = jumlahQty;
+          obj.qty_purchase = jumlahQty;
+          obj.status_spb = "done";
+        } else if (jumlahQty < jumlahQtyPermintaan) {
+          obj.status_pengajuan = "verifikasi qty mtc";
+          (obj.qty_update = jumlahQty), (obj.qty_purchase = jumlahQty);
+        }
+        //tambah ke stok
+        const sparepart = await StokSparepart.findByPk(
+          checkDataSpb.id_stok_sparepart
+        );
+        const stok_sparepart = sparepart.stok + qty_update;
+
+        await StokSparepart.update(
+          { stok: stok_sparepart },
+          { where: { id: checkDataSpb.id_stok_sparepart } }
+        );
+      }
+      await SpbStokSparepart.update(obj, { where: { id: _id } }),
+        res.status(201).json({ msg: "spb update Successfuly" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  //ini yg di pake
+  updateMonitoringSpbStokSparepartMtc: async (req, res) => {
+    const _id = req.params.id;
+    const { qty_update } = req.body;
+
+    let obj = {};
+    if (!qty_update) return res.status(500).json({ msg: "qty wajib di isi" });
+    if (qty_update) {
+      const checkData = await SpbStokSparepart.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({ msg: "data spb tidak di temukan" });
+      obj.qty_mtc = checkData.qty_update + qty_update;
+      obj.status_pengajuan = "verifikasi qty purchase";
+    }
 
     try {
       await SpbStokSparepart.update(obj, { where: { id: _id } }),
@@ -436,6 +486,7 @@ const SpbStokSparepartController = {
         {
           status: "nok",
           status_pengajuan: "section head rejected",
+          status_spb: "done",
           note_verifikasi: note_verifikasi,
         },
         { where: { id: _id } }

@@ -15,7 +15,8 @@ const MasterIstirahat = db.define(
         "Kamis",
         "Jumat",
         "Sabtu",
-        "Minggu"
+        "Minggu",
+        "Libur"
       ),
       allowNull: false,
       references: {

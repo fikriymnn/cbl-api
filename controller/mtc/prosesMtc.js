@@ -1072,8 +1072,9 @@ const ProsessMtc = {
   reworkMtc: async (req, res) => {
     const _id = req.params.id;
     const { id_eksekutor } = req.body;
-    if (!id_eksekutor)
-      return res.status(401).json({ msg: "eksekutor required" });
+
+    // if (!id_eksekutor)
+    //   return res.status(401).json({ msg: "eksekutor required" });
 
     const ticket = await Ticket.findByPk(_id);
 
@@ -1088,7 +1089,7 @@ const ProsessMtc = {
 
     let prosesMtc = {
       id_tiket: _id,
-      id_eksekutor: id_eksekutor,
+      id_eksekutor: req.user.id,
       status_proses: "open",
       skor_mtc: ticket.skor_mtc,
       status_qc: "open",
@@ -1099,7 +1100,7 @@ const ProsessMtc = {
       //await Ticket.update(obj, { where: { id: _id } }),
       await ProsesMtc.create(prosesMtc);
       await userActionMtc.create({
-        id_mtc: id_eksekutor,
+        id_mtc: req.user.id,
         id_tiket: _id,
         action: "eksekutor",
         status: "on progress",

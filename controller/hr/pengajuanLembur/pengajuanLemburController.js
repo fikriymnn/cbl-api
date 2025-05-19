@@ -507,32 +507,29 @@ const PengajuanLemburController = {
       if (!dataPengajuanLembur)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
+      let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
+      let statusPenanganan = "Sesuai SPL";
+
+      // 1 untuk ikut lama lembur spl
       if (penanganan == 1) {
-        // console.log(dataPengajuanLembur.lama_pengajuan_ketidaksesuaian);
-        await PengajuanLembur.update(
-          {
-            status_ketidaksesuaian: "approved",
-            id_respon_ketidaksesuaian,
-            lama_lembur_aktual:
-              dataPengajuanLembur.lama_pengajuan_ketidaksesuaian,
-          },
-          {
-            where: { id: _id },
-            transaction: t,
-          }
-        );
+        lamaLemburAktual = dataPengajuanLembur.lama_lembur;
+        statusPenanganan = "Sesuai spl";
       } else {
-        await PengajuanLembur.update(
-          {
-            status_ketidaksesuaian: "rejected",
-            id_respon_ketidaksesuaian,
-          },
-          {
-            where: { id: _id },
-            transaction: t,
-          }
-        );
+        lamaLemburAktual = dataPengajuanLembur.lama_lembur_absen;
+        statusPenanganan = "Sesuai absen";
       }
+
+      await PengajuanLembur.update(
+        {
+          status_ketidaksesuaian: "approved",
+          id_respon_ketidaksesuaian,
+          lama_lembur_aktual: lamaLemburAktual,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      );
 
       await t.commit();
       res.status(200).json({ msg: "Send Successfully" });

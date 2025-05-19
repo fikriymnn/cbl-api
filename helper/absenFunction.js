@@ -5,6 +5,7 @@ const Karyawan = require("../model/hr/karyawanModel");
 const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
 const masterShift = require("../model/masterData/hr/masterShift/masterShiftModel");
 const MasterDepartment = require("../model/masterData/hr/masterDeprtmentModel");
+const MasterDivisi = require("../model/masterData/hr/masterDivisiModel");
 const MasterAbsensi = require("../model/masterData/hr/masterAbsensiModel");
 const DataCuti = require("../model/hr/pengajuanCuti/pengajuanCutiModel");
 const DataIzin = require("../model/hr/pengajuanIzin/pengajuanIzinModel");
@@ -20,6 +21,7 @@ const absenFunction = {
     // console.log(1);
     const masterAbsensi = await MasterAbsensi.findByPk(1);
     const masterDepartment = await MasterDepartment.findAll();
+    const masterDivisi = await MasterDivisi.findAll();
     const karyawanBiodata = await KaryawanBiodata.findAll({
       where: obj,
     });
@@ -427,7 +429,7 @@ const absenFunction = {
       },
     });
 
-    //console.log(3);
+    //console.log(resultJadwalKaryawan);
 
     // Memecah cuti menjadi entri harian
     let cutiEntries = [];
@@ -439,6 +441,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -454,6 +457,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -469,6 +473,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -484,6 +489,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -499,6 +505,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -514,6 +521,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -528,6 +536,7 @@ const absenFunction = {
           karyawan,
           karyawanBiodata,
           masterDepartment,
+          masterDivisi,
           resultJadwalKaryawan
         ),
       ];
@@ -628,11 +637,18 @@ const absenFunction = {
         (data) => data.id === dataKaryawanBiodata?.id_department
       );
 
+      //get data master divisi
+      const dataMasterDivisi = masterDivisi.find(
+        (data) => data.id === dataKaryawanBiodata?.id_divisi
+      );
+
       const namaKaryawan = dataKaryawan?.name;
       const typeKaryawan = dataKaryawanBiodata?.tipe_karyawan;
       const tipePenggajian = dataKaryawanBiodata?.tipe_penggajian;
       const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+      const idDivisi = dataKaryawanBiodata?.id_divisi;
+      const namaDivisi = dataMasterDivisi?.nama_divisi;
 
       // Ambil jam shift
       const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -898,15 +914,21 @@ const absenFunction = {
         );
 
         if (lemburFind) {
+          if (lemburFind.status_ketidaksesuaian === "approved") {
+            jamLembur = lemburFind.jam_lembur;
+          }
           statusLemburSPL = "dengan SPL";
           jamLemburSPL = lemburFind.jam_lembur;
           id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
           statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
+        } else {
+          statusLembur = "Tidak Lembur";
+          jamLembur = 0;
         }
 
         return {
           id_pengajuan_lembur: id_pengajuan_lembur,
-          tgl_absen: tglMasuk,
+          tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
           waktu_keluar: keluar ? keluar.checktime : null,
@@ -928,6 +950,8 @@ const absenFunction = {
           status_absen: "masuk",
           id_department: idDepartmentKaryawan,
           nama_department: namaDepartmentKaryawan,
+          id_divisi: idDivisi,
+          nama_divisi: namaDivisi,
           jam_masuk_shift: jamMasukShift,
           jam_keluar_shift: jamKeluarShift,
           hari: dayName2,
@@ -1051,7 +1075,7 @@ const absenFunction = {
 
         return {
           id_pengajuan_lembur: id_pengajuan_lembur,
-          tgl_absen: tglMasuk,
+          tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
           waktu_masuk: masuk.checktime,
           waktu_keluar: keluar ? keluar.checktime : null,
@@ -1073,6 +1097,8 @@ const absenFunction = {
           status_absen: "masuk",
           id_department: idDepartmentKaryawan,
           nama_department: namaDepartmentKaryawan,
+          id_divisi: idDivisi,
+          nama_divisi: namaDivisi,
           jam_masuk_shift: jamMasukShift,
           jam_keluar_shift: jamKeluarShift,
           hari: dayName2,
@@ -1105,6 +1131,7 @@ const absenFunction = {
         karyawan,
         karyawanBiodata,
         masterDepartment,
+        masterDivisi,
         resultJadwalKaryawan,
         startDate
       );
@@ -1138,6 +1165,8 @@ const absenFunction = {
             (karyawanDitemukan.status_absen = absen.status_absen),
             (karyawanDitemukan.id_department = absen.id_department),
             (karyawanDitemukan.nama_department = absen.nama_department);
+          (karyawanDitemukan.id_divisi = absen.id_divisi),
+            (karyawanDitemukan.nama_divisi = absen.nama_divisi);
           (karyawanDitemukan.hari = absen.hari),
             (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk);
         } else {
@@ -1164,6 +1193,8 @@ const absenFunction = {
             status_absen: absen.status_absen,
             id_department: absen.id_department,
             nama_department: absen.nama_department,
+            id_divisi: absen.id_divisi,
+            nama_divisi: absen.nama_divisi,
             hari: absen.hari,
             jenis_hari_masuk: absen.jenis_hari_masuk,
           });
@@ -1192,6 +1223,7 @@ const generateDailyCuti = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailycuti = [];
@@ -1209,9 +1241,17 @@ const generateDailyCuti = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1259,6 +1299,7 @@ const generateDailyCuti = (
       userid: cuti.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1274,6 +1315,8 @@ const generateDailyCuti = (
       status_absen: "cuti" + " " + cuti.tipe_cuti,
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      id_divisi: idDivisi,
+      nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
     });
@@ -1290,6 +1333,7 @@ const generateDailyIzin = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailyIzin = [];
@@ -1307,9 +1351,16 @@ const generateDailyIzin = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1356,6 +1407,7 @@ const generateDailyIzin = (
       userid: izin.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1371,6 +1423,8 @@ const generateDailyIzin = (
       status_absen: "izin",
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      id_divisi: idDivisi,
+      nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
     });
@@ -1387,6 +1441,7 @@ const generateDailyDinas = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailyDinas = [];
@@ -1404,9 +1459,16 @@ const generateDailyDinas = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1453,6 +1515,7 @@ const generateDailyDinas = (
       userid: dinas.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1468,6 +1531,8 @@ const generateDailyDinas = (
       status_absen: "dinas",
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      id_divisi: idDivisi,
+      nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
     });
@@ -1484,6 +1549,7 @@ const generateDailySakit = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailySakit = [];
@@ -1501,9 +1567,16 @@ const generateDailySakit = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1549,6 +1622,7 @@ const generateDailySakit = (
       userid: sakit.id_karyawan,
       waktu_masuk: new Date(startDate),
       waktu_keluar: null,
+      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
       tgl_masuk: tglMasuk,
       tgl_keluar: null,
       jam_masuk: null,
@@ -1564,6 +1638,8 @@ const generateDailySakit = (
       status_absen: "sakit",
       id_department: namaKaryawanBiodata,
       nama_department: namaDepartmentKaryawan,
+      id_divisi: idDivisi,
+      nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
     });
@@ -1580,6 +1656,7 @@ const generateDailyMangkir = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailyMangkir = [];
@@ -1597,9 +1674,16 @@ const generateDailyMangkir = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
 
@@ -1647,6 +1731,7 @@ const generateDailyMangkir = (
     userid: mangkir.id_karyawan,
     waktu_masuk: new Date(startDate),
     waktu_keluar: null,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     tgl_masuk: tglMasuk,
     tgl_keluar: null,
     jam_masuk: null,
@@ -1662,6 +1747,8 @@ const generateDailyMangkir = (
     status_absen: "Mangkir",
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
+    id_divisi: idDivisi,
+    nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
   });
@@ -1675,6 +1762,7 @@ const generateDailyTerlambat = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailyTerlambat = [];
@@ -1692,9 +1780,16 @@ const generateDailyTerlambat = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
 
@@ -1742,6 +1837,7 @@ const generateDailyTerlambat = (
     userid: Terlambat.id_karyawan,
     waktu_masuk: new Date(startDate),
     waktu_keluar: null,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     tgl_masuk: tglMasuk,
     tgl_keluar: null,
     jam_masuk: null,
@@ -1757,6 +1853,8 @@ const generateDailyTerlambat = (
     status_absen: `${Terlambat.type_izin}`,
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
+    id_divisi: idDivisi,
+    nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
   });
@@ -1770,6 +1868,7 @@ const generateDailyLembur = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan
 ) => {
   let dailyLembur = [];
@@ -1787,9 +1886,16 @@ const generateDailyLembur = (
     (data) => data.id === dataKaryawanBiodata?.id_department
   );
 
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi
+  );
+
   const namaKaryawan = dataKaryawan?.name;
   const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
 
@@ -1811,10 +1917,13 @@ const generateDailyLembur = (
     userid: Lembur.id_karyawan,
     waktu_masuk: new Date(startDate),
     tgl_masuk: tglMasuk,
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     jam_lembur: Lembur.lama_lembur_aktual,
     name: namaKaryawan,
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
+    id_divisi: idDivisi,
+    nama_divisi: namaDivisi,
     status_ketidaksesuaian: Lembur.status_ketidaksesuaian,
   });
 
@@ -1825,12 +1934,14 @@ const generatekaryawanList = (
   karyawan,
   karyawanBiodata,
   masterDepartment,
+  masterDivisi,
   resultJadwalKaryawan,
   date
 ) => {
   let dataKaryawan = [];
   // Dapatkan tanggal berdasarkan tanggal absensi masuk
   const waktuHariIni = new Date(date);
+
   const tglMasukUtc = new Date(
     Date.UTC(
       waktuHariIni.getUTCFullYear(),
@@ -1853,6 +1964,11 @@ const generatekaryawanList = (
       (data) => data.id === dataKaryawanBiodata?.id_department
     );
 
+    //get data master divisi
+    const dataMasterDivisi = masterDivisi.find(
+      (data) => data.id === dataKaryawanBiodata?.id_divisi
+    );
+
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
       (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
     );
@@ -1864,6 +1980,8 @@ const generatekaryawanList = (
 
     const idDepartment = dataKaryawanBiodata?.id_department;
     const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+    const idDivisi = dataKaryawanBiodata?.id_divisi;
+    const namaDivisi = dataMasterDivisi?.nama_divisi;
 
     if (!isTodayOvertime) {
       dataKaryawan.push({
@@ -1890,6 +2008,8 @@ const generatekaryawanList = (
         status_absen: "Belum Masuk",
         id_department: idDepartment,
         nama_department: namaDepartmentKaryawan,
+        id_divisi: idDivisi,
+        nama_divisi: namaDivisi,
         hari: null,
         jenis_hari_masuk: null,
         tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
@@ -1924,6 +2044,32 @@ function getMonthName(monthString) {
   } else {
     return months[monthNumber - 1];
   }
+}
+
+function convertTanggalIndonesiaToISO(tanggal) {
+  const bulanMap = {
+    Januari: "01",
+    Februari: "02",
+    Maret: "03",
+    April: "04",
+    Mei: "05",
+    Juni: "06",
+    Juli: "07",
+    Agustus: "08",
+    September: "09",
+    Oktober: "10",
+    November: "11",
+    Desember: "12",
+  };
+
+  const [hari, namaBulan, tahun] = tanggal.split("-");
+  const bulan = bulanMap[namaBulan];
+
+  if (!bulan) {
+    throw new Error(`Bulan "${namaBulan}" tidak dikenali`);
+  }
+
+  return `${tahun}-${bulan}-${hari.padStart(2, "0")}`;
 }
 
 module.exports = absenFunction;
