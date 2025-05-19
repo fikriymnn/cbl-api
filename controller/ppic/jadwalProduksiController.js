@@ -121,8 +121,13 @@ const jadwalProduksiController = {
       item,
       no_jo,
       no_booking,
+      no_po,
+      no_io,
+      customer,
       tgl_kirim,
+      tgl_so,
       tgl_cetak,
+      qty_po,
       qty_pcs,
       qty_druk,
       tahap,
@@ -131,6 +136,13 @@ const jadwalProduksiController = {
 
     try {
       if (no_jo && no_booking) {
+        let obj = {};
+        if (item) obj.item = item;
+        if (no_jo) obj.no_jo = no_jo;
+        if (no_po) obj.no_po = no_po;
+        if (no_io) obj.no_io = no_io;
+        if (customer) obj.customer = customer;
+        if (qty_po) obj.qty_po = qty_po;
         const checkBooking = await JadwalProduksi.findAll({
           where: { no_booking: no_booking },
         });
@@ -139,10 +151,10 @@ const jadwalProduksiController = {
           return res.status(404).json({
             msg: "no booking tidak di temukan atau no booking belum di kalkulasi",
           });
-        await JadwalProduksi.update(
-          { no_jo: no_jo },
-          { where: { no_booking: no_booking }, transaction: t }
-        );
+        await JadwalProduksi.update(obj, {
+          where: { no_booking: no_booking },
+          transaction: t,
+        });
         await TiketJadwalProduksi.update(
           { status_tiket: "history", no_jo: no_jo },
           { where: { no_booking: no_booking }, transaction: t }
@@ -154,10 +166,18 @@ const jadwalProduksiController = {
           {
             item,
             no_jo,
+            no_po,
+            no_io,
+            customer,
             type: "jadwal",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
+            tgl_kirim_update: tgl_kirim,
+            tgl_kirim_update_date: tgl_kirim,
+            tgl_so,
+            tgl_so_date: tgl_so,
             tgl_cetak,
+            qty_po,
             qty_pcs,
             qty_druk,
           },
@@ -246,10 +266,14 @@ const jadwalProduksiController = {
           {
             item,
             no_booking,
+            no_po,
+            no_io,
+            customer,
             type: "booking",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
             tgl_cetak,
+            qty_po,
             qty_pcs,
             qty_druk,
           },
