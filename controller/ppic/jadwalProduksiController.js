@@ -273,7 +273,6 @@ const jadwalProduksiController = {
             type: "booking",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
-            tgl_kirim_date: tgl_kirim,
             tgl_kirim_update: tgl_kirim,
             tgl_kirim_update_date: tgl_kirim,
             tgl_so,
