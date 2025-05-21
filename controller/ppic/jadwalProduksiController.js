@@ -187,24 +187,25 @@ const jadwalProduksiController = {
         for (let i = 0; i < tahap.length; i++) {
           const data = tahap[i];
           let fromData = "";
+          const tahapanString = data.tahapan.toLowerCase();
 
           if (
-            data.tahapan === "Potong" ||
-            data.tahapan === "Plate" ||
-            data.tahapan === "Sampling" ||
-            data.tahapan === "Packing" ||
-            data.tahapan === "Final Inspection" ||
-            data.tahapan === "Kirim"
+            tahapanString.includes("potong") ||
+            tahapanString.includes("plate") ||
+            tahapanString.includes("sampling") ||
+            tahapanString.includes("packing") ||
+            tahapanString.includes("final inspection") ||
+            tahapanString.includes("kirim")
           ) {
             fromData = "tgl";
           } else if (
-            data.tahapan === "Cetak" ||
-            data.tahapan === "Coating" ||
-            data.tahapan === "Pond"
+            tahapanString.includes("lem") ||
+            tahapanString.includes("lipat") ||
+            tahapanString.includes("finishing")
           ) {
-            fromData = "druk";
-          } else {
             fromData = "pcs";
+          } else {
+            fromData = "druk";
           }
 
           dataTahapan.push({
@@ -272,6 +273,11 @@ const jadwalProduksiController = {
             type: "booking",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
+            tgl_kirim_date: tgl_kirim,
+            tgl_kirim_update: tgl_kirim,
+            tgl_kirim_update_date: tgl_kirim,
+            tgl_so,
+            tgl_so_date: tgl_so,
             tgl_cetak,
             qty_po,
             qty_pcs,
@@ -283,24 +289,25 @@ const jadwalProduksiController = {
         for (let i = 0; i < tahap.length; i++) {
           const data = tahap[i];
           let fromData = "";
+          const tahapanString = data.tahapan.toLowerCase();
 
           if (
-            data.tahapan === "Potong" ||
-            data.tahapan === "Plate" ||
-            data.tahapan === "Sampling" ||
-            data.tahapan === "Packing" ||
-            data.tahapan === "Final Inspection" ||
-            data.tahapan === "Kirim"
+            tahapanString.includes("potong") ||
+            tahapanString.includes("plate") ||
+            tahapanString.includes("sampling") ||
+            tahapanString.includes("packing") ||
+            tahapanString.includes("final inspection") ||
+            tahapanString.includes("kirim")
           ) {
             fromData = "tgl";
           } else if (
-            data.tahapan === "Cetak" ||
-            data.tahapan === "Coating" ||
-            data.tahapan === "Pond"
+            tahapanString.includes("lem") ||
+            tahapanString.includes("lipat") ||
+            tahapanString.includes("finishing")
           ) {
-            fromData = "druk";
-          } else {
             fromData = "pcs";
+          } else {
+            fromData = "druk";
           }
 
           dataTahapan.push({

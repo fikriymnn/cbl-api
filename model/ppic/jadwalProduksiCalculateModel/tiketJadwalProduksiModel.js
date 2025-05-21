@@ -45,11 +45,11 @@ const TiketJadwalProduksi = db.define(
     },
     tgl_kirim_update: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     tgl_kirim_update_date: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
     },
     tgl_so: {
       type: DataTypes.STRING,
@@ -65,7 +65,7 @@ const TiketJadwalProduksi = db.define(
     },
     qty_po: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     qty_pcs: {
       type: DataTypes.INTEGER,
