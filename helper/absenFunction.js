@@ -490,7 +490,9 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
+          startDate,
+          endDate
         ),
       ];
     });
@@ -1146,6 +1148,7 @@ const absenFunction = {
             (karyawanDitemukan.userid = absen.userid),
             (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
             (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
+            (karyawanDitemukan.tgl_absen = absen.tgl_absen),
             (karyawanDitemukan.tgl_masuk = absen.tgl_masuk),
             (karyawanDitemukan.tgl_keluar = absen.tgl_keluar),
             (karyawanDitemukan.jam_masuk = absen.jam_masuk),
@@ -1175,6 +1178,7 @@ const absenFunction = {
             userid: absen.userid,
             waktu_masuk: absen.waktu_masuk,
             waktu_keluar: absen.waktu_keluar,
+            tgl_absen: absen.tgl_absen,
             tgl_masuk: absen.tgl_masuk,
             tgl_keluar: absen.tgl_keluar,
             jam_masuk: absen.jam_masuk,
@@ -1550,11 +1554,14 @@ const generateDailySakit = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
+  startDateSakit,
+  endDateSakit
 ) => {
   let dailySakit = [];
   let startDate = new Date(sakit.dari);
   let endDate = new Date(sakit.sampai);
+
   const dataKaryawan = karyawan.find(
     (data) => data.userid === sakit.id_karyawan
   );
@@ -1577,6 +1584,18 @@ const generateDailySakit = (
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
   const idDivisi = dataKaryawanBiodata?.id_divisi;
   const namaDivisi = dataMasterDivisi?.nama_divisi;
+
+  // Pastikan untuk memfilter berdasarkan rentang tanggal yang diinginkan
+  if (
+    endDate < new Date(startDateSakit) ||
+    startDate > new Date(endDateSakit)
+  ) {
+    return dailySakit; // Jika tidak dalam rentang, kembalikan array kosong
+  }
+  // Sesuaikan startDate dan endDate untuk rentang yang relevan
+  startDate =
+    startDate < new Date(startDateSakit) ? new Date(startDateSakit) : startDate;
+  endDate = endDate > new Date(endDateSakit) ? new Date(endDateSakit) : endDate;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
