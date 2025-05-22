@@ -690,10 +690,10 @@ const hitungPayroll = async (
       }
 
       const shiftHariIni = dataShift.find((shift) => shift.hari === dayName);
-      // console.log(tglAbsen);
-      if (tglAbsen === "5-Mei-2025") {
-        console.log(tglAbsen, absen);
-      }
+      //console.log(tglAbsen);
+      // if (tglAbsen === "2025-05-09") {
+      //   console.log(tglAbsen, absen);
+      // }
 
       const istirahatList = shiftHariIni.istirahat;
 
@@ -709,36 +709,52 @@ const hitungPayroll = async (
         const jam_shift = absen.jam_masuk;
         const jam_keluar = absen.jam_keluar;
 
-        // Ubah "HH:mm:ss" ke detik
         function toSeconds(timeStr) {
           const [h, m, s] = timeStr.split(":").map(Number);
           return h * 3600 + m * 60 + s;
         }
 
-        // Hitung irisan waktu
         function getOverlap(start1, end1, start2, end2) {
           const start = Math.max(start1, start2);
           const end = Math.min(end1, end2);
           return end > start ? end - start : 0;
         }
 
+        let totalSeconds = 0;
+
         const shiftStart = toSeconds(jam_shift);
         const shiftEnd = toSeconds(jam_keluar);
 
-        let totalSeconds = 0;
+        const SECONDS_IN_DAY = 86400;
 
         for (const { dari, sampai } of istirahatList) {
-          const start = toSeconds(dari);
-          const end = toSeconds(sampai);
-          totalSeconds += getOverlap(shiftStart, shiftEnd, start, end);
+          const breakStart = toSeconds(dari);
+          const breakEnd = toSeconds(sampai);
+
+          if (shiftEnd >= shiftStart) {
+            // Normal shift dalam satu hari
+            totalSeconds += getOverlap(
+              shiftStart,
+              shiftEnd,
+              breakStart,
+              breakEnd
+            );
+          } else {
+            // Shift lintas hari: pecah jadi dua bagian
+            // 1. bagian pertama: jam_shift -> 86400
+            totalSeconds += getOverlap(
+              shiftStart,
+              SECONDS_IN_DAY,
+              breakStart,
+              breakEnd
+            );
+            // 2. bagian kedua: 0 -> jam_keluar
+            totalSeconds += getOverlap(0, shiftEnd, breakStart, breakEnd);
+          }
         }
 
-        // Konversi detik ke jam desimal
         jamIstirahat = totalSeconds / 3600;
-
-        // Bulatkan ke kelipatan 0.5 terdekat
-        jamIstirahat = Math.round(jamIstirahat * 2) / 2;
-        // console.log(jamIstirahat);
+        jamIstirahat = Math.round(jamIstirahat * 2) / 2; // bulatkan ke 0.5
         jamLembur = absen.jam_lembur - jamIstirahat;
       } else if (absen.status_lembur === "Lembur") {
         let jam_shift = null;

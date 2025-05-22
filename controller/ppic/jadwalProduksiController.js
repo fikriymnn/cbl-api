@@ -124,12 +124,14 @@ const jadwalProduksiController = {
       no_po,
       no_io,
       customer,
+      nama_bahan,
       tgl_kirim,
       tgl_so,
       tgl_cetak,
       qty_po,
       qty_pcs,
       qty_druk,
+      qty_lp,
       tahap,
     } = req.body;
     const t = await db.transaction();
@@ -143,6 +145,9 @@ const jadwalProduksiController = {
         if (no_io) obj.no_io = no_io;
         if (customer) obj.customer = customer;
         if (qty_po) obj.qty_po = qty_po;
+        if (tgl_so) obj.tgl_so = tgl_so;
+        if (nama_bahan) obj.nama_bahan = nama_bahan;
+        if (qty_lp) obj.qty_lp = qty_lp;
         const checkBooking = await JadwalProduksi.findAll({
           where: { no_booking: no_booking },
         });
@@ -169,6 +174,7 @@ const jadwalProduksiController = {
             no_po,
             no_io,
             customer,
+            nama_bahan,
             type: "jadwal",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
@@ -180,6 +186,7 @@ const jadwalProduksiController = {
             qty_po,
             qty_pcs,
             qty_druk,
+            qty_lp,
           },
           { transaction: t }
         );
@@ -270,6 +277,7 @@ const jadwalProduksiController = {
             no_po,
             no_io,
             customer,
+            nama_bahan,
             type: "booking",
             tgl_kirim,
             tgl_kirim_date: tgl_kirim,
@@ -281,6 +289,7 @@ const jadwalProduksiController = {
             qty_po,
             qty_pcs,
             qty_druk,
+            qty_lp,
           },
           { transaction: t }
         );
@@ -629,231 +638,6 @@ const jadwalProduksiController = {
 
       res.status(200).json({ data: dataById, jadwalPerJam: listJadwalPerJam });
     } catch (err) {
-      res.status(500).json({ msg: err.message });
-    }
-  },
-
-  calculateTiketJadwalProduksiDua: async (req, res) => {
-    const { id } = req.params;
-    const t = await db.transaction();
-    try {
-      const dataTiket = await TiketJadwalProduksi.findByPk(id, {
-        include: [
-          {
-            model: TiketJadwalProduksiTahapan,
-            as: "tahap",
-            include: [
-              {
-                model: TiketJadwalProduksiPerJam,
-                as: "jadwal_per_jam",
-              },
-            ],
-          },
-          {
-            model: TiketJadwalProduksiPerJam,
-            as: "jadwal_per_jam",
-          },
-        ],
-      });
-
-      if (!dataTiket)
-        return res.status(404).json({ msg: "data tidak ditemukan" });
-      if (dataTiket.status === "calculated")
-        return res.status(404).json({ msg: "data sudah di kalkulasi" });
-
-      const dataById = {
-        id: dataTiket.id,
-        item: dataTiket.item,
-        no_jo: dataTiket.no_jo,
-        tgl_kirim: dataTiket.tgl_kirim,
-        tgl_cetak: dataTiket.tgl_cetak,
-        qty_pcs: dataTiket.qty_pcs,
-        qty_druk: dataTiket.qty_druk,
-        status: dataTiket.status,
-        tahap: [],
-      };
-
-      dataTiket.tahap.map((data) => {
-        dataById.tahap.push({
-          id: data.id,
-          id_tiket_jadwal_produksi: data.id_tiket_jadwal_produksi,
-          tahapan: data.tahapan,
-          tahapan_ke: data.tahapan_ke,
-          from: data.from,
-          nama_kategori: data.nama_kategori,
-          kategori: data.kategori,
-          kategori_drying_time: data.kategori_drying_time,
-          mesin: data.mesin,
-          kapasitas_per_jam: data.kapasitas_per_jam,
-          drying_time: data.drying_time,
-          setting: data.setting,
-          kapasitas: data.kapasitas,
-          toleransi: data.toleransi,
-          total_waktu: data.total_waktu,
-          tgl_from: data.tgl_from,
-          tgl_to: data.tgl_to,
-          jadwal_per_jam: data.jadwal_per_jam,
-          listJadwalPerJam: [],
-        });
-      });
-
-      // const dataJadwal = await JadwalKaryawan.findAll({
-      //   order: [["createdAt", "DESC"]],
-      //   where: {
-      //     tanggal: {
-      //       [Op.between]: [
-      //         new Date().setHours(0, 0, 0, 0),
-      //         new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-      //       ],
-      //     },
-      //     jenis_karyawan: "produksi",
-      //   },
-      // });
-
-      // Jadwal libur
-      let jadwalLibur = [
-        "2024-12-25",
-        "2024-12-01",
-        "2024-12-08",
-        "2024-12-15",
-        "2024-12-22",
-        "2025-01-19",
-      ];
-      const jadwalLiburSet = new Set(
-        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
-      );
-
-      const decrementDate = (date, days) => {
-        while (days > 0) {
-          date.setDate(date.getDate() - 1);
-          const formattedDate = date.toISOString().split("T")[0];
-          if (!jadwalLiburSet.has(formattedDate)) {
-            days--;
-          }
-        }
-        return date;
-      };
-
-      dataById.tahap.forEach((tahap) => {
-        if (tahap.from === "druk" && tahap.kapasitas_per_jam != 0) {
-          tahap.kapasitas = dataById.qty_druk / tahap.kapasitas_per_jam;
-        } else if (tahap.from === "pcs" && tahap.kapasitas_per_jam != 0) {
-          tahap.kapasitas = dataById.qty_pcs / tahap.kapasitas_per_jam;
-        } else {
-          tahap.kapasitas = 0;
-        }
-
-        tahap.total_waktu = tahap.drying_time + tahap.setting + tahap.kapasitas;
-      });
-
-      const tgl_kirim = dataById.tgl_kirim;
-      const tahap = dataById.tahap;
-
-      const tglKirim = new Date(tgl_kirim);
-      let currentDate = new Date(tgl_kirim);
-      let firstTglInSequence = null;
-
-      // Tempat untuk menyimpan list jadwal per jam
-      let listJadwalPerJam = [];
-
-      for (let i = tahap.length - 1; i >= 0; i--) {
-        const stage = tahap[i];
-
-        if (i === tahap.length - 1) {
-          // Tahapan terakhir selalu menggunakan tgl_kirim asli
-          stage.tgl_from = formatDateNow(tglKirim);
-          stage.tgl_to = formatDateNow(tglKirim);
-
-          continue;
-        }
-
-        // Set tgl_to
-        stage.tgl_to = formatDateNow(currentDate);
-
-        if (stage.from === "tgl") {
-          if (firstTglInSequence) {
-            stage.tgl_from = firstTglInSequence.tgl_from;
-            stage.tgl_to = firstTglInSequence.tgl_to;
-          } else {
-            firstTglInSequence = stage;
-            currentDate = decrementDate(currentDate, 2);
-            stage.tgl_from = formatDateNow(currentDate);
-          }
-        } else {
-          firstTglInSequence = null;
-
-          // Handle "druk" and "pcs" logic
-          if (stage.from === "druk" || stage.from === "pcs") {
-            // Mengurangi waktu sesuai total_waktu
-            for (let j = 0; j < stage.total_waktu; j++) {
-              listJadwalPerJam.push({
-                item: dataById.item,
-                no_jo: dataById.no_jo,
-                qty_pcs: dataById.qty_pcs,
-                qty_druk: dataById.qty_druk,
-                tahapan: stage.tahapan,
-                tahapan_ke: stage.tahapan_ke,
-                from: stage.from,
-                nama_kategori: stage.nama_kategori,
-                kategori: stage.kategori,
-                kategori_drying_time: stage.kategori_drying_time,
-                mesin: stage.mesin,
-                kapasitas_per_jam: stage.kapasitas_per_jam,
-                drying_time: stage.drying_time,
-                setting: stage.setting,
-                kapasitas: stage.kapasitas,
-                toleransi: stage.toleransi,
-                total_waktu: stage.total_waktu,
-                tgl: formatNowDateOnly(currentDate),
-                jam: formatNowTimeOnly(currentDate),
-              });
-              currentDate.setHours(currentDate.getHours() - 1);
-            }
-          }
-
-          stage.tgl_from = formatDateNow(currentDate);
-        }
-      }
-
-      // Menambahkan list jadwal per jam ke dalam data tahap
-      dataById.tahap.map((stage, index) => {
-        stage.listJadwalPerJam = listJadwalPerJam.filter(
-          (jadwal) => jadwal.tahapan === stage.tahapan
-        );
-      });
-
-      await TiketJadwalProduksi.update(
-        { status: "calculated" },
-        { where: { id: dataById.id }, transaction: t }
-      );
-
-      for (let i = 0; i < dataById.tahap.length; i++) {
-        const data = dataById.tahap[i];
-        await TiketJadwalProduksiTahapan.update(data, {
-          where: { id: data.id },
-          transaction: t,
-        });
-
-        for (let ii = 0; ii < data.listJadwalPerJam.length; ii++) {
-          const data2 = data.listJadwalPerJam[ii];
-          await TiketJadwalProduksiPerJam.create(
-            {
-              ...data2,
-              item: dataById.item,
-              tanggal: data2.tgl,
-              id_tiket_jadwal_produksi: dataById.id,
-              id_tiket_jadwal_produksi_tahapan: data.id,
-            },
-            { transaction: t }
-          );
-        }
-      }
-
-      await t.commit();
-
-      res.status(200).json({ data: dataById, jadwalPerJam: listJadwalPerJam });
-    } catch (err) {
-      await t.rollback();
       res.status(500).json({ msg: err.message });
     }
   },
@@ -1362,12 +1146,12 @@ const jadwalProduksiController = {
 
       if (data.type == "jadwal") {
         await TiketJadwalProduksi.update(
-          { status_tiket: "history" },
+          { status_tiket: "history", tgl_masuk_jadwal: new Date() },
           { where: { id: id }, transaction: t }
         );
       } else {
         await TiketJadwalProduksi.update(
-          { status_tiket: "penjadwalan" },
+          { status_tiket: "penjadwalan", tgl_masuk_jadwal: new Date() },
           { where: { id: id }, transaction: t }
         );
       }
