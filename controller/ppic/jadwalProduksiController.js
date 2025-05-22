@@ -407,8 +407,8 @@ const jadwalProduksiController = {
 
       if (!dataTiket)
         return res.status(404).json({ msg: "data tidak ditemukan" });
-      if (dataTiket.status === "calculated")
-        return res.status(404).json({ msg: "data sudah di kalkulasi" });
+      // if (dataTiket.status === "calculated")
+      //   return res.status(404).json({ msg: "data sudah di kalkulasi" });
 
       const dataById = {
         id: dataTiket.id,
@@ -1083,6 +1083,71 @@ const jadwalProduksiController = {
     } catch (error) {
       await t.rollback();
       res.status(400).json({ msg: error.message });
+    }
+  },
+
+  updateTanggalKirimTiketJadwalProduksi: async (req, res) => {
+    const { id } = req.params;
+    const { tgl_kirim } = req.body;
+    const t = await db.transaction();
+    try {
+      const data = await TiketJadwalProduksi.findByPk(id, {
+        include: [
+          {
+            model: TiketJadwalProduksiTahapan,
+            as: "tahap",
+            include: [
+              {
+                model: TiketJadwalProduksiPerJam,
+                as: "jadwal_per_jam",
+              },
+            ],
+          },
+          {
+            model: TiketJadwalProduksiPerJam,
+            as: "jadwal_per_jam",
+            separate: true,
+            order: [
+              ["tanggal", "ASC"], // Urutkan berdasarkan tanggal (terlama ke terbaru)
+              ["jam", "ASC"], // Jika tanggal sama, urutkan berdasarkan jam (terlama ke terbaru)
+            ],
+          },
+        ],
+      });
+
+      if (!data) return res.status(404).json({ msg: "data tidak ditemukana" });
+
+      const date = new Date(tgl_kirim);
+
+      const formatted = date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+      await TiketJadwalProduksi.update(
+        {
+          tgl_kirim: formatted,
+          tgl_kirim_date: tgl_kirim,
+          tgl_kirim_update: formatted,
+          tgl_kirim_update_date: tgl_kirim,
+        },
+        { where: { id: id }, transaction: t }
+      );
+
+      await TiketJadwalProduksiPerJam.destroy({
+        where: { id_tiket_jadwal_produksi: id },
+        transaction: t,
+      });
+
+      let dataJadwal = [];
+
+      await t.commit();
+      //console.log(data.jadwal_per_jam);
+      res.status(200).json({ status_code: 200, message: "update success" });
+    } catch (err) {
+      await t.rollback();
+      res.status(500).json({ msg: err.message });
     }
   },
 

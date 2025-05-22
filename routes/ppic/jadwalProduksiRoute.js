@@ -15,6 +15,10 @@ router.put(
   jadwalProduksiController.updateTiketJadwalProduksi
 );
 router.put(
+  "/ppic/jadwalProduksi/editTglKirim/:id",
+  jadwalProduksiController.updateTanggalKirimTiketJadwalProduksi
+);
+router.put(
   "/ppic/jadwalProduksi/submit/:id",
   jadwalProduksiController.submitTiketJadwalProduksi
 );
