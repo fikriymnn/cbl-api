@@ -29,9 +29,9 @@ router.get(
 //   jadwalProduksiController.simapanCalculateTiketJadwalProduksi
 // );
 
-router.get(
-  "/ppic/calculateJadwalProduksiDua/:id",
-  jadwalProduksiController.calculateTiketJadwalProduksiDua
-);
+// router.get(
+//   "/ppic/calculateJadwalProduksiDua/:id",
+//   jadwalProduksiController.calculateTiketJadwalProduksiDua
+// );
 
 module.exports = router;

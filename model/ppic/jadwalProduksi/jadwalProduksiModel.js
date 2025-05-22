@@ -30,6 +30,10 @@ const JadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    tahapan_ke: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     from: {
       type: DataTypes.STRING,
       allowNull: false,

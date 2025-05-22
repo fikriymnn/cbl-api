@@ -30,6 +30,11 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    nama_bahan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -63,6 +68,10 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tgl_masuk_jadwal: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     qty_po: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -74,6 +83,10 @@ const TiketJadwalProduksi = db.define(
     qty_druk: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    qty_lp: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
