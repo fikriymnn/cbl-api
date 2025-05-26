@@ -13,7 +13,15 @@ const db = require("../../../config/database");
 const PengajuanPromosiController = {
   getPengajuanPromosi: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket, type, id_karyawan } = req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      status_tiket,
+      type,
+      id_karyawan,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -23,6 +31,11 @@ const PengajuanPromosiController = {
     if (status_tiket) obj.status_tiket = status_tiket;
     if (type) obj.type = type;
     if (id_karyawan) obj.id_karyawan = id_karyawan;
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      obj.createdAt = { [Op.between]: [startDate, endDate] };
+    }
     try {
       if (page && limit) {
         const length = await PengajuanPromosi.count({ where: obj });

@@ -14,7 +14,10 @@ const PengajuanLemburController = {
     const {
       page,
       limit,
-      search,
+      start_date,
+      end_date,
+      id_karyawan,
+      status,
       status_tiket,
       status_ketidaksesuaian,
       id_department,
@@ -29,6 +32,13 @@ const PengajuanLemburController = {
     if (status_ketidaksesuaian)
       obj.status_ketidaksesuaian = status_ketidaksesuaian;
     if (id_department) obj.id_department = id_department;
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
+    if (status) obj.status = status;
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      obj.dari = { [Op.between]: [startDate, endDate] };
+    }
     try {
       if (page && limit) {
         const length = await PengajuanLembur.count({ where: obj });
