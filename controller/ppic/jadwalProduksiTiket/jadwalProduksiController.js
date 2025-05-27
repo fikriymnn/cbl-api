@@ -1274,8 +1274,8 @@ const jadwalProduksiController = {
   checkExpiredDateBooking: async (req, res) => {
     const t = await db.transaction();
     try {
-      const startDate = new Date("2025-09-13").setHours(0, 0, 0, 0);
-      const endDate = new Date("2025-09-13").setHours(23, 59, 59, 999);
+      const startDate = new Date().setHours(0, 0, 0, 0);
+      const endDate = new Date().setHours(23, 59, 59, 999);
       const data = await TiketJadwalProduksi.findAll({
         where: {
           tgl_mulai_produksi: { [Op.between]: [startDate, endDate] },
