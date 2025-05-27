@@ -163,6 +163,13 @@ const PerubahanTanggalKirimController = {
           success: false,
           msg: "data jadwal produksi tidak ditemukan",
         });
+      const date = new Date(dataTiket.to_tgl);
+
+      const formatted = date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
 
       await TiketJadwalProduksiPerJam.destroy({
         where: { id_tiket_jadwal_produksi: dataTiketJadwal.id },
@@ -182,6 +189,10 @@ const PerubahanTanggalKirimController = {
           status: "non calculated",
           tgl_masuk_jadwal: null,
           tgl_mulai_produksi: null,
+          tgl_kirim: formatted,
+          tgl_kirim_date: date,
+          tgl_kirim_update: formatted,
+          tgl_kirim_update_date: date,
         },
         { where: { id: dataTiketJadwal.id }, transaction: t }
       );
