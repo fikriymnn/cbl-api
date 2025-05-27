@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const jadwalProduksiController = require("../../controller/ppic/jadwalProduksiController");
+const jadwalProduksiController = require("../../../controller/ppic/jadwalProduksiTiket/jadwalProduksiController");
 
 router.get(
   "/ppic/jadwalProduksi/:id?",
@@ -26,6 +26,11 @@ router.put(
 router.get(
   "/ppic/calculateJadwalProduksi/:id",
   jadwalProduksiController.calculateTiketJadwalProduksi
+);
+
+router.get(
+  "/ppic/checkExpiredDateBooking",
+  jadwalProduksiController.checkExpiredDateBooking
 );
 
 // router.put(

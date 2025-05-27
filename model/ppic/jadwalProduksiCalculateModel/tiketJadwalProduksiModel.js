@@ -72,6 +72,10 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tgl_mulai_produksi: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     qty_po: {
       type: DataTypes.INTEGER,
       allowNull: true,
