@@ -10,7 +10,16 @@ const db = require("../../../config/database");
 const PengajuanSakitController = {
   getPengajuanSakit: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, search, status_tiket, id_department } = req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      id_karyawan,
+      status,
+      status_tiket,
+      id_department,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     // if (search)
@@ -19,6 +28,13 @@ const PengajuanSakitController = {
     //   };
     if (status_tiket) obj.status_tiket = status_tiket;
     if (id_department) obj.id_department = id_department;
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
+    if (status) obj.status = status;
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      obj.dari = { [Op.between]: [startDate, endDate] };
+    }
     try {
       if (page && limit) {
         const length = await PengajuanSakit.count({ where: obj });

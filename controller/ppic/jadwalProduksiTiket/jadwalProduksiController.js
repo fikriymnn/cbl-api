@@ -1,13 +1,14 @@
 const { Op, Sequelize, where } = require("sequelize");
-const JadwalKaryawan = require("../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
-const TiketJadwalProduksi = require("../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
-const TiketJadwalProduksiTahapan = require("../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
-const TiketJadwalProduksiPerJam = require("../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
-const JadwalProduksi = require("../../model/ppic/jadwalProduksi/jadwalProduksiModel");
-const masterShift = require("../../model/masterData/hr/masterShift/masterShiftModel");
-const masterIstirahat = require("../../model/masterData/hr/masterShift/masterIstirahatModel");
+const JadwalKaryawan = require("../../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
+const TiketJadwalProduksi = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
+const TiketJadwalProduksiTahapan = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
+const TiketJadwalProduksiPerJam = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
+const TiketPerubahanTanggalKirim = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketPerubahanTanggalKirimModel");
+const JadwalProduksi = require("../../../model/ppic/jadwalProduksi/jadwalProduksiModel");
+const masterShift = require("../../../model/masterData/hr/masterShift/masterShiftModel");
+const masterIstirahat = require("../../../model/masterData/hr/masterShift/masterIstirahatModel");
 
-const db = require("../../config/database");
+const db = require("../../../config/database");
 
 const moment = require("moment");
 
@@ -73,6 +74,12 @@ const jadwalProduksiController = {
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
+          include: [
+            {
+              model: TiketPerubahanTanggalKirim,
+              as: "tanggal_perubahan",
+            },
+          ],
         });
 
         return res.status(200).json({
@@ -101,6 +108,11 @@ const jadwalProduksiController = {
               model: TiketJadwalProduksiPerJam,
               as: "jadwal_per_jam",
             },
+
+            {
+              model: TiketPerubahanTanggalKirim,
+              as: "tanggal_perubahan",
+            },
           ],
         });
         res.status(200).json({ data: data });
@@ -108,6 +120,12 @@ const jadwalProduksiController = {
         const data = await TiketJadwalProduksi.findAll({
           order: [["tgl_kirim_date", "DESC"]],
           where: obj,
+          include: [
+            {
+              model: TiketPerubahanTanggalKirim,
+              as: "tanggal_perubahan",
+            },
+          ],
         });
         res.status(200).json({ data: data });
       }
@@ -154,6 +172,8 @@ const jadwalProduksiController = {
 
         if (checkBooking.length === 0)
           return res.status(404).json({
+            status_code: 404,
+            success: false,
             msg: "no booking tidak di temukan atau no booking belum di kalkulasi",
           });
         await JadwalProduksi.update(obj, {
@@ -165,7 +185,11 @@ const jadwalProduksiController = {
           { where: { no_booking: no_booking }, transaction: t }
         );
         await t.commit();
-        res.status(200).json({ msg: "update booking with jo success" });
+        res.status(200).json({
+          status_code: 200,
+          success: true,
+          msg: "update booking with jo success",
+        });
       } else if (no_jo) {
         const dataTiket = await TiketJadwalProduksi.create(
           {
@@ -268,7 +292,11 @@ const jadwalProduksiController = {
           transaction: t,
         });
         await t.commit();
-        res.status(200).json({ msg: "create jadwal success" });
+        res.status(200).json({
+          status_code: 200,
+          success: true,
+          msg: "create jadwal success",
+        });
       } else if (no_booking) {
         const dataTiket = await TiketJadwalProduksi.create(
           {
@@ -371,13 +399,23 @@ const jadwalProduksiController = {
           transaction: t,
         });
         await t.commit();
-        res.status(200).json({ msg: "create booking success" });
+        res.status(200).json({
+          status_code: 200,
+          success: true,
+          msg: "create booking success",
+        });
       } else {
-        return res.status(200).json({ msg: "tidak ada no_jo atau no_booking" });
+        return res.status(404).json({
+          status_code: 404,
+          success: false,
+          msg: "tidak ada no_jo atau no_booking",
+        });
       }
     } catch (err) {
       await t.rollback();
-      res.status(500).json({ msg: err.message });
+      res
+        .status(500)
+        .json({ status_code: 500, success: false, msg: err.message });
     }
   },
 
@@ -407,8 +445,8 @@ const jadwalProduksiController = {
 
       if (!dataTiket)
         return res.status(404).json({ msg: "data tidak ditemukan" });
-      if (dataTiket.status === "calculated")
-        return res.status(404).json({ msg: "data sudah di kalkulasi" });
+      // if (dataTiket.status === "calculated")
+      //   return res.status(404).json({ msg: "data sudah di kalkulasi" });
 
       const dataById = {
         id: dataTiket.id,
@@ -606,9 +644,11 @@ const jadwalProduksiController = {
           (jadwal) => jadwal.tahapan === stage.tahapan
         );
       });
+      const tglMulaiProduksi = dataById.tahap[0].tgl_from;
+      const dateMulaiProduksi = tglMulaiProduksi.split(" ")[0];
 
       await TiketJadwalProduksi.update(
-        { status: "calculated" },
+        { status: "calculated", tgl_mulai_produksi: dateMulaiProduksi },
         { where: { id: dataById.id }, transaction: t }
       );
 
@@ -1086,6 +1126,71 @@ const jadwalProduksiController = {
     }
   },
 
+  updateTanggalKirimTiketJadwalProduksi: async (req, res) => {
+    const { id } = req.params;
+    const { tgl_kirim } = req.body;
+    const t = await db.transaction();
+    try {
+      const data = await TiketJadwalProduksi.findByPk(id, {
+        include: [
+          {
+            model: TiketJadwalProduksiTahapan,
+            as: "tahap",
+            include: [
+              {
+                model: TiketJadwalProduksiPerJam,
+                as: "jadwal_per_jam",
+              },
+            ],
+          },
+          {
+            model: TiketJadwalProduksiPerJam,
+            as: "jadwal_per_jam",
+            separate: true,
+            order: [
+              ["tanggal", "ASC"], // Urutkan berdasarkan tanggal (terlama ke terbaru)
+              ["jam", "ASC"], // Jika tanggal sama, urutkan berdasarkan jam (terlama ke terbaru)
+            ],
+          },
+        ],
+      });
+
+      if (!data) return res.status(404).json({ msg: "data tidak ditemukana" });
+
+      const date = new Date(tgl_kirim);
+
+      const formatted = date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+      await TiketJadwalProduksi.update(
+        {
+          tgl_kirim: formatted,
+          tgl_kirim_date: tgl_kirim,
+          tgl_kirim_update: formatted,
+          tgl_kirim_update_date: tgl_kirim,
+        },
+        { where: { id: id }, transaction: t }
+      );
+
+      await TiketJadwalProduksiPerJam.destroy({
+        where: { id_tiket_jadwal_produksi: id },
+        transaction: t,
+      });
+
+      let dataJadwal = [];
+
+      await t.commit();
+      //console.log(data.jadwal_per_jam);
+      res.status(200).json({ status_code: 200, message: "update success" });
+    } catch (err) {
+      await t.rollback();
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
   submitTiketJadwalProduksi: async (req, res) => {
     const { id } = req.params;
     const t = await db.transaction();
@@ -1160,6 +1265,41 @@ const jadwalProduksiController = {
       await t.commit();
       //console.log(data.jadwal_per_jam);
       res.status(200).json({ data: data });
+    } catch (err) {
+      await t.rollback();
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
+  checkExpiredDateBooking: async (req, res) => {
+    const t = await db.transaction();
+    try {
+      const startDate = new Date().setHours(0, 0, 0, 0);
+      const endDate = new Date().setHours(23, 59, 59, 999);
+      const data = await TiketJadwalProduksi.findAll({
+        where: {
+          tgl_mulai_produksi: { [Op.between]: [startDate, endDate] },
+          no_jo: null,
+        },
+      });
+
+      for (let i = 0; i < data.length; i++) {
+        const element = data[i];
+        await TiketJadwalProduksi.update(
+          { status_tiket: "expired" },
+          { where: { id: element.id }, transaction: t }
+        );
+        if (element.status_tiket == "history") {
+          await JadwalProduksi.destroy({
+            where: { no_booking: element.no_booking },
+            transaction: t,
+          });
+        }
+      }
+
+      await t.commit();
+      //console.log(data.jadwal_per_jam);
+      res.status(200).json({ msg: "success" });
     } catch (err) {
       await t.rollback();
       res.status(500).json({ msg: err.message });

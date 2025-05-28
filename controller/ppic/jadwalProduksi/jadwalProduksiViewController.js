@@ -73,7 +73,7 @@ const jadwalProduksiViewController = {
 
   updateJadwalProduksiView: async (req, res) => {
     const _id = req.params.id;
-    const { data_jadwal } = req.body;
+    const { data_jadwal, isSemuaTahap } = req.body;
     const t = await db.transaction();
     try {
       // Cari data yang akan diubah berdasarkan ID
@@ -102,46 +102,52 @@ const jadwalProduksiViewController = {
 
       // Ambil satu data pertama di setiap mesin dengan no_jo yang sama
       // yang tanggal dan jamnya lebih besar dari data yang dipindah
-      const allDataAfterUpdate = await JadwalProduksi.findAll({
-        where: {
-          [Op.and]: [
-            {
-              no_jo: dataToUpdate.no_jo,
-            },
-            {
-              [Op.or]: [
-                {
-                  tanggal: {
-                    [Op.gt]: dataToUpdate.tanggal,
-                  },
-                },
-                {
-                  [Op.and]: [
-                    { tanggal: dataToUpdate.tanggal },
-                    {
-                      jam: {
-                        [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
-                      },
+      let allDataAfterUpdate = [];
+
+      if (isSemuaTahap) {
+        allDataAfterUpdate = await JadwalProduksi.findAll({
+          where: {
+            [Op.and]: [
+              {
+                no_jo: dataToUpdate.no_jo,
+              },
+              {
+                [Op.or]: [
+                  {
+                    tanggal: {
+                      [Op.gt]: dataToUpdate.tanggal,
                     },
-                  ],
-                },
-              ],
-            },
-            // Uncomment jika ingin mengecualikan id tertentu
-            // {
-            //   id: {
-            //     [Op.ne]: _id,
-            //   },
-            // },
+                  },
+                  {
+                    [Op.and]: [
+                      { tanggal: dataToUpdate.tanggal },
+                      {
+                        jam: {
+                          [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+              // Uncomment jika ingin mengecualikan id tertentu
+              // {
+              //   id: {
+              //     [Op.ne]: _id,
+              //   },
+              // },
+            ],
+            tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
+          },
+          order: [
+            ["mesin", "ASC"],
+            ["tanggal", "ASC"],
+            ["jam", "ASC"],
           ],
-          tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
-        },
-        order: [
-          ["mesin", "ASC"],
-          ["tanggal", "ASC"],
-          ["jam", "ASC"],
-        ],
-      });
+        });
+      } else {
+        allDataAfterUpdate.push(dataToUpdate);
+      }
 
       // Ambil hanya satu data pertama dari setiap mesin (dengan no_jo yang sama)
       const firstDataPerMachine = [];
@@ -214,7 +220,7 @@ const jadwalProduksiViewController = {
           dataLemburMesin,
           elementData.id
         );
-        //console.log(res);
+        //console.log(elementData);
       }
 
       res

@@ -1100,6 +1100,7 @@ const karyawanController = {
       await KaryawanBiodata.update(
         {
           is_active: false,
+          status_active: "non active",
         },
         {
           where: {

@@ -241,7 +241,11 @@ router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 router.use("/", require("./masterdata/ppic/masterKapasitasMesinRoute"));
 
 //ppic
-router.use("/", require("./ppic/jadwalProduksiRoute"));
+router.use("/", require("./ppic/jadwalProduksiTiket/jadwalProduksiRoute"));
+router.use(
+  "/",
+  require("./ppic/jadwalProduksiTiket/tiketPerubahanTanggalKirimRoute")
+);
 router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
 router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
 router.use("/", require("./ppic/jadwalKirim/jadwalKirimRoute"));
