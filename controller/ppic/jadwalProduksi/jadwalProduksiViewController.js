@@ -105,46 +105,89 @@ const jadwalProduksiViewController = {
       let allDataAfterUpdate = [];
 
       if (isSemuaTahap) {
-        allDataAfterUpdate = await JadwalProduksi.findAll({
-          where: {
-            [Op.and]: [
-              {
-                no_jo: dataToUpdate.no_jo,
-              },
-              {
-                [Op.or]: [
-                  {
-                    tanggal: {
-                      [Op.gt]: dataToUpdate.tanggal,
-                    },
-                  },
-                  {
-                    [Op.and]: [
-                      { tanggal: dataToUpdate.tanggal },
-                      {
-                        jam: {
-                          [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
-                        },
+        if (dataToUpdate.no_jo) {
+          allDataAfterUpdate = await JadwalProduksi.findAll({
+            where: {
+              [Op.and]: [
+                {
+                  no_jo: dataToUpdate.no_jo,
+                },
+                {
+                  [Op.or]: [
+                    {
+                      tanggal: {
+                        [Op.gt]: dataToUpdate.tanggal,
                       },
-                    ],
-                  },
-                ],
-              },
-              // Uncomment jika ingin mengecualikan id tertentu
-              // {
-              //   id: {
-              //     [Op.ne]: _id,
-              //   },
-              // },
+                    },
+                    {
+                      [Op.and]: [
+                        { tanggal: dataToUpdate.tanggal },
+                        {
+                          jam: {
+                            [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                // Uncomment jika ingin mengecualikan id tertentu
+                // {
+                //   id: {
+                //     [Op.ne]: _id,
+                //   },
+                // },
+              ],
+              tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
+            },
+            order: [
+              ["mesin", "ASC"],
+              ["tanggal", "ASC"],
+              ["jam", "ASC"],
             ],
-            tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
-          },
-          order: [
-            ["mesin", "ASC"],
-            ["tanggal", "ASC"],
-            ["jam", "ASC"],
-          ],
-        });
+          });
+        } else if (!dataToUpdate.no_jo) {
+          allDataAfterUpdate = await JadwalProduksi.findAll({
+            where: {
+              [Op.and]: [
+                {
+                  no_booking: dataToUpdate.no_booking,
+                },
+                {
+                  [Op.or]: [
+                    {
+                      tanggal: {
+                        [Op.gt]: dataToUpdate.tanggal,
+                      },
+                    },
+                    {
+                      [Op.and]: [
+                        { tanggal: dataToUpdate.tanggal },
+                        {
+                          jam: {
+                            [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                // Uncomment jika ingin mengecualikan id tertentu
+                // {
+                //   id: {
+                //     [Op.ne]: _id,
+                //   },
+                // },
+              ],
+              tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
+            },
+            order: [
+              ["mesin", "ASC"],
+              ["tanggal", "ASC"],
+              ["jam", "ASC"],
+            ],
+          });
+        }
       } else {
         allDataAfterUpdate.push(dataToUpdate);
       }
