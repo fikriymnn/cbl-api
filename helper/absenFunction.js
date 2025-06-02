@@ -759,6 +759,11 @@ const absenFunction = {
           shiftKeluarTime = waktuKeluarShift2UTC;
         }
 
+        //untuk mengecek jika hari sabtu dan shift 2 maka di hitung lembur
+        if (shift == "Shift 2" && dayName2 == "Sabtu") {
+          jenisHariMasuk = "Libur";
+        }
+
         // Hitung keterlambatan
         const toleransi = masterAbsensi.toleransi_kedatangan_menit * 60 * 1000; // Toleransi 15 menit dalam milidetik
         if (
@@ -1142,6 +1147,9 @@ const absenFunction = {
         const karyawanDitemukan = dataKaryawanGenerete.find(
           (k) => k.userid === absen.userid
         );
+        // if (absen.name == "RIFKI RIVALDI") {
+        //   console.log(absen, karyawanDitemukan);
+        // }
 
         if (karyawanDitemukan) {
           (karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
@@ -1207,8 +1215,6 @@ const absenFunction = {
       const resultAbsen = dataKaryawanGenerete.sort(
         (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
       );
-      // console.log(6);
-      // console.log(dataKaryawanGenerete);
 
       return resultAbsen;
     } else {

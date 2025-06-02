@@ -67,11 +67,16 @@ const AbsensiController = {
           true
         );
 
+        // Buat array userid yang shift 2 kemarin dan tidak hadir hari ini
+        const excludeUserIds = absenResultYesterdayShift2
+          .filter(
+            (y) => !absenResult.some((today) => today.userid === y.userid)
+          )
+          .map((y) => y.userid);
+
+        // Filter data hari ini, kecualikan user yang tidak hadir hari ini dan shift 2 kemarin
         const filteredToday = absenResult.filter(
-          (entry) =>
-            !absenResultYesterdayShift2.some(
-              (yesterday) => yesterday.userid === entry.userid
-            )
+          (entry) => !excludeUserIds.includes(entry.userid)
         );
         res.status(200).json({ data: filteredToday });
       } else {
