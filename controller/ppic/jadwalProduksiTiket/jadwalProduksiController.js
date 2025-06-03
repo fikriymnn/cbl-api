@@ -364,8 +364,11 @@ const jadwalProduksiController = {
         }
 
         const findTahapFG = dataTahapan.find((data) => data.tahapan === "FG");
+        const indexFinalInspection = dataTahapan.findIndex((data) =>
+          data.tahapan.toLowerCase().includes("final inspection")
+        );
 
-        if (!findTahapFG) {
+        if (!findTahapFG && indexFinalInspection !== -1) {
           // Buat objek tahapan FG
           let tahapanFG = {
             id_tiket_jadwal_produksi: dataTiket.id,
@@ -383,13 +386,12 @@ const jadwalProduksiController = {
             toleransi: 0,
           };
 
-          // Tentukan posisi kedua terakhir (sebelum "Kirim")
-          let insertIndex = dataTahapan.length - 1;
+          // Jika ditemukan, sisipkan FG setelahnya
+          const insertIndex = indexFinalInspection + 1;
 
-          // Sisipkan tahapan FG pada posisi kedua terakhir
           dataTahapan.splice(insertIndex, 0, tahapanFG);
 
-          // Perbarui tahapan_ke secara otomatis
+          // Perbarui tahapan_ke
           dataTahapan.forEach((item, index) => {
             item.tahapan_ke = index + 1;
           });
@@ -638,6 +640,41 @@ const jadwalProduksiController = {
           stage.tgl_from = formatDateNow(currentDate);
         }
       }
+
+      //menyelesaikan konflik jam dengan data lain (jika tidak ingin di pakai hapus sampai akhir penyelesaian konflik)
+      // 1. Ambil data jadwal yang sudah ada dari database
+      const existingSchedule = await JadwalProduksi.findAll({
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date(dataById.tahap[0].tgl_from).setHours(0, 0, 0, 0),
+              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+        attributes: ["mesin", "tanggal", "jam"],
+      });
+
+      // 2. Konversi ke format yang sesuai
+      const dataTerjadwalExisting = existingSchedule.map((item) => ({
+        mesin: item.mesin,
+        tanggal: formatNowDateOnly(new Date(item.tanggal)),
+        jam: item.jam,
+      }));
+
+      // 3. Gabungkan dengan data terjadwal dari parameter (jika ada)
+      const dataTerjadwal = req.body.dataTerjadwal || []; // Ambil dari request body jika ada
+      const allExistingSchedule = [...dataTerjadwal, ...dataTerjadwalExisting];
+
+      // 4. Selesaikan konflik
+      listJadwalPerJam = resolveScheduleConflicts(
+        listJadwalPerJam,
+        allExistingSchedule,
+        jadwalLiburSet,
+        dataShift
+      );
+      //akhir penyelesaian konflik
+
       // Menambahkan list jadwal per jam ke dalam data tahap
       dataById.tahap.map((stage, index) => {
         stage.listJadwalPerJam = listJadwalPerJam.filter(
@@ -1462,531 +1499,124 @@ const isWithinShiftHours = (date, holidaySet, shift) => {
   return false;
 };
 
-// Jadwal libur
-const jadwalLibur = [
-  "2024-12-25", // Hari Natal
-  "2024-12-01", // Minggu
-  "2024-12-08", // Minggu
-  "2024-12-15", // Minggu
-  "2024-12-22", // Minggu
-  "2025-01-09", // Minggu
-  "2025-01-11", // Minggu
-  "2025-01-19", // Minggu
-  "2025-03-25", // Minggu
-];
+// Fungsi untuk mengecek apakah slot waktu sudah terpakai
+function isSlotOccupied(dataTerjadwal, mesin, tanggal, jam) {
+  return dataTerjadwal.some(
+    (item) =>
+      item.mesin === mesin && item.tanggal === tanggal && item.jam === jam
+  );
+}
 
-// Data shift untuk setiap hari
-const shiftHarian = [
-  {
-    hari: "Senin",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "16:00:00",
-    shift_2_masuk: "20:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Senin",
-        dari: "12:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Senin",
-      },
-      {
-        id: 7,
-        id_shift: "Senin",
-        dari: "18:00:00",
-        sampai: "18:30:00",
-        nama: "Istirahat 2 Senin",
-      },
-    ],
-  },
-  {
-    hari: "Selasa",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "16:00:00",
-    shift_2_masuk: "20:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Selasa",
-        dari: "12:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Selasa",
-      },
-    ],
-  },
-  {
-    hari: "Rabu",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "16:00:00",
-    shift_2_masuk: "20:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Rabu",
-        dari: "12:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Rabu",
-      },
-      {
-        id: 7,
-        id_shift: "Rabu",
-        dari: "18:00:00",
-        sampai: "18:30:00",
-        nama: "Istirahat 2 Rabu",
-      },
-    ],
-  },
-  {
-    hari: "Kamis",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "16:00:00",
-    shift_2_masuk: "20:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Kamis",
-        dari: "12:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Kamis",
-      },
-      {
-        id: 7,
-        id_shift: "Kamis",
-        dari: "18:00:00",
-        sampai: "18:30:00",
-        nama: "Istirahat 2 Kamis",
-      },
-    ],
-  },
-  {
-    hari: "Jumat",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "16:00:00",
-    shift_2_masuk: "20:00:00",
-    shift_2_keluar: "04:00:00",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Jumat",
-        dari: "11:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Jumat",
-      },
-      {
-        id: 7,
-        id_shift: "Jumat",
-        dari: "18:00:00",
-        sampai: "18:30:00",
-        nama: "Istirahat 2 Jumat",
-      },
-    ],
-  },
-  {
-    hari: "Sabtu",
-    shift_1_masuk: "08:00:00",
-    shift_1_keluar: "13:00:00",
-    shift_2_masuk: "",
-    shift_2_keluar: "",
-    istirahat: [
-      {
-        id: 1,
-        id_shift: "Sabtu",
-        dari: "12:00:00",
-        sampai: "13:00:00",
-        nama: "Istirahat 1 Sabtu",
-      },
-    ],
-  },
-];
+// Fungsi untuk mencari slot waktu kosong berikutnya
+function findNextAvailableSlot(
+  dataTerjadwal,
+  mesin,
+  startDate,
+  startTime,
+  jadwalLiburSet,
+  dataShift
+) {
+  let currentDate = new Date(startDate);
+  let currentHour = parseInt(startTime.split(":")[0]);
 
-const dataDumyJo = [
-  {
-    id: 1,
-    item: "Jago Bar",
-    jo: "24-00001",
-    tgl_kirim: "24 January 2025",
-    tgl_cetak: "07 January 2025",
-    qty_pcs: 100000,
-    qty_druk: 13100,
-    tahap: [
-      {
-        tahapan: "Potong",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "ITOH",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Plate",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "CTP",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Cetak",
-        from: "druk",
-        kategory: "B",
-        kategory_drying_time: "B",
-        mesin: "R700",
-        kapasitas_per_jam: 2500,
-        drying_time: 48,
-        setting: 2,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Coating",
-        from: "druk",
-        kategory: "A",
-        kategory_drying_time: "B",
-        mesin: "Hock",
-        kapasitas_per_jam: 2500,
-        drying_time: 48,
-        setting: 1.5,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Pond",
-        from: "druk",
-        kategory: "B",
-        kategory_drying_time: "A",
-        mesin: "BOADER",
-        kapasitas_per_jam: 2000,
-        drying_time: 24,
-        setting: 3,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Rabut",
-        from: "pcs",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 6000,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Sortir",
-        from: "pcs",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 6000,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Lem",
-        from: "pcs",
-        kategory: "B",
-        kategory_drying_time: "A",
-        mesin: "JK-1000",
-        kapasitas_per_jam: 4000,
-        drying_time: 24,
-        setting: 3,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Sampling",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Packing",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Final Inspection",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-      {
-        tahapan: "Kirim",
-        from: "tgl",
-        kategory: "",
-        kategory_drying_time: "",
-        mesin: "MANUAL",
-        kapasitas_per_jam: 0,
-        drying_time: 0,
-        setting: 0,
-        kapasitas: 0,
-        toleransi: 0,
-        total_waktu: 0,
-        tgl_from: "",
-        tgl_to: "",
-      },
-    ],
-  },
+  // Set jam awal
+  currentDate.setHours(currentHour, 0, 0, 0);
 
-  // {
-  //   id: 2,
-  //   item: "Bolu bakar",
-  //   jo: "24-00003",
-  //   tgl_kirim: "30 October 2024",
-  //   tgl_cetak: "07 October 2024",
-  //   qty_pcs: 50000,
-  //   qty_druk: 25700,
-  //   tahap: [
-  //     {
-  //       tahapan: "Potong",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "ITOH",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Plate",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "CTP",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Cetak",
-  //       from: "druk",
-  //       kategory: "B",
-  //       kategory_drying_time: "B",
-  //       mesin: "SM",
-  //       kapasitas_per_jam: 1500,
-  //       drying_time: 48,
-  //       setting: 3,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Coating",
-  //       from: "druk",
-  //       kategory: "A",
-  //       kategory_drying_time: "B",
-  //       mesin: "OUTSORCE",
-  //       kapasitas_per_jam: 500,
-  //       drying_time: 48,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Pond",
-  //       from: "druk",
-  //       kategory: "B",
-  //       kategory_drying_time: "A",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 24,
-  //       setting: 2,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Rabut",
-  //       from: "pcs",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 2000,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Sortir",
-  //       from: "pcs",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 2000,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Lem",
-  //       from: "pcs",
-  //       kategory: "B",
-  //       kategory_drying_time: "A",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 200,
-  //       drying_time: 24,
-  //       setting: 3,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Sampling",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Packing",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Final Inspection",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //     {
-  //       tahapan: "Kirim",
-  //       from: "tgl",
-  //       kategory: "",
-  //       kategory_drying_time: "",
-  //       mesin: "MANUAL",
-  //       kapasitas_per_jam: 0,
-  //       drying_time: 0,
-  //       setting: 0,
-  //       kapasitas: 0,
-  //       toleransi: 0,
-  //       total_waktu: 0,
-  //       tgl_from: "",
-  //       tgl_to: "",
-  //     },
-  //   ],
-  // },
-];
+  while (true) {
+    const dateStr = formatNowDateOnly(currentDate);
+    const timeStr = formatNowTimeOnly(currentDate);
+
+    // Cek apakah dalam jam kerja dan bukan hari libur
+    if (isWithinShiftHours(currentDate, jadwalLiburSet, dataShift)) {
+      // Cek apakah slot kosong
+      if (!isSlotOccupied(dataTerjadwal, mesin, dateStr, timeStr)) {
+        return {
+          tanggal: dateStr,
+          jam: timeStr,
+          date: new Date(currentDate),
+        };
+      }
+    }
+
+    // Pindah ke jam berikutnya
+    currentDate.setHours(currentDate.getHours() + 1);
+  }
+}
+
+// Fungsi untuk menyelesaikan konflik jadwal
+function resolveScheduleConflicts(
+  listJadwalPerJam,
+  dataTerjadwal,
+  jadwalLiburSet,
+  dataShift
+) {
+  // Gabungkan data terjadwal dengan data yang sudah diproses
+  let allScheduledData = [...dataTerjadwal];
+  let resolvedSchedule = [];
+
+  for (let i = 0; i < listJadwalPerJam.length; i++) {
+    const currentItem = listJadwalPerJam[i];
+
+    // Cek apakah ada konflik
+    if (
+      isSlotOccupied(
+        allScheduledData,
+        currentItem.mesin,
+        currentItem.tgl,
+        currentItem.jam
+      )
+    ) {
+      // Cari slot kosong berikutnya
+      const nextSlot = findNextAvailableSlot(
+        allScheduledData,
+        currentItem.mesin,
+        currentItem.tgl,
+        currentItem.jam,
+        jadwalLiburSet,
+        dataShift
+      );
+
+      // Update item dengan slot baru
+      currentItem.tgl = nextSlot.tanggal;
+      currentItem.jam = nextSlot.jam;
+
+      // Update semua item setelahnya dalam tahapan yang sama
+      for (let j = i + 1; j < listJadwalPerJam.length; j++) {
+        if (
+          listJadwalPerJam[j].tahapan === currentItem.tahapan &&
+          listJadwalPerJam[j].mesin === currentItem.mesin
+        ) {
+          // Pindahkan ke jam berikutnya
+          nextSlot.date.setHours(nextSlot.date.getHours() + 1);
+
+          // Cari slot kosong untuk item berikutnya
+          const nextNextSlot = findNextAvailableSlot(
+            allScheduledData,
+            listJadwalPerJam[j].mesin,
+            formatNowDateOnly(nextSlot.date),
+            formatNowTimeOnly(nextSlot.date),
+            jadwalLiburSet,
+            dataShift
+          );
+
+          listJadwalPerJam[j].tgl = nextNextSlot.tanggal;
+          listJadwalPerJam[j].jam = nextNextSlot.jam;
+          nextSlot.date = nextNextSlot.date;
+        }
+      }
+    }
+
+    // Tambahkan item ke jadwal yang sudah diselesaikan
+    allScheduledData.push({
+      mesin: currentItem.mesin,
+      tanggal: currentItem.tgl,
+      jam: currentItem.jam,
+    });
+
+    resolvedSchedule.push(currentItem);
+  }
+
+  return resolvedSchedule;
+}
 
 module.exports = jadwalProduksiController;

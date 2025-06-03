@@ -521,7 +521,7 @@ const PengajuanLemburController = {
       let statusPenanganan = "Sesuai SPL";
 
       // 1 untuk ikut lama lembur spl
-      if (penanganan == 1) {
+      if (penanganan == 0) {
         lamaLemburAktual = dataPengajuanLembur.lama_lembur;
         statusPenanganan = "Sesuai spl";
       } else {
@@ -534,6 +534,7 @@ const PengajuanLemburController = {
           status_ketidaksesuaian: "approved",
           id_respon_ketidaksesuaian,
           lama_lembur_aktual: lamaLemburAktual,
+          penanganan: statusPenanganan,
         },
         {
           where: { id: _id },
