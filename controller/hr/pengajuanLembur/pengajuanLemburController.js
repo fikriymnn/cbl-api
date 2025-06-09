@@ -520,7 +520,7 @@ const PengajuanLemburController = {
       let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
       let statusPenanganan = "Sesuai SPL";
 
-      // 1 untuk ikut lama lembur spl
+      // 0 untuk ikut lama lembur spl
       if (penanganan == 0) {
         lamaLemburAktual = dataPengajuanLembur.lama_lembur;
         statusPenanganan = "Sesuai spl";
