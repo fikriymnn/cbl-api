@@ -5,6 +5,10 @@ const MasterDepartment = require("../../model/masterData/hr/masterDeprtmentModel
 const MasterDivisi = require("../../model/masterData/hr/masterDivisiModel");
 const MasterBagianHr = require("../../model/masterData/hr/masterBagianModel");
 const MasterJabatan = require("../../model/masterData/hr/masterJabatanModel");
+const PengajuanCuti = require("../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const PengajuanSakit = require("../../model/hr/pengajuanSakit/pengajuanSakitModel");
+const PengajuanIzin = require("../../model/hr/pengajuanIzin/pengajuanIzinModel");
+const PengajuanMangkir = require("../../model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const { Op, fn, col, literal, Sequelize } = require("sequelize");
 
 const AbsensiController = {
@@ -131,6 +135,72 @@ const AbsensiController = {
         ],
       });
 
+      //cuti khusus
+      const cutiKhusus = await PengajuanCuti.findAll({
+        where: {
+          dari: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+          tipe_cuti: "khusus",
+          status: "approved",
+        },
+      });
+      //cuti tahunan
+      const cutiTahunan = await PengajuanCuti.findAll({
+        where: {
+          dari: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+          tipe_cuti: "tahunan",
+          status: "approved",
+        },
+      });
+      //sakit
+      const sakit = await PengajuanSakit.findAll({
+        where: {
+          dari: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+
+          status: "approved",
+        },
+      });
+      //sakit
+      const izin = await PengajuanIzin.findAll({
+        where: {
+          dari: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+
+          status: "approved",
+        },
+      });
+      //mangkir
+      const mangkir = await PengajuanMangkir.findAll({
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+
+          status: "approved",
+        },
+      });
+
       //ambil data dari absensi
       const absenResult = await getAbsensiFunction(startDate, endDate, obj);
 
@@ -144,6 +214,87 @@ const AbsensiController = {
           (absen) => absen.userid === data.id_karyawan
         );
 
+        //untuk total jam lembur biasa
+        const lemburBiasaData = absenResultFilter.filter(
+          (absen) => absen.jenis_hari_masuk == "Biasa"
+        );
+        const lemburBiasaJam = lemburBiasaData.reduce(
+          (sum, item) => sum + item.jam_lembur,
+          0
+        );
+        const lemburBiasaIstirahatJam = lemburBiasaData.reduce(
+          (sum, item) => sum + item.jam_istirahat_lembur,
+          0
+        );
+        const totalLemburBiasaJam = lemburBiasaJam - lemburBiasaIstirahatJam;
+
+        //untuk total jam lembur libur
+        const lemburLiburData = absenResultFilter.filter(
+          (absen) => absen.jenis_hari_masuk == "Libur"
+        );
+        const lemburLiburJam = lemburLiburData.reduce(
+          (sum, item) => sum + item.jam_lembur,
+          0
+        );
+        const lemburLiburIstirahatJam = lemburLiburData.reduce(
+          (sum, item) => sum + item.jam_istirahat_lembur,
+          0
+        );
+        const totalLemburLiburJam = lemburLiburJam - lemburLiburIstirahatJam;
+
+        //untuk mencari data terlambat (kata terlambat di tambah spasi ujungnya karena hasil formatnya seperti itu)
+        const dataTerlambat = absenResultFilter.filter(
+          (absen) => absen.status_masuk == "Terlambat "
+        );
+
+        //untuk cuti khusus
+        const dataCutiKhusus = cutiKhusus.filter(
+          (cuti) => cuti.id_karyawan == data.id_karyawan
+        );
+
+        const jumlahHariCutiKhusus = dataCutiKhusus.reduce(
+          (sum, item) => sum + item.jumlah_hari,
+          0
+        );
+
+        //untuk cuti tahunana
+        const dataCutiTahunan = cutiTahunan.filter(
+          (cuti) => cuti.id_karyawan == data.id_karyawan
+        );
+
+        const jumlahHariCutiTahunan = dataCutiTahunan.reduce(
+          (sum, item) => sum + item.jumlah_hari,
+          0
+        );
+
+        //untuk sakit
+        const dataSakit = sakit.filter(
+          (sakit) => sakit.id_karyawan == data.id_karyawan
+        );
+        const jumlahHariSakit = dataSakit.reduce(
+          (sum, item) => sum + item.jumlah_hari,
+          0
+        );
+
+        //untuk izin
+        const dataIzin = izin.filter(
+          (izin) => izin.id_karyawan == data.id_karyawan
+        );
+        const jumlahHariIzin = dataIzin.reduce(
+          (sum, item) => sum + item.jumlah_hari,
+          0
+        );
+
+        //untuk mangkir
+        const dataMangkir = mangkir.filter(
+          (izin) => izin.id_karyawan == data.id_karyawan
+        );
+
+        if (dataMangkir.length != 0) {
+          console.log(data.karyawan.name);
+        }
+        const jumlahHariMangkir = dataMangkir.length;
+
         dataResult.push({
           nama_karyawan: data.karyawan.name,
           nik: data.nik,
@@ -152,6 +303,19 @@ const AbsensiController = {
           department:
             data.department == null ? null : data.department.nama_department,
           jabatan: data.jabatan == null ? null : data.jabatan.nama_jabatan,
+          jam_lembur_biasa: totalLemburBiasaJam,
+          jam_lembur_libur: totalLemburLiburJam,
+          jumlah_hari_terlambat: dataTerlambat.length,
+          jumlah_hari_cuti_khusus: jumlahHariCutiKhusus,
+          jumlah_hari_cuti_tahunan: jumlahHariCutiTahunan,
+          jumlah_hari_sakit: jumlahHariSakit,
+          jumlah_hari_izin: jumlahHariIzin,
+          jumlah_hari_mangkir: jumlahHariMangkir,
+          cuti_khusus: dataCutiKhusus,
+          cuti_tahunan: dataCutiTahunan,
+          sakit: dataSakit,
+          izin: dataIzin,
+          mangkir: dataMangkir,
           absensi: absenResultFilter,
         });
       }
