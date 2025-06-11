@@ -14,7 +14,12 @@ const KalibrasiAlatUkurController = {
         const length = await KalibrasiAlatUkur.count();
         const data = await KalibrasiAlatUkur.findAll({
           order: [["createdAt", "DESC"]],
-
+          include: [
+            {
+              model: KalibrasiAlatUkurTiket,
+              as: "data_tiket",
+            },
+          ],
           limit: parseInt(limit),
           offset,
         });
@@ -25,7 +30,14 @@ const KalibrasiAlatUkurController = {
         });
       } else if (id) {
         // console.log(id);
-        const data = await KalibrasiAlatUkur.findByPk(id, {});
+        const data = await KalibrasiAlatUkur.findByPk(id, {
+          include: [
+            {
+              model: KalibrasiAlatUkurTiket,
+              as: "data_tiket",
+            },
+          ],
+        });
 
         return res.status(200).json({ data: data });
       } else {
