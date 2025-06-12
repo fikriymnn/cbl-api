@@ -18,6 +18,8 @@ const KalibrasiAlatUkurController = {
             {
               model: KalibrasiAlatUkurTiket,
               as: "data_tiket",
+              required: false,
+              where: { status: "history" },
             },
           ],
           limit: parseInt(limit),
@@ -35,6 +37,8 @@ const KalibrasiAlatUkurController = {
             {
               model: KalibrasiAlatUkurTiket,
               as: "data_tiket",
+              required: false,
+              where: { status: "history" },
             },
           ],
         });
@@ -43,6 +47,14 @@ const KalibrasiAlatUkurController = {
       } else {
         const data = await KalibrasiAlatUkur.findAll({
           order: [["createdAt", "DESC"]],
+          include: [
+            {
+              model: KalibrasiAlatUkurTiket,
+              as: "data_tiket",
+              required: false,
+              where: { status: "history" },
+            },
+          ],
         });
         return res.status(200).json({ data: data });
       }
