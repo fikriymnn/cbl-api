@@ -1754,12 +1754,6 @@ const generateDailySakit = (
       (data) => data.tanggal_libur == tglHariini
     );
 
-    if (namaKaryawan == "SITI ATI") {
-      console.log(
-        filterJadwalKaryawan.some((data) => data.tanggal_libur == tglHariini),
-        tglHariini
-      );
-    }
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
     } else {
