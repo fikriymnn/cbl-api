@@ -443,7 +443,9 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
+          startDate,
+          endDate
         ),
       ];
     });
@@ -1341,7 +1343,9 @@ const generateDailyCuti = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
+  startDateCuti,
+  endDateCuti
 ) => {
   let dailycuti = [];
   let startDate = new Date(cuti.dari);
@@ -1369,6 +1373,15 @@ const generateDailyCuti = (
 
   const idDivisi = dataKaryawanBiodata?.id_divisi;
   const namaDivisi = dataMasterDivisi?.nama_divisi;
+
+  // Pastikan untuk memfilter berdasarkan rentang tanggal yang diinginkan
+  if (endDate < new Date(startDateCuti) || startDate > new Date(endDateCuti)) {
+    return dailySakit; // Jika tidak dalam rentang, kembalikan array kosong
+  }
+  // Sesuaikan startDate dan endDate untuk rentang yang relevan
+  startDate =
+    startDate < new Date(startDateCuti) ? new Date(startDateCuti) : startDate;
+  endDate = endDate > new Date(endDateCuti) ? new Date(endDateCuti) : endDate;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1401,42 +1414,44 @@ const generateDailyCuti = (
     );
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
-    }
-    const dayName2 = new Date(
-      Date.UTC(
-        waktuMasuk.getUTCFullYear(),
-        waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
-    ).toLocaleDateString("id-ID", {
-      weekday: "long",
-    });
+    } else {
+      const dayName2 = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      ).toLocaleDateString("id-ID", {
+        weekday: "long",
+      });
 
-    dailycuti.push({
-      userid: cuti.id_karyawan,
-      waktu_masuk: new Date(startDate),
-      waktu_keluar: null,
-      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
-      tgl_masuk: tglMasuk,
-      tgl_keluar: null,
-      jam_masuk: null,
-      jam_keluar: null,
-      menit_terlambat: null,
-      jam_lembur: null,
-      status_lembur: null,
-      status_masuk: null,
-      name: namaKaryawan,
-      status_keluar: null,
-      menit_pulang_cepat: null,
-      shift: null, // Menampilkan shift
-      status_absen: "cuti" + " " + cuti.tipe_cuti,
-      id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
-      id_divisi: idDivisi,
-      nama_divisi: namaDivisi,
-      hari: dayName2,
-      jenis_hari_masuk: jenisHariMasuk,
-    });
+      dailycuti.push({
+        userid: cuti.id_karyawan,
+        waktu_masuk: new Date(startDate),
+        waktu_keluar: null,
+        tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
+        tgl_masuk: tglMasuk,
+        tgl_keluar: null,
+        jam_masuk: null,
+        jam_keluar: null,
+        menit_terlambat: null,
+        jam_lembur: null,
+        status_lembur: null,
+        status_masuk: null,
+        name: namaKaryawan,
+        status_keluar: null,
+        menit_pulang_cepat: null,
+        shift: null, // Menampilkan shift
+        status_absen: "cuti" + " " + cuti.tipe_cuti,
+        id_department: namaKaryawanBiodata,
+        nama_department: namaDepartmentKaryawan,
+        id_divisi: idDivisi,
+        nama_divisi: namaDivisi,
+        hari: dayName2,
+        jenis_hari_masuk: jenisHariMasuk,
+      });
+    }
+
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
   }
@@ -1738,43 +1753,52 @@ const generateDailySakit = (
     const isTodayOvertime = filterJadwalKaryawan.some(
       (data) => data.tanggal_libur == tglHariini
     );
+
+    if (namaKaryawan == "SITI ATI") {
+      console.log(
+        filterJadwalKaryawan.some((data) => data.tanggal_libur == tglHariini),
+        tglHariini
+      );
+    }
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
+    } else {
+      const dayName2 = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      ).toLocaleDateString("id-ID", {
+        weekday: "long",
+      });
+      dailySakit.push({
+        userid: sakit.id_karyawan,
+        waktu_masuk: new Date(startDate),
+        waktu_keluar: null,
+        tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
+        tgl_masuk: tglMasuk,
+        tgl_keluar: null,
+        jam_masuk: null,
+        jam_keluar: null,
+        menit_terlambat: null,
+        jam_lembur: null,
+        status_lembur: null,
+        status_masuk: null,
+        name: namaKaryawan,
+        status_keluar: null,
+        menit_pulang_cepat: null,
+        shift: null, // Menampilkan shift
+        status_absen: "sakit",
+        id_department: namaKaryawanBiodata,
+        nama_department: namaDepartmentKaryawan,
+        id_divisi: idDivisi,
+        nama_divisi: namaDivisi,
+        hari: dayName2,
+        jenis_hari_masuk: jenisHariMasuk,
+      });
     }
-    const dayName2 = new Date(
-      Date.UTC(
-        waktuMasuk.getUTCFullYear(),
-        waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
-    ).toLocaleDateString("id-ID", {
-      weekday: "long",
-    });
-    dailySakit.push({
-      userid: sakit.id_karyawan,
-      waktu_masuk: new Date(startDate),
-      waktu_keluar: null,
-      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
-      tgl_masuk: tglMasuk,
-      tgl_keluar: null,
-      jam_masuk: null,
-      jam_keluar: null,
-      menit_terlambat: null,
-      jam_lembur: null,
-      status_lembur: null,
-      status_masuk: null,
-      name: namaKaryawan,
-      status_keluar: null,
-      menit_pulang_cepat: null,
-      shift: null, // Menampilkan shift
-      status_absen: "sakit",
-      id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
-      id_divisi: idDivisi,
-      nama_divisi: namaDivisi,
-      hari: dayName2,
-      jenis_hari_masuk: jenisHariMasuk,
-    });
+
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
   }
