@@ -5,6 +5,8 @@ const PointPm1 = require("./mtc/preventive/pm1/pointPm1");
 const PointPm2 = require("./mtc/preventive/pm2/pointPm2");
 const PointPm3 = require("./mtc/preventive/pm3/pointPm3");
 
+const MasterMesin = require("../model/masterData/masterMesinModel");
+
 const { DataTypes } = Sequelize;
 
 const TicketOs3 = db.define(
@@ -32,6 +34,14 @@ const TicketOs3 = db.define(
       allowNull: true,
       references: {
         model: PointPm3,
+        key: "id",
+      },
+    },
+    id_mesin: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterMesin,
         key: "id",
       },
     },
@@ -121,5 +131,8 @@ TicketOs3.belongsTo(PointPm2, { foreignKey: "id_point_pm2", as: "point_pm2" });
 
 PointPm3.hasMany(TicketOs3, { foreignKey: "id_point_pm3" });
 TicketOs3.belongsTo(PointPm3, { foreignKey: "id_point_pm3", as: "point_pm3" });
+
+MasterMesin.hasMany(TicketOs3, { foreignKey: "id_mesin", as: "mesin_os3" });
+TicketOs3.belongsTo(MasterMesin, { foreignKey: "id_mesin", as: "mesin" });
 
 module.exports = TicketOs3;

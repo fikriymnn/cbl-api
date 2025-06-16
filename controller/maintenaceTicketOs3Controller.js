@@ -18,7 +18,7 @@ const ticketOs3Controller = {
     try {
       const {
         nama_mesin,
-        id_inspector,
+        id_eksekutor,
         id_leader,
         id_supervisor,
         id_kabag_mtc,
@@ -31,24 +31,120 @@ const ticketOs3Controller = {
         tgl_mtc,
         skor_mtc,
         nama_analisis_mtc,
+        start_date,
+        end_date,
+        limit,
+        page,
       } = req.query;
 
+      let options = {
+        include: null,
+      };
       let obj = {};
+      let objEksekutor = {};
+      const offset = (page - 1) * limit;
+
       if (status_tiket) obj.status_tiket = status_tiket;
       if (tanggal) obj.tanggal = tanggal;
       if (nama_mesin) obj.nama_mesin = nama_mesin;
-
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
       if (tgl_mtc) obj.tgl_mtc = tgl_mtc;
       if (nama_analisis_mtc) obj.nama_analisis_mtc = nama_analisis_mtc;
       if (skor_mtc) obj.skor_mtc = skor_mtc;
       if (waktu_selesai_mtc) obj.waktu_selesai_mtc = waktu_selesai_mtc;
+      if (start_date && end_date) {
+        obj.createdAt = {
+          [Op.between]: [
+            new Date(start_date).setHours(0, 0, 0, 0),
+            new Date(end_date).setHours(23, 59, 59, 999),
+          ],
+        };
+      } else if (start_date) {
+        obj.tgl = {
+          [Op.gte]: new Date(start_date).setHours(0, 0, 0, 0), // Set jam startDate ke 00:00:00:00
+        };
+      } else if (end_date) {
+        obj.tgl = {
+          [Op.lte]: new Date(end_date).setHours(23, 59, 59, 999),
+        };
+      }
 
-      const response = await TicketOs3.findAll({
-        where: obj,
-        order: [["createdAt", "DESC"]],
-        include: [
+      if (id_eksekutor) objEksekutor.id_eksekutor = id_eksekutor;
+
+      options.where = obj;
+      //console.log(obj);
+      options.order = [["createdAt", "DESC"]];
+
+      if (id_eksekutor) {
+        options.include = [
+          {
+            model: PointPm1,
+            as: "point_pm1",
+            include: [
+              {
+                model: TaskPm1,
+              },
+              {
+                model: TicketPm1,
+                include: [
+                  {
+                    model: Users,
+                    as: "inspector",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: PointPm2,
+            as: "point_pm2",
+            include: [
+              {
+                model: TaskPm2,
+              },
+              {
+                model: TicketPm2,
+                include: [
+                  {
+                    model: Users,
+                    as: "inspector",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: PointPm3,
+            as: "point_pm3",
+            include: [
+              {
+                model: TaskPm3,
+              },
+              {
+                model: TicketPm3,
+                include: [
+                  {
+                    model: Users,
+                    as: "inspector",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: ProsesMtcOs3,
+            where: objEksekutor,
+            include: [
+              {
+                model: Users,
+                as: "user_eksekutor",
+              },
+            ],
+          },
+        ];
+      } else {
+        options.include = [
           {
             model: PointPm1,
             as: "point_pm1",
@@ -112,10 +208,21 @@ const ticketOs3Controller = {
               },
             ],
           },
-        ],
-      });
+        ];
+      }
+      if (page && limit) {
+        options.limit = parseInt(limit);
+        options.offset = parseInt(offset);
+      }
+      const data = await TicketOs3.count(options);
+      const response = await TicketOs3.findAll(options);
 
-      res.status(200).json(response);
+      res.status(200).json({
+        total_page: Math.ceil(data / limit),
+        data: response,
+        offset: page,
+        limit: limit,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
