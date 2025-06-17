@@ -206,6 +206,7 @@ router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
 router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
 router.use("/", require("./hr/pengajuanMangkir/pengajuanMangkirRoute"));
 router.use("/", require("./hr/pengajuanTerlambat/pengajuanTerlambatRoute"));
+router.use("/", require("./hr/pengajuanPulangCepat/pengajuanPulangCepatRoute"));
 router.use(
   "/",
   require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")

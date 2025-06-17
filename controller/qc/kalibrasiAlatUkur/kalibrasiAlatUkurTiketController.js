@@ -6,11 +6,12 @@ const { Op } = require("sequelize");
 
 const KalibrasiAlatUkurTiketController = {
   getKalibrasiAlatUkurTiket: async (req, res) => {
-    const { page, limit, status } = req.query;
+    const { page, limit, status, bagian } = req.query;
     const id = req.params.id;
     try {
       let obj = {};
       if (status) obj.status = status;
+      if (bagian) obj.bagian = bagian;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       if (page && limit) {
         const length = await KalibrasiAlatUkurTiket.count();
@@ -20,6 +21,10 @@ const KalibrasiAlatUkurTiketController = {
             {
               model: KalibrasiAlatUkur,
               as: "kalibrasi_alat_ukur",
+            },
+            {
+              model: Users,
+              as: "validator",
             },
           ],
           limit: parseInt(limit),
@@ -39,6 +44,10 @@ const KalibrasiAlatUkurTiketController = {
               model: KalibrasiAlatUkur,
               as: "kalibrasi_alat_ukur",
             },
+            {
+              model: Users,
+              as: "validator",
+            },
           ],
         });
 
@@ -50,6 +59,10 @@ const KalibrasiAlatUkurTiketController = {
             {
               model: KalibrasiAlatUkur,
               as: "kalibrasi_alat_ukur",
+            },
+            {
+              model: Users,
+              as: "validator",
             },
           ],
           where: obj,
@@ -104,9 +117,32 @@ const KalibrasiAlatUkurTiketController = {
     }
   },
 
+  validasiKalibrasiAlatUkurTiket: async (req, res) => {
+    const _id = req.params.id;
+    const { bagian } = req.body;
+    const t = await db.transaction();
+    try {
+      let obj = { id_validator: req.user.id };
+
+      if (bagian) obj.bagian = bagian;
+
+      const data = await KalibrasiAlatUkurTiket.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
+
+      await t.commit();
+
+      return res.status(201).json({ msg: "update success" });
+    } catch (err) {
+      await t.rollback();
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
   doneKalibrasiAlatUkurTiket: async (req, res) => {
     const _id = req.params.id;
-    const { tgl_kalibrasi } = req.body;
+    const { tgl_kalibrasi, nama_inspektor } = req.body;
     const t = await db.transaction();
     try {
       if (!tgl_kalibrasi)
@@ -131,6 +167,7 @@ const KalibrasiAlatUkurTiketController = {
         {
           status: "history",
           tgl_kalibrasi: tgl_kalibrasi,
+          nama_inspektor,
         },
         {
           where: { id: _id },
