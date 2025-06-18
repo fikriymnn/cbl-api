@@ -845,7 +845,7 @@ const absenFunction = {
           masterAbsensi.toleransi_pulang_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
 
         if (
-          waktuKeluarUTC.getTime() < shiftKeluarTime + toleransiKeluar &&
+          waktuKeluarUTC.getTime() < shiftKeluarTime - toleransiKeluar &&
           jenisHariMasuk == "Biasa"
         ) {
           const Pulang = Math.floor(
@@ -967,9 +967,7 @@ const absenFunction = {
         let statusTerlambat = "";
         const terlambatFind = terlambatEntries.find(
           (entry) =>
-            entry.userid === masuk.userid &&
-            entry.tgl_masuk === tglMasuk &&
-            entry.status_absen == "dinas"
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
         );
         if (terlambatFind) {
           statusTerlambat = terlambatFind.status_masuk;
@@ -977,9 +975,7 @@ const absenFunction = {
 
         const pulangCepatFind = pulangCepatEntries.find(
           (entry) =>
-            entry.userid === masuk.userid &&
-            entry.tgl_masuk === tglMasuk &&
-            entry.status_absen == "dinas"
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
         );
         if (pulangCepatFind) {
           menitPulangCepat = 0;

@@ -56,6 +56,10 @@ const PengajuanSakit = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    alasan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     catatan_hr: {
       type: DataTypes.STRING,
       allowNull: true,

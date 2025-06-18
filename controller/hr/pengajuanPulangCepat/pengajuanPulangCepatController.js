@@ -169,7 +169,7 @@ const PengajuanPulangCepatController = {
   },
 
   createPengajuanPulangCepat: async (req, res) => {
-    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_pulang } =
+    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_pulang, alasan } =
       req.body;
     const t = await db.transaction();
 
@@ -188,6 +188,7 @@ const PengajuanPulangCepatController = {
           tanggal,
           type_izin,
           jam_pulang,
+          alasan,
         },
         { transaction: t }
       );
