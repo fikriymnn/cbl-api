@@ -50,6 +50,14 @@ const KalibrasiAlatUkur = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_sertifikat: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vendor: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     file: {
       type: DataTypes.STRING,
       allowNull: true,

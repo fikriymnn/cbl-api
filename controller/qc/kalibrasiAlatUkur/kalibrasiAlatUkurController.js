@@ -76,6 +76,8 @@ const KalibrasiAlatUkurController = {
       masa_berlaku,
       sertifikat,
       keterangan,
+      no_sertifikat,
+      vendor,
       file,
     } = req.body;
     const t = await db.transaction();
@@ -93,6 +95,8 @@ const KalibrasiAlatUkurController = {
           masa_berlaku,
           sertifikat,
           keterangan,
+          no_sertifikat,
+          vendor,
           file,
         },
         { transaction: t }
@@ -120,6 +124,8 @@ const KalibrasiAlatUkurController = {
       masa_berlaku,
       sertifikat,
       keterangan,
+      no_sertifikat,
+      vendor,
       file,
     } = req.body;
     const t = await db.transaction();
@@ -136,6 +142,8 @@ const KalibrasiAlatUkurController = {
       if (masa_berlaku) obj.masa_berlaku = masa_berlaku;
       if (sertifikat) obj.sertifikat = sertifikat;
       if (keterangan) obj.keterangan = keterangan;
+      if (no_sertifikat) obj.no_sertifikat = no_sertifikat;
+      if (vendor) obj.vendor = vendor;
       if (file) obj.file = file;
       const data = await KalibrasiAlatUkur.update(obj, {
         where: { id: _id },

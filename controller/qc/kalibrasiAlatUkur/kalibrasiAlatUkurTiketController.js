@@ -159,9 +159,7 @@ const KalibrasiAlatUkurTiketController = {
           .json({ msg: "data kalibrasi alat ukur tidak di temukan" });
       const tglKalibrasi = new Date(tgl_kalibrasi); // tanggal hari ini
       const masaBerlaku = new Date(tglKalibrasi); // salin tanggal hari ini
-      masaBerlaku.setFullYear(
-        tglKalibrasi.getFullYear() + dataKalibrasi.frekuensi
-      ); // tambah 1 tahun
+      masaBerlaku.setMonth(tglKalibrasi.getMonth() + dataKalibrasi.frekuensi); // tambah periode per bulan
 
       await KalibrasiAlatUkurTiket.update(
         {
@@ -181,7 +179,7 @@ const KalibrasiAlatUkurTiketController = {
           masa_berlaku: masaBerlaku,
         },
         {
-          where: { id: _id },
+          where: { id: dataKalibrasi.id },
           transaction: t,
         }
       );
