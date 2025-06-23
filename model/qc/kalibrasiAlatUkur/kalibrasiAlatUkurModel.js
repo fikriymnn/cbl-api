@@ -2,10 +2,28 @@ const { Sequelize } = require("sequelize");
 const { DataTypes } = Sequelize;
 const db = require("../../../config/database");
 const User = require("../../userModel");
+const MasterStatusKalibrasi = require("../../masterData/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurModel");
+const MasterLokasiKalibrasi = require("../../masterData/qc/kalibrasiAlatUkur/masterLokasiPenyimpananKalibrasiAlatUkurModel");
 
 const KalibrasiAlatUkur = db.define(
   "kalibrasi_alat_ukur",
   {
+    id_status: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterStatusKalibrasi,
+        key: "id",
+      },
+    },
+    id_lokasi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterLokasiKalibrasi,
+        key: "id",
+      },
+    },
     nama_alat_ukur: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -67,5 +85,23 @@ const KalibrasiAlatUkur = db.define(
     freezeTableName: true,
   }
 );
+MasterStatusKalibrasi.hasMany(KalibrasiAlatUkur, {
+  foreignKey: "id_status",
+  as: "kalibrasi_alat_ukur",
+});
 
+KalibrasiAlatUkur.belongsTo(MasterStatusKalibrasi, {
+  foreignKey: "id_status",
+  as: "status_kalibrasi",
+});
+
+MasterLokasiKalibrasi.hasMany(KalibrasiAlatUkur, {
+  foreignKey: "id_lokasi",
+  as: "kalibrasi_alat_ukur",
+});
+
+KalibrasiAlatUkur.belongsTo(MasterLokasiKalibrasi, {
+  foreignKey: "id_lokasi",
+  as: "lokasi_kalibrasi",
+});
 module.exports = KalibrasiAlatUkur;

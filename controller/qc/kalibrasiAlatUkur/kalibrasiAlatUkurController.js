@@ -1,5 +1,7 @@
 const KalibrasiAlatUkur = require("../../../model/qc/kalibrasiAlatUkur/kalibrasiAlatUkurModel");
 const KalibrasiAlatUkurTiket = require("../../../model/qc/kalibrasiAlatUkur/kalibrasiAlatUkurTiketModel");
+const MasterStatusKalibrasi = require("../../../model/masterData/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurModel");
+const MasterLokasiKalibrasi = require("../../../model/masterData/qc/kalibrasiAlatUkur/masterLokasiPenyimpananKalibrasiAlatUkurModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const { Op } = require("sequelize");
@@ -21,6 +23,14 @@ const KalibrasiAlatUkurController = {
               required: false,
               where: { status: "history" },
             },
+            {
+              model: MasterStatusKalibrasi,
+              as: "status_kalibrasi",
+            },
+            {
+              model: MasterLokasiKalibrasi,
+              as: "lokasi_kalibrasi",
+            },
           ],
           limit: parseInt(limit),
           offset,
@@ -40,6 +50,14 @@ const KalibrasiAlatUkurController = {
               required: false,
               where: { status: "history" },
             },
+            {
+              model: MasterStatusKalibrasi,
+              as: "status_kalibrasi",
+            },
+            {
+              model: MasterLokasiKalibrasi,
+              as: "lokasi_kalibrasi",
+            },
           ],
         });
 
@@ -53,6 +71,14 @@ const KalibrasiAlatUkurController = {
               as: "data_tiket",
               required: false,
               where: { status: "history" },
+            },
+            {
+              model: MasterStatusKalibrasi,
+              as: "status_kalibrasi",
+            },
+            {
+              model: MasterLokasiKalibrasi,
+              as: "lokasi_kalibrasi",
             },
           ],
         });
@@ -84,12 +110,12 @@ const KalibrasiAlatUkurController = {
     try {
       const data = await KalibrasiAlatUkur.create(
         {
+          id_status: status,
+          id_lokasi: lokasi_penyimpanan,
           nama_alat_ukur,
           merk_model,
           no_seri,
           spesifikasi,
-          lokasi_penyimpanan,
-          status,
           frekuensi,
           kalibrasi_terakhir,
           masa_berlaku,
@@ -113,6 +139,8 @@ const KalibrasiAlatUkurController = {
   updateKalibrasiAlatUkur: async (req, res) => {
     const _id = req.params.id;
     const {
+      id_status,
+      id_lokasi,
       nama_alat_ukur,
       merk_model,
       no_seri,
@@ -131,6 +159,8 @@ const KalibrasiAlatUkurController = {
     const t = await db.transaction();
     try {
       let obj = {};
+      if (id_status) obj.id_status = id_status;
+      if (id_lokasi) obj.id_lokasi = id_lokasi;
       if (status) obj.status = status;
       if (nama_alat_ukur) obj.nama_alat_ukur = nama_alat_ukur;
       if (merk_model) obj.merk_model = merk_model;
