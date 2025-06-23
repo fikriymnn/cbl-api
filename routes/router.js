@@ -78,6 +78,14 @@ router.use(
   require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
 );
 router.use("/", require("./masterdata/qc/department/masterDepartmentRoutes"));
+router.use(
+  "/",
+  require("./masterdata/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurRoute")
+);
+router.use(
+  "/",
+  require("./masterdata/qc/kalibrasiAlatUkur/masterLokasiKalibrasiAlatUkurRoute")
+);
 
 //qc
 router.use("/", require("./qc/inspeksi/bahan/inspeksiBahanRoutes"));

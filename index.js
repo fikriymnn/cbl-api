@@ -127,6 +127,8 @@ const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel")
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
 const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 const msKodeDocInspeksi = require("./model/masterData/qc/inspeksi/masterKodeDocModel");
+const msStatusKalibrasiAlatUkur = require("./model/masterData/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurModel");
+const msLokasiKalibrasiAlatUkur = require("./model/masterData/qc/kalibrasiAlatUkur/masterLokasiPenyimpananKalibrasiAlatUkurModel");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
 const msdepartment = require("./model/masterData/qc/department/masterDepartmentModel");
@@ -270,7 +272,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanPulangCepat.sync({ alter: true });
+//   await inspeksiBahan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

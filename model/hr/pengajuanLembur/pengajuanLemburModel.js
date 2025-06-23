@@ -68,6 +68,14 @@ const PengajuanLembur = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    dari_2: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    sampai_2: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     lama_lembur: {
       type: DataTypes.DOUBLE,
       allowNull: true,
