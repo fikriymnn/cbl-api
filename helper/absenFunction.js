@@ -992,6 +992,8 @@ const absenFunction = {
             entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
         );
 
+        // console.log(lemburEntries, tglMasuk);
+
         if (lemburFind) {
           if (lemburFind.status_ketidaksesuaian === "approved") {
             jamLembur = lemburFind.jam_lembur;
@@ -2218,8 +2220,8 @@ const generateDailyLembur = (
   // Iterasi dari tanggal_dari hingga tanggal_sampai
 
   const waktuMasuk = new Date(startDate);
-  const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
-  const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+  const monthMasuk = getMonthName(waktuMasuk.getMonth() + 1);
+  const tglMasuk = `${waktuMasuk.getDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
 
   // Dapatkan tanggal berdasarkan tanggal absensi masuk
   const tglMasukUtc = new Date(
