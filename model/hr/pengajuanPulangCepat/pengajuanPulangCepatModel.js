@@ -6,7 +6,7 @@ const DepartmentModel = require("../../masterData/hr/masterDeprtmentModel");
 const { DataTypes } = Sequelize;
 
 const PengajuanSakit = db.define(
-  "pengajuan_terlambat",
+  "pengajuan_pulang_cepat",
   {
     id_karyawan: {
       type: DataTypes.INTEGER,
@@ -52,7 +52,11 @@ const PengajuanSakit = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jam_masuk: {
+    jam_pulang: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    alasan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -79,7 +83,7 @@ const PengajuanSakit = db.define(
 //relasi karyawan
 KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_karyawan",
-  as: "terlambat_karyawan",
+  as: "pulang_cepat_karyawan",
 });
 PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_karyawan",
@@ -89,7 +93,7 @@ PengajuanSakit.belongsTo(KaryawanModel, {
 //relasi karyawan pengaju
 KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_pengaju",
-  as: "pengaju_terlambat_karyawan",
+  as: "pengaju_pulang_cepat_karyawan",
 });
 PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_pengaju",
@@ -99,7 +103,7 @@ PengajuanSakit.belongsTo(KaryawanModel, {
 //relasi karyawan hr
 KaryawanModel.hasMany(PengajuanSakit, {
   foreignKey: "id_hr",
-  as: "hr_respon_terlambat_karyawan",
+  as: "hr_respon_pulang_cepat_karyawan",
 });
 PengajuanSakit.belongsTo(KaryawanModel, {
   foreignKey: "id_hr",
@@ -108,7 +112,7 @@ PengajuanSakit.belongsTo(KaryawanModel, {
 //relasi master department
 DepartmentModel.hasMany(PengajuanSakit, {
   foreignKey: "id_department",
-  as: "hr_pengajuan_terlambat",
+  as: "hr_pengajuan_pulang_cepat",
 });
 PengajuanSakit.belongsTo(DepartmentModel, {
   foreignKey: "id_department",

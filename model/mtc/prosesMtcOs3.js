@@ -99,6 +99,16 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
+    bagian_mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "0",
+    },
     note_qc: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -114,6 +124,11 @@ const ProsesMtc = db.define(
     img_url: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    is_rework: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
   },
 

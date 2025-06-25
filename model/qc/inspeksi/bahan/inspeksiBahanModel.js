@@ -93,6 +93,14 @@ const InspeksiBahan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_bacth: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     total_skor: {
       type: DataTypes.INTEGER,
       allowNull: true,

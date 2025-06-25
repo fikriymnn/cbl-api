@@ -912,7 +912,7 @@ const hitungPayroll = async (
         (absen.status_lembur === "Lembur Libur" && jamLembur > 0)
       ) {
         const banyakMakanLembur = Math.floor(
-          jamLembur / masterPayrollData.uang_makan_lembur_per
+          (jamLembur + jamIstirahat) / masterPayrollData.uang_makan_lembur_per
         );
 
         // menghitung uang lembur karyawan bulanan, jika jenis hari masuk libur makan dihitung uang lembur libur
@@ -1022,6 +1022,10 @@ const hitungPayroll = async (
         });
 
         payroll.total += (masterPayrollData.upah_sakit * upahPerHari) / 100;
+        summaryPayroll.total +=
+          (masterPayrollData.upah_sakit * upahPerHari) / 100;
+        summaryPayroll.sub_total +=
+          (masterPayrollData.upah_sakit * upahPerHari) / 100;
       }
 
       // Perhitungan tunjangan kerja malam khusus untuk karyawan mingguan
@@ -1054,10 +1058,10 @@ const hitungPayroll = async (
       });
 
       // Gabungkan rincian sakit payroll ke summaryPayroll
-      summaryPayroll.upahHarianSakit.map((item) => {
-        summaryPayroll.total += item.total;
-        summaryPayroll.sub_total += item.total;
-      });
+      // summaryPayroll.upahHarianSakit.map((item) => {
+      //   summaryPayroll.total += item.total;
+      //   summaryPayroll.sub_total += item.total;
+      // });
 
       // Tambahkan payroll ke dalam data absen
       return { ...absen, lama_istirahat: jamIstirahat, payroll };

@@ -1,14 +1,14 @@
 const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
-const PengajuanTerlambat = require("../../../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const PengajuanPulangCepat = require("../../../model/hr/pengajuanPulangCepat/pengajuanPulangCepatModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterBagianHr = require("../../../model/masterData/hr/masterBagianModel");
 const db = require("../../../config/database");
 
-const PengajuanTerlambatController = {
-  getPengajuanTerlambat: async (req, res) => {
+const PengajuanPulangCepatController = {
+  getPengajuanPulangCepat: async (req, res) => {
     const _id = req.params.id;
     const {
       page,
@@ -35,8 +35,8 @@ const PengajuanTerlambatController = {
     }
     try {
       if (page && limit) {
-        const length = await PengajuanTerlambat.count({ where: obj });
-        const data = await PengajuanTerlambat.findAll({
+        const length = await PengajuanPulangCepat.count({ where: obj });
+        const data = await PengajuanPulangCepat.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           include: [
@@ -81,7 +81,7 @@ const PengajuanTerlambatController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const data = await PengajuanTerlambat.findByPk(_id, {
+        const data = await PengajuanPulangCepat.findByPk(_id, {
           include: [
             {
               model: Karyawan,
@@ -121,7 +121,7 @@ const PengajuanTerlambatController = {
           data: data,
         });
       } else {
-        const data = await PengajuanTerlambat.findAll({
+        const data = await PengajuanPulangCepat.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
           include: [
@@ -168,8 +168,9 @@ const PengajuanTerlambatController = {
     }
   },
 
-  createPengajuanTerlambat: async (req, res) => {
-    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_masuk } = req.body;
+  createPengajuanPulangCepat: async (req, res) => {
+    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_pulang, alasan } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -179,20 +180,21 @@ const PengajuanTerlambatController = {
 
       if (!dataKaryawanBiodata)
         return res.status(404).json({ msg: "Kartyawan Tidak ditemukan" });
-      const dataPengajuanTerlambat = await PengajuanTerlambat.create(
+      const dataPengajuanPulangCepat = await PengajuanPulangCepat.create(
         {
           id_karyawan,
           id_pengaju: id_pengaju,
           id_department: dataKaryawanBiodata.id_department,
           tanggal,
           type_izin,
-          jam_masuk,
+          jam_pulang,
+          alasan,
         },
         { transaction: t }
       );
       await t.commit();
       res.status(200).json({
-        data: dataPengajuanTerlambat,
+        data: dataPengajuanPulangCepat,
       });
     } catch (error) {
       await t.rollback();
@@ -200,17 +202,17 @@ const PengajuanTerlambatController = {
     }
   },
 
-  approvePengajuanTerlambat: async (req, res) => {
+  approvePengajuanPulangCepat: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr } = req.body;
     const t = await db.transaction();
 
     try {
-      const dataPengajuanTerlambat = await PengajuanTerlambat.findByPk(_id);
-      if (!dataPengajuanTerlambat)
+      const dataPengajuanPulangCepat = await PengajuanPulangCepat.findByPk(_id);
+      if (!dataPengajuanPulangCepat)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
-      await PengajuanTerlambat.update(
+      await PengajuanPulangCepat.update(
         {
           status: "approved",
           status_tiket: "history",
@@ -231,17 +233,17 @@ const PengajuanTerlambatController = {
     }
   },
 
-  rejectPengajuanTerlambat: async (req, res) => {
+  rejectPengajuanPulangCepat: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr } = req.body;
     const t = await db.transaction();
 
     try {
-      const dataPengajuanTerlambat = await PengajuanTerlambat.findByPk(_id);
-      if (!dataPengajuanTerlambat)
+      const dataPengajuanPulangCepat = await PengajuanPulangCepat.findByPk(_id);
+      if (!dataPengajuanPulangCepat)
         return res.status(404).json({ msg: "data tidak di temukan" });
 
-      await PengajuanTerlambat.update(
+      await PengajuanPulangCepat.update(
         {
           status: "rejected",
           status_tiket: "history",
@@ -264,4 +266,4 @@ const PengajuanTerlambatController = {
   },
 };
 
-module.exports = PengajuanTerlambatController;
+module.exports = PengajuanPulangCepatController;

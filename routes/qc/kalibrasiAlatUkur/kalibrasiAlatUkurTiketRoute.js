@@ -16,6 +16,11 @@ router.put(
   KalibrasiAlatUkurTiketController.updateKalibrasiAlatUkurTiket
 );
 router.put(
+  "/qc/kalibrasiAlatUkurTiket/validasi/:id",
+  auth,
+  KalibrasiAlatUkurTiketController.validasiKalibrasiAlatUkurTiket
+);
+router.put(
   "/qc/kalibrasiAlatUkurTiket/done/:id",
   auth,
   KalibrasiAlatUkurTiketController.doneKalibrasiAlatUkurTiket

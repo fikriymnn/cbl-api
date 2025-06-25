@@ -9,6 +9,7 @@ const ProsesMtcOs3 = require("../../model/mtc/prosesMtcOs3");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const moment = require("moment");
+const db = require("../../config/database");
 
 const ProsessMtc = {
   getProsesMtcOs3ById: async (req, res) => {
@@ -70,6 +71,7 @@ const ProsessMtc = {
 
   responseMtcOs3: async (req, res) => {
     const _id = req.params.id;
+    const t = await db.transaction();
     let obj = {
       id_respon_mtc: req.user.id,
       bagian_tiket: "os3",
@@ -101,11 +103,13 @@ const ProsessMtc = {
     };
 
     try {
-      await TicketOs3.update(obj, { where: { id: _id } }),
-        await ProsesMtcOs3.create(prosesMtc);
-      await userActionMtc.bulkCreate(action);
+      await TicketOs3.update(obj, { where: { id: _id }, transaction: t }),
+        await ProsesMtcOs3.create(prosesMtc, { transaction: t });
+      await userActionMtc.bulkCreate(action, { transaction: t });
+      await t.commit();
       res.status(201).json({ msg: "Respon Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -117,12 +121,15 @@ const ProsessMtc = {
       id_proses,
       kode_analisis_mtc,
       nama_analisis_mtc,
+      jenis_analisis_mtc,
       note_analisis,
       masalah_sparepart,
       skor_mtc,
       cara_perbaikan,
       note_mtc,
       nama_mesin,
+      unit,
+      bagian_mesin,
       image_url,
     } = req.body;
 
@@ -135,13 +142,14 @@ const ProsessMtc = {
       !nama_mesin
     )
       return res.status(401).json({ msg: "incomplite data" });
+    const t = await db.transaction();
 
     const monitoring = await MasterMonitoring.findByPk(1);
 
     let status = "";
-    if (skor_mtc <= monitoring.minimal_skor) {
+    if (skor_mtc < monitoring.minimal_skor) {
       status = "temporary";
-    } else if (skor_mtc > monitoring.minimal_skor) {
+    } else if (skor_mtc >= monitoring.minimal_skor) {
       status = "monitoring";
     }
 
@@ -150,6 +158,16 @@ const ProsessMtc = {
       kode_analisis_mtc: kode_analisis_mtc,
       nama_analisis_mtc: nama_analisis_mtc,
       waktu_selesai_mtc: new Date(),
+      jenis_analisis_mtc: jenis_analisis_mtc,
+      skor_mtc: skor_mtc,
+      cara_perbaikan: cara_perbaikan,
+    };
+    let obj_rework = {
+      status_tiket: status,
+      kode_analisis_mtc: kode_analisis_mtc,
+      nama_analisis_mtc: nama_analisis_mtc,
+
+      jenis_analisis_mtc: jenis_analisis_mtc,
       skor_mtc: skor_mtc,
       cara_perbaikan: cara_perbaikan,
     };
@@ -164,15 +182,29 @@ const ProsessMtc = {
       cara_perbaikan: cara_perbaikan,
       note_mtc: note_mtc,
       note_analisis: note_analisis,
+      unit: unit,
+      bagian_mesin: bagian_mesin,
       //image_url: image_url,
     };
 
     try {
-      if (!masalah_sparepart || masalah_sparepart == []) {
-        await TicketOs3.update(obj, { where: { id: _id } }),
-          // await MasalahSparepart.bulkCreate(masalah_sparepart);
+      if (
+        !masalah_sparepart ||
+        masalah_sparepart == [] ||
+        masalah_sparepart.length == 0
+      ) {
+        const dataOs3 = TicketOs3.findByPk(_id);
 
-          await ProsesMtcOs3.update(obj_proses, { where: { id: id_proses } }),
+        if (dataOs3.waktu_selesai_mtc == null) {
+          await TicketOs3.update(obj, { where: { id: _id } });
+        } else {
+          await TicketOs3.update(obj_rework, { where: { id: _id } });
+        }
+        // await MasalahSparepart.bulkCreate(masalah_sparepart);
+        await ProsesMtcOs3.update(obj_proses, {
+          where: { id: id_proses },
+          transaction: t,
+        }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -181,13 +213,18 @@ const ProsessMtc = {
                 action: "eksekutor",
                 status: "on progress",
               },
+              transaction: t,
             }
           );
+        await t.commit();
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
         await TicketOs3.update(obj, { where: { id: _id } }),
-          await ProsesMtcOs3.update(obj_proses, { where: { id: id_proses } }),
+          await ProsesMtcOs3.update(obj_proses, {
+            where: { id: id_proses },
+            transaction: t,
+          }),
           await userActionMtc.update(
             { status: "done" },
             {
@@ -196,6 +233,7 @@ const ProsessMtc = {
                 action: "eksekutor",
                 status: "on progress",
               },
+              transaction: t,
             }
           );
 
@@ -227,7 +265,9 @@ const ProsessMtc = {
           });
         }
 
-        await MasalahSparepart.bulkCreate(sparepart_masalah_data);
+        await MasalahSparepart.bulkCreate(sparepart_masalah_data, {
+          transaction: t,
+        });
 
         for (let i = 0; i < sparepart_masalah_data.length; i++) {
           StokSparepart.findOne({
@@ -266,18 +306,23 @@ const ProsessMtc = {
                 tgl_pasang: new Date(),
                 tgl_rusak: ticketMtc.createdAt,
               },
-              { where: { id: sparepart_masalah_data[i].id_ms_sparepart } }
+              {
+                where: { id: sparepart_masalah_data[i].id_ms_sparepart },
+                transaction: t,
+              }
             );
             await StokSparepart.update(
               { stok: stok },
-              { where: { id: stokSparepart.id } }
+              { where: { id: stokSparepart.id }, transaction: t }
             );
           });
         }
 
+        await t.commit();
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       }
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -460,7 +505,7 @@ const ProsessMtc = {
 
   //ini fungsi untuk nanti cron job
   cekMonitoringOs3: async (req, res) => {
-    const proses = await ProsesMtc.findAll({
+    const proses = await ProsesMtcOs3.findAll({
       where: { status_proses: "monitoring" },
     });
     const timeMonitoring = await waktuMonitoring.findAll();

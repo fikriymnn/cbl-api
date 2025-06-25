@@ -77,6 +77,11 @@ const TiketJadwalProduksitahap = db.define(
       allowNull: false,
       defaultValue: 0,
     },
+    total_waktu_produksi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     tgl_from: {
       type: DataTypes.STRING,
       allowNull: true,

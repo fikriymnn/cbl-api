@@ -327,6 +327,8 @@ const PengajuanLemburController = {
       jo_lembur,
       dari,
       sampai,
+      dari_2,
+      sampai_2,
       lama_lembur,
       alasan_lembur,
       target_lembur,
@@ -370,6 +372,8 @@ const PengajuanLemburController = {
             jo_lembur,
             dari,
             sampai,
+            dari_2,
+            sampai_2,
             lama_lembur,
             lama_lembur_aktual: lama_lembur,
             alasan_lembur,
@@ -520,8 +524,8 @@ const PengajuanLemburController = {
       let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
       let statusPenanganan = "Sesuai SPL";
 
-      // 1 untuk ikut lama lembur spl
-      if (penanganan == 1) {
+      // 0 untuk ikut lama lembur spl
+      if (penanganan == 0) {
         lamaLemburAktual = dataPengajuanLembur.lama_lembur;
         statusPenanganan = "Sesuai spl";
       } else {
@@ -534,6 +538,7 @@ const PengajuanLemburController = {
           status_ketidaksesuaian: "approved",
           id_respon_ketidaksesuaian,
           lama_lembur_aktual: lamaLemburAktual,
+          penanganan: statusPenanganan,
         },
         {
           where: { id: _id },

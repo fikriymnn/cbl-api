@@ -33,6 +33,11 @@ router.get(
   jadwalProduksiController.checkExpiredDateBooking
 );
 
+router.delete(
+  "/ppic/jadwalProduksi/cancel/:id",
+  jadwalProduksiController.cancelJadwalProduksi
+);
+
 // router.put(
 //   "/ppic/jadwalProduksi/simpan/:id",
 //   jadwalProduksiController.simapanCalculateTiketJadwalProduksi

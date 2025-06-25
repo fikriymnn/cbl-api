@@ -62,10 +62,10 @@ const ReportQC = {
   getReportCheckseet: async (req, res) => {
     const { start_date, end_date, no_jo } = req.query;
     try {
-      if (!start_date)
-        return res.status(404).json({ msg: "start_date required!!" });
-      if (!end_date)
-        return res.status(404).json({ msg: "end_date required!!" });
+      // if (!start_date)
+      //   return res.status(404).json({ msg: "start_date required!!" });
+      // if (!end_date)
+      //   return res.status(404).json({ msg: "end_date required!!" });
       let obj = {};
       let objPotongBahan = {};
       let objPotongJadi = {};

@@ -93,6 +93,8 @@ const inspeksiBahanController = {
         jumlah,
         jumlah_pallet,
         no_jo,
+        no_bacth,
+        keterangan,
         merk,
         gramature,
       } = req.body;
@@ -123,6 +125,8 @@ const inspeksiBahanController = {
         jumlah_pallet,
         merk,
         gramature,
+        no_bacth,
+        keterangan,
       });
 
       if (data) {

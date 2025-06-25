@@ -127,6 +127,8 @@ const msSubFinal = require("./model/masterData/qc/inspeksi/masterSubFinalModel")
 const msBarangRusakMasalah = require("./model/masterData/qc/inspeksi/masterKodeMasalahBarangRusak");
 const msPointOutsourcingBJ = require("./model/masterData/qc/inspeksi/masterPointOutsourcingBJMode");
 const msKodeDocInspeksi = require("./model/masterData/qc/inspeksi/masterKodeDocModel");
+const msStatusKalibrasiAlatUkur = require("./model/masterData/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurModel");
+const msLokasiKalibrasiAlatUkur = require("./model/masterData/qc/kalibrasiAlatUkur/masterLokasiPenyimpananKalibrasiAlatUkurModel");
 
 const msdepartmentCetak = require("./model/masterData/qc/department/departmentCetakModel");
 const msdepartment = require("./model/masterData/qc/department/masterDepartmentModel");
@@ -207,6 +209,7 @@ const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjama
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const pengajuanTerlambat = require("./model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const pengajuanPulangCepat = require("./model/hr/pengajuanPulangCepat/pengajuanPulangCepatModel");
 const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
 const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
 const historiPengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
@@ -269,7 +272,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await TiketPerubahanJadwalKirim.sync({ alter: true });
+//   await kalibrasiAlatUkur.sync({ alter: true });
 // })();
 
 // const ip100 = 75
