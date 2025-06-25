@@ -320,6 +320,10 @@ const absenFunction = {
         },
       });
 
+      const endTargetDate = new Date(endDate);
+      endTargetDate.setDate(endTargetDate.getDate() + 1); // tambah 1 hari
+      endTargetDate.setHours(10, 0, 0, 0); // set jam 10:00:00.000
+
       dataLembur = await DataLembur.findAll({
         where: {
           status: "approved",
@@ -331,7 +335,7 @@ const absenFunction = {
               dari: {
                 [Op.between]: [
                   new Date(startDate).setHours(0, 0, 0, 0),
-                  new Date(endDate).setHours(23, 59, 59, 999),
+                  endTargetDate,
                 ],
               },
             }, // `from` berada dalam rentang
@@ -339,7 +343,7 @@ const absenFunction = {
               sampai: {
                 [Op.between]: [
                   new Date(startDate).setHours(0, 0, 0, 0),
-                  new Date(endDate).setHours(23, 59, 59, 999),
+                  endTargetDate,
                 ],
               },
             }, // `to` berada dalam rentang
@@ -352,7 +356,7 @@ const absenFunction = {
                 }, // Rentang cuti mencakup startDate
                 {
                   sampai: {
-                    [Op.gte]: new Date(endDate).setHours(23, 59, 59, 999),
+                    [Op.gte]: endTargetDate,
                   },
                 }, // Rentang cuti mencakup endDate
               ],
@@ -987,10 +991,51 @@ const absenFunction = {
         let jamLemburSPL = 0;
         let id_pengajuan_lembur = null;
         let statusKetidaksesuaian = null;
+
+        const bulanMap = {
+          Januari: 0,
+          Februari: 1,
+          Maret: 2,
+          April: 3,
+          Mei: 4,
+          Juni: 5,
+          Juli: 6,
+          Agustus: 7,
+          September: 8,
+          Oktober: 9,
+          November: 10,
+          Desember: 11,
+        };
+
+        function parseTanggalIndo(str) {
+          // Contoh input: "18-Juni-2025 04:00:00"
+          const [tanggalBagian, jamBagian] = str.split(" ");
+          const [hari, namaBulan, tahun] = tanggalBagian.split("-");
+
+          const date = new Date(
+            parseInt(tahun),
+            bulanMap[namaBulan],
+            parseInt(hari)
+          );
+
+          const [jam, menit, detik] = jamBagian.split(":").map(Number);
+          date.setHours(jam, menit, detik, 0);
+
+          return date;
+        }
+
         const lemburFind = lemburEntries.find(
           (entry) =>
-            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+            entry.userid === masuk.userid &&
+            (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
+            parseTanggalIndo(entry.jam_mulai_lembur) >
+              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`)
         );
+
+        // const lemburFind = lemburEntries.find(
+        //   (entry) =>
+        //     entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+        // );
 
         // console.log(lemburEntries, tglMasuk);
 
@@ -2223,6 +2268,12 @@ const generateDailyLembur = (
   const monthMasuk = getMonthName(waktuMasuk.getMonth() + 1);
   const tglMasuk = `${waktuMasuk.getDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
 
+  const jamStr = waktuMasuk.getHours().toString().padStart(2, "0");
+  const menitStr = waktuMasuk.getMinutes().toString().padStart(2, "0");
+  const seconStr = waktuMasuk.getSeconds().toString().padStart(2, "0");
+
+  const jamFormatted = `${jamStr}:${menitStr}:${seconStr}`;
+
   // Dapatkan tanggal berdasarkan tanggal absensi masuk
   const tglMasukUtc = new Date(
     Date.UTC(
@@ -2239,6 +2290,7 @@ const generateDailyLembur = (
     tgl_masuk: tglMasuk,
     tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
     jam_lembur: Lembur.lama_lembur_aktual,
+    jam_mulai_lembur: `${tglMasuk} ${jamFormatted}`,
     name: namaKaryawan,
     id_department: namaKaryawanBiodata,
     nama_department: namaDepartmentKaryawan,
