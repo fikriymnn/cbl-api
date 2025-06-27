@@ -256,6 +256,15 @@ const ticketController = {
           msg: "data not found",
         });
 
+      if (
+        response.status_tiket == "monitoring" ||
+        response.status_tiket == "temporary"
+      )
+        return res.status(404).json({
+          status: 404,
+          msg: "data not found",
+        });
+
       res.status(200).json({
         status: 200,
         msg: "data find success",

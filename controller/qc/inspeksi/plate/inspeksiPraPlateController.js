@@ -277,6 +277,8 @@ const inspeksiPraPlateController = {
         customer: inspeksiPraPlate.customer,
         mesin: inspeksiPraPlate.mesin,
         keterangan: inspeksiPraPlate.keterangan,
+        qty_jo: inspeksiPraPlate.qty_jo,
+        total_warna: inspeksiPraPlate.total_warna,
       });
       return res.status(200).json({ msg: "Update successfully!" });
     } catch (err) {
