@@ -382,6 +382,11 @@ const ProsessMtc = {
     };
 
     try {
+      const dataTiket = await Ticket.findByPk(_id);
+      if (dataTiket.bagian_tiket == "os2") {
+        return res.status(400).json({ msg: "data sudah di respon" });
+      }
+
       await Ticket.update(obj, { where: { id: _id } }),
         await ProsesMtc.create(prosesMtc);
       await userActionMtc.bulkCreate(action);
