@@ -124,7 +124,9 @@ const inspeksiPrePressController = {
         { where: { id: id } }
       );
 
-      if (PressProses.status_jo == "REPEAT") {
+      const statusJo = PressProses.status_jo.toLowerCase();
+
+      if (statusJo.includes("repeat")) {
         await InspeksiKelengkapanPlate.create({
           status_jo: PressProses.status_jo,
           tanggal: PressProses.tanggal,

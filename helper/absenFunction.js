@@ -1007,7 +1007,7 @@ const absenFunction = {
           Desember: 11,
         };
 
-        function parseTanggalIndo(str) {
+        function parseTanggalIndo(str, toleransiMenit = 0) {
           // Contoh input: "18-Juni-2025 04:00:00"
           const [tanggalBagian, jamBagian] = str.split(" ");
           const [hari, namaBulan, tahun] = tanggalBagian.split("-");
@@ -1021,6 +1021,11 @@ const absenFunction = {
           const [jam, menit, detik] = jamBagian.split(":").map(Number);
           date.setHours(jam, menit, detik, 0);
 
+          // Kurangi toleransi dalam menit
+          if (toleransiMenit !== 0) {
+            date.setMinutes(date.getMinutes() - toleransiMenit);
+          }
+
           return date;
         }
 
@@ -1028,8 +1033,8 @@ const absenFunction = {
           (entry) =>
             entry.userid === masuk.userid &&
             (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
-            parseTanggalIndo(entry.jam_mulai_lembur) >
-              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`)
+            parseTanggalIndo(entry.jam_mulai_lembur) >=
+              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 60)
         );
 
         // const lemburFind = lemburEntries.find(
