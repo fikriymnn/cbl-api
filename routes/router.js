@@ -204,6 +204,7 @@ router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
 router.use("/", require("./hr/karyawan/karyawanDetailInformasiRoute"));
+router.use("/", require("./hr/karyawan/karyawanDetailKeluargaRoute"));
 router.use("/", require("./hr/karyawan/karyawanBagianMesinRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
