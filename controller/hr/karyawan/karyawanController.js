@@ -1,6 +1,7 @@
 const { Op, Sequelize, where } = require("sequelize");
 const Karyawan = require("../../../model/hr/karyawanModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
+const KaryawanDetailInformasi = require("../../../model/hr/karyawan/karyawanDetailInformasiModel");
 const MasterCuti = require("../../../model/masterData/hr/masterCutiModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
@@ -178,6 +179,10 @@ const karyawanController = {
                 {
                   model: KaryawanPotongan,
                   as: "potongan_karyawan",
+                },
+                {
+                  model: KaryawanDetailInformasi,
+                  as: "detail_informasi",
                 },
 
                 {
