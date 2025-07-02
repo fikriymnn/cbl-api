@@ -8,6 +8,11 @@ const loginLimiter = rateLimit({
   max: 5, // maksimal 5 percobaan dalam window
   standardHeaders: true, // supaya frontend bisa baca RateLimit-* header
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = req.ip || "no-ip";
+    const email = req.body?.email || "no-email";
+    return `${ip}-${email}`;
+  },
   handler: (req, res) => {
     return res.status(429).json({
       status: 429,
