@@ -6,6 +6,10 @@ const db = require("../../../config/database");
 const karyawanRiwayatPekerjaanController = {
   getKaryawanRiwayatPekerjaan: async (req, res) => {
     const _id = req.params.id;
+    const { id_karyawan, id_biodata_karyawan } = req.query;
+    let obj = {};
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
+    if (id_biodata_karyawan) obj.id_biodata_karyawan = id_biodata_karyawan;
     try {
       if (_id) {
         const data = await KaryawanRiwayatPekerjaan.findByPk(_id);
@@ -13,7 +17,7 @@ const karyawanRiwayatPekerjaanController = {
           data: data,
         });
       } else {
-        const data = await KaryawanRiwayatPekerjaan.findAll();
+        const data = await KaryawanRiwayatPekerjaan.findAll({ where: obj });
         return res.status(200).json({
           data: data,
         });
