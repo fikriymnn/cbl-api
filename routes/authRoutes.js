@@ -11,7 +11,7 @@ const loginLimiter = rateLimit({
   handler: (req, res) => {
     return res.status(429).json({
       status: 429,
-      msg: "Terlalu banyak percobaan login. Silakan coba lagi dalam 5 menit.",
+      msg: "Terlalu banyak percobaan login. Silakan coba lagi dalam 10 menit.",
     });
   },
 });
