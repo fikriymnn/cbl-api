@@ -3,6 +3,8 @@ const Karyawan = require("../../../model/hr/karyawanModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const KaryawanDetailInformasi = require("../../../model/hr/karyawan/karyawanDetailInformasiModel");
 const KaryawanDetailKeluarga = require("../../../model/hr/karyawan/karyawanDetailKeluargaModel");
+const KaryawanRiwayatPendidikan = require("../../../model/hr/karyawan/karyawanRiwayatPendidikanModel");
+const KaryawanRiwayatPekerjaan = require("../../../model/hr/karyawan/karyawanRiwayatPekerjaanModel");
 const MasterCuti = require("../../../model/masterData/hr/masterCutiModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
@@ -188,6 +190,14 @@ const karyawanController = {
                 {
                   model: KaryawanDetailKeluarga,
                   as: "detail_keluarga",
+                },
+                {
+                  model: KaryawanRiwayatPendidikan,
+                  as: "riwayat_pendidikan",
+                },
+                {
+                  model: KaryawanRiwayatPekerjaan,
+                  as: "riwayat_pekerjaan",
                 },
 
                 {

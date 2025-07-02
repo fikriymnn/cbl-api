@@ -197,7 +197,8 @@ const karyawanPotongan = require("./model/hr/karyawan/karyawanPotonganModel");
 const KaryawanBagianMesin = require("./model/hr/karyawan/karyawanBagianMesinModel");
 const karyawanDetailInformasi = require("./model/hr/karyawan/karyawanDetailInformasiModel");
 const karyawanDetailKeluarga = require("./model/hr/karyawan/karyawanDetailKeluargaModel");
-
+const karyawanRiwayatPendidikan = require("./model/hr/karyawan/karyawanRiwayatPendidikanModel");
+const karyawanRiwayatPekerjaan = require("./model/hr/karyawan/karyawanRiwayatPekerjaanModel");
 //jadwal
 const jadwalKaryawan = require("./model/hr/jadwalKaryawan/jadwalKaryawanModel");
 //pengajuan
@@ -274,7 +275,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await karyawanDetailKeluarga.sync({ alter: true });
+//   await karyawanRiwayatPendidikan.sync({ alter: true });
 // })();
 
 // const ip100 = 75
