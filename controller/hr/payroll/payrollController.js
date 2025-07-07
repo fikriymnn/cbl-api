@@ -839,9 +839,6 @@ const hitungPayroll = async (
             ) {
               jamTerlambat = absen.menit_terlambat - 1;
             }
-            if (absen.userid == 154) {
-              console.log(jamTerlambat);
-            }
 
             if (jamTerlambat > 0) {
               const findTerlambat = summaryPayroll.potongan.find(
