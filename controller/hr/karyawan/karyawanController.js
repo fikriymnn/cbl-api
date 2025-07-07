@@ -25,6 +25,7 @@ const PengajuanMangkir = require("../../../model/hr/pengajuanMangkir/pengajuanMa
 const pengajuanTerlambat = require("../../../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
 const pengajuanDinas = require("../../../model/hr/pengajuanDinas/pengajuanDinasModel");
 const PengajuanSakit = require("../../../model/hr/pengajuanSakit/pengajuanSakitModel");
+const { getAbsensiFunction } = require("../../../helper/absenFunction");
 const db = require("../../../config/database");
 
 const karyawanController = {
@@ -863,6 +864,17 @@ const karyawanController = {
           },
         },
       });
+      let obj = { id_karyawan: id_karyawan };
+      //ambil data dari absensi
+      const absenResult = await getAbsensiFunction(start_date, end_date, obj);
+
+      const dataTerlambat = absenResult.filter(
+        (absen) => absen.menit_terlambat > 0
+      );
+      const hariTerlambat = dataTerlambat?.length;
+      const jamTerlambat = dataTerlambat.reduce((total, absen) => {
+        return total + (absen.menit_terlambat || 0);
+      }, 0);
 
       res.status(200).json({
         cuti_tahunan_hari: lengthCutiTahunanHari || 0,
@@ -877,6 +889,9 @@ const karyawanController = {
         dinas_tiket: lengthDinasTiket,
         mangkir_hari: lengthMangkir,
         mangkir_tiket: lengthMangkir,
+        hari_terlambat: hariTerlambat || 0,
+        jam_terlambat: jamTerlambat || 0,
+        absen_terlambat: dataTerlambat,
       });
     } catch (error) {
       res.status(500).json({ msg: error.message });
