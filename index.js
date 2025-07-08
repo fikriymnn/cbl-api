@@ -265,7 +265,6 @@ const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
 const path = require("path");
-
 const app = express();
 
 // database sync to table
@@ -275,7 +274,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await karyawanRiwayatPendidikan.sync({ alter: true });
+//   await kalibrasiAlatUkurTiket.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -30,6 +30,10 @@ const KalibrasiAlatUkurTiket = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

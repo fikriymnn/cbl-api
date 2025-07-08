@@ -157,7 +157,8 @@ const AbsensiController = {
         startDate,
         endDate,
         dataKaryawan,
-        obj
+        obj,
+        true
       );
 
       res.status(200).json({ data: dataRekap });
@@ -214,7 +215,8 @@ const AbsensiController = {
           e.startPeriode,
           e.endPeriode,
           dataKaryawan,
-          obj
+          obj,
+          false
         );
         dataRekap.push({ ...e, rekapAbsen: rekap });
       }
@@ -226,7 +228,7 @@ const AbsensiController = {
   },
 };
 
-async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj) {
+async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj, absen) {
   //cuti khusus
   const cutiKhusus = await PengajuanCuti.findAll({
     where: {
@@ -318,7 +320,7 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj) {
       (sum, item) => sum + item.jam_istirahat_lembur,
       0
     );
-    const totalLemburBiasaJam = lemburBiasaJam - lemburBiasaIstirahatJam;
+    const totalLemburBiasaJam = lemburBiasaJam - (lemburBiasaIstirahatJam || 0);
 
     //untuk total jam lembur libur
     const lemburLiburData = absenResultFilter.filter(
@@ -336,7 +338,9 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj) {
 
     //untuk mencari data terlambat (kata terlambat di tambah spasi ujungnya karena hasil formatnya seperti itu)
     const dataTerlambat = absenResultFilter.filter(
-      (absen) => absen.status_masuk == "Terlambat "
+      (absen) =>
+        absen.status_masuk == "Terlambat " ||
+        absen.status_masuk == "Terlambat : Pribadi"
     );
 
     //untuk cuti khusus
@@ -384,29 +388,54 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj) {
 
     const jumlahHariMangkir = dataMangkir.length;
 
-    dataResult.push({
-      nama_karyawan: data.karyawan.name,
-      nik: data.nik,
-      id_department: data.id_department,
-      divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
-      department:
-        data.department == null ? null : data.department.nama_department,
-      jabatan: data.jabatan == null ? null : data.jabatan.nama_jabatan,
-      jam_lembur_biasa: totalLemburBiasaJam,
-      jam_lembur_libur: totalLemburLiburJam,
-      jumlah_hari_terlambat: dataTerlambat.length,
-      jumlah_hari_cuti_khusus: jumlahHariCutiKhusus,
-      jumlah_hari_cuti_tahunan: jumlahHariCutiTahunan,
-      jumlah_hari_sakit: jumlahHariSakit,
-      jumlah_hari_izin: jumlahHariIzin,
-      jumlah_hari_mangkir: jumlahHariMangkir,
-      cuti_khusus: dataCutiKhusus,
-      cuti_tahunan: dataCutiTahunan,
-      sakit: dataSakit,
-      izin: dataIzin,
-      mangkir: dataMangkir,
-      absensi: absenResultFilter,
-    });
+    if (absen == true) {
+      dataResult.push({
+        nama_karyawan: data.karyawan.name,
+        nik: data.nik,
+        id_department: data.id_department,
+        divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
+        department:
+          data.department == null ? null : data.department.nama_department,
+        jabatan: data.jabatan == null ? null : data.jabatan.nama_jabatan,
+        jam_lembur_biasa: totalLemburBiasaJam,
+        jam_lembur_libur: totalLemburLiburJam,
+        jumlah_hari_terlambat: dataTerlambat.length,
+        jumlah_hari_cuti_khusus: jumlahHariCutiKhusus,
+        jumlah_hari_cuti_tahunan: jumlahHariCutiTahunan,
+        jumlah_hari_sakit: jumlahHariSakit,
+        jumlah_hari_izin: jumlahHariIzin,
+        jumlah_hari_mangkir: jumlahHariMangkir,
+        cuti_khusus: dataCutiKhusus,
+        cuti_tahunan: dataCutiTahunan,
+        sakit: dataSakit,
+        izin: dataIzin,
+        mangkir: dataMangkir,
+        absensi: absenResultFilter,
+      });
+    } else {
+      dataResult.push({
+        nama_karyawan: data.karyawan.name,
+        nik: data.nik,
+        id_department: data.id_department,
+        divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
+        department:
+          data.department == null ? null : data.department.nama_department,
+        jabatan: data.jabatan == null ? null : data.jabatan.nama_jabatan,
+        jam_lembur_biasa: totalLemburBiasaJam,
+        jam_lembur_libur: totalLemburLiburJam,
+        jumlah_hari_terlambat: dataTerlambat.length,
+        jumlah_hari_cuti_khusus: jumlahHariCutiKhusus,
+        jumlah_hari_cuti_tahunan: jumlahHariCutiTahunan,
+        jumlah_hari_sakit: jumlahHariSakit,
+        jumlah_hari_izin: jumlahHariIzin,
+        jumlah_hari_mangkir: jumlahHariMangkir,
+        cuti_khusus: dataCutiKhusus,
+        cuti_tahunan: dataCutiTahunan,
+        sakit: dataSakit,
+        izin: dataIzin,
+        mangkir: dataMangkir,
+      });
+    }
   }
 
   return dataResult;

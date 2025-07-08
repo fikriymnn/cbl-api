@@ -1,28 +1,28 @@
 const router = require("express").Router();
-const rateLimit = require("express-rate-limit");
+// const rateLimit = require("express-rate-limit");
 const { Login, Logout, Me } = require("../controller/authController");
 const { auth } = require("../middlewares/authMiddlewares");
 
-const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 menit
-  max: 5, // maksimal 5 percobaan dalam window
-  standardHeaders: true, // supaya frontend bisa baca RateLimit-* header
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const ip = req.ip || "no-ip";
-    const email = req.body?.email || "no-email";
-    return `${ip}-${email}`;
-  },
-  handler: (req, res) => {
-    return res.status(429).json({
-      status: 429,
-      msg: "Terlalu banyak percobaan login. Silakan coba lagi dalam 10 menit.",
-    });
-  },
-});
+// const loginLimiter = rateLimit({
+//   windowMs: 10 * 60 * 1000, // 10 menit
+//   max: 5, // maksimal 5 percobaan dalam window
+//   standardHeaders: true, // supaya frontend bisa baca RateLimit-* header
+//   legacyHeaders: false,
+//   keyGenerator: (req) => {
+//     const ip = req.ip || "no-ip";
+//     const email = req.body?.email || "no-email";
+//     return `${ip}-${email}`;
+//   },
+//   handler: (req, res) => {
+//     return res.status(429).json({
+//       status: 429,
+//       msg: "Terlalu banyak percobaan login. Silakan coba lagi dalam 10 menit.",
+//     });
+//   },
+// });
 
 router.get("/me", auth, Me);
-router.post("/login", loginLimiter, Login);
+router.post("/login", Login);
 router.delete("/logout", Logout);
 
 module.exports = router;
