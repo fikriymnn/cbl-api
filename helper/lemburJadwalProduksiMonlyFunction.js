@@ -75,29 +75,6 @@ const lemburFunction = {
       // Ambil semua data berikutnya berdasarkan tanggal dan jam
       let subsequentData = [];
 
-      // subsequentData = await JadwalProduksi.findAll({
-      //   where: {
-      //     [Op.or]: [
-      //       {
-      //         tanggal: {
-      //           [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
-      //         },
-      //       },
-      //       {
-      //         tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
-      //         jam: {
-      //           [Op.gt]: dataToUpdate.jam,
-      //         },
-      //       },
-      //     ],
-      //     mesin: dataToUpdate.mesin,
-      //   },
-      //   order: [
-      //     ["tanggal", "ASC"],
-      //     ["jam", "ASC"],
-      //   ],
-      // });
-
       if (is_move == false) {
         const dataJadwal = await JadwalProduksi.findAll({
           where: {
@@ -168,7 +145,6 @@ const lemburFunction = {
         });
 
         subsequentData = dataJadwalFilteredByTanggal;
-        console.log(dataJadwalFilteredByTanggal);
       } else {
         if (!dataToUpdate.no_jo) {
           subsequentData = await JadwalProduksi.findAll({
