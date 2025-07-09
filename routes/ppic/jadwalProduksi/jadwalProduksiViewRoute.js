@@ -25,6 +25,11 @@ router.put(
 );
 
 router.put(
+  "/ppic/jadwalProduksiView/move/:id",
+  jadwalProduksiViewController.moveJadwalProduksiView
+);
+
+router.put(
   "/ppic/jadwalProduksiView/lembur/:id",
   jadwalProduksiViewController.changeLemburJadwalProduksiView
 );

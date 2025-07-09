@@ -7,7 +7,7 @@ const db = require("../config/database");
 const moment = require("moment-timezone");
 
 const lemburFunction = {
-  changeLemburMonly: async (data_jadwal, list_lembur, _id) => {
+  changeLemburMonly: async (data_jadwal, list_lembur, _id, is_move = false) => {
     const t = await db.transaction();
     try {
       // Cari data yang akan diubah berdasarkan ID
@@ -73,29 +73,153 @@ const lemburFunction = {
       );
 
       // Ambil semua data berikutnya berdasarkan tanggal dan jam
-      const subsequentData = await JadwalProduksi.findAll({
-        where: {
-          [Op.or]: [
-            {
-              tanggal: {
-                [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
-              },
-            },
-            {
-              tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
-              jam: {
-                [Op.gt]: dataToUpdate.jam,
-              },
-            },
-          ],
-          mesin: dataToUpdate.mesin,
-        },
-        order: [
-          ["tanggal", "ASC"],
-          ["jam", "ASC"],
-        ],
-      });
+      let subsequentData = [];
 
+      // subsequentData = await JadwalProduksi.findAll({
+      //   where: {
+      //     [Op.or]: [
+      //       {
+      //         tanggal: {
+      //           [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
+      //         },
+      //       },
+      //       {
+      //         tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
+      //         jam: {
+      //           [Op.gt]: dataToUpdate.jam,
+      //         },
+      //       },
+      //     ],
+      //     mesin: dataToUpdate.mesin,
+      //   },
+      //   order: [
+      //     ["tanggal", "ASC"],
+      //     ["jam", "ASC"],
+      //   ],
+      // });
+
+      if (is_move == false) {
+        const dataJadwal = await JadwalProduksi.findAll({
+          where: {
+            [Op.or]: [
+              {
+                tanggal: {
+                  [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
+                },
+              },
+              {
+                tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
+                jam: {
+                  [Op.gt]: dataToUpdate.jam,
+                },
+              },
+            ],
+            mesin: dataToUpdate.mesin,
+          },
+          order: [
+            ["tanggal", "ASC"],
+            ["jam", "ASC"],
+          ],
+        });
+
+        const dataJadwalSort = dataJadwal.sort((a, b) => {
+          const dateTimeA = new Date(
+            new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam
+          );
+          const dateTimeB = new Date(
+            new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam
+          );
+          return dateTimeA - dateTimeB;
+        });
+
+        let dataJadwalFilter = [];
+        if (!dataToUpdate.no_jo) {
+          dataJadwalFilter = dataJadwalSort.filter(
+            (data) => data.no_booking == dataToUpdate.no_booking
+          );
+        } else {
+          dataJadwalFilter = dataJadwalSort.filter(
+            (data) => data.no_jo == dataToUpdate.no_jo
+          );
+        }
+
+        // 1. Buat map dengan key = tanggal_jam dan value = Set(no_jo yang diperbolehkan)
+        const allowedMap = new Map();
+
+        dataJadwalFilter.forEach((item) => {
+          const key = `${item.tanggal}_${item.jam}`;
+          if (!allowedMap.has(key)) {
+            allowedMap.set(key, new Set());
+          }
+          allowedMap.get(key).add(item.no_jo);
+        });
+
+        // 2. Filter dataJadwal
+        const dataJadwalFilteredByTanggal = dataJadwal.filter((item) => {
+          const key = `${item.tanggal}_${item.jam}`;
+
+          if (!allowedMap.has(key)) {
+            // Jika tidak ada di daftar filter, biarkan
+            return true;
+          }
+
+          // Jika ada, hanya biarkan jika no_jo-nya cocok
+          return allowedMap.get(key).has(item.no_jo);
+        });
+
+        subsequentData = dataJadwalFilteredByTanggal;
+        console.log(dataJadwalFilteredByTanggal);
+      } else {
+        if (!dataToUpdate.no_jo) {
+          subsequentData = await JadwalProduksi.findAll({
+            where: {
+              no_booking: dataToUpdate.no_booking,
+              mesin: dataToUpdate.mesin,
+              [Op.or]: [
+                {
+                  tanggal: {
+                    [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
+                  },
+                },
+                {
+                  tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
+                  jam: {
+                    [Op.gt]: dataToUpdate.jam,
+                  },
+                },
+              ],
+            },
+            order: [
+              ["tanggal", "ASC"],
+              ["jam", "ASC"],
+            ],
+          });
+        } else {
+          subsequentData = await JadwalProduksi.findAll({
+            where: {
+              no_jo: dataToUpdate.no_jo,
+              mesin: dataToUpdate.mesin,
+              [Op.or]: [
+                {
+                  tanggal: {
+                    [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
+                  },
+                },
+                {
+                  tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
+                  jam: {
+                    [Op.gt]: dataToUpdate.jam,
+                  },
+                },
+              ],
+            },
+            order: [
+              ["tanggal", "ASC"],
+              ["jam", "ASC"],
+            ],
+          });
+        }
+      }
       // Helper function untuk mendapatkan hari dari tanggal
       const getDayOfWeek = (date) => {
         const days = [

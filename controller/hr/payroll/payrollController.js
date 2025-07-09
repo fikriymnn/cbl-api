@@ -954,9 +954,6 @@ const hitungPayroll = async (
 
             if (tipePenggajianKaryawan == "bulanan") {
               jumlahMakanLemburLibur = Math.floor(jamLemburSementara / 4);
-              if (dataKaryawan.id_karyawan == 188) {
-                console.log(jumlahMakanLemburLibur);
-              }
             } else if (tipePenggajianKaryawan == "mingguan") {
               jumlahMakanLemburLibur = Math.floor(jamLemburSementara / 8);
             }

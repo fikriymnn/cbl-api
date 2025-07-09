@@ -261,10 +261,165 @@ const jadwalProduksiViewController = {
         const res = await lemburFunction.changeLemburMonly(
           elementData,
           dataLemburMesin,
-          elementData.id
+          elementData.id,
+          false
         );
         //console.log(elementData);
       }
+
+      res
+        .status(200)
+        .json({ msg: "update success", tes: sortedData, up: updated });
+    } catch (error) {
+      await t.rollback();
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  moveJadwalProduksiView: async (req, res) => {
+    const _id = req.params.id;
+    const { data_jadwal, tanggal, jam } = req.body;
+    const t = await db.transaction();
+    try {
+      // Cari data yang akan diubah berdasarkan ID
+      const dataToUpdate = await JadwalProduksi.findByPk(_id);
+
+      if (!dataToUpdate) {
+        return { message: "Data tidak ditemukan." };
+      }
+
+      const jadwalLembur = await JadwalLemburProduksi.findAll({
+        where: {
+          tanggal_lembur: { [Op.gte]: data_jadwal.tanggal },
+          mesin: data_jadwal.mesin,
+        },
+      });
+
+      const lastTanggal = new Date(dataToUpdate.tanggal);
+      const lastDate = lastTanggal.toISOString().split("T")[0];
+
+      const newTanggal = new Date(data_jadwal.tanggal);
+      const newDate = newTanggal.toISOString().split("T")[0];
+
+      // Menggunakan moment untuk mengonversi waktu ke zona waktu lokal dan UTC
+      const originalDateTime = moment.utc(`${lastDate}T${dataToUpdate.jam}`);
+      const newDateTime = moment.utc(`${newDate}T${data_jadwal.jam}`);
+
+      // Menghitung selisih waktu dalam milidetik
+      const timeDifference = newDateTime.diff(originalDateTime);
+
+      // Ambil satu data pertama di setiap mesin dengan no_jo yang sama
+      // yang tanggal dan jamnya lebih besar dari data yang dipindah
+      let allDataAfterUpdate = [];
+
+      if (dataToUpdate.no_jo) {
+        allDataAfterUpdate = await JadwalProduksi.findAll({
+          where: {
+            no_jo: dataToUpdate.no_jo,
+            mesin: dataToUpdate.mesin,
+          },
+          order: [
+            ["mesin", "ASC"],
+            ["tanggal", "ASC"],
+            ["jam", "ASC"],
+          ],
+        });
+      } else if (!dataToUpdate.no_jo) {
+        allDataAfterUpdate = await JadwalProduksi.findAll({
+          where: {
+            no_booking: dataToUpdate.no_booking,
+
+            mesin: dataToUpdate.mesin,
+          },
+          order: [
+            ["mesin", "ASC"],
+            ["tanggal", "ASC"],
+            ["jam", "ASC"],
+          ],
+        });
+      }
+
+      // Ambil hanya satu data pertama dari setiap mesin (dengan no_jo yang sama)
+      const firstDataPerMachine = [];
+      const processedMachines = new Set();
+
+      for (const item of allDataAfterUpdate) {
+        if (!processedMachines.has(item.mesin)) {
+          firstDataPerMachine.push(item);
+          processedMachines.add(item.mesin);
+        }
+      }
+      // console.log(firstDataPerMachine.map((j) => j.get({ plain: true })));
+
+      const sortedData = firstDataPerMachine.sort((a, b) => {
+        const dateTimeA = new Date(
+          new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam
+        );
+        const dateTimeB = new Date(
+          new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam
+        );
+        return dateTimeA - dateTimeB;
+      });
+
+      const updated = adjustScheduleByTimeChange(sortedData, timeDifference);
+
+      // await t.commit();
+
+      function adjustScheduleByTimeChange(data, perbedaanJam) {
+        // Clone data agar tidak mengubah aslinya
+        const cloned = JSON.parse(JSON.stringify(data));
+
+        const updated = cloned.map((d) => {
+          const lastTanggal = new Date(d.tanggal);
+          const lastDate = lastTanggal.toISOString().split("T")[0];
+
+          const currentDateTime = moment.utc(`${lastDate}T${d.jam}`);
+
+          // Tambahkan selisih waktu ke data berikutnya
+          const updatedDateTime = moment(currentDateTime).add(
+            perbedaanJam,
+            "milliseconds"
+          );
+
+          // Perbarui tanggal dan jam dengan format yang benar
+          const updatedDate = updatedDateTime.toISOString().split("T")[0];
+          const updatedTime = updatedDateTime
+            .toISOString()
+            .split("T")[1]
+            .split(".")[0];
+
+          // Tidak berubah jika waktu sebelumnya dari waktuAwal
+          return {
+            ...d,
+            tanggal: updatedDate,
+            jam: updatedTime,
+          };
+        });
+
+        return updated;
+      }
+
+      // for (let i = 0; i < updated.length; i++) {
+      //   const elementData = updated[i];
+      //   const dataLemburMesin = jadwalLembur.filter(
+      //     (L) => L.mesin == elementData.mesin
+      //   );
+
+      //   const res = await lemburFunction.changeLemburMonly(
+      //     elementData,
+      //     dataLemburMesin,
+      //     elementData.id,
+      //     true
+      //   );
+      //   //console.log(elementData);
+      // }
+
+      const respon = await lemburFunction.changeLemburMonly(
+        data_jadwal,
+        jadwalLembur,
+        _id,
+        true
+      );
 
       res
         .status(200)
