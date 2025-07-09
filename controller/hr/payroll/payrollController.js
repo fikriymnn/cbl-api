@@ -279,7 +279,7 @@ const payrollController = {
     try {
       // 1. Ambil semua data karyawan + data yang diperlukan dalam satu query
       const dataKaryawan = await BiodataKaryawan.findAll({
-        where: { id_grade: { [Op.ne]: null } },
+        where: { id_grade: { [Op.ne]: null }, is_active: true },
         include: [
           {
             model: KaryawanPotongan,
@@ -939,6 +939,7 @@ const hitungPayroll = async (
 
         let jamLemburSementara = jamLembur + jamIstirahat;
 
+        //console.log(jamLemburSementara);
         //hitung uang makan lembur
         if (absen.jenis_hari_masuk === "Libur") {
           if (jamLemburSementara >= 4) {
@@ -949,14 +950,14 @@ const hitungPayroll = async (
               total: uangHadir,
             });
 
-            jamLemburSementara = -4;
+            jamLemburSementara -= 4;
 
             if (tipePenggajianKaryawan == "bulanan") {
               jumlahMakanLemburLibur = Math.floor(jamLemburSementara / 4);
-            } else if (tipePenggajianKaryawan == "mingguan") {
-              if (dataKaryawan.id_karyawan == 128) {
-                console.log(Math.floor(jamLemburSementara / 8));
+              if (dataKaryawan.id_karyawan == 188) {
+                console.log(jumlahMakanLemburLibur);
               }
+            } else if (tipePenggajianKaryawan == "mingguan") {
               jumlahMakanLemburLibur = Math.floor(jamLemburSementara / 8);
             }
           }
