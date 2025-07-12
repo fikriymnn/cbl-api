@@ -66,12 +66,6 @@ const lemburFunction = {
       // Menghitung selisih waktu dalam milidetik
       const timeDifference = newDateTime.diff(originalDateTime);
 
-      // Update data yang diubah
-      await JadwalProduksi.update(
-        { tanggal: data_jadwal.tanggal, jam: data_jadwal.jam },
-        { where: { id: _id }, transaction: t }
-      );
-
       // Ambil semua data berikutnya berdasarkan tanggal dan jam
       let subsequentData = [];
 
@@ -921,6 +915,12 @@ const lemburFunction = {
         // Debug info - uncomment if needed
         // console.log(`Updated to: ${updatedDate} ${updatedTime}`);
       }
+
+      // Update data yang diubah
+      await JadwalProduksi.update(
+        { tanggal: data_jadwal.tanggal, jam: data_jadwal.jam },
+        { where: { id: _id }, transaction: t }
+      );
 
       await t.commit();
 
