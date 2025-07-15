@@ -2200,6 +2200,9 @@ const generateDailyLembur = (
     )
   );
 
+  const statusKetidaksesuaian = Lembur.status_ketidaksesuaian;
+  const penanganan = Lembur.penanganan;
+
   dailyLembur.push({
     id_pengajuan_lembur: Lembur.id,
     userid: Lembur.id_karyawan,
@@ -2213,7 +2216,8 @@ const generateDailyLembur = (
     nama_department: namaDepartmentKaryawan,
     id_divisi: idDivisi,
     nama_divisi: namaDivisi,
-    status_ketidaksesuaian: Lembur.status_ketidaksesuaian,
+    status_ketidaksesuaian:
+      statusKetidaksesuaian == "approved" ? penanganan : statusKetidaksesuaian,
   });
 
   return dailyLembur;

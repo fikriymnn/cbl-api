@@ -169,7 +169,8 @@ const PengajuanTerlambatController = {
   },
 
   createPengajuanTerlambat: async (req, res) => {
-    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_masuk } = req.body;
+    const { id_karyawan, id_pengaju, tanggal, type_izin, jam_masuk, alasan } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -187,6 +188,7 @@ const PengajuanTerlambatController = {
           tanggal,
           type_izin,
           jam_masuk,
+          alasan,
         },
         { transaction: t }
       );

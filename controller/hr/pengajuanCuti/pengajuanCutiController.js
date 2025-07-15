@@ -181,6 +181,7 @@ const PengajuanCutiController = {
       jumlah_hari,
       alasan_cuti,
       sisa_cuti,
+      file,
     } = req.body;
     const t = await db.transaction();
 
@@ -202,6 +203,7 @@ const PengajuanCutiController = {
           jumlah_hari,
           alasan_cuti,
           sisa_cuti,
+          file,
         },
         { transaction: t }
       );

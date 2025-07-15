@@ -60,6 +60,10 @@ const PengajuanSakit = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    alasan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

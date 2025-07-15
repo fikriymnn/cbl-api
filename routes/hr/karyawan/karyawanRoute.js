@@ -8,6 +8,10 @@ router.get("/hr/karyawanPresensi", karyawanController.getKaryawanPresensi);
 router.post("/hr/karyawan", karyawanController.createKaryawan);
 router.put("/hr/karyawan/:id", karyawanController.updateKaryawan);
 router.put("/hr/karyawan/cutOff/:id", karyawanController.cutOffKaryawan);
+router.put(
+  "/hr/karyawan/activeCutOff/:id",
+  karyawanController.activedCutOffKaryawan
+);
 router.delete("/hr/karyawan/:id", karyawanController.deleteKaryawan);
 
 module.exports = router;

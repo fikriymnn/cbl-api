@@ -1492,10 +1492,12 @@ const jadwalProduksiController = {
         transaction: t,
       });
 
-      await JadwalProduksi.destroy({
-        where: { no_jo: data.no_jo },
-        transaction: t,
-      });
+      if (data.status_tiket == "history") {
+        await JadwalProduksi.destroy({
+          where: { no_jo: data.no_jo },
+          transaction: t,
+        });
+      }
 
       let dataJadwal = [];
 
