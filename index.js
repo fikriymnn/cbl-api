@@ -240,6 +240,8 @@ const payrollBulananDetail = require("./model/hr/payroll/payrollBulananDetailMod
 const MasterKategoriSettingKapasitas = require("./model/masterData/ppic/masterKategoriSettingKapasitasModel");
 const MasterDryingTime = require("./model/masterData/ppic/masterDryingTimeModel");
 const MasterKapasitasMesin = require("./model/masterData/ppic/masterKapasitasMesinModel");
+const MasterKapasitasJadwalKirim = require("./model/masterData/ppic/kapasitasJadwalKirim/masterKapasitasJadwalKirimModel");
+const MasterKapasitasJadwalKirimArmada = require("./model/masterData/ppic/kapasitasJadwalKirim/masterKapasitasJadwalKirimArmadaModel");
 
 //ppic
 const JadwalProduksi = require("./model/ppic/jadwalProduksi/jadwalProduksiModel");
@@ -274,7 +276,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanCuti.sync({ alter: true });
+//   await MasterKapasitasJadwalKirimArmada.sync({ alter: true });
 // })();
 
 // const ip100 = 75
