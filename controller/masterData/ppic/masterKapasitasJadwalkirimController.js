@@ -33,6 +33,7 @@ const masterKapasitasJadwalKirim = {
   createKapasitasJadwalKirim: async (req, res) => {
     const { no_io, customer, produk, cgd, cgs, isi_dus, armada } = req.body;
     const t = await db.transaction();
+
     try {
       if ((!no_io, !customer))
         return res
@@ -70,7 +71,6 @@ const masterKapasitasJadwalKirim = {
   updateKapasitasJadwalKirim: async (req, res) => {
     const _id = req.params.id;
     const { no_io, customer, produk, cgd, cgs, isi_dus, armada } = req.body;
-    const t = await db.transaction();
 
     try {
       let obj = {};
@@ -114,17 +114,24 @@ const masterKapasitasJadwalKirim = {
 
   deleteKapasitasJadwalKirim: async (req, res) => {
     const _id = req.params.id;
+    const t = await db.transaction();
     try {
       const datakapasitas = await MasterKapasitasJadwalKirim.findByPk(_id);
       if (!datakapasitas)
         return res.status(404).json({ msg: "data not found!!" });
-      await MasterKapasitasJadwalKirim.destroy({ where: { id: _id } }),
+
+      await MasterKapasitasJadwalKirim.destroy({
+        where: { id: _id },
+        transaction: t,
+      }),
         await MasterKapasitasJadwalKirimArmada.destroy({
           where: { id_kapasitas_jadwal_kirim: datakapasitas.id },
           transaction: t,
         });
+      await t.commit();
       res.status(201).json({ msg: "Master delete Successfuly" });
     } catch (error) {
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
