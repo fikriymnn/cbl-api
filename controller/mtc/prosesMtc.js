@@ -456,6 +456,7 @@ const ProsessMtc = {
           jenis_analisis_mtc: jenis_analisis_mtc,
           skor_mtc: skor_mtc,
           cara_perbaikan: cara_perbaikan,
+          unit: unit,
         };
       } else {
         obj = {
@@ -466,6 +467,7 @@ const ProsessMtc = {
           waktu_selesai_mtc: new Date(),
           skor_mtc: skor_mtc,
           cara_perbaikan: cara_perbaikan,
+          unit: unit,
         };
       }
 
