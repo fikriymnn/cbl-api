@@ -795,7 +795,9 @@ const hitungPayroll = async (
             absen.status_keluar === "Pulang Cepat" ||
             absen.status_keluar === "Pulang Cepat : dinas" ||
             absen.status_keluar === "Pulang Cepat : pribadi")) ||
-        absen.status_absen === "dinas"
+        absen.status_absen === "dinas" ||
+        absen.status_absen === "cuti tahunan" ||
+        absen.status_absen === "cuti khusus"
       ) {
         //hanya untuk karyawan mingguan
         if (tipePenggajianKaryawan === "mingguan") {
@@ -864,12 +866,17 @@ const hitungPayroll = async (
               summaryPayroll.total -= jamTerlambat * uangLemburBiasa;
             }
           } else {
-            payroll.rincian.push({
-              label: "uangHadir",
-              jumlah: 1,
-              nilai: uangHadir,
-              total: uangHadir,
-            });
+            if (
+              absen.status_absen != "cuti tahunan" &&
+              absen.status_absen != "cuti khusus"
+            ) {
+              payroll.rincian.push({
+                label: "uangHadir",
+                jumlah: 1,
+                nilai: uangHadir,
+                total: uangHadir,
+              });
+            }
           }
         }
       }
@@ -877,7 +884,9 @@ const hitungPayroll = async (
       //uang hadir untuk hari biasa & karyawan bulanan
       if (
         absen.jenis_hari_masuk == "Biasa" &&
-        tipePenggajianKaryawan == "bulanan"
+        tipePenggajianKaryawan == "bulanan" &&
+        absen.status_absen != "cuti tahunan" &&
+        absen.status_absen != "cuti khusus"
       ) {
         payroll.rincian.push({
           label: "uangHadir",
