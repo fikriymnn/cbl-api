@@ -203,6 +203,10 @@ router.use("/", require("./hr/absenCheckInOutRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
+router.use("/", require("./hr/karyawan/karyawanDetailInformasiRoute"));
+router.use("/", require("./hr/karyawan/karyawanDetailKeluargaRoute"));
+router.use("/", require("./hr/karyawan/karyawanRiwayatPendidikanRoute"));
+router.use("/", require("./hr/karyawan/karyawanRiwayatPekerjaanRoute"));
 router.use("/", require("./hr/karyawan/karyawanBagianMesinRoute"));
 router.use("/", require("./hr/pengajuanCuti/pengajuanCutiRoute"));
 router.use("/", require("./hr/pengajuanIzin/pengajuanIzinRoute"));
@@ -248,6 +252,7 @@ router.use(
 );
 router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 router.use("/", require("./masterdata/ppic/masterKapasitasMesinRoute"));
+router.use("/", require("./masterdata/ppic/masterKapasitasJadwalKirimRoute"));
 
 //ppic
 router.use("/", require("./ppic/jadwalProduksiTiket/jadwalProduksiRoute"));

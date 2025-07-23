@@ -1,5 +1,6 @@
 const { Op, Sequelize, where } = require("sequelize");
 const BookingJadwal = require("../../../model/ppic/bookingJadwal/bookingJadwalModel");
+const JadwalProduksi = require("../../../model/ppic/jadwalProduksi/jadwalProduksiModel");
 const db = require("../../../config/database");
 
 const ReportKapasitasController = {
@@ -22,7 +23,11 @@ const ReportKapasitasController = {
         },
       });
 
-      const grouped = dataBooking.reduce((acc, item) => {
+      const dataJoTerjadwal = await JadwalProduksi.findAll({
+        where: { tanggal: { [Op.between]: [startDate, endDate] } },
+      });
+
+      const grouped = dataJoTerjadwal.reduce((acc, item) => {
         if (!acc[item.mesin]) {
           acc[item.mesin] = {
             mesin: item.mesin,

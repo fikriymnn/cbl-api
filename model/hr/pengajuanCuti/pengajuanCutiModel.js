@@ -68,6 +68,10 @@ const PengajuanCuti = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

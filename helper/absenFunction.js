@@ -20,47 +20,48 @@ const masterIstirahat = require("../model/masterData/hr/masterShift/masterIstira
 
 const absenFunction = {
   getAbsensiFunction: async (startDate, endDate, obj, isLibur) => {
-    // console.log(1);
-    const masterAbsensi = await MasterAbsensi.findByPk(1);
-    const masterDepartment = await MasterDepartment.findAll();
-    const masterDivisi = await MasterDivisi.findAll();
-    const karyawanBiodata = await KaryawanBiodata.findAll({
-      where: obj,
-    });
+    // 1. Fetch master data and karyawan biodata in parallel
+    const [
+      masterAbsensi,
+      masterDepartment,
+      masterDivisi,
+      karyawanBiodata,
+      dataJadwalKaryawan,
+    ] = await Promise.all([
+      MasterAbsensi.findByPk(1),
+      MasterDepartment.findAll(),
+      MasterDivisi.findAll(),
+      KaryawanBiodata.findAll({ where: obj }),
+      JadwalKaryawan.findAll({
+        order: [["createdAt", "DESC"]],
+        where: {
+          tanggal: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      }),
+    ]);
 
-    // Ekstrak id_karyawan dari hasil query
-    const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+    const karyawanIds = karyawanBiodata.map((b) => b.id_karyawan);
+
+    // 2. Fetch karyawan in parallel
     const karyawan = await Karyawan.findAll({
-      where: {
-        userid: {
-          [Op.in]: karyawanIds, // Gunakan array id_karyawan
-        },
-      },
+      where: { userid: { [Op.in]: karyawanIds } },
     });
-    //console.log(2);
 
-    let absensiMasuk = [];
-    let absensiKeluar = [];
-    let dataCuti = [];
-    let dataIzin = [];
-    let dataDinas = [];
-    let dataSakit = [];
-    let dataMangkir = [];
-    let dataTerlambat = [];
-    let dataPulangCepat = [];
-    let dataLembur = [];
-
-    const dataJadwalKaryawan = await JadwalKaryawan.findAll({
-      order: [["createdAt", "DESC"]],
-      where: {
-        tanggal: {
-          [Op.between]: [
-            new Date(startDate).setHours(0, 0, 0, 0),
-            new Date(endDate).setHours(23, 59, 59, 999),
-          ],
-        },
-      },
-    });
+    // let absensiMasuk = [];
+    // let absensiKeluar = [];
+    // let dataCuti = [];
+    // let dataIzin = [];
+    // let dataDinas = [];
+    // let dataSakit = [];
+    // let dataMangkir = [];
+    // let dataTerlambat = [];
+    // let dataPulangCepat = [];
+    // let dataLembur = [];
 
     // buat tanggal sesuai format
     const resultJadwalKaryawan = dataJadwalKaryawan.map((jadwal) => {
@@ -75,44 +76,50 @@ const absenFunction = {
       };
     });
 
-    //jika ada range tanggal
-    if (startDate && endDate) {
-      const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
-      const toDateMasukUTC = new Date(`${endDate}T23:59:59.999Z`);
-      const dateKeluar = new Date(endDate);
-      dateKeluar.setDate(dateKeluar.getDate() + 1);
-      const nextDay = dateKeluar.toISOString().split("T")[0];
-      const toDateKeluarUTC = new Date(`${nextDay}T23:59:59.999Z`);
+    if (!startDate || !endDate)
+      return res
+        .status(400)
+        .json({ msg: "start date atau end date wajib di isi" });
 
-      // Ambil  data absensi masuk
-      absensiMasuk = await absensi.findAll({
+    const fromDateUTC = new Date(`${startDate}T00:00:00.000Z`); // Awal hari UTC
+    const toDateMasukUTC = new Date(`${endDate}T23:59:59.999Z`);
+    const dateKeluar = new Date(endDate);
+    dateKeluar.setDate(dateKeluar.getDate() + 1);
+    const nextDay = dateKeluar.toISOString().split("T")[0];
+    const toDateKeluarUTC = new Date(`${nextDay}T23:59:59.999Z`);
+    const endTargetDate = new Date(endDate);
+    endTargetDate.setDate(endTargetDate.getDate() + 1); // tambah 1 hari
+    endTargetDate.setHours(10, 0, 0, 0); // set jam 10:00:00.000
+
+    const [
+      absensiMasuk,
+      absensiKeluar,
+      dataCuti,
+      dataIzin,
+      dataDinas,
+      dataSakit,
+      dataMangkir,
+      dataTerlambat,
+      dataPulangCepat,
+      dataLembur,
+    ] = await Promise.all([
+      absensi.findAll({
         where: {
           checktype: "0",
           is_active: true,
-          checktime: {
-            [Op.between]: [fromDateUTC, toDateMasukUTC],
-          },
-          userid: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
+          checktime: { [Op.between]: [fromDateUTC, toDateMasukUTC] },
+          userid: { [Op.in]: karyawanIds },
         },
-      });
-
-      //ambil data absensi keluar
-      absensiKeluar = await absensi.findAll({
+      }),
+      absensi.findAll({
         where: {
           checktype: "1",
           is_active: true,
-          checktime: {
-            [Op.between]: [fromDateUTC, toDateKeluarUTC],
-          },
-          userid: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
+          checktime: { [Op.between]: [fromDateUTC, toDateKeluarUTC] },
+          userid: { [Op.in]: karyawanIds },
         },
-      });
-
-      dataCuti = await DataCuti.findAll({
+      }),
+      DataCuti.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -151,8 +158,8 @@ const absenFunction = {
             },
           ],
         },
-      });
-      dataIzin = await DataIzin.findAll({
+      }),
+      DataIzin.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -191,9 +198,8 @@ const absenFunction = {
             },
           ],
         },
-      });
-
-      dataDinas = await DataDinas.findAll({
+      }),
+      DataDinas.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -232,9 +238,8 @@ const absenFunction = {
             },
           ],
         },
-      });
-
-      dataSakit = await DataSakit.findAll({
+      }),
+      DataSakit.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -273,9 +278,8 @@ const absenFunction = {
             },
           ],
         },
-      });
-
-      dataMangkir = await DataMangkir.findAll({
+      }),
+      DataMangkir.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -288,9 +292,8 @@ const absenFunction = {
             ],
           },
         },
-      });
-
-      dataTerlambat = await DataTerlambat.findAll({
+      }),
+      DataTerlambat.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -303,9 +306,8 @@ const absenFunction = {
             ],
           },
         },
-      });
-
-      dataPulangCepat = await DataPulangCepat.findAll({
+      }),
+      DataPulangCepat.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -318,13 +320,8 @@ const absenFunction = {
             ],
           },
         },
-      });
-
-      const endTargetDate = new Date(endDate);
-      endTargetDate.setDate(endTargetDate.getDate() + 1); // tambah 1 hari
-      endTargetDate.setHours(10, 0, 0, 0); // set jam 10:00:00.000
-
-      dataLembur = await DataLembur.findAll({
+      }),
+      DataLembur.findAll({
         where: {
           status: "approved",
           id_karyawan: {
@@ -363,100 +360,10 @@ const absenFunction = {
             },
           ],
         },
-      });
-      //console.log(absensiMasuk);
-    } else {
-      // Ambil  data absensi masuk
-      absensiMasuk = await absensi.findAll({
-        where: {
-          checktype: "0",
-          is_active: true,
-          userid: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
+      }),
+    ]);
 
-      //ambil data absensi keluar
-      absensiKeluar = await absensi.findAll({
-        where: {
-          checktype: "1",
-          is_active: true,
-          userid: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-
-      dataCuti = await DataCuti.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-      dataIzin = await DataIzin.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-
-      dataDinas = await DataDinas.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-
-      dataSakit = await DataSakit.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-
-      dataMangkir = await DataMangkir.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-
-      dataTerlambat = await DataTerlambat.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-      dataPulangCepat = await DataPulangCepat.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-      dataLembur = await DataLembur.findAll({
-        where: {
-          status: "approved",
-          id_karyawan: {
-            [Op.in]: karyawanIds, // Gunakan array id_karyawan
-          },
-        },
-      });
-    }
+    //console.log(absensiMasuk);
 
     // dataLembur = await DataLembur.findAll({
     //   where: {
@@ -611,22 +518,27 @@ const absenFunction = {
         },
       ],
     });
-
+    // Group absensiKeluar by userid for fast lookup
+    const absensiKeluarMap = new Map();
+    for (const keluar of absensiKeluar) {
+      if (!absensiKeluarMap.has(keluar.userid))
+        absensiKeluarMap.set(keluar.userid, []);
+      absensiKeluarMap.get(keluar.userid).push(keluar);
+    }
     // Proses data untuk menghitung keterlambatan dan lembur
     const results = absensiMasuk.map((masuk) => {
-      const keluar = absensiKeluar
+      // Fast keluar lookup: only check for this userid
+      const keluarList = absensiKeluarMap.get(masuk.userid) || [];
+      const masukTime = new Date(masuk.checktime);
+      const keluar = keluarList
         .filter((k) => {
-          const masukTime = new Date(masuk.checktime);
           const keluarTime = new Date(k.checktime);
-          const isSameUser = k.userid === masuk.userid;
           const isAfterMasuk = keluarTime > masukTime;
           const duration = keluarTime - masukTime;
-
-          const isAtLeast1Hour = duration >= 1 * 60 * 60 * 1000; // minimal 1 jam
-          const isWithin16Hours = duration <= 16 * 60 * 60 * 1000; // maksimal 16 jam
-
           return (
-            isSameUser && isAfterMasuk && isAtLeast1Hour && isWithin16Hours
+            isAfterMasuk &&
+            duration >= 1 * 60 * 60 * 1000 && // minimal 1 jam
+            duration <= 16 * 60 * 60 * 1000 // maksimal 16 jam
           );
         })
         .sort((a, b) => new Date(a.checktime) - new Date(b.checktime))[0];
@@ -666,7 +578,7 @@ const absenFunction = {
       );
 
       const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-        (data) => data.jenis_karyawan == resultFindBiodata.tipe_karyawan
+        (data) => data.jenis_karyawan == resultFindBiodata?.tipe_karyawan
       );
 
       // Cek apakah tanggal hari ini ada di data lembur
@@ -864,12 +776,112 @@ const absenFunction = {
           statusKeluar = "Keluar";
         }
 
+        const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+        const monthKeluar = getMonthName(waktuKeluar.getUTCMonth() + 1);
+
+        const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+        const tglKeluar = `${waktuKeluar.getUTCDate()}-${monthKeluar}-${waktuKeluar.getFullYear()}`;
+        const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
+        const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
+
+        const jamMasukShift = shift == "Shift 1" ? shiftMasuk1 : shiftMasuk2;
+        const jamKeluarShift = shift == "Shift 1" ? shiftKeluar1 : shiftKeluar2;
+
+        //pencocokan pengajuan lembur dengan absen
+        let statusLemburSPL = "tidak dengan SPL";
+        let jamLemburSPL = 0;
+        let id_pengajuan_lembur = null;
+        let statusKetidaksesuaian = null;
+        let isLemburSebelumMasuk = false;
+        let isLemburSetelahMasuk = false;
+
+        const lemburFind = lemburEntries.find(
+          (entry) =>
+            entry.userid === masuk.userid &&
+            (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
+            parseTanggalIndo(entry.jam_mulai_lembur) >=
+              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 60) &&
+            parseTanggalIndo(entry.jam_mulai_lembur) <=
+              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 60)
+        );
+
+        // console.log(
+        //   parseTanggalIndo(lemburFind?.jam_mulai_lembur) >=
+        //     parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 60),
+        //   lemburFind?.jam_mulai_lembur
+        // );
+
+        // const lemburFind = lemburEntries.find(
+        //   (entry) =>
+        //     entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+        // );
+
+        // console.log(lemburEntries, tglMasuk);
+
+        if (lemburFind) {
+          if (lemburFind.status_ketidaksesuaian === "approved") {
+            jamLembur = lemburFind.jam_lembur;
+          }
+          statusLemburSPL = "dengan SPL";
+          jamLemburSPL = lemburFind.jam_lembur;
+          id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
+          statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
+
+          if (lemburFind.dari && lemburFind.sampai) {
+            const cekwaktuLemburSebelumShift = sebelumJamMasukShift(
+              jamMasukShift,
+              lemburFind.dari,
+              lemburFind.sampai
+            );
+            const cekwaktuLemburSetelahShift = setelahJamKeluarShift(
+              jamKeluarShift,
+              lemburFind.dari,
+              lemburFind.sampai
+            );
+
+            isLemburSebelumMasuk =
+              isLemburSebelumMasuk == true
+                ? isLemburSebelumMasuk
+                : cekwaktuLemburSebelumShift;
+            isLemburSetelahMasuk =
+              isLemburSetelahMasuk == true
+                ? isLemburSetelahMasuk
+                : cekwaktuLemburSetelahShift;
+          }
+
+          if (lemburFind.dari_2 && lemburFind.sampai_2) {
+            const cekwaktuLemburSebelumShift2 = sebelumJamMasukShift(
+              jamMasukShift,
+              lemburFind.dari_2,
+              lemburFind.sampai_2
+            );
+            const cekwaktuLemburSetelahShift2 = setelahJamKeluarShift(
+              jamKeluarShift,
+              lemburFind.dari_2,
+              lemburFind.sampai_2
+            );
+
+            isLemburSebelumMasuk =
+              isLemburSebelumMasuk == true
+                ? isLemburSebelumMasuk
+                : cekwaktuLemburSebelumShift2;
+            isLemburSetelahMasuk =
+              isLemburSetelahMasuk == true
+                ? isLemburSetelahMasuk
+                : cekwaktuLemburSetelahShift2;
+          }
+        } else {
+          statusLembur = "Tidak Lembur";
+          jamLembur = 0;
+        }
+
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
         // diambil dari master absensi untuk minimal jam lembur
         if (keluar && jenisHariMasuk == "Biasa") {
           //lembur setelah pulang
           if (
             shift === "Shift 1" &&
+            isLemburSetelahMasuk === true &&
             waktuKeluarUTC >
               waktuKeluarShift1UTC +
                 masterAbsensi.terhitung_lembur_menit * 60 * 1000
@@ -882,6 +894,7 @@ const absenFunction = {
             statusLembur = "Lembur";
           } else if (
             shift === "Shift 2" &&
+            isLemburSetelahMasuk === true &&
             waktuKeluarUTC >
               waktuKeluarShift2UTC +
                 masterAbsensi.terhitung_lembur_menit * 60 * 1000
@@ -898,6 +911,7 @@ const absenFunction = {
           //lembur sebelum masuk
           if (
             shift === "Shift 1" &&
+            isLemburSebelumMasuk === true &&
             waktuMasukUTC <
               waktuMasukShift1UTC -
                 masterAbsensi.terhitung_lembur_menit * 60 * 1000
@@ -910,6 +924,7 @@ const absenFunction = {
             statusLembur = "Lembur";
           } else if (
             shift === "Shift 2" &&
+            isLemburSebelumMasuk === true &&
             waktuMasukUTC <
               waktuMasukShift2UTC -
                 masterAbsensi.terhitung_lembur_menit * 60 * 1000
@@ -925,7 +940,7 @@ const absenFunction = {
         }
 
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
-        if (keluar && jenisHariMasuk == "Libur") {
+        if (keluar && jenisHariMasuk == "Libur" && lemburFind) {
           if (shift === "Shift 1") {
             const jamLemburMentah =
               (waktuKeluarUTC - waktuMasukUTC.getTime()) / 3600000;
@@ -956,17 +971,6 @@ const absenFunction = {
           statusLembur = "Lembur Libur";
         }
 
-        const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
-        const monthKeluar = getMonthName(waktuKeluar.getUTCMonth() + 1);
-
-        const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
-        const tglKeluar = `${waktuKeluar.getUTCDate()}-${monthKeluar}-${waktuKeluar.getFullYear()}`;
-        const jamMasuk = `${waktuMasuk.getUTCHours()}:${waktuMasuk.getUTCMinutes()}:${waktuMasuk.getUTCSeconds()}`;
-        const jamKeluar = `${waktuKeluar.getUTCHours()}:${waktuKeluar.getUTCMinutes()}:${waktuKeluar.getUTCSeconds()}`;
-
-        const jamMasukShift = shift == "Shift 1" ? shiftMasuk1 : shiftMasuk2;
-        const jamKeluarShift = shift == "Shift 1" ? shiftKeluar1 : shiftKeluar2;
-
         //pencocokan pengajuan terlambat dengan absen
         let statusTerlambat = "";
         const terlambatFind = terlambatEntries.find(
@@ -984,72 +988,6 @@ const absenFunction = {
         if (pulangCepatFind) {
           menitPulangCepat = 0;
           statusKeluar = `Pulang Cepat ${pulangCepatFind.status_keluar}`;
-        }
-
-        //pencocokan pengajuan lembur dengan absen
-        let statusLemburSPL = "tidak dengan SPL";
-        let jamLemburSPL = 0;
-        let id_pengajuan_lembur = null;
-        let statusKetidaksesuaian = null;
-
-        const bulanMap = {
-          Januari: 0,
-          Februari: 1,
-          Maret: 2,
-          April: 3,
-          Mei: 4,
-          Juni: 5,
-          Juli: 6,
-          Agustus: 7,
-          September: 8,
-          Oktober: 9,
-          November: 10,
-          Desember: 11,
-        };
-
-        function parseTanggalIndo(str) {
-          // Contoh input: "18-Juni-2025 04:00:00"
-          const [tanggalBagian, jamBagian] = str.split(" ");
-          const [hari, namaBulan, tahun] = tanggalBagian.split("-");
-
-          const date = new Date(
-            parseInt(tahun),
-            bulanMap[namaBulan],
-            parseInt(hari)
-          );
-
-          const [jam, menit, detik] = jamBagian.split(":").map(Number);
-          date.setHours(jam, menit, detik, 0);
-
-          return date;
-        }
-
-        const lemburFind = lemburEntries.find(
-          (entry) =>
-            entry.userid === masuk.userid &&
-            (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
-            parseTanggalIndo(entry.jam_mulai_lembur) >
-              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`)
-        );
-
-        // const lemburFind = lemburEntries.find(
-        //   (entry) =>
-        //     entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
-        // );
-
-        // console.log(lemburEntries, tglMasuk);
-
-        if (lemburFind) {
-          if (lemburFind.status_ketidaksesuaian === "approved") {
-            jamLembur = lemburFind.jam_lembur;
-          }
-          statusLemburSPL = "dengan SPL";
-          jamLemburSPL = lemburFind.jam_lembur;
-          id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
-          statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
-        } else {
-          statusLembur = "Tidak Lembur";
-          jamLembur = 0;
         }
 
         //untuk istirahat saat lembur
@@ -2283,6 +2221,9 @@ const generateDailyLembur = (
     )
   );
 
+  const statusKetidaksesuaian = Lembur.status_ketidaksesuaian;
+  const penanganan = Lembur.penanganan;
+
   dailyLembur.push({
     id_pengajuan_lembur: Lembur.id,
     userid: Lembur.id_karyawan,
@@ -2296,7 +2237,12 @@ const generateDailyLembur = (
     nama_department: namaDepartmentKaryawan,
     id_divisi: idDivisi,
     nama_divisi: namaDivisi,
-    status_ketidaksesuaian: Lembur.status_ketidaksesuaian,
+    status_ketidaksesuaian:
+      statusKetidaksesuaian == "approved" ? penanganan : statusKetidaksesuaian,
+    dari: Lembur.dari,
+    sampai: Lembur.sampai,
+    dari_2: Lembur.dari_2,
+    sampai_2: Lembur.sampai_2,
   });
 
   return dailyLembur;
@@ -2442,6 +2388,68 @@ function convertTanggalIndonesiaToISO(tanggal) {
   }
 
   return `${tahun}-${bulan}-${hari.padStart(2, "0")}`;
+}
+
+const bulanMap = {
+  Januari: 0,
+  Februari: 1,
+  Maret: 2,
+  April: 3,
+  Mei: 4,
+  Juni: 5,
+  Juli: 6,
+  Agustus: 7,
+  September: 8,
+  Oktober: 9,
+  November: 10,
+  Desember: 11,
+};
+
+function parseTanggalIndo(str, toleransiMenit = 0) {
+  // Contoh input: "18-Juni-2025 04:00:00"
+  const [tanggalBagian, jamBagian] = str.split(" ");
+  const [hari, namaBulan, tahun] = tanggalBagian.split("-");
+
+  const date = new Date(parseInt(tahun), bulanMap[namaBulan], parseInt(hari));
+
+  const [jam, menit, detik] = jamBagian.split(":").map(Number);
+  date.setHours(jam, menit, detik, 0);
+
+  // Kurangi toleransi dalam menit
+  if (toleransiMenit !== 0) {
+    date.setMinutes(date.getMinutes() - toleransiMenit);
+  }
+
+  return date;
+}
+// Function 1: Cek apakah masuk sampai keluar sebelum jam mulai
+function sebelumJamMasukShift(jamMasukShift, masuk, keluar) {
+  const waktuMasuk = new Date(masuk);
+  const waktuKeluar = new Date(keluar);
+
+  // Konversi UTC ke waktu lokal Indonesia (UTC+7)
+  const jamMasukLokal = waktuMasuk.getUTCHours() + 7;
+  const jamKeluarLokal = waktuKeluar.getUTCHours() + 7;
+
+  const jamMulaiAngka = parseInt(jamMasukShift.split(":")[0]);
+
+  // True jika kedua waktu (masuk dan keluar) sebelum jam mulai
+  return jamMasukLokal <= jamMulaiAngka && jamKeluarLokal <= jamMulaiAngka;
+}
+
+// Function 2: Cek apakah masuk sampai keluar setelah jam selesai
+function setelahJamKeluarShift(jamKeluarShift, masuk, keluar) {
+  const waktuMasuk = new Date(masuk);
+  const waktuKeluar = new Date(keluar);
+
+  // Konversi UTC ke waktu lokal Indonesia (UTC+7)
+  const jamMasukLokal = waktuMasuk.getUTCHours() + 7;
+  const jamKeluarLokal = waktuKeluar.getUTCHours() + 7;
+
+  const jamSelesaiAngka = parseInt(jamKeluarShift.split(":")[0]);
+
+  // True jika kedua waktu (masuk dan keluar) setelah jam selesai
+  return jamMasukLokal >= jamSelesaiAngka && jamKeluarLokal >= jamSelesaiAngka;
 }
 
 module.exports = absenFunction;

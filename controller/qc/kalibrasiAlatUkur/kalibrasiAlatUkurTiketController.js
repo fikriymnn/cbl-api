@@ -142,7 +142,7 @@ const KalibrasiAlatUkurTiketController = {
 
   doneKalibrasiAlatUkurTiket: async (req, res) => {
     const _id = req.params.id;
-    const { tgl_kalibrasi, nama_inspektor } = req.body;
+    const { tgl_kalibrasi, nama_inspektor, file } = req.body;
     const t = await db.transaction();
     try {
       if (!tgl_kalibrasi)
@@ -161,11 +161,16 @@ const KalibrasiAlatUkurTiketController = {
       const masaBerlaku = new Date(tglKalibrasi); // salin tanggal hari ini
       masaBerlaku.setMonth(tglKalibrasi.getMonth() + dataKalibrasi.frekuensi); // tambah periode per bulan
 
+      let fileKalibrasi = dataKalibrasi.file;
+
+      if (file) fileKalibrasi = file;
+
       await KalibrasiAlatUkurTiket.update(
         {
           status: "history",
           tgl_kalibrasi: tgl_kalibrasi,
           nama_inspektor,
+          file,
         },
         {
           where: { id: _id },
@@ -177,6 +182,7 @@ const KalibrasiAlatUkurTiketController = {
         {
           kalibrasi_terakhir: tglKalibrasi,
           masa_berlaku: masaBerlaku,
+          file: fileKalibrasi,
         },
         {
           where: { id: dataKalibrasi.id },

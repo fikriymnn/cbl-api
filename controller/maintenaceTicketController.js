@@ -36,6 +36,7 @@ const ticketController = {
         page,
         historiQc,
         id_eksekutor,
+        unit,
       } = req.query;
 
       let options = {
@@ -92,6 +93,7 @@ const ticketController = {
       }
 
       if (id_eksekutor) objEksekutor.id_eksekutor = id_eksekutor;
+      if (unit) objEksekutor.unit = unit;
 
       if (bagian_tiket == "os2") {
         des.push("waktu_respon", "DESC");
@@ -102,11 +104,12 @@ const ticketController = {
       //console.log(obj);
       options.order = [des];
 
-      if (id_eksekutor) {
+      if (id_eksekutor || unit) {
         options.include = [
           {
             model: ProsesMtc,
             //require: false,
+
             where: objEksekutor,
             include: [
               {
