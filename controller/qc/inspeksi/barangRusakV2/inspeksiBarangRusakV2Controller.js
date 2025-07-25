@@ -4,6 +4,34 @@ const InspeksiBarangRusakPointV2 = require("../../../../model/qc/inspeksi/barang
 const InspeksiBarangRusakDefectV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
 const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 
+//cetak
+const InspeksiCetak = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
+const InspeksiCetakPeriode = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
+const InspeksiCetakPeriodePoint = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
+const InspeksiCetakPeriodeDefect = require("../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
+
+//coating
+const InspeksiCoating = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingModel");
+const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
+const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+
+//pond
+const InspeksiPond = require("../../../../model/qc/inspeksi/pond/inspeksiPondModel");
+const InspeksiPondPeriode = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
+const InspeksiPondPeriodePoint = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
+const InspeksiPondPeriodeDefect = require("../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
+
+//lem
+const InspeksiLem = require("../../../../model/qc/inspeksi/lem/inspeksiLemModel");
+const InspeksiLemPeriode = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeModel");
+const InspeksiLemPeriodePoint = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodePointModel");
+const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
+
+//rabut
+const InspeksiRabutPoint = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPointModel");
+const InspeksiRabut = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutModel");
+const InspeksiRabutDefect = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutDefectModel");
+
 const User = require("../../../../model/userModel");
 
 const inspeksiBarangRusakV2Controller = {
@@ -145,6 +173,248 @@ const inspeksiBarangRusakV2Controller = {
           where: obj,
         });
         return res.status(200).json({ data: data });
+      }
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  },
+
+  getHistoryTemuan: async (req, res) => {
+    const { no_jo, is_with_rabut } = req.query;
+    try {
+      if (!no_jo) return res.status(404).json({ msg: "no_jo required!!" });
+      const dataCetak = await InspeksiCetak.findAll({
+        where: { no_jo: no_jo },
+        include: [
+          {
+            model: InspeksiCetakPeriode,
+            as: "inspeksi_cetak_periode",
+            include: [
+              {
+                model: InspeksiCetakPeriodePoint,
+                as: "inspeksi_cetak_periode_point",
+                include: [
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                  {
+                    model: InspeksiCetakPeriodeDefect,
+                    as: "inspeksi_cetak_periode_defect",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const dataCoating = await InspeksiCoating.findAll({
+        where: { no_jo: no_jo },
+        include: [
+          {
+            model: InspeksiCoatingResultPeriode,
+            as: "inspeksi_coating_result_periode",
+            include: [
+              {
+                model: InspeksiCoatingResultPointPeriode,
+                as: "inspeksi_coating_result_point_periode",
+              },
+              {
+                model: User,
+                as: "inspektor",
+              },
+            ],
+          },
+        ],
+      });
+
+      const dataPond = await InspeksiPond.findAll({
+        where: { no_jo: no_jo },
+        include: [
+          {
+            model: InspeksiPondPeriode,
+            as: "inspeksi_pond_periode",
+            include: [
+              {
+                model: InspeksiPondPeriodePoint,
+                as: "inspeksi_pond_periode_point",
+                include: [
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                  {
+                    model: InspeksiPondPeriodeDefect,
+                    as: "inspeksi_pond_periode_defect",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const dataLem = await InspeksiLem.findAll({
+        where: { no_jo: no_jo },
+        include: [
+          {
+            model: InspeksiLemPeriode,
+            as: "inspeksi_lem_periode",
+            include: [
+              {
+                model: InspeksiLemPeriodePoint,
+                as: "inspeksi_lem_periode_point",
+                include: [
+                  {
+                    model: User,
+                    as: "inspektor",
+                  },
+                  {
+                    model: InspeksiLemPeriodeDefect,
+                    as: "inspeksi_lem_periode_defect",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      let dataRabut = [];
+
+      if (is_with_rabut == true || is_with_rabut == "true") {
+        dataRabut = await InspeksiRabut.findAll({
+          where: { no_jo: no_jo },
+          include: {
+            model: InspeksiRabutPoint,
+            as: "inspeksi_rabut_point",
+            include: [
+              {
+                model: User,
+                as: "inspektor",
+              },
+              {
+                model: InspeksiRabutDefect,
+                as: "inspeksi_rabut_defect",
+              },
+            ],
+          },
+        });
+      }
+
+      const dataTemuanCetak = dataCetak.flatMap((item) =>
+        item?.inspeksi_cetak_periode[0]?.inspeksi_cetak_periode_point.flatMap(
+          (point, pointIndex) =>
+            point.inspeksi_cetak_periode_defect
+              .filter((defect) => defect.hasil === "not ok")
+              .map((defect) => {
+                const plainDefect = defect.get({ plain: true }); // <- ubah jadi plain object
+                return {
+                  ...plainDefect,
+                  bagian: "cetak",
+                  nama_inspektor: point.inspektor?.nama || null,
+                  periode_ke: pointIndex + 1,
+                };
+              })
+        )
+      );
+
+      const dataTemuanCoating = dataCoating.flatMap((item) =>
+        item?.inspeksi_coating_result_periode.flatMap((point, pointIndex) =>
+          point.inspeksi_coating_result_point_periode
+            .filter((defect) => defect.hasil === "not ok")
+            .map((defect) => {
+              const plainDefect = defect.get({ plain: true }); // <- ubah jadi plain object
+              return {
+                ...plainDefect,
+                bagian: "coating",
+                nama_inspektor: point.inspektor?.nama || null,
+                periode_ke: pointIndex + 1,
+              };
+            })
+        )
+      );
+
+      const dataTemuanPond = dataPond.flatMap((item) =>
+        item?.inspeksi_pond_periode[0]?.inspeksi_pond_periode_point.flatMap(
+          (point, pointIndex) =>
+            point.inspeksi_pond_periode_defect
+              .filter((defect) => defect.hasil === "not ok")
+              .map((defect) => {
+                const plainDefect = defect.get({ plain: true }); // <- ubah jadi plain object
+                return {
+                  ...plainDefect,
+                  bagian: "pond",
+                  nama_inspektor: point.inspektor?.nama || null,
+                  periode_ke: pointIndex + 1,
+                };
+              })
+        )
+      );
+
+      const dataTemuanLem = dataLem.flatMap((item) =>
+        item?.inspeksi_lem_periode[0]?.inspeksi_lem_periode_point.flatMap(
+          (point, pointIndex) =>
+            point.inspeksi_lem_periode_defect
+              .filter((defect) => defect.hasil === "not ok")
+              .map((defect) => {
+                const plainDefect = defect.get({ plain: true }); // <- ubah jadi plain object
+                return {
+                  ...plainDefect,
+                  bagian: "lem",
+                  nama_inspektor: point.inspektor?.nama || null,
+                  periode_ke: pointIndex + 1,
+                };
+              })
+        )
+      );
+
+      let dataTemuanRabut = [];
+
+      if (is_with_rabut == true || is_with_rabut == "true") {
+        dataTemuanRabut = dataRabut.flatMap((item) =>
+          item?.inspeksi_rabut_point.flatMap((point, pointIndex) =>
+            point.inspeksi_rabut_defect.map((defect) => {
+              const plainDefect = defect.get({ plain: true }); // <- ubah jadi plain object
+              return {
+                ...plainDefect,
+                bagian: "rabut",
+                nama_inspektor: point.inspektor?.nama || null,
+              };
+            })
+          )
+        );
+      }
+
+      const sortedTemuanCetak = dataTemuanCetak.sort(
+        (a, b) => a.periode_ke - b.periode_ke
+      );
+      const sortedTemuanCoating = dataTemuanCoating.sort(
+        (a, b) => a.periode_ke - b.periode_ke
+      );
+      const sortedTemuanPond = dataTemuanPond.sort(
+        (a, b) => a.periode_ke - b.periode_ke
+      );
+      const sortedTemuanLem = dataTemuanLem.sort(
+        (a, b) => a.periode_ke - b.periode_ke
+      );
+
+      if (is_with_rabut == true || is_with_rabut == "true") {
+        return res.status(200).json({
+          dataCetak: sortedTemuanCetak,
+          dataCoating: sortedTemuanCoating,
+          dataPond: sortedTemuanPond,
+          dataLem: sortedTemuanLem,
+          dataRabut: dataTemuanRabut,
+        });
+      } else {
+        return res.status(200).json({
+          dataCetak: sortedTemuanCetak,
+          dataCoating: sortedTemuanCoating,
+          dataPond: sortedTemuanPond,
+          dataLem: sortedTemuanLem,
+        });
       }
     } catch (err) {
       res.status(500).json({ msg: err.message });
