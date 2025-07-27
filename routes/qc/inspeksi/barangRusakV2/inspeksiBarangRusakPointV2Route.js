@@ -21,6 +21,11 @@ router.post(
   inspeksiBarangRusakPointV2.createInspeksiBarangRusakPointV2
 );
 router.put(
+  "/qc/cs/inspeksiBarangRusakPointV2/edit/:id",
+  auth,
+  inspeksiBarangRusakPointV2.updateInspeksiBarangRusakPointV2
+);
+router.put(
   "/qc/cs/inspeksiBarangRusakPointV2/istirahat/:id",
   auth,
   inspeksiBarangRusakPointV2.istirahatBarangRusakPointV2

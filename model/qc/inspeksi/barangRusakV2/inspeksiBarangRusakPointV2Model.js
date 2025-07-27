@@ -21,6 +21,13 @@ const InspeksiBarangRusakPointV2 = db.define(
         key: "id",
       },
     },
+    id_inspektor_edit: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
+        key: "id",
+      },
+    },
     waktu_mulai: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -82,6 +89,15 @@ User.hasMany(InspeksiBarangRusakPointV2, {
 InspeksiBarangRusakPointV2.belongsTo(User, {
   foreignKey: "id_inspektor",
   as: "inspektor",
+});
+
+User.hasMany(InspeksiBarangRusakPointV2, {
+  foreignKey: "id_inspektor_edit",
+  as: "barang_rusak_inspektor_edit",
+});
+InspeksiBarangRusakPointV2.belongsTo(User, {
+  foreignKey: "id_inspektor_edit",
+  as: "inspektor_edit",
 });
 
 module.exports = InspeksiBarangRusakPointV2;

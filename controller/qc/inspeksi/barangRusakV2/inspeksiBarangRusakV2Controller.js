@@ -110,6 +110,10 @@ const inspeksiBarangRusakV2Controller = {
                   model: User,
                   as: "inspektor",
                 },
+                {
+                  model: User,
+                  as: "inspektor_edit",
+                },
               ],
             },
             {

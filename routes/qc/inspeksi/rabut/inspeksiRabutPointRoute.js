@@ -20,6 +20,12 @@ router.post(
   inspeksiRabutPoint.createInspeksiRabutPoint
 );
 
+router.put(
+  "/qc/cs/inspeksiRabutPoint/edit/:id",
+  auth,
+  inspeksiRabutPoint.updateInspeksiRabutPoint
+);
+
 router.post(
   "/qc/cs/inspeksiRabutPoint/createDefect",
   auth,
