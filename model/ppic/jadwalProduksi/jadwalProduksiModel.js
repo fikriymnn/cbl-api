@@ -12,11 +12,11 @@ const JadwalProduksi = db.define(
     },
     no_jo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     no_booking: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     qty_pcs: {
       type: DataTypes.INTEGER,

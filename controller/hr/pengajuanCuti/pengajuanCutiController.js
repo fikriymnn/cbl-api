@@ -183,6 +183,7 @@ const PengajuanCutiController = {
       sisa_cuti,
       file,
     } = req.body;
+
     const t = await db.transaction();
 
     try {
