@@ -100,6 +100,8 @@ const inspeksiBarangRusakpointV2Controller = {
             masalah: e.masalah,
             masalah_lkh: e.masalah_lkh,
             jumlah_defect: e.jumlah_defect,
+            mesin: e.mesin,
+            operator: e.operator,
           },
           { where: { id: e.id }, transaction: t }
         );

@@ -125,6 +125,8 @@ const inspeksiRabutpointController = {
             kriteria: e.kriteria,
             persen_kriteria: e.persen_kriteria,
             sumber_masalah: e.sumber_masalah,
+            mesin: e.mesin,
+            operator: e.operator,
           },
           { where: { id: e.id }, transaction: t }
         );

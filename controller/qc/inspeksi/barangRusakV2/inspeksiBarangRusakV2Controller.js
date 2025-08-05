@@ -306,6 +306,9 @@ const inspeksiBarangRusakV2Controller = {
           },
         });
       }
+      // const ttt = await InspeksiCoatingResultPointPeriode.findAll({
+      //   where: { hasil: "not ok" },
+      // });
 
       const dataTemuanCetak = dataCetak.flatMap((item) =>
         item?.inspeksi_cetak_periode[0]?.inspeksi_cetak_periode_point.flatMap(
@@ -319,6 +322,8 @@ const inspeksiBarangRusakV2Controller = {
                   bagian: "cetak",
                   nama_inspektor: point.inspektor?.nama || null,
                   periode_ke: pointIndex + 1,
+                  operator: item?.operator,
+                  mesin: item?.mesin,
                 };
               })
         )
@@ -335,6 +340,8 @@ const inspeksiBarangRusakV2Controller = {
                 bagian: "coating",
                 nama_inspektor: point.inspektor?.nama || null,
                 periode_ke: pointIndex + 1,
+                operator: item?.operator,
+                mesin: item?.mesin,
               };
             })
         )
@@ -352,6 +359,8 @@ const inspeksiBarangRusakV2Controller = {
                   bagian: "pond",
                   nama_inspektor: point.inspektor?.nama || null,
                   periode_ke: pointIndex + 1,
+                  operator: item?.operator,
+                  mesin: item?.mesin,
                 };
               })
         )
@@ -369,6 +378,8 @@ const inspeksiBarangRusakV2Controller = {
                   bagian: "lem",
                   nama_inspektor: point.inspektor?.nama || null,
                   periode_ke: pointIndex + 1,
+                  operator: item?.operator,
+                  mesin: item?.mesin,
                 };
               })
         )
@@ -385,6 +396,7 @@ const inspeksiBarangRusakV2Controller = {
                 ...plainDefect,
                 bagian: "rabut",
                 nama_inspektor: point.inspektor?.nama || null,
+                operator: item?.operator,
               };
             })
           )
