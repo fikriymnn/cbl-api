@@ -32,12 +32,29 @@ const masterSparepartController = {
           .status(200)
           .json({ data: response, total_page: Math.ceil(length_data / limit) });
       } else {
-        const response = await masterSparepart.findAll({
+        let stokData = await StokSparepart.findAll();
+        let response = await masterSparepart.findAll({
           order: [["kode", "ASC"]],
           where: obj,
           include: [{ model: masterMesin, as: "mesin" }],
         });
-        res.status(200).json(response);
+
+        //gabungkan file dari stok master ke data monitoring
+        const fileMap = {};
+        stokData.forEach((item) => {
+          fileMap[item.kode] = item.file;
+        });
+
+        // Konversi response ke bentuk plain JS object agar tidak circular
+        const result = response.map((item) => {
+          const plain = item.get({ plain: true });
+          return {
+            ...plain,
+            file: fileMap[plain.kode] || null,
+          };
+        });
+
+        res.status(200).json(result);
       }
     } catch (error) {
       res.status(500).json({ msg: error.message });

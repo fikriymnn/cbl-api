@@ -57,6 +57,7 @@ const ticketController = {
             { nama_kendala: { [Op.like]: `%${search}%` } },
             { nama_produk: { [Op.like]: `%${search}%` } },
             { nama_customer: { [Op.like]: `%${search}%` } },
+            { unit: { [Op.like]: `%${search}%` } },
           ],
         };
       }

@@ -90,6 +90,7 @@ const StokSparepartController = {
       keterangan,
       umur_sparepart,
       id_grade,
+      file,
     } = req.body;
 
     if (!nama_sparepart || !id_mesin || !umur_sparepart)
@@ -112,7 +113,7 @@ const StokSparepartController = {
         grade: masterGrade.grade,
         percent: masterGrade.percent,
         type_part,
-        foto,
+        file,
         keterangan,
         umur_sparepart,
       });
@@ -152,6 +153,7 @@ const StokSparepartController = {
       part_number,
       lokasi,
       limit_stok,
+      file,
     } = req.body;
 
     let obj = {};
@@ -168,6 +170,7 @@ const StokSparepartController = {
     if (part_number) obj.part_number = part_number;
     if (lokasi) obj.lokasi = lokasi;
     if (limit_stok) obj.limit_stok = limit_stok;
+    if (file) obj.file = file;
 
     try {
       await StokSparepart.update(obj, { where: { id: _id } }),

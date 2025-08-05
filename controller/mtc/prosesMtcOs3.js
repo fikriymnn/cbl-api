@@ -153,41 +153,44 @@ const ProsessMtc = {
       status = "monitoring";
     }
 
-    let obj = {
-      status_tiket: status,
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-      waktu_selesai_mtc: new Date(),
-      jenis_analisis_mtc: jenis_analisis_mtc,
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-    };
-    let obj_rework = {
-      status_tiket: status,
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-
-      jenis_analisis_mtc: jenis_analisis_mtc,
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-    };
-
-    let obj_proses = {
-      status_proses: status,
-      status_qc: "done",
-      kode_analisis_mtc: kode_analisis_mtc,
-      nama_analisis_mtc: nama_analisis_mtc,
-      waktu_selesai_mtc: new Date(),
-      skor_mtc: skor_mtc,
-      cara_perbaikan: cara_perbaikan,
-      note_mtc: note_mtc,
-      note_analisis: note_analisis,
-      unit: unit,
-      bagian_mesin: bagian_mesin,
-      //image_url: image_url,
-    };
-
     try {
+      const prosesData = await ProsesMtcOs3.findByPk(id_proses);
+      let obj = {};
+      if (prosesData.is_rework == true) {
+        obj = {
+          status_tiket: status,
+          kode_analisis_mtc: kode_analisis_mtc,
+          nama_analisis_mtc: nama_analisis_mtc,
+          jenis_analisis_mtc: jenis_analisis_mtc,
+          skor_mtc: skor_mtc,
+          cara_perbaikan: cara_perbaikan,
+        };
+      } else {
+        obj = {
+          status_tiket: status,
+          kode_analisis_mtc: kode_analisis_mtc,
+          nama_analisis_mtc: nama_analisis_mtc,
+          waktu_selesai_mtc: new Date(),
+          jenis_analisis_mtc: jenis_analisis_mtc,
+          skor_mtc: skor_mtc,
+          cara_perbaikan: cara_perbaikan,
+        };
+      }
+
+      let obj_proses = {
+        status_proses: status,
+        status_qc: "done",
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        waktu_selesai_mtc: new Date(),
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+        note_mtc: note_mtc,
+        note_analisis: note_analisis,
+        unit: unit,
+        bagian_mesin: bagian_mesin,
+        //image_url: image_url,
+      };
       if (
         !masalah_sparepart ||
         masalah_sparepart == [] ||
@@ -195,11 +198,8 @@ const ProsessMtc = {
       ) {
         const dataOs3 = TicketOs3.findByPk(_id);
 
-        if (dataOs3.waktu_selesai_mtc == null) {
-          await TicketOs3.update(obj, { where: { id: _id } });
-        } else {
-          await TicketOs3.update(obj_rework, { where: { id: _id } });
-        }
+        await TicketOs3.update(obj, { where: { id: _id } });
+
         // await MasalahSparepart.bulkCreate(masalah_sparepart);
         await ProsesMtcOs3.update(obj_proses, {
           where: { id: id_proses },
