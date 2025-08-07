@@ -6,6 +6,10 @@ router.get(
   "/qc/cs/inspeksiBarangRusakV2/:id?",
   inspeksiBarangrusakV2.getInspeksiBarangRusakV2
 );
+router.get(
+  "/qc/cs/inspeksiBarangRusakV2/history/temuan",
+  inspeksiBarangrusakV2.getHistoryTemuan
+);
 router.post(
   "/qc/cs/inspeksiBarangrusak",
   inspeksiBarangrusakV2.createInspeksiBarangRusakV2

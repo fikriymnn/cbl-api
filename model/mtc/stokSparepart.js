@@ -74,7 +74,7 @@ const StokSparepart = db.define(
       allowNull: true,
     },
 
-    foto: {
+    file: {
       type: DataTypes.STRING,
       allowNull: true,
     },

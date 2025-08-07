@@ -92,6 +92,55 @@ const inspeksiRabutpointController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  updateInspeksiRabutPoint: async (req, res) => {
+    const _id = req.params.id;
+    const { data_pengecekan } = req.body;
+    const t = await db.transaction();
+    try {
+      //const masterKodepond = await MasterKodeMasalahRabut.findAll();
+      const data = await InspeksiRabutPoint.findByPk(_id);
+      if (!data) return res.status(404).json({ msg: "data point not found!!" });
+      if (!data_pengecekan) res.status(404).json({ msg: "data point empty!!" });
+
+      await InspeksiRabutPoint.update(
+        {
+          catatan: data_pengecekan.catatan,
+          eye_c: data_pengecekan.eye_c,
+          qty_pallet: data_pengecekan.qty_pallet,
+          id_inspektor_edit: req.user.id,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      for (let i = 0; i < data_pengecekan.inspeksi_rabut_defect.length; i++) {
+        const e = data_pengecekan.inspeksi_rabut_defect[i];
+        await InspeksiRabutDefect.update(
+          {
+            kode: e.kode,
+            kode_lkh: e.kode_lkh,
+            masalah: e.masalah,
+            masalah_lkh: e.masalah_lkh,
+            hasil: e.hasil,
+            kriteria: e.kriteria,
+            persen_kriteria: e.persen_kriteria,
+            sumber_masalah: e.sumber_masalah,
+            mesin: e.mesin,
+            operator: e.operator,
+          },
+          { where: { id: e.id }, transaction: t }
+        );
+      }
+
+      await t.commit();
+
+      res.status(200).json({ msg: "edit Successful" });
+    } catch (error) {
+      await t.rollback();
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
   createInspeksiRabutPointDefect: async (req, res) => {
     const {
       id_inspeksi_rabut,

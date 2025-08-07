@@ -1,7 +1,9 @@
 const { Op, Sequelize, where } = require("sequelize");
 
 const InspeksiBarangRusakPointV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Model");
+const InspeksiBarangRusakDefectV2 = require("../../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakDefectV2Model");
 const User = require("../../../../model/userModel");
+const db = require("../../../../config/database");
 
 const inspeksiBarangRusakpointV2Controller = {
   startBarangRusakV2Point: async (req, res) => {
@@ -62,6 +64,54 @@ const inspeksiBarangRusakpointV2Controller = {
 
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  updateInspeksiBarangRusakPointV2: async (req, res) => {
+    const _id = req.params.id;
+    const { data_pengecekan } = req.body;
+    const t = await db.transaction();
+    try {
+      //const masterKodepond = await MasterKodeMasalahRabut.findAll();
+      const data = await InspeksiBarangRusakPointV2.findByPk(_id);
+      if (!data) return res.status(404).json({ msg: "data point not found!!" });
+      if (!data_pengecekan) res.status(404).json({ msg: "data point empty!!" });
+
+      await InspeksiBarangRusakPointV2.update(
+        {
+          catatan: data_pengecekan.catatan,
+          jumlah_defect: data_pengecekan.jumlah_defect,
+          id_inspektor_edit: req.user.id,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      for (
+        let i = 0;
+        i < data_pengecekan.inspeksi_barang_rusak_defect_v2.length;
+        i++
+      ) {
+        const e = data_pengecekan.inspeksi_barang_rusak_defect_v2[i];
+        await InspeksiBarangRusakDefectV2.update(
+          {
+            kode: e.kode,
+            kode_lkh: e.kode_lkh,
+            masalah: e.masalah,
+            masalah_lkh: e.masalah_lkh,
+            jumlah_defect: e.jumlah_defect,
+            mesin: e.mesin,
+            operator: e.operator,
+          },
+          { where: { id: e.id }, transaction: t }
+        );
+      }
+
+      await t.commit();
+
+      res.status(200).json({ msg: "edit Successful" });
+    } catch (error) {
+      await t.rollback();
       return res.status(400).json({ msg: error.message });
     }
   },

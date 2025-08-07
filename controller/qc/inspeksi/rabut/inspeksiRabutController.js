@@ -82,6 +82,10 @@ const inspeksiRabutController = {
                 as: "inspektor",
               },
               {
+                model: User,
+                as: "inspektor_edit",
+              },
+              {
                 model: InspeksiRabutDefect,
                 as: "inspeksi_rabut_defect",
               },
