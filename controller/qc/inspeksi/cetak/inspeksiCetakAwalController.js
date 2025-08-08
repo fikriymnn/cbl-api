@@ -38,12 +38,12 @@ const inspeksiCetakAwalController = {
           jumlah_periode: jumlahPeriode,
           waktu_check: totalWaktuCheck,
           status: "done",
-          sample_1,
-          sample_2,
-          sample_3,
-          hasil_sample_1: (sample_1 / 100) * 10000,
-          hasil_sample_2: (sample_2 / 100) * 10000,
-          hasil_sample_3: (sample_3 / 100) * 10000,
+          // sample_1,
+          // sample_2,
+          // sample_3,
+          // hasil_sample_1: (sample_1 / 100) * 10000,
+          // hasil_sample_2: (sample_2 / 100) * 10000,
+          // hasil_sample_3: (sample_3 / 100) * 10000,
         },
         { where: { id: _id } }
       );
