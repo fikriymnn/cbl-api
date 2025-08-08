@@ -17,15 +17,30 @@ const inspeksiCoatingController = {
     try {
       const { catatan, sample_1, sample_2, sample_3 } = req.body;
       const { id } = req.params;
+      let objSample = { s1: 0, s2: 0, s3: 0 };
+      let objHasilSample = { hs1: 0, hs2: 0, hs3: 0 };
+
+      if (sample_1) {
+        (objSample.s1 = sample_1),
+          (objHasilSample.hs1 = (sample_1 / 100) * 10000);
+      }
+      if (sample_2) {
+        (objSample.s2 = sample_2),
+          (objHasilSample.hs2 = (sample_2 / 100) * 10000);
+      }
+      if (sample_3) {
+        (objSample.s3 = sample_3),
+          (objHasilSample.hs3 = (sample_3 / 100) * 10000);
+      }
       const noDoc = await MasterKodeDoc.findByPk(5);
       await InspeksiCoatingSubPeriode.update(
         {
-          sample_1,
-          sample_2,
-          sample_3,
-          hasil_sample_1: (sample_1 / 100) * 10000,
-          hasil_sample_2: (sample_2 / 100) * 10000,
-          hasil_sample_3: (sample_3 / 100) * 10000,
+          sample_1: objSample.s1,
+          sample_2: objSample.s2,
+          sample_3: objSample.s3,
+          hasil_sample_1: objHasilSample.hs1,
+          hasil_sample_2: objHasilSample.hs2,
+          hasil_sample_3: objHasilSample.hs3,
           catatan,
           status: "history",
         },
