@@ -263,7 +263,6 @@ const MasterAksesParent4 = require("./model/masterData/masterAkses/masterAksesPa
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
-const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
 const path = require("path");

@@ -6,7 +6,7 @@ const axios = require("axios");
 
 dotenv.config();
 
-router.get("/qc/cs/inspeksiCetak/:id?", auth, inspeksiCetak.getInspeksiCetak);
+router.get("/qc/cs/inspeksiCetak/:id?", inspeksiCetak.getInspeksiCetak);
 router.post("/qc/cs/inspeksiCetak", inspeksiCetak.createInspeksiCetak);
 
 router.get("/qc/cs/testingApi", inspeksiCetak.testingApi);
