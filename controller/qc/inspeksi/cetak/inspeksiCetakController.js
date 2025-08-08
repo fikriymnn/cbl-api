@@ -245,6 +245,7 @@ const inspeksiCetakController = {
     } = req.body;
 
     try {
+      console.log(req.body);
       const checkInspeksiIncoming = await InspeksiCetak.findOne({
         where: {
           no_jo: no_jo,
