@@ -364,6 +364,11 @@ const PengajuanLemburController = {
 
       for (let i = 0; i < dataKaryawanBiodata.length; i++) {
         const data = dataKaryawanBiodata[i];
+        let dari2Data = null;
+        let sampai2Data = null;
+
+        if (dari_2) dari2Data = dari_2;
+        if (sampai_2) sampai2Data = sampai_2;
         await PengajuanLembur.create(
           {
             id_karyawan: data.id_karyawan,
@@ -372,8 +377,8 @@ const PengajuanLemburController = {
             jo_lembur,
             dari,
             sampai,
-            dari_2,
-            sampai_2,
+            dari_2: dari2Data,
+            sampai_2: sampai2Data,
             lama_lembur,
             lama_lembur_aktual: lama_lembur,
             alasan_lembur,
