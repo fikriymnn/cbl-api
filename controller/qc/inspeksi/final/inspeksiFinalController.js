@@ -269,14 +269,7 @@ const inspeksiFinalController = {
         no_barcode,
         lama_pengerjaan,
       } = req.body;
-      //parse bilanagn qty_packing
-      const qtyPacking = parseInt(qty_packing);
-      //menghitung akar dari qty_packing
-      const qtyQuadrat = Math.sqrt(qtyPacking);
-      //membulatkan hasil dari akar
-      const qtyQuadratFix = Math.round(qtyQuadrat);
-      //penghitungan terakhir rumus
-      const JumlahPacking = qtyQuadratFix + 1;
+      console.log(req.body);
 
       if (!qty_packing)
         return res.status(400).json({
@@ -318,6 +311,16 @@ const inspeksiFinalController = {
             msg: "QTY reject wajib di isi",
           });
       }
+
+      //parse bilanagn qty_packing
+      const qtyPacking = parseInt(qty_packing);
+
+      //menghitung akar dari qty_packing
+      const qtyQuadrat = Math.sqrt(qtyPacking);
+      //membulatkan hasil dari akar
+      const qtyQuadratFix = Math.round(qtyQuadrat);
+      //penghitungan terakhir rumus
+      const JumlahPacking = qtyQuadratFix + 1;
 
       const totalQtyReject = inspeksi_final_point.reduce((total, item) => {
         return total + parseInt(item.qty);
@@ -376,6 +379,7 @@ const inspeksiFinalController = {
 
       res.status(200).json({ msg: "Update Successful" });
     } catch (err) {
+      console.log(err.message);
       res.status(404).json({ msg: err.message });
     }
   },
