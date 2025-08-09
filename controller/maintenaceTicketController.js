@@ -430,7 +430,7 @@ const ticketController = {
           mesin: mesin,
           bagian: bagian,
           operator: operator,
-          tgl: tgl,
+          tgl: new Date(),
           jenis_kendala: jenis_kendala,
           id_kendala: id_kendala,
           nama_kendala: nama_kendala,
