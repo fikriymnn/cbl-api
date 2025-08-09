@@ -451,6 +451,7 @@ const inspeksiBarangRusakV2Controller = {
     } = req.body;
 
     try {
+      console.log(req.body);
       const checkData = await InspeksiBarangRusakV2.findOne({
         where: { no_jo: no_jo, status: "incoming" },
       });
@@ -516,6 +517,7 @@ const inspeksiBarangRusakV2Controller = {
 
       res.status(200).json({ msg: "create Successful" });
     } catch (error) {
+      console.log(error.message);
       res.status(404).json({ msg: error.message });
     }
   },
