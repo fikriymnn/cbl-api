@@ -161,15 +161,14 @@ const userController = {
         .status(400)
         .json({ msg: "Password And Confirm Password Doesn't Mact" });
 
-    const users = await Users.findOne({
-      where: {
-        email: email,
-      },
-    });
-    if (users) return res.status(404).json({ msg: "Email Alredy To Use" });
-    const hasPassword = await bcrypt.hash(password, 10);
-
     try {
+      const users = await Users.findOne({
+        where: {
+          email: email,
+        },
+      });
+      if (users) return res.status(404).json({ msg: "Email Alredy To Use" });
+      const hasPassword = await bcrypt.hash(password, 10);
       await Users.create({
         nama: nama,
         id_karyawan: id_karyawan,
@@ -186,13 +185,6 @@ const userController = {
   },
 
   updateUsers: async (req, res) => {
-    const users = await Users.findOne({
-      where: {
-        uuid: req.params.id,
-      },
-    });
-    if (!users) return res.status(404).json({ msg: "User Not Found" });
-
     const {
       nama,
       id_karyawan,
@@ -205,20 +197,28 @@ const userController = {
       status,
       bagian,
     } = req.body;
-    let hashPassword;
-    //console.log(password);
-    if (password === "" || password === null) {
-      hashPassword = users.password;
-    } else {
-      hashPassword = await bcrypt.hash(password, 10);
-    }
-
-    if (password !== confPassword)
-      return res
-        .status(400)
-        .json({ msg: "Password And Confirm Password Doesn't Mact" });
 
     try {
+      const users = await Users.findOne({
+        where: {
+          uuid: req.params.id,
+        },
+      });
+      if (!users) return res.status(404).json({ msg: "User Not Found" });
+
+      let hashPassword;
+      //console.log(password);
+      if (password === "" || password === null) {
+        hashPassword = users.password;
+      } else {
+        hashPassword = await bcrypt.hash(password, 10);
+      }
+
+      if (password !== confPassword)
+        return res
+          .status(400)
+          .json({ msg: "Password And Confirm Password Doesn't Mact" });
+
       await Users.update(
         {
           nama: nama,
@@ -244,14 +244,13 @@ const userController = {
   },
 
   deleteUsers: async (req, res) => {
-    const users = await Users.findOne({
-      where: {
-        uuid: req.params.id,
-      },
-    });
-    if (!users) return res.status(404).json({ msg: "User Not Found" });
-
     try {
+      const users = await Users.findOne({
+        where: {
+          uuid: req.params.id,
+        },
+      });
+      if (!users) return res.status(404).json({ msg: "User Not Found" });
       await Users.update(
         { status: "in_aktif" },
         {
