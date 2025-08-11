@@ -58,7 +58,7 @@ const authController = {
   Me: async (req, res, next) => {
     try {
       if (!req.cookies.access_token)
-        return res.status(401).json({ msg: "Pliss Login" });
+        return res.status(401).json({ msg: "Pliss Login!!" });
 
       const uuid = req.user.uuid;
 
