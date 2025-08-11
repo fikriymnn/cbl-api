@@ -1,4 +1,3 @@
-const dbFinger = require("../config/databaseFinger");
 const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const absensi = require("../model/hr/absenModel");
 const Karyawan = require("../model/hr/karyawanModel");
