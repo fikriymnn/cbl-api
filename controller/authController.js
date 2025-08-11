@@ -78,9 +78,10 @@ const authController = {
           uuid: uuid,
         },
         include: [
-          // {
-          //   model: Notification,
-          //},
+          {
+            model: Notification,
+            limit: 20,
+          },
           {
             model: Karyawan,
             as: "karyawan",
