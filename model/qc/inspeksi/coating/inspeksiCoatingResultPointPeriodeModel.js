@@ -31,11 +31,23 @@ const InspeksiCoatingResultPointPeriode = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    kode_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masalah_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     hasil: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     jumlah_defect: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    jumlah_up_defect: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -49,6 +61,10 @@ const InspeksiCoatingResultPointPeriode = db.define(
     },
     persen_kriteria: {
       type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    file: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },

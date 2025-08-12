@@ -39,6 +39,7 @@ const inspeksiCetakAwalpointController = {
       gramatur,
       layout_pisau,
       acc_warna_awal_jalan,
+      file,
     } = req.body;
     if (
       !catatan ||
@@ -69,6 +70,7 @@ const inspeksiCetakAwalpointController = {
           gramatur,
           layout_pisau,
           acc_warna_awal_jalan,
+          file,
         },
         { where: { id: _id } }
       );

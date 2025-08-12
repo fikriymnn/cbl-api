@@ -64,6 +64,10 @@ const inspeksiCetakPeriodepointController = {
           {
             hasil: data_defect[index].hasil,
             jumlah_defect: data_defect[index].jumlah_defect,
+            jumlah_up_defect: data_defect[index].jumlah_up_defect,
+            kode_lkh: data_defect[index].kode_lkh,
+            masalah_lkh: data_defect[index].masalah_lkh,
+            file: data_defect[index].file,
           },
           { where: { id: data_defect[index].id } }
         );
