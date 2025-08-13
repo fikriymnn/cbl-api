@@ -37,6 +37,7 @@ const inspeksiPondAwalpointController = {
       bentuk_jadi,
       riil,
       reforasi,
+      file,
     } = req.body;
 
     if (
@@ -65,6 +66,7 @@ const inspeksiPondAwalpointController = {
           bentuk_jadi,
           riil,
           reforasi,
+          file,
         },
         { where: { id: _id } }
       );

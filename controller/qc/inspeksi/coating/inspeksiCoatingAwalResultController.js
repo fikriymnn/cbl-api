@@ -47,6 +47,7 @@ const inspeksiCoatingAwalResultController = {
         hasil_coating,
         spot_uv,
         tes_cracking,
+        file,
       } = req.body;
 
       await InspeksiCoatingResultAwal.update(
@@ -63,6 +64,7 @@ const inspeksiCoatingAwalResultController = {
           spot_uv,
           tes_cracking,
           status: "done",
+          file,
         },
         { where: { id } }
       );
