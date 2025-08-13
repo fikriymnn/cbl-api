@@ -53,6 +53,10 @@ const inspeksiCoatingPeriodeResultController = {
             sumber_masalah: kode_masalah[i].sumber_masalah,
             kriteria: kode_masalah[i].kriteria,
             persen_kriteria: kode_masalah[i].persen_kriteria,
+            jumlah_up_defect: kode_masalah[i].jumlah_up_defect,
+            kode_lkh: kode_masalah[i].kode_lkh,
+            masalah_lkh: kode_masalah[i].masalah_lkh,
+            file: kode_masalah[i].file,
           },
           { where: { id: kode_masalah[i].id } }
         );

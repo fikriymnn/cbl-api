@@ -77,6 +77,10 @@ const InspeksiCetakAwalPoint = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

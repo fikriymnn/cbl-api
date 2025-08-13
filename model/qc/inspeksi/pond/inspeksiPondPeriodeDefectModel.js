@@ -26,6 +26,14 @@ const InspeksiPondPeriodeDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    kode_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masalah_lkh: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     sumber_masalah: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -44,6 +52,14 @@ const InspeksiPondPeriodeDefect = db.define(
     },
     jumlah_defect: {
       type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    jumlah_up_defect: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    file: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },

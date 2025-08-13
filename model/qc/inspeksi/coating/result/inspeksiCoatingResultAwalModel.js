@@ -39,10 +39,6 @@ const InspeksiCoatingResultAwal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    foto: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     line_clearance: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -75,6 +71,10 @@ const InspeksiCoatingResultAwal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "incoming",
+    },
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
