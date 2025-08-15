@@ -342,7 +342,7 @@ const Pm2Controller = {
 
       //console.log(dataPoint.hasil);
 
-      if (dataPoint.hasil == "jelek" || "tidak terpasang") {
+      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
         //console.log(1);
         const ticketPm2 = await TicketPm2.findOne({
           where: { id: dataPoint.id_ticket },
