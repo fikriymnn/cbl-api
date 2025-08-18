@@ -135,7 +135,7 @@ const masterSparepartController = {
           kode: stokSparepart.kode,
           nama_sparepart: stokSparepart.nama_sparepart,
           posisi_part,
-          tgl_pasang,
+          tgl_pasang, //INI DI FE TGL SERVICE
           tgl_rusak: !tgl_rusak ? null : tgl_rusak,
           jenis_part,
           umur_a: stokSparepart.umur_sparepart,

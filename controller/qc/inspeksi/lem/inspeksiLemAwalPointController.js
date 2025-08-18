@@ -37,6 +37,7 @@ const inspeksiLemAwalpointController = {
       kuncian_lock_bottom,
       bentuk_jadi,
       kebersihan,
+      file,
     } = req.body;
 
     if (
@@ -64,6 +65,7 @@ const inspeksiLemAwalpointController = {
           kuncian_lock_bottom,
           bentuk_jadi,
           kebersihan,
+          file,
         },
         { where: { id: _id } }
       );
