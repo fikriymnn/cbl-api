@@ -341,8 +341,8 @@ const Pm3Controller = {
           {
             tgl_request_from: data[i].tgl_request_from,
             tgl_request_to: data[i].tgl_request_to,
-            // tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
-            // tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
+            tgl_approve_from: data[i].tgl_request_from, //data[i].tgl_approve_from, nanti ganti jadi ini
+            tgl_approve_to: data[i].tgl_request_to, //data[i].tgl_approve_to, nanti ganti jadi ini
           },
           { where: { id: data[i].id } }
         );

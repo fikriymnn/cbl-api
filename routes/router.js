@@ -265,6 +265,12 @@ router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
 router.use("/", require("./ppic/jadwalKirim/jadwalKirimRoute"));
 router.use("/", require("./ppic/report/reportKapasitasRoute"));
 
+//master data marketing
+router.use("/", require("./masterdata/marketing/masterHargaPengirimanRoute"));
+router.use("/", require("./masterdata/marketing/masterProdukRoute"));
+router.use("/", require("./masterdata/marketing/masterCustomerRoute"));
+router.use("/", require("./masterdata/marketing/masterMarketingRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;
