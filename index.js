@@ -259,6 +259,12 @@ const MasterAksesParent2 = require("./model/masterData/masterAkses/masterAksesPa
 const MasterAksesParent3 = require("./model/masterData/masterAkses/masterAksesParent3Model");
 const MasterAksesParent4 = require("./model/masterData/masterAkses/masterAksesParent4Model");
 
+//master marketing
+const MasterHargaPengiriman = require("./model/masterData/marketing/masterHargaPengirimanModel");
+const MasterProduk = require("./model/masterData/marketing/masterProdukModel");
+const MasterCustomer = require("./model/masterData/marketing/masterCustomerModel");
+const MasterMarketing = require("./model/masterData/marketing/masterMarketingModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -274,7 +280,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiLemPeriodeDefect.sync({ alter: true });
+//   await inspeksiLemAwalPoint.sync({ alter: true });
 // })();
 
 // const ip100 = 75

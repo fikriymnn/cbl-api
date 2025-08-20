@@ -11,7 +11,7 @@ const MasterHargaPengiriman = db.define(
       allowNull: false,
     },
     harga: {
-      type: DataTypes.STRING,
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     is_active: {

@@ -270,7 +270,7 @@ const ProsessMtc = {
         });
 
         for (let i = 0; i < sparepart_masalah_data.length; i++) {
-          StokSparepart.findOne({
+          await StokSparepart.findOne({
             where: { id: sparepart_masalah_data[i].id_stok_sparepart },
           }).then(async (stokSparepart) => {
             const stok = stokSparepart.stok - sparepart_masalah_data[i].use_qty;
