@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const TicketOs3 = require("../model/maintenanceTicketOs3Model");
 const Users = require("../model/userModel");
 const Mesin = require("../model/masterData/masterMesinModel");
@@ -12,12 +13,13 @@ const TaskPm3 = require("../model/mtc/preventive/pm3/taskPm3");
 const PointPm3 = require("../model/mtc/preventive/pm3/pointPm3");
 const TicketPm3 = require("../model/mtc/preventive/pm3/ticketPm3");
 const ProsesMtcOs3 = require("../model/mtc/prosesMtcOs3");
+const MasalahSparepart = require("../model/mtc/sparepartProblem");
 
 const ticketOs3Controller = {
   getTicketOs3: async (req, res) => {
     try {
       const {
-        nama_mesin,
+        mesin,
         id_eksekutor,
         id_leader,
         id_supervisor,
@@ -35,6 +37,7 @@ const ticketOs3Controller = {
         end_date,
         limit,
         page,
+        search,
       } = req.query;
 
       let options = {
@@ -44,9 +47,15 @@ const ticketOs3Controller = {
       let objEksekutor = {};
       const offset = (page - 1) * limit;
 
+      if (search) {
+        obj = {
+          [Op.or]: [{ sumber: { [Op.like]: `%${search}%` } }],
+        };
+      }
+
       if (status_tiket) obj.status_tiket = status_tiket;
       if (tanggal) obj.tanggal = tanggal;
-      if (nama_mesin) obj.nama_mesin = nama_mesin;
+      if (mesin) obj.nama_mesin = mesin;
       if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
       if (waktu_selesai) obj.waktu_selesai = waktu_selesai;
       if (tgl_mtc) obj.tgl_mtc = tgl_mtc;
@@ -137,6 +146,9 @@ const ticketOs3Controller = {
             where: objEksekutor,
             include: [
               {
+                model: MasalahSparepart,
+              },
+              {
                 model: Users,
                 as: "user_eksekutor",
               },
@@ -202,6 +214,9 @@ const ticketOs3Controller = {
           {
             model: ProsesMtcOs3,
             include: [
+              {
+                model: MasalahSparepart,
+              },
               {
                 model: Users,
                 as: "user_eksekutor",
