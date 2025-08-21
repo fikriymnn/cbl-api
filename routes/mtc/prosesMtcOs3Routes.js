@@ -11,6 +11,7 @@ const {
   approveTiketOs3,
   tolakTiketOs3,
   reworkMtcOs3,
+  cekMonitoringOs3,
 } = require("../../controller/mtc/prosesMtcOs3");
 const { auth } = require("../../middlewares/authMiddlewares");
 
@@ -26,5 +27,6 @@ router.put("/ticketOs3/tolakDateOs3/:id", auth, tolakDateOs3);
 router.put("/ticketOs3/approve/:id", auth, approveTiketOs3);
 router.put("/ticketOs3/tolak/:id", auth, tolakTiketOs3);
 router.put("/ticketOs3/rework/:id", auth, reworkMtcOs3);
+router.get("/cekMonitoringOs3", cekMonitoringOs3);
 
 module.exports = router;

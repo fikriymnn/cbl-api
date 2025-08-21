@@ -505,30 +505,35 @@ const ProsessMtc = {
 
   //ini fungsi untuk nanti cron job
   cekMonitoringOs3: async (req, res) => {
-    const proses = await ProsesMtcOs3.findAll({
-      where: { status_proses: "monitoring" },
-    });
-    const timeMonitoring = await waktuMonitoring.findAll();
-    const waktuMonitor = timeMonitoring[0].waktu;
-    const jenisMonitor = timeMonitoring[0].jenis;
-    const minimalSkor = timeMonitoring[0].minimal_skor;
+    try {
+      const proses = await ProsesMtcOs3.findAll({
+        where: { status_proses: "monitoring" },
+      });
+      const timeMonitoring = await waktuMonitoring.findAll();
+      const waktuMonitor = timeMonitoring[0].waktu;
+      const jenisMonitor = timeMonitoring[0].jenis;
+      const minimalSkor = timeMonitoring[0].minimal_skor;
 
-    for (let i = 0; i < proses.length; i++) {
-      const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
-      const currentDate = moment();
+      for (let i = 0; i < proses.length; i++) {
+        const fieldDate = proses[i].waktu_selesai_mtc; // Dapatkan nilai dari fieldDate
+        const currentDate = moment();
 
-      const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
+        const dateDiff = currentDate.diff(fieldDate, jenisMonitor);
 
-      if (dateDiff === waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
-        await TicketOs3.update(
-          { status_tiket: "closed" },
-          { where: { id: proses[i].id_tiket } }
-        );
-        await ProsesMtcOs3.update(
-          { status_proses: "closed" },
-          { where: { id: proses[i].id } }
-        );
+        if (dateDiff === waktuMonitor && proses[i].skor_mtc >= minimalSkor) {
+          await TicketOs3.update(
+            { status_tiket: "closed" },
+            { where: { id: proses[i].id_tiket } }
+          );
+          await ProsesMtcOs3.update(
+            { status_proses: "closed" },
+            { where: { id: proses[i].id } }
+          );
+        }
       }
+      res.status(201).json({ msg: "berhasil" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
     }
   },
 };
