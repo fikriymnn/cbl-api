@@ -45,7 +45,7 @@ const ticketOs3Controller = {
       };
       let obj = {};
       let objEksekutor = {};
-      const offset = (page - 1) * limit;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
 
       if (search) {
         obj = {

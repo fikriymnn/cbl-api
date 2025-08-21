@@ -45,7 +45,8 @@ const ticketController = {
       let obj = {};
       let objEksekutor = {};
       let des = [];
-      const offset = (page - 1) * limit;
+
+      const offset = (parseInt(page) - 1) * parseInt(limit);
 
       if (search) {
         obj = {
@@ -228,7 +229,7 @@ const ticketController = {
         const dataProses = response.proses_mtcs[i];
         dataHasil.status_verifikasi = dataProses.status_qc;
       }
-      
+
       if (dataHasil.status_verifikasi == "approved")
         return res.status(404).json({
           status: 404,
