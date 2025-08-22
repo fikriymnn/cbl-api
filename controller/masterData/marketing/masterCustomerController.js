@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
+const MasterCustomerGudang = require("../../../model/masterData/marketing/masterCustomerGudangModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
 const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
@@ -43,6 +44,10 @@ const MasterCustomerController = {
         const response = await MasterCustomer.findByPk(_id, {
           include: [
             {
+              model: MasterCustomerGudang,
+              as: "customer_gudang",
+            },
+            {
               model: MasterMarketing,
               as: "marketing",
             },
@@ -77,12 +82,15 @@ const MasterCustomerController = {
   createMasterCustomer: async (req, res) => {
     const {
       id_marketing,
-      id_produk,
       id_harga_pengiriman,
       nama_customer,
       email,
+      npwp,
+      kontak_person,
+      no_legalitas,
+      fax,
       alamat_kantor,
-      alamat_gudang,
+      gudang,
       telepon,
       toleransi_pengiriman,
       top_faktur,
@@ -102,16 +110,6 @@ const MasterCustomerController = {
           status_code: 404,
           msg: "alamat kantor wajib di isi!!",
         });
-
-      if (id_produk) {
-        const checkDataProduk = await MasterProduk.findByPk(id_produk);
-        if (!checkDataProduk)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "produk tidak ditemukan!!",
-          });
-      }
 
       if (id_marketing) {
         dataMarketing = await MasterMarketing.findByPk(id_marketing);
@@ -138,12 +136,14 @@ const MasterCustomerController = {
       const response = await MasterCustomer.create(
         {
           id_marketing,
-          id_produk,
           id_harga_pengiriman,
           nama_customer,
           email,
           alamat_kantor,
-          alamat_gudang,
+          kontak_person,
+          npwp,
+          no_legalitas,
+          fax,
           telepon,
           toleransi_pengiriman,
           top_faktur,
@@ -151,6 +151,17 @@ const MasterCustomerController = {
         },
         { transaction: t }
       );
+      for (let i = 0; i < gudang.length; i++) {
+        const e = gudang[i];
+        await MasterCustomerGudang.create(
+          {
+            id_customer: response.id,
+            alamat_gudang: e.alamat_gudang,
+            telepon_gudang: e.telepon_gudang,
+          },
+          { transaction: t }
+        );
+      }
       await t.commit();
       return res.status(200).json({
         succes: true,
@@ -170,12 +181,15 @@ const MasterCustomerController = {
     const _id = req.params.id;
     const {
       id_marketing,
-      id_produk,
       id_harga_pengiriman,
       nama_customer,
       email,
+      npwp,
+      kontak_person,
+      no_legalitas,
+      fax,
       alamat_kantor,
-      alamat_gudang,
+      gudang,
       telepon,
       toleransi_pengiriman,
       top_faktur,
@@ -185,16 +199,7 @@ const MasterCustomerController = {
 
     try {
       let obj = {};
-      if (id_produk) {
-        const checkProduk = await MasterProduk.findByPk(id_produk);
-        if (!checkProduk)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Data produk tidak ditemukan",
-          });
-        obj.id_produk = id_produk;
-      }
+
       if (id_marketing) {
         const checkMarketing = await MasterMarketing.findByPk(id_marketing);
         if (!checkMarketing)
@@ -220,11 +225,14 @@ const MasterCustomerController = {
       }
       if (nama_customer) obj.nama_customer = nama_customer;
       if (email) obj.email = email;
+      if (npwp) obj.npwp = npwp;
+      if (kontak_person) obj.kontak_person = kontak_person;
       if (alamat_kantor) obj.alamat_kantor = alamat_kantor;
-      if (alamat_gudang) obj.alamat_gudang = alamat_gudang;
       if (telepon) obj.telepon = telepon;
+      if (no_legalitas) obj.no_legalitas = no_legalitas;
       if (toleransi_pengiriman) obj.toleransi_pengiriman = toleransi_pengiriman;
       if (top_faktur) obj.top_faktur = top_faktur;
+      if (fax) obj.fax = fax;
       if (is_active) obj.is_active = is_active;
 
       const checkData = await MasterCustomer.findByPk(_id);
@@ -234,14 +242,38 @@ const MasterCustomerController = {
           status_code: 404,
           msg: "Data customer tidak ditemukan",
         });
+      if (gudang) {
+        for (let i = 0; i < gudang.length; i++) {
+          const e = gudang[i];
+
+          if (e.id != null && e.id != undefined) {
+            await MasterCustomerGudang.update(
+              {
+                alamat_gudang: e.alamat_gudang,
+                telepon_gudang: e.telepon_gudang,
+              },
+              { where: { id: e.id }, transaction: t }
+            );
+          } else {
+            await MasterCustomerGudang.create(
+              {
+                id_customer: _id,
+                alamat_gudang: e.alamat_gudang,
+                telepon_gudang: e.telepon_gudang,
+              },
+              { transaction: t }
+            );
+          }
+        }
+      }
       await MasterCustomer.update(obj, {
         where: { id: _id },
         transaction: t,
       });
       await t.commit(),
         res
-          .status(204)
-          .json({ succes: true, status_code: 204, msg: "Update Successful" });
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -267,8 +299,8 @@ const MasterCustomerController = {
       }),
         await t.commit(),
         res
-          .status(204)
-          .json({ succes: true, status_code: 204, msg: "Delete Successful" });
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)

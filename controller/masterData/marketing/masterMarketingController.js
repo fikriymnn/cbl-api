@@ -177,8 +177,8 @@ const MasterMarketingController = {
 
       await t.commit(),
         res
-          .status(204)
-          .json({ succes: true, status_code: 204, msg: "Update Successful" });
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -204,8 +204,8 @@ const MasterMarketingController = {
       }),
         await t.commit(),
         res
-          .status(204)
-          .json({ succes: true, status_code: 204, msg: "Delete Successful" });
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)

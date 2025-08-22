@@ -2,7 +2,6 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const MasterHargaPengiriman = require("./masterHargaPengirimanModel");
 const MasterMarketing = require("./masterMarketingModel");
-const MasterProduk = require("./masterProdukModel");
 
 const { DataTypes } = Sequelize;
 
@@ -17,14 +16,6 @@ const MasterCustomer = db.define(
         key: "id",
       },
     },
-    id_produk: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: MasterProduk,
-        key: "id",
-      },
-    },
     id_harga_pengiriman: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -35,9 +26,18 @@ const MasterCustomer = db.define(
     },
     nama_customer: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
+      defaultValue: "",
     },
     email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    npwp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kontak_person: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -45,11 +45,12 @@ const MasterCustomer = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    alamat_gudang: {
+
+    telepon: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    telepon: {
+    no_legalitas: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -58,6 +59,10 @@ const MasterCustomer = db.define(
       allowNull: true,
     },
     top_faktur: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    fax: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -85,21 +90,12 @@ MasterCustomer.belongsTo(MasterHargaPengiriman, {
   as: "harga_pengiriman",
 });
 
-MasterProduk.hasMany(MasterCustomer, {
-  foreignKey: "id_produk",
-  as: "customer",
-});
-MasterCustomer.belongsTo(MasterProduk, {
-  foreignKey: "id_produk",
-  as: "produk",
-});
-
 MasterMarketing.hasMany(MasterCustomer, {
-  foreignKey: "id_produk",
+  foreignKey: "id_marketing",
   as: "customer",
 });
 MasterCustomer.belongsTo(MasterMarketing, {
-  foreignKey: "id_produk",
+  foreignKey: "id_marketing",
   as: "marketing",
 });
 
