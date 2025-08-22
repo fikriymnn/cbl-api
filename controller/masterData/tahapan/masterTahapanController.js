@@ -1,9 +1,9 @@
 const { Op } = require("sequelize");
-const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
+const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const db = require("../../../config/database");
 
-const MasterHargaPengirimanController = {
-  getMasterHargaPengiriman: async (req, res) => {
+const MasterTahapanController = {
+  getMasterTahapan: async (req, res) => {
     const _id = req.params.id;
     const { is_active, page, limit, search } = req.query;
 
@@ -14,15 +14,15 @@ const MasterHargaPengirimanController = {
       if (search) {
         obj = {
           [Op.or]: [
-            { nama_area: { [Op.like]: `%${search}%` } },
-            { harga: { [Op.like]: `%${search}%` } },
+            { kode_tahapan: { [Op.like]: `%${search}%` } },
+            { nama_tahapan: { [Op.like]: `%${search}%` } },
           ],
         };
       }
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
-        const length = await MasterHargaPengiriman.count({ where: obj });
-        const data = await MasterHargaPengiriman.findAll({
+        const length = await MasterTahapan.count({ where: obj });
+        const data = await MasterTahapan.findAll({
           where: obj,
           offset: parseInt(offset),
           limit: parseInt(limit),
@@ -34,12 +34,12 @@ const MasterHargaPengirimanController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const response = await MasterHargaPengiriman.findByPk(_id);
+        const response = await MasterTahapan.findByPk(_id);
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       } else {
-        const response = await MasterHargaPengiriman.findAll({ where: obj });
+        const response = await MasterTahapan.findAll({ where: obj });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
@@ -51,25 +51,21 @@ const MasterHargaPengirimanController = {
     }
   },
 
-  createMasterHargaPengiriman: async (req, res) => {
-    const { nama_area, harga } = req.body;
+  createMasterTahapan: async (req, res) => {
+    const { kode_tahapan, nama_tahapan } = req.body;
     const t = await db.transaction();
-    if (!nama_area)
+    if (!nama_tahapan)
       return res.status(404).json({
         succes: false,
         status_code: 404,
-        msg: "nama area wajib di isi!!",
+        msg: "nama tahapan wajib di isi!!",
       });
-    if (!harga)
-      return res
-        .status(404)
-        .json({ succes: false, status_code: 404, msg: "harga wajib di isi!!" });
 
     try {
-      const response = await MasterHargaPengiriman.create(
+      const response = await MasterTahapan.create(
         {
-          nama_area: nama_area,
-          harga: harga,
+          kode_tahapan: kode_tahapan,
+          nama_tahapan: nama_tahapan,
         },
         { transaction: t }
       );
@@ -88,24 +84,24 @@ const MasterHargaPengirimanController = {
     }
   },
 
-  updateMasterHargaPengiriman: async (req, res) => {
+  updateMasterTahapan: async (req, res) => {
     const _id = req.params.id;
-    const { nama_area, harga, is_active } = req.body;
+    const { kode_tahapan, nama_tahapan, is_active } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
-      if (nama_area) obj.nama_area = nama_area;
-      if (harga) obj.harga = harga;
+      if (kode_tahapan) obj.kode_tahapan = kode_tahapan;
+      if (nama_tahapan) obj.nama_tahapan = nama_tahapan;
       if (is_active) obj.is_active = is_active;
-      const checkData = await MasterHargaPengiriman.findByPk(_id);
+      const checkData = await MasterTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterHargaPengiriman.update(obj, {
+      await MasterTahapan.update(obj, {
         where: { id: _id },
         transaction: t,
       });
@@ -121,18 +117,18 @@ const MasterHargaPengirimanController = {
     }
   },
 
-  deleteMasterHargaPengiriman: async (req, res) => {
+  deleteMasterTahapan: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
-      const checkData = await MasterHargaPengiriman.findByPk(_id);
+      const checkData = await MasterTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterHargaPengiriman.destroy({
+      await MasterTahapan.destroy({
         where: { id: _id },
         transaction: t,
       }),
@@ -148,4 +144,4 @@ const MasterHargaPengirimanController = {
   },
 };
 
-module.exports = MasterHargaPengirimanController;
+module.exports = MasterTahapanController;

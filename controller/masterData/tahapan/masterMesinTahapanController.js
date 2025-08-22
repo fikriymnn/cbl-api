@@ -1,11 +1,10 @@
 const { Op } = require("sequelize");
-const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
-const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
+const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const db = require("../../../config/database");
 
-const MasterProdukController = {
-  getMasterProduk: async (req, res) => {
-    const id = req.params.id;
+const MasterMesinTahapanController = {
+  getMasterMesinTahapan: async (req, res) => {
+    const _id = req.params.id;
     const { is_active, page, limit, search } = req.query;
 
     try {
@@ -15,16 +14,15 @@ const MasterProdukController = {
       if (search) {
         obj = {
           [Op.or]: [
-            { kode: { [Op.like]: `%${search}%` } },
-            { nama_produk: { [Op.like]: `%${search}%` } },
-            { keterangan: { [Op.like]: `%${search}%` } },
+            { kode_mesin: { [Op.like]: `%${search}%` } },
+            { nama_mesin: { [Op.like]: `%${search}%` } },
           ],
         };
       }
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
-        const length = await MasterProduk.count({ where: obj });
-        const data = await MasterProduk.findAll({
+        const length = await MasterMesinTahapan.count({ where: obj });
+        const data = await MasterMesinTahapan.findAll({
           where: obj,
           offset: parseInt(offset),
           limit: parseInt(limit),
@@ -35,15 +33,13 @@ const MasterProdukController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (id) {
-        const response = await MasterProduk.findByPk(id, {
-          include: { model: MasterCustomer, as: "customer" },
-        });
+      } else if (_id) {
+        const response = await MasterMesinTahapan.findByPk(_id);
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       } else {
-        const response = await MasterProduk.findAll({ where: obj });
+        const response = await MasterMesinTahapan.findAll({ where: obj });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
@@ -55,39 +51,23 @@ const MasterProdukController = {
     }
   },
 
-  createMasterProduk: async (req, res) => {
-    const { kode, nama_produk, id_customer, keterangan } = req.body;
+  createMasterMesinTahapan: async (req, res) => {
+    const { kode_mesin, nama_mesin } = req.body;
     const t = await db.transaction();
+    if (!nama_mesin)
+      return res
+        .status(404)
+        .json({
+          succes: false,
+          status_code: 404,
+          msg: "nama mesin wajib di isi!!",
+        });
 
     try {
-      if (!kode)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "kode wajib di isi!!",
-        });
-      if (!nama_produk)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "nama produk wajib di isi!!",
-        });
-
-      if (id_customer) {
-        const checkCustomer = await MasterCustomer.findByPk(id_customer);
-        if (!checkCustomer)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Customer tidak ditemukan",
-          });
-      }
-      const response = await MasterProduk.create(
+      const response = await MasterMesinTahapan.create(
         {
-          kode: kode,
-          nama_produk: nama_produk,
-          id_customer: id_customer || null,
-          keterangan: keterangan,
+          kode_mesin: kode_mesin,
+          nama_mesin: nama_mesin,
         },
         { transaction: t }
       );
@@ -106,35 +86,27 @@ const MasterProdukController = {
     }
   },
 
-  updateMasterProduk: async (req, res) => {
+  updateMasterMesinTahapan: async (req, res) => {
     const _id = req.params.id;
-    const { kode, nama_produk, id_customer, keterangan, is_active } = req.body;
+    const { kode_mesin, nama_mesin, is_active } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
-      if (kode) obj.kode = kode;
-      if (nama_produk) obj.nama_produk = nama_produk;
-      if (keterangan) obj.keterangan = keterangan;
+      if (kode_mesin) obj.kode_mesin = kode_mesin;
+      if (nama_mesin) obj.nama_mesin = nama_mesin;
       if (is_active) obj.is_active = is_active;
-      if (id_customer) {
-        const checkCustomer = await MasterCustomer.findByPk(id_customer);
-        if (!checkCustomer)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Customer tidak ditemukan",
-          });
-        obj.id_customer = id_customer;
-      }
-      const checkData = await MasterProduk.findByPk(_id);
+      const checkData = await MasterMesinTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterProduk.update(obj, { where: { id: _id }, transaction: t });
+      await MasterMesinTahapan.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
       await t.commit(),
         res
           .status(200)
@@ -147,18 +119,21 @@ const MasterProdukController = {
     }
   },
 
-  deleteMasterProduk: async (req, res) => {
+  deleteMasterMesinTahapan: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
-      const checkData = await MasterProduk.findByPk(_id);
+      const checkData = await MasterMesinTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterProduk.destroy({ where: { id: _id }, transaction: t }),
+      await MasterMesinTahapan.destroy({
+        where: { id: _id },
+        transaction: t,
+      }),
         await t.commit(),
         res
           .status(200)
@@ -171,4 +146,4 @@ const MasterProdukController = {
   },
 };
 
-module.exports = MasterProdukController;
+module.exports = MasterMesinTahapanController;

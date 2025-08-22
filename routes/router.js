@@ -271,6 +271,16 @@ router.use("/", require("./masterdata/marketing/masterProdukRoute"));
 router.use("/", require("./masterdata/marketing/masterCustomerRoute"));
 router.use("/", require("./masterdata/marketing/masterMarketingRoute"));
 
+//master barang
+router.use("/", require("./masterdata/barang/masterBrandRoute"));
+router.use("/", require("./masterdata/barang/masterUnitRoute"));
+router.use("/", require("./masterdata/barang/masterBarangRoute"));
+
+//master tahapan
+router.use("/", require("./masterdata/tahapan/masterMesinTahapanRoute"));
+router.use("/", require("./masterdata/tahapan/masterTahapanRoute"));
+router.use("/", require("./masterdata/tahapan/masterTahapanMesinRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;

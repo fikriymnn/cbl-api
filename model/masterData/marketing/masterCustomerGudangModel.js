@@ -1,12 +1,11 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-
 const MasterCustomer = require("./masterCustomerModel");
 
 const { DataTypes } = Sequelize;
 
-const MasterProduk = db.define(
-  "ms_produk",
+const MasterCustomerGudang = db.define(
+  "ms_customer_gudang",
   {
     id_customer: {
       type: DataTypes.INTEGER,
@@ -16,18 +15,15 @@ const MasterProduk = db.define(
         key: "id",
       },
     },
-    kode: {
+    alamat_gudang: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    nama_produk: {
+    telepon_gudang: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
-    keterangan: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
@@ -39,13 +35,13 @@ const MasterProduk = db.define(
   }
 );
 
-MasterCustomer.hasMany(MasterProduk, {
+MasterCustomer.hasMany(MasterCustomerGudang, {
   foreignKey: "id_customer",
-  as: "produk",
+  as: "customer_gudang",
 });
-MasterProduk.belongsTo(MasterCustomer, {
+MasterCustomerGudang.belongsTo(MasterCustomer, {
   foreignKey: "id_customer",
   as: "customer",
 });
 
-module.exports = MasterProduk;
+module.exports = MasterCustomerGudang;
