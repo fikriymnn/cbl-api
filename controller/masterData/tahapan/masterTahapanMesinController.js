@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const MastertahapanMesin = require("../../../model/masterData/tahapan/mastertahapanMesinModel");
+const MastertahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const db = require("../../../config/database");
