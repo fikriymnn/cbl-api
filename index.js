@@ -274,7 +274,7 @@ const MasterBarang = require("./model/masterData/barang/masterBarangModel");
 //master tahapan
 const MasterMesinTahapan = require("./model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("./model/masterData/tahapan/masterTahapanModel");
-//const MasterTahapanMesin = require("./model/masterData/tahapan/masterTahapanMesinModel");
+const MasterTahapanMesin = require("./model/masterData/tahapan/masterTahapanMesinModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
