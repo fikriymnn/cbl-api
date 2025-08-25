@@ -7,7 +7,8 @@ const db = require("../../../config/database");
 const MasterBarangController = {
   getMasterBarang: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search } = req.query;
+    const { is_active, page, limit, search, kategori, sub_kategori } =
+      req.query;
 
     try {
       let obj = {};
@@ -24,6 +25,8 @@ const MasterBarangController = {
           ],
         };
       }
+      if (kategori) obj.kategori = kategori;
+      if (sub_kategori) obj.sub_kategori = sub_kategori;
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
         const length = await MasterBarang.count({ where: obj });
