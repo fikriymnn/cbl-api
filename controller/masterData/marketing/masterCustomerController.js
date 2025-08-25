@@ -31,6 +31,10 @@ const MasterCustomerController = {
         const length = await MasterCustomer.count({ where: obj });
         const data = await MasterCustomer.findAll({
           where: obj,
+          include: {
+            model: MasterCustomerGudang,
+            as: "gudang",
+          },
           offset: parseInt(offset),
           limit: parseInt(limit),
         });
@@ -45,7 +49,7 @@ const MasterCustomerController = {
           include: [
             {
               model: MasterCustomerGudang,
-              as: "customer_gudang",
+              as: "gudang",
             },
             {
               model: MasterMarketing,

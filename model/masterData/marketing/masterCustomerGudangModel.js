@@ -37,7 +37,7 @@ const MasterCustomerGudang = db.define(
 
 MasterCustomer.hasMany(MasterCustomerGudang, {
   foreignKey: "id_customer",
-  as: "customer_gudang",
+  as: "gudang",
 });
 MasterCustomerGudang.belongsTo(MasterCustomer, {
   foreignKey: "id_customer",
