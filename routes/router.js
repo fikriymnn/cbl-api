@@ -281,6 +281,9 @@ router.use("/", require("./masterdata/tahapan/masterMesinTahapanRoute"));
 router.use("/", require("./masterdata/tahapan/masterTahapanRoute"));
 router.use("/", require("./masterdata/tahapan/masterTahapanMesinRoute"));
 
+//marketing
+router.use("/", require("./marketing/kalkulasiRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;

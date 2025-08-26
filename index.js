@@ -276,6 +276,11 @@ const MasterMesinTahapan = require("./model/masterData/tahapan/masterMesinTahapa
 const MasterTahapan = require("./model/masterData/tahapan/masterTahapanModel");
 const MasterTahapanMesin = require("./model/masterData/tahapan/masterTahapanMesinModel");
 
+//kalkulasi
+const Kalkulasi = require("./model/marketing/kalkulasi/kalkulasiModel");
+const KalkulasiQty = require("./model/marketing/kalkulasi/kalkulasiQtyModel");
+const KalkulasiLainLain = require("./model/marketing/kalkulasi/kalkulasiLainLainModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
