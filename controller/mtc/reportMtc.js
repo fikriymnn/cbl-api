@@ -947,13 +947,6 @@ const ReportMaintenance = {
           },
         });
 
-        const totalCountJenisMalasah = jenisMasalah.reduce(
-          (accumulator, currentValue) => {
-            return accumulator + currentValue.count;
-          },
-          0
-        );
-
         const totalProduksiJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_produksi);
@@ -963,6 +956,13 @@ const ReportMaintenance = {
         const totalQualityJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_quality);
+          },
+          0
+        );
+
+        const totalCountJenisMalasah = jenisMasalah.reduce(
+          (accumulator, currentValue) => {
+            return accumulator + parseInt(currentValue.count);
           },
           0
         );
