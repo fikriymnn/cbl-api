@@ -6,7 +6,7 @@ const db = require("../../../config/database");
 const MasterProdukController = {
   getMasterProduk: async (req, res) => {
     const id = req.params.id;
-    const { is_active, page, limit, search } = req.query;
+    const { is_active, page, limit, search, id_customer } = req.query;
 
     try {
       let obj = {};
@@ -22,6 +22,7 @@ const MasterProdukController = {
         };
       }
       if (is_active) obj.is_active = is_active;
+      if (id_customer) obj.id_customer = id_customer;
       if (page && limit) {
         const length = await MasterProduk.count({ where: obj });
         const data = await MasterProduk.findAll({
