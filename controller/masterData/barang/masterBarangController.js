@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col } = require("sequelize");
 const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
 const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterUnit = require("../../../model/masterData/barang/masterUnitModel");
@@ -67,6 +67,28 @@ const MasterBarangController = {
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       }
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getJenisKertas: async (req, res) => {
+    try {
+      const data = await MasterBarang.findAll({
+        attributes: [
+          "kategori",
+          [fn("COUNT", col("id")), "total_item"], // hitung jumlah item per kategori
+        ],
+        where: {
+          sub_kategori: {
+            [Op.like]: "%kertas%", // cari sub_kategori yang mengandung 'kertas'
+          },
+        },
+        group: ["kategori"],
+      });
+      res.status(200).json({ succes: true, status_code: 200, data: data });
     } catch (error) {
       res
         .status(400)

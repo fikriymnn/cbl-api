@@ -7,7 +7,7 @@ const db = require("../../../config/database");
 const MastertahapanMesinController = {
   getMastertahapanMesin: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search } = req.query;
+    const { is_active, page, limit, search, id_tahapan } = req.query;
 
     try {
       let obj = {};
@@ -18,6 +18,7 @@ const MastertahapanMesinController = {
           [Op.or]: [{ shift: { [Op.like]: `%${search}%` } }],
         };
       }
+      if (id_tahapan) obj.id_tahapan = id_tahapan;
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
         const length = await MastertahapanMesin.count({ where: obj });

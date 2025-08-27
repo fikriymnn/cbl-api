@@ -15,4 +15,11 @@ router.delete(
   MasterBarangController.deleteMasterBarang
 );
 
+//get jenios kertas
+router.get(
+  "/master/jenisKertasBarang",
+  auth,
+  MasterBarangController.getJenisKertas
+);
+
 module.exports = router;

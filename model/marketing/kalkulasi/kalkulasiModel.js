@@ -343,7 +343,7 @@ const Kalkulasi = db.define(
       },
     },
     nama_jenis_pons: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     id_mesin_pons: {
@@ -474,7 +474,7 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     no_packaging: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     jumlah_kirim: {

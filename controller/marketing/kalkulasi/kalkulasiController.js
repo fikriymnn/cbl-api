@@ -5,9 +5,11 @@ const KalkulasiLainLain = require("../../../model/marketing/kalkulasi/kalkulasiL
 //master
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
+const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
 const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
+const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const db = require("../../../config/database");
 
@@ -202,7 +204,12 @@ const KalkulasiController = {
         });
 
       //check data marketing
-      const checkMarketing = await MasterMarketing.findByPk(id_marketing);
+      const checkMarketing = await MasterMarketing.findByPk(id_marketing, {
+        include: {
+          model: MasterKaryawan,
+          as: "data_karyawan",
+        },
+      });
       if (!checkMarketing)
         return res.status(404).json({
           succes: false,
@@ -229,7 +236,12 @@ const KalkulasiController = {
           msg: "pengiriman tidak ditemukan",
         });
 
-      const checkKertas = await MasterBarang.findByPk(id_kertas);
+      const checkKertas = await MasterBarang.findByPk(id_kertas, {
+        include: {
+          model: MasterBrand,
+          as: "brand",
+        },
+      });
       if (!checkKertas)
         return res.status(404).json({
           succes: false,
@@ -611,14 +623,407 @@ const KalkulasiController = {
   //update belum
   updateKalkulasi: async (req, res) => {
     const _id = req.params.id;
-    const { nama_area, harga, is_active } = req.body;
+    const {
+      id_customer,
+      id_marketing,
+      id_produk,
+      id_harga_pengiriman,
+      qty_kalkulasi,
+      presentase_insheet,
+      spesifikasi,
+      status_kalkulasi,
+      ukuran_jadi_panjang,
+      ukuran_jadi_lebar,
+      ukuran_jadi_tinggi,
+      ukuran_jadi_terb_panjang,
+      ukuran_jadi_terb_lebar,
+      ukuran_cetak_panjang_1,
+      ukuran_cetak_lebar_1,
+      ukuran_cetak_bagian_1,
+      ukuran_cetak_isi_1,
+      ukuran_cetak_bbs_1,
+      ukuran_cetak_panjang_2,
+      ukuran_cetak_lebar_2,
+      ukuran_cetak_bagian_2,
+      ukuran_cetak_isi_2,
+      ukuran_cetak_bbs_2,
+      warna_depan,
+      warna_belakang,
+      jumlah_warna,
+      jenis_kertas,
+      id_kertas,
+      total_kertas,
+      total_harga_kertas,
+      id_mesin_potong,
+      printing_insheet,
+      id_jenis_mesin_cetak,
+      plate_cetak,
+      harga_plate_cetak,
+      jumlah_harga_cetak,
+      id_coating_depan,
+      harga_coating_depan,
+      id_coating_belakang,
+      harga_coating_belakang,
+      jumlah_harga_coating,
+      id_mesin_coating_depan,
+      id_mesin_coating_belakang,
+      pons_insheet,
+      id_jenis_pons,
+      id_mesin_pons,
+      harga_pisau,
+      ongkos_pons,
+      ongkos_pons_qty,
+      harga_satuan_ongkos_pons,
+      total_harga_ongkos_pons,
+      lipat,
+      id_mesin_lipat,
+      qty_lipat,
+      potong_jadi,
+      qty_potong,
+      harga_potong_jadi,
+      finishing_insheet,
+      id_lem,
+      jumlah_harga_lem,
+      id_mesin_finishing,
+      foil,
+      harga_foil,
+      spot_foil,
+      harga_spot_foil,
+      harga_polimer,
+      panjang_packaging,
+      lebar_packaging,
+      no_packaging,
+      jumlah_kirim,
+      harga_packaging,
+      harga_pengiriman,
+      jenis_packing,
+      id_packing,
+      qty_packing,
+      harga_packing,
+      harga_produksi,
+      profit,
+      profit_harga,
+      jumlah_harga_jual,
+      ppn,
+      harga_ppn,
+      diskon,
+      harga_diskon,
+      total_harga,
+      harga_satuan,
+      total_harga_satuan_customer,
+      keterangan_kerja,
+      keterangan_harga,
+    } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
-      if (nama_area) obj.nama_area = nama_area;
-      if (harga) obj.harga = harga;
-      if (is_active) obj.is_active = is_active;
+      if (id_customer) {
+        //check data customer
+        const checkData = await MasterCustomer.findByPk(id_customer);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "customer tidak ditemukan",
+          });
+        obj.id_customer = id_customer;
+        obj.nama_customer = checkData.nama_customer;
+      }
+      if (id_marketing) {
+        //check data
+        const checkData = await MasterMarketing.findByPk(id_marketing);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "marketing tidak ditemukan",
+          });
+        obj.id_marketing = id_marketing;
+        obj.nama_marketing = checkData.data_karyawan.name;
+        obj.kode_marketing = checkData.kode;
+      }
+      if (id_produk) {
+        //check data
+        const checkData = await MasterProduk.findByPk(id_produk);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "produk tidak ditemukan",
+          });
+        obj.id_produk = id_produk;
+        obj.nama_produk = checkData.nama_produk;
+      }
+
+      if (id_harga_pengiriman) {
+        //check data
+        const checkData = await MasterHargaPengiriman.findByPk(
+          id_harga_pengiriman
+        );
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "pengiriman tidak ditemukan",
+          });
+        obj.id_harga_pengiriman = id_harga_pengiriman;
+        obj.nama_area_pengiriman = checkData.nama_area;
+        obj.harga_area_pengiriman = checkData.harga;
+      }
+
+      if (qty_kalkulasi) obj.qty_kalkulasi = qty_kalkulasi;
+      if (presentase_insheet) obj.presentase_insheet = presentase_insheet;
+      if (spesifikasi) obj.spesifikasi = spesifikasi;
+      if (ukuran_jadi_panjang) obj.ukuran_jadi_panjang = ukuran_jadi_panjang;
+      if (ukuran_jadi_lebar) obj.ukuran_jadi_lebar = ukuran_jadi_lebar;
+      if (ukuran_jadi_tinggi) obj.ukuran_jadi_tinggi = ukuran_jadi_tinggi;
+      if (ukuran_jadi_terb_panjang)
+        obj.ukuran_jadi_terb_panjang = ukuran_jadi_terb_panjang;
+      if (ukuran_jadi_terb_lebar)
+        obj.ukuran_jadi_terb_lebar = ukuran_jadi_terb_lebar;
+      if (ukuran_cetak_panjang_1)
+        obj.ukuran_cetak_panjang_1 = ukuran_cetak_panjang_1;
+      if (ukuran_cetak_lebar_1) obj.ukuran_cetak_lebar_1 = ukuran_cetak_lebar_1;
+      if (ukuran_cetak_bagian_1)
+        obj.ukuran_cetak_bagian_1 = ukuran_cetak_bagian_1;
+      if (ukuran_cetak_isi_1) obj.ukuran_cetak_isi_1 = ukuran_cetak_isi_1;
+      if (ukuran_cetak_bbs_1) obj.ukuran_cetak_bbs_1 = ukuran_cetak_bbs_1;
+      if (ukuran_cetak_panjang_2)
+        obj.ukuran_cetak_panjang_2 = ukuran_cetak_panjang_2;
+      if (ukuran_cetak_lebar_2) obj.ukuran_cetak_lebar_2 = ukuran_cetak_lebar_2;
+      if (ukuran_cetak_bagian_2)
+        obj.ukuran_cetak_bagian_2 = ukuran_cetak_bagian_2;
+      if (ukuran_cetak_isi_2) obj.ukuran_cetak_isi_2 = ukuran_cetak_isi_2;
+      if (ukuran_cetak_bbs_2) obj.ukuran_cetak_bbs_2 = ukuran_cetak_bbs_2;
+      if (warna_depan) obj.warna_depan = warna_depan;
+      if (warna_belakang) obj.warna_belakang = warna_belakang;
+      if (jumlah_warna) obj.jumlah_warna = jumlah_warna;
+      if (jenis_kertas) obj.jenis_kertas = jenis_kertas;
+
+      if (id_kertas) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_kertas);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "kertas tidak ditemukan",
+          });
+        obj.id_kertas = id_kertas;
+        obj.nama_kertas = checkData.nama_barang;
+        obj.brand_kertas = checkData.brand?.nama_brand;
+        obj.gramature_kertas = checkData.gramature;
+        obj.panjang_kertas = checkData.panjang;
+        obj.lebar_kertas = checkData.lebar;
+        obj.persentase_kertas = checkData.persentase;
+      }
+
+      if (total_kertas) obj.total_kertas = total_kertas;
+      if (total_harga_kertas) obj.total_harga_kertas = total_harga_kertas;
+      if (id_mesin_potong) {
+        //check data
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_potong);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin potong tidak ditemukan",
+          });
+        obj.id_mesin_potong = id_mesin_potong;
+        obj.nama_mesin_potong = checkData.mesin?.nama_mesin;
+      }
+      if (printing_insheet) obj.printing_insheet = printing_insheet;
+      if (id_jenis_mesin_cetak) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_jenis_mesin_cetak);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin cetak tidak ditemukan",
+          });
+        obj.id_jenis_mesin_cetak = id_jenis_mesin_cetak;
+        obj.jenis_mesin_cetak = checkData.nama_barang;
+      }
+      if (plate_cetak) obj.plate_cetak = plate_cetak;
+      if (harga_plate_cetak) obj.harga_plate_cetak = harga_plate_cetak;
+      if (jumlah_harga_cetak) obj.jumlah_harga_cetak = jumlah_harga_cetak;
+
+      if (id_coating_depan) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_coating_depan);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "coating depan tidak ditemukan",
+          });
+        obj.id_coating_depan = id_coating_depan;
+        obj.nama_coating_depan = checkData.nama_barang;
+      }
+      if (harga_coating_depan) obj.harga_coating_depan = harga_coating_depan;
+
+      if (id_coating_belakang) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_coating_belakang);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "coating belakang tidak ditemukan",
+          });
+        obj.id_coating_belakang = id_coating_belakang;
+        obj.nama_coating_belakang = checkData.nama_barang;
+      }
+      if (harga_coating_belakang)
+        obj.harga_coating_belakang = harga_coating_belakang;
+      if (jumlah_harga_coating) obj.jumlah_harga_coating = jumlah_harga_coating;
+      if (id_mesin_coating_depan) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_mesin_coating_depan);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin coating depan tidak ditemukan",
+          });
+        obj.id_mesin_coating_depan = id_mesin_coating_depan;
+        obj.nama_mesin_coating_depan = checkData.nama_barang;
+      }
+
+      if (id_mesin_coating_belakang) {
+        //check data
+        const checkData = await MasterBarang.findByPk(
+          id_mesin_coating_belakang
+        );
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin coating belakang tidak ditemukan",
+          });
+        obj.id_mesin_coating_belakang = id_mesin_coating_belakang;
+        obj.nama_mesin_coating_belakang = checkData.nama_barang;
+      }
+      if (pons_insheet) obj.pons_insheet = pons_insheet;
+      if (id_jenis_pons) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_jenis_pons);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "jenis pons tidak ditemukan",
+          });
+        obj.id_jenis_pons = id_jenis_pons;
+        obj.nama_jenis_pons = checkData.nama_barang;
+      }
+      if (id_mesin_pons) {
+        //check data
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_pons);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin pons tidak ditemukan",
+          });
+        obj.id_mesin_pons = id_mesin_pons;
+        obj.nama_mesin_pons = checkData.mesin?.nama_mesin;
+      }
+      if (harga_pisau) obj.harga_pisau = harga_pisau;
+      if (ongkos_pons) obj.ongkos_pons = ongkos_pons;
+      if (ongkos_pons_qty) obj.ongkos_pons_qty = ongkos_pons_qty;
+      if (harga_satuan_ongkos_pons)
+        obj.harga_satuan_ongkos_pons = harga_satuan_ongkos_pons;
+      if (total_harga_ongkos_pons)
+        obj.total_harga_ongkos_pons = total_harga_ongkos_pons;
+      if (lipat) obj.lipat = lipat;
+
+      if (id_mesin_lipat) {
+        //check data
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_lipat);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin lipat tidak ditemukan",
+          });
+        obj.id_mesin_lipat = id_mesin_lipat;
+        obj.nama_mesin_lipat = checkData.mesin?.nama_mesin;
+      }
+      if (qty_lipat) obj.qty_lipat = qty_lipat;
+      if (potong_jadi) obj.potong_jadi = potong_jadi;
+      if (qty_potong) obj.qty_potong = qty_potong;
+      if (harga_potong_jadi) obj.harga_potong_jadi = harga_potong_jadi;
+      if (finishing_insheet) obj.finishing_insheet = finishing_insheet;
+
+      if (id_lem) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_lem);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Lem tidak ditemukan",
+          });
+        obj.id_lem = id_lem;
+        obj.nama_lem = checkData.nama_barang;
+      }
+      if (jumlah_harga_lem) obj.jumlah_harga_lem = jumlah_harga_lem;
+      if (id_mesin_finishing) {
+        //check data
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_finishing);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "mesin finishing tidak ditemukan",
+          });
+        obj.id_mesin_finishing = id_mesin_finishing;
+        obj.nama_mesin_finishing = checkData.mesin?.nama_mesin;
+      }
+      if (foil) obj.foil = foil;
+      if (harga_foil) obj.harga_foil = harga_foil;
+      if (spot_foil) obj.spot_foil = spot_foil;
+      if (harga_spot_foil) obj.harga_spot_foil = harga_spot_foil;
+      if (harga_polimer) obj.harga_polimer = harga_polimer;
+      if (panjang_packaging) obj.panjang_packaging = panjang_packaging;
+      if (lebar_packaging) obj.lebar_packaging = lebar_packaging;
+      if (no_packaging) obj.no_packaging = no_packaging;
+      if (jumlah_kirim) obj.jumlah_kirim = jumlah_kirim;
+      if (harga_packaging) obj.harga_packaging = harga_packaging;
+      if (harga_pengiriman) obj.harga_pengiriman = harga_pengiriman;
+      if (jenis_packing) obj.jenis_packing = jenis_packing;
+      if (id_packing) {
+        //check data
+        const checkData = await MasterBarang.findByPk(id_packing);
+        if (!checkData)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Packing tidak ditemukan",
+          });
+        obj.id_packing = id_packing;
+        obj.nama_packing = checkData.nama_barang;
+      }
+      if (qty_packing) obj.qty_packing = qty_packing;
+      if (harga_packing) obj.harga_packing = harga_packing;
+      if (harga_produksi) obj.harga_produksi = harga_produksi;
+      if (profit) obj.profit = profit;
+      if (profit_harga) obj.profit_harga = profit_harga;
+      if (jumlah_harga_jual) obj.jumlah_harga_jual = jumlah_harga_jual;
+      if (ppn) obj.ppn = ppn;
+      if (harga_ppn) obj.harga_ppn = harga_ppn;
+      if (diskon) obj.diskon = diskon;
+      if (harga_diskon) obj.harga_diskon = harga_diskon;
+      if (total_harga) obj.total_harga = total_harga;
+      if (harga_satuan) obj.harga_satuan = harga_satuan;
+      if (total_harga_satuan_customer)
+        obj.total_harga_satuan_customer = total_harga_satuan_customer;
+      if (keterangan_kerja) obj.keterangan_kerja = keterangan_kerja;
+      if (keterangan_harga) obj.keterangan_harga = keterangan_harga;
+
       const checkData = await Kalkulasi.findByPk(_id);
       if (!checkData)
         return res.status(404).json({

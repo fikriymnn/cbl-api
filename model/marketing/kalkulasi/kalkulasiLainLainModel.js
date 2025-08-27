@@ -5,7 +5,7 @@ const Kalkulasi = require("./kalkulasiModel");
 const { DataTypes } = Sequelize;
 
 const KalkulasiLainLain = db.define(
-  "kalkulasi_qty",
+  "kalkulasi_lain_lain",
   {
     id_kalkulasi: {
       type: DataTypes.INTEGER,
