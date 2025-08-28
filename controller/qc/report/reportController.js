@@ -95,18 +95,21 @@ const ReportQC = {
       }
 
       if (no_jo) {
-        obj = { no_jo: no_jo, status: "history" };
+        obj = { no_jo: { [Op.like]: `%${no_jo}%` }, status: "history" };
         objPotongBahan = {
-          no_jo: no_jo,
+          no_jo: { [Op.like]: `%${no_jo}%` },
           status: "history",
           jenis_potong: "potong bahan",
         };
         objPotongJadi = {
-          no_jo: no_jo,
+          no_jo: { [Op.like]: `%${no_jo}%` },
           status: "history",
           jenis_potong: "potong jadi",
         };
-        objFinalInspection = { no_jo: no_jo, bagian_tiket: "history" };
+        objFinalInspection = {
+          no_jo: { [Op.like]: `%${no_jo}%` },
+          bagian_tiket: "history",
+        };
       }
 
       const dataBahan = await getIncomingBahan(obj);
