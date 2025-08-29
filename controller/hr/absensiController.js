@@ -113,10 +113,12 @@ const AbsensiController = {
   },
 
   getAbsensiRekap: async (req, res) => {
-    const { idDepartment, is_active, startDate, endDate } = req.query;
+    const { idDepartment, id_karyawan, is_active, startDate, endDate } =
+      req.query;
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
+    if (id_karyawan) obj.id_karyawan = id_karyawan;
     if (is_active && is_active == "true") {
       obj.is_active = true;
     } else if (is_active && is_active == "false") {
@@ -152,6 +154,7 @@ const AbsensiController = {
           },
         ],
       });
+      console.log(req.query);
 
       const dataRekap = await getRekapAbsensi(
         startDate,
