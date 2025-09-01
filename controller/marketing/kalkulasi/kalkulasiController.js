@@ -11,6 +11,7 @@ const MasterHargaPengiriman = require("../../../model/masterData/marketing/maste
 const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
 const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
+const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const db = require("../../../config/database");
 
 const KalkulasiController = {
@@ -71,7 +72,7 @@ const KalkulasiController = {
       id_customer,
       id_marketing,
       id_produk,
-      id_harga_pengiriman,
+      id_area_pengiriman,
       qty_kalkulasi,
       presentase_insheet,
       spesifikasi,
@@ -96,19 +97,20 @@ const KalkulasiController = {
       jumlah_warna,
       jenis_kertas,
       id_kertas,
+      percentage,
       total_kertas,
       total_harga_kertas,
       id_mesin_potong,
-      printing_insheet,
+      print_insheet,
       id_jenis_mesin_cetak,
       plate_cetak,
-      harga_plate_cetak,
+      harga_plate,
       jumlah_harga_cetak,
       id_coating_depan,
-      harga_coating_depan,
+      jumlah_harga_coating_depan,
       id_coating_belakang,
-      harga_coating_belakang,
-      jumlah_harga_coating,
+      jumlah_harga_coating_belakang,
+      total_harga_coating,
       id_mesin_coating_depan,
       id_mesin_coating_belakang,
       pons_insheet,
@@ -122,6 +124,7 @@ const KalkulasiController = {
       lipat,
       id_mesin_lipat,
       qty_lipat,
+      harga_lipat,
       potong_jadi,
       qty_potong,
       harga_potong_jadi,
@@ -130,10 +133,10 @@ const KalkulasiController = {
       jumlah_harga_lem,
       id_mesin_finishing,
       foil,
-      harga_foil,
+      harga_foil_manual,
       spot_foil,
-      harga_spot_foil,
-      harga_polimer,
+      harga_spot_foil_manual,
+      harga_polimer_manual,
       panjang_packaging,
       lebar_packaging,
       no_packaging,
@@ -161,6 +164,8 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
+      console.log(parseStringSparator(total_harga_kertas || "0"));
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -181,7 +186,7 @@ const KalkulasiController = {
           msg: "produk wajib di isi!!",
         });
 
-      if (!id_harga_pengiriman)
+      if (!id_area_pengiriman)
         return res.status(404).json({
           succes: false,
           status_code: 404,
@@ -227,7 +232,7 @@ const KalkulasiController = {
         });
       //check data harga pengiriman
       const checkHargaPengiriman = await MasterHargaPengiriman.findByPk(
-        id_harga_pengiriman
+        id_area_pengiriman
       );
       if (!checkHargaPengiriman)
         return res.status(404).json({
@@ -295,7 +300,10 @@ const KalkulasiController = {
       let checkMesinCoatingDepan = {};
       if (id_mesin_coating_depan) {
         checkMesinCoatingDepan = await MasterTahapanMesin.findByPk(
-          id_mesin_coating_depan
+          id_mesin_coating_depan,
+          {
+            include: { model: MasterMesinTahapan, as: "mesin" },
+          }
         );
         if (!checkMesinCoatingDepan)
           return res.status(404).json({
@@ -307,7 +315,10 @@ const KalkulasiController = {
       let checkMesinCoatingBelakang = {};
       if (id_mesin_coating_belakang) {
         checkMesinCoatingBelakang = await MasterTahapanMesin.findByPk(
-          id_mesin_coating_belakang
+          id_mesin_coating_belakang,
+          {
+            include: { model: MasterMesinTahapan, as: "mesin" },
+          }
         );
         if (!checkMesinCoatingBelakang)
           return res.status(404).json({
@@ -329,7 +340,9 @@ const KalkulasiController = {
 
       let checkMesinPons = {};
       if (id_mesin_pons) {
-        checkMesinPons = await MasterTahapanMesin.findByPk(id_mesin_pons);
+        checkMesinPons = await MasterTahapanMesin.findByPk(id_mesin_pons, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkMesinPons)
           return res.status(404).json({
             succes: false,
@@ -339,7 +352,9 @@ const KalkulasiController = {
       }
       let checkMesinLipat = {};
       if (id_mesin_lipat) {
-        checkMesinLipat = await MasterTahapanMesin.findByPk(id_mesin_lipat);
+        checkMesinLipat = await MasterTahapanMesin.findByPk(id_mesin_lipat, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkMesinLipat)
           return res.status(404).json({
             succes: false,
@@ -362,7 +377,10 @@ const KalkulasiController = {
       let checkMesinFinishing = {};
       if (id_mesin_finishing) {
         checkMesinFinishing = await MasterTahapanMesin.findByPk(
-          id_mesin_finishing
+          id_mesin_finishing,
+          {
+            include: { model: MasterMesinTahapan, as: "mesin" },
+          }
         );
         if (!checkMesinFinishing)
           return res.status(404).json({
@@ -391,7 +409,7 @@ const KalkulasiController = {
           kode_marketing: checkMarketing.kode,
           id_produk: id_produk,
           nama_produk: checkProduk.nama_produk,
-          id_harga_pengiriman: id_harga_pengiriman,
+          id_area_pengiriman: id_area_pengiriman,
           nama_area_pengiriman: checkHargaPengiriman.nama_area,
           harga_area_pengiriman: checkHargaPengiriman.harga,
           qty_kalkulasi: qty_kalkulasi,
@@ -413,68 +431,78 @@ const KalkulasiController = {
           ukuran_cetak_bagian_2: ukuran_cetak_bagian_2,
           ukuran_cetak_isi_2: ukuran_cetak_isi_2,
           ukuran_cetak_bbs_2: ukuran_cetak_bbs_2,
-          warna_depan: warna_depan,
-          warna_belakang: warna_belakang,
-          jumlah_warna: jumlah_warna,
+          warna_depan: parseFloat(warna_depan || "0"),
+          warna_belakang: parseFloat(warna_belakang || "0"),
+          jumlah_warna: parseFloat(jumlah_warna || "0"),
           jenis_kertas: jenis_kertas,
           id_kertas: id_kertas,
           nama_kertas: checkKertas.nama_barang,
           brand_kertas: checkKertas.brand?.nama_brand || null,
-          gramature_kertas: checkKertas.gramature,
+          gramature_kertas: checkKertas.gramatur,
           panjang_kertas: checkKertas.panjang,
           lebar_kertas: checkKertas.lebar,
           persentase_kertas: checkKertas.persentase,
-          total_kertas: total_kertas,
-          total_harga_kertas: total_harga_kertas,
+          persentase_apki_kertas: parseFloat(percentage || "0"),
+          total_kertas: parseFloat(total_kertas || "0"),
+          total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
           id_mesin_potong: id_mesin_potong,
           nama_mesin_potong: checkMesinPotong.nama_barang || null,
-          printing_insheet: printing_insheet,
+          print_insheet: parseInt(print_insheet || "0"),
           id_jenis_mesin_cetak: id_jenis_mesin_cetak,
           jenis_mesin_cetak: checkMesinCetak.nama_barang || null,
           plate_cetak: plate_cetak,
-          harga_plate_cetak: harga_plate_cetak,
-          jumlah_harga_cetak: jumlah_harga_cetak,
+          harga_plate: harga_plate,
+          jumlah_harga_cetak: parseFloat(jumlah_harga_cetak || "0"),
           id_coating_depan: id_coating_depan,
           nama_coating_depan: checkCoatingDepan.nama_barang || null,
-          harga_coating_depan: harga_coating_depan,
+          jumlah_harga_coating_depan: parseFloat(
+            jumlah_harga_coating_depan || "0"
+          ),
           id_coating_belakang: id_coating_belakang,
           nama_coating_belakang: checkCoatingBelakang.nama_barang || null,
-          harga_coating_belakang: harga_coating_belakang,
-          jumlah_harga_coating: jumlah_harga_coating,
+          jumlah_harga_coating_belakang: parseFloat(
+            jumlah_harga_coating_belakang || "0"
+          ),
+          total_harga_coating: parseFloat(total_harga_coating || "0"),
           id_mesin_coating_depan: id_mesin_coating_depan,
           nama_mesin_coating_depan:
             checkMesinCoatingDepan.mesin?.nama_mesin || null,
           id_mesin_coating_belakang: id_mesin_coating_belakang,
           nama_mesin_coating_belakang:
             checkMesinCoatingBelakang.mesin?.nama_mesin || null,
-          pons_insheet: pons_insheet,
+          pons_insheet: parseInt(pons_insheet || "0"),
           id_jenis_pons: id_jenis_pons,
           nama_jenis_pons: checkJenisPons.nama_barang || null,
           id_mesin_pons: id_mesin_pons,
           nama_mesin_pons: checkMesinPons.mesin?.nama_mesin || null,
-          harga_pisau: harga_pisau,
+          harga_pisau: parseFloat(harga_pisau || "0"),
           ongkos_pons: ongkos_pons,
-          ongkos_pons_qty: ongkos_pons_qty,
-          harga_satuan_ongkos_pons: harga_satuan_ongkos_pons,
-          total_harga_ongkos_pons: total_harga_ongkos_pons,
+          ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
+          harga_satuan_ongkos_pons: parseStringSparator(
+            harga_satuan_ongkos_pons || "0"
+          ),
+          total_harga_ongkos_pons: parseStringSparator(
+            total_harga_ongkos_pons || "0"
+          ),
           lipat: lipat,
           id_mesin_lipat: id_mesin_lipat,
           nama_mesin_lipat: checkMesinLipat.mesin?.nama_mesin || null,
           qty_lipat: qty_lipat,
+          harga_lipat: parseStringSparator(harga_lipat || "0"),
           potong_jadi: potong_jadi,
-          qty_potong: qty_potong,
-          harga_potong_jadi: harga_potong_jadi,
-          finishing_insheet: finishing_insheet,
+          qty_potong: parseInt(qty_potong || "0"),
+          harga_potong_jadi: parseStringSparator(harga_potong_jadi || "0"),
+          finishing_insheet: parseInt(finishing_insheet || "0"),
           id_lem: id_lem,
           nama_lem: checkLem.nama_barang || null,
-          jumlah_harga_lem: jumlah_harga_lem,
+          jumlah_harga_lem: parseStringSparator(jumlah_harga_lem || "0"),
           id_mesin_finishing: id_mesin_finishing,
           nama_mesin_finishing: checkMesinFinishing.mesin?.nama_mesin || null,
           foil: foil,
-          harga_foil: harga_foil,
+          harga_foil_manual: parseFloat(harga_foil_manual || "0"),
           spot_foil: spot_foil,
-          harga_spot_foil: harga_spot_foil,
-          harga_polimer: harga_polimer,
+          harga_spot_foil_manual: parseFloat(harga_spot_foil_manual || "0"),
+          harga_polimer_manual: parseFloat(harga_polimer_manual || "0"),
           panjang_packaging: panjang_packaging,
           lebar_packaging: lebar_packaging,
           no_packaging: no_packaging,
@@ -489,8 +517,8 @@ const KalkulasiController = {
           harga_produksi: harga_produksi,
           profit: profit,
           profit_harga: profit_harga,
-          jumlah_harga_jual: jumlah_harga_jual,
-          ppn: ppn,
+          jumlah_harga_jual: parseFloat(jumlah_harga_jual || "0"),
+          ppn: parseFloat(ppn || "0"),
           harga_ppn: harga_ppn,
           diskon: diskon,
           harga_diskon: harga_diskon,
@@ -627,7 +655,7 @@ const KalkulasiController = {
       id_customer,
       id_marketing,
       id_produk,
-      id_harga_pengiriman,
+      id_area_pengiriman,
       qty_kalkulasi,
       presentase_insheet,
       spesifikasi,
@@ -652,19 +680,20 @@ const KalkulasiController = {
       jumlah_warna,
       jenis_kertas,
       id_kertas,
+      percentage,
       total_kertas,
       total_harga_kertas,
       id_mesin_potong,
-      printing_insheet,
+      print_insheet,
       id_jenis_mesin_cetak,
       plate_cetak,
-      harga_plate_cetak,
+      harga_plate,
       jumlah_harga_cetak,
       id_coating_depan,
-      harga_coating_depan,
+      jumlah_harga_coating_depan,
       id_coating_belakang,
-      harga_coating_belakang,
-      jumlah_harga_coating,
+      jumlah_harga_coating_belakang,
+      total_harga_coating,
       id_mesin_coating_depan,
       id_mesin_coating_belakang,
       pons_insheet,
@@ -678,6 +707,7 @@ const KalkulasiController = {
       lipat,
       id_mesin_lipat,
       qty_lipat,
+      harga_lipat,
       potong_jadi,
       qty_potong,
       harga_potong_jadi,
@@ -686,10 +716,10 @@ const KalkulasiController = {
       jumlah_harga_lem,
       id_mesin_finishing,
       foil,
-      harga_foil,
+      harga_foil_manual,
       spot_foil,
-      harga_spot_foil,
-      harga_polimer,
+      harga_spot_foil_manual,
+      harga_polimer_manual,
       panjang_packaging,
       lebar_packaging,
       no_packaging,
@@ -756,10 +786,10 @@ const KalkulasiController = {
         obj.nama_produk = checkData.nama_produk;
       }
 
-      if (id_harga_pengiriman) {
+      if (id_area_pengiriman) {
         //check data
         const checkData = await MasterHargaPengiriman.findByPk(
-          id_harga_pengiriman
+          id_area_pengiriman
         );
         if (!checkData)
           return res.status(404).json({
@@ -767,7 +797,7 @@ const KalkulasiController = {
             status_code: 404,
             msg: "pengiriman tidak ditemukan",
           });
-        obj.id_harga_pengiriman = id_harga_pengiriman;
+        obj.id_area_pengiriman = id_area_pengiriman;
         obj.nama_area_pengiriman = checkData.nama_area;
         obj.harga_area_pengiriman = checkData.harga;
       }
@@ -796,7 +826,7 @@ const KalkulasiController = {
         obj.ukuran_cetak_bagian_2 = ukuran_cetak_bagian_2;
       if (ukuran_cetak_isi_2) obj.ukuran_cetak_isi_2 = ukuran_cetak_isi_2;
       if (ukuran_cetak_bbs_2) obj.ukuran_cetak_bbs_2 = ukuran_cetak_bbs_2;
-      if (warna_depan) obj.warna_depan = warna_depan;
+      if (warna_depan) obj.warna_depan = parseFloat(warna_depan || "0");
       if (warna_belakang) obj.warna_belakang = warna_belakang;
       if (jumlah_warna) obj.jumlah_warna = jumlah_warna;
       if (jenis_kertas) obj.jenis_kertas = jenis_kertas;
@@ -813,17 +843,22 @@ const KalkulasiController = {
         obj.id_kertas = id_kertas;
         obj.nama_kertas = checkData.nama_barang;
         obj.brand_kertas = checkData.brand?.nama_brand;
-        obj.gramature_kertas = checkData.gramature;
+        obj.gramature_kertas = checkData.gramatur;
         obj.panjang_kertas = checkData.panjang;
         obj.lebar_kertas = checkData.lebar;
         obj.persentase_kertas = checkData.persentase;
+        console.log(checkData.gramatur);
       }
 
+      if (percentage)
+        obj.persentase_apki_kertas = parseFloat(percentage || "0");
       if (total_kertas) obj.total_kertas = total_kertas;
       if (total_harga_kertas) obj.total_harga_kertas = total_harga_kertas;
       if (id_mesin_potong) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_potong);
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_potong, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -833,7 +868,7 @@ const KalkulasiController = {
         obj.id_mesin_potong = id_mesin_potong;
         obj.nama_mesin_potong = checkData.mesin?.nama_mesin;
       }
-      if (printing_insheet) obj.printing_insheet = printing_insheet;
+      if (print_insheet) obj.print_insheet = parseInt(print_insheet || "0");
       if (id_jenis_mesin_cetak) {
         //check data
         const checkData = await MasterBarang.findByPk(id_jenis_mesin_cetak);
@@ -847,7 +882,7 @@ const KalkulasiController = {
         obj.jenis_mesin_cetak = checkData.nama_barang;
       }
       if (plate_cetak) obj.plate_cetak = plate_cetak;
-      if (harga_plate_cetak) obj.harga_plate_cetak = harga_plate_cetak;
+      if (harga_plate) obj.harga_plate = harga_plate;
       if (jumlah_harga_cetak) obj.jumlah_harga_cetak = jumlah_harga_cetak;
 
       if (id_coating_depan) {
@@ -862,7 +897,8 @@ const KalkulasiController = {
         obj.id_coating_depan = id_coating_depan;
         obj.nama_coating_depan = checkData.nama_barang;
       }
-      if (harga_coating_depan) obj.harga_coating_depan = harga_coating_depan;
+      if (jumlah_harga_coating_depan)
+        obj.jumlah_harga_coating_depan = jumlah_harga_coating_depan;
 
       if (id_coating_belakang) {
         //check data
@@ -876,9 +912,9 @@ const KalkulasiController = {
         obj.id_coating_belakang = id_coating_belakang;
         obj.nama_coating_belakang = checkData.nama_barang;
       }
-      if (harga_coating_belakang)
-        obj.harga_coating_belakang = harga_coating_belakang;
-      if (jumlah_harga_coating) obj.jumlah_harga_coating = jumlah_harga_coating;
+      if (jumlah_harga_coating_belakang)
+        obj.jumlah_harga_coating_belakang = jumlah_harga_coating_belakang;
+      if (total_harga_coating) obj.total_harga_coating = total_harga_coating;
       if (id_mesin_coating_depan) {
         //check data
         const checkData = await MasterBarang.findByPk(id_mesin_coating_depan);
@@ -921,7 +957,9 @@ const KalkulasiController = {
       }
       if (id_mesin_pons) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_pons);
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_pons, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -931,7 +969,7 @@ const KalkulasiController = {
         obj.id_mesin_pons = id_mesin_pons;
         obj.nama_mesin_pons = checkData.mesin?.nama_mesin;
       }
-      if (harga_pisau) obj.harga_pisau = harga_pisau;
+      if (harga_pisau) obj.harga_pisau = parseFloat(harga_pisau || "0");
       if (ongkos_pons) obj.ongkos_pons = ongkos_pons;
       if (ongkos_pons_qty) obj.ongkos_pons_qty = ongkos_pons_qty;
       if (harga_satuan_ongkos_pons)
@@ -942,7 +980,9 @@ const KalkulasiController = {
 
       if (id_mesin_lipat) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_lipat);
+        const checkData = await MasterTahapanMesin.findByPk(id_mesin_lipat, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -953,6 +993,7 @@ const KalkulasiController = {
         obj.nama_mesin_lipat = checkData.mesin?.nama_mesin;
       }
       if (qty_lipat) obj.qty_lipat = qty_lipat;
+      if (harga_lipat) obj.harga_lipat = harga_lipat;
       if (potong_jadi) obj.potong_jadi = potong_jadi;
       if (qty_potong) obj.qty_potong = qty_potong;
       if (harga_potong_jadi) obj.harga_potong_jadi = harga_potong_jadi;
@@ -973,7 +1014,12 @@ const KalkulasiController = {
       if (jumlah_harga_lem) obj.jumlah_harga_lem = jumlah_harga_lem;
       if (id_mesin_finishing) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_finishing);
+        const checkData = await MasterTahapanMesin.findByPk(
+          id_mesin_finishing,
+          {
+            include: { model: MasterMesinTahapan, as: "mesin" },
+          }
+        );
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -984,10 +1030,11 @@ const KalkulasiController = {
         obj.nama_mesin_finishing = checkData.mesin?.nama_mesin;
       }
       if (foil) obj.foil = foil;
-      if (harga_foil) obj.harga_foil = harga_foil;
+      if (harga_foil_manual) obj.harga_foil_manual = harga_foil_manual;
       if (spot_foil) obj.spot_foil = spot_foil;
-      if (harga_spot_foil) obj.harga_spot_foil = harga_spot_foil;
-      if (harga_polimer) obj.harga_polimer = harga_polimer;
+      if (harga_spot_foil_manual)
+        obj.harga_spot_foil_manual = harga_spot_foil_manual;
+      if (harga_polimer_manual) obj.harga_polimer_manual = harga_polimer_manual;
       if (panjang_packaging) obj.panjang_packaging = panjang_packaging;
       if (lebar_packaging) obj.lebar_packaging = lebar_packaging;
       if (no_packaging) obj.no_packaging = no_packaging;
@@ -1075,6 +1122,16 @@ const KalkulasiController = {
         .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
+};
+
+const parseStringSparator = (value) => {
+  // 1. Hapus semua titik (pemisah ribuan)
+  value = value.replace(/\./g, "");
+
+  // 2. Ganti koma menjadi titik
+  value = value.replace(",", ".");
+
+  return parseFloat(value);
 };
 
 module.exports = KalkulasiController;

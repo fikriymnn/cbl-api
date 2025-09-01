@@ -52,7 +52,7 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    id_harga_pengiriman: {
+    id_area_pengiriman: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -220,6 +220,11 @@ const Kalkulasi = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    persentase_apki_kertas: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     total_kertas: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -242,7 +247,7 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    printing_insheet: {
+    print_insheet: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -262,7 +267,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    harga_plate_cetak: {
+    harga_plate: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -282,7 +287,7 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    harga_coating_depan: {
+    jumlah_harga_coating_depan: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -298,11 +303,11 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    harga_coating_belakang: {
+    jumlah_harga_coating_belakang: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    jumlah_harga_coating: {
+    total_harga_coating: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -355,7 +360,7 @@ const Kalkulasi = db.define(
       },
     },
     nama_mesin_pons: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     harga_pisau: {
@@ -399,6 +404,11 @@ const Kalkulasi = db.define(
     qty_lipat: {
       type: DataTypes.FLOAT,
       allowNull: true,
+    },
+    harga_lipat: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
     },
     potong_jadi: {
       type: DataTypes.STRING,
@@ -449,7 +459,7 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    harga_foil: {
+    harga_foil_manual: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -457,11 +467,11 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    harga_spot_foil: {
+    harga_spot_foil_manual: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    harga_polimer: {
+    harga_polimer_manual: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -514,7 +524,7 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     harga_produksi: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     profit: {
@@ -522,11 +532,11 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     profit_harga: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     jumlah_harga_jual: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     ppn: {
@@ -534,7 +544,7 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     harga_ppn: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     diskon: {
@@ -542,11 +552,11 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     harga_diskon: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     total_harga: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     harga_satuan: {
@@ -554,7 +564,7 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     total_harga_satuan_customer: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(30, 6),
       allowNull: true,
     },
     keterangan_kerja: {
@@ -625,11 +635,11 @@ Kalkulasi.belongsTo(MasterProduk, {
 
 //~~start~~//
 MasterHargaPengiriman.hasMany(Kalkulasi, {
-  foreignKey: "id_harga_pengiriman",
+  foreignKey: "id_area_pengiriman",
   as: "kalkulasi",
 });
 Kalkulasi.belongsTo(MasterHargaPengiriman, {
-  foreignKey: "id_harga_pengiriman",
+  foreignKey: "id_area_pengiriman",
   as: "pengiriman",
 });
 //~~end~~//
