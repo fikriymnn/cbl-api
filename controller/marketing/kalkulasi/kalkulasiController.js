@@ -164,8 +164,6 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
-      console.log(parseStringSparator(total_harga_kertas || "0"));
       if (!id_customer)
         return res.status(404).json({
           succes: false,
