@@ -42,6 +42,34 @@ const OkpController = {
         const length = await Okp.count({ where: obj });
         const data = await Okp.findAll({
           where: obj,
+          include: [
+            {
+              model: OkpProses,
+              as: "okp_proses",
+              include: [
+                {
+                  model: Users,
+                  as: "user_desain",
+                },
+                {
+                  model: Users,
+                  as: "user_qa",
+                },
+                {
+                  model: Users,
+                  as: "user_terima_marketing",
+                },
+                {
+                  model: Users,
+                  as: "user_acc_customer",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
+            },
+          ],
           offset: parseInt(offset),
           limit: parseInt(limit),
         });
@@ -103,7 +131,37 @@ const OkpController = {
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       } else {
-        const response = await Okp.findAll({ where: obj });
+        const response = await Okp.findAll({
+          where: obj,
+          include: [
+            {
+              model: OkpProses,
+              as: "okp_proses",
+              include: [
+                {
+                  model: Users,
+                  as: "user_desain",
+                },
+                {
+                  model: Users,
+                  as: "user_qa",
+                },
+                {
+                  model: Users,
+                  as: "user_terima_marketing",
+                },
+                {
+                  model: Users,
+                  as: "user_acc_customer",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
+            },
+          ],
+        });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
