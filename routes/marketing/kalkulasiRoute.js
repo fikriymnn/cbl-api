@@ -9,7 +9,11 @@ router.put(
   auth,
   KalkulasiController.updateKalkulasi
 );
-
+router.put(
+  "/marketing/kalkulasi/submit/:id",
+  auth,
+  KalkulasiController.submitKalkulasi
+);
 router.put(
   "/marketing/kalkulasi/approve/:id",
   auth,

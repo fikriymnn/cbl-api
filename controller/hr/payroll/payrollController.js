@@ -868,7 +868,9 @@ const hitungPayroll = async (
           } else {
             if (
               absen.status_absen != "cuti tahunan" &&
-              absen.status_absen != "cuti khusus"
+              absen.status_absen != "cuti khusus" &&
+              absen.status_absen != "izin" &&
+              absen.status_absen != "sakit"
             ) {
               payroll.rincian.push({
                 label: "uangHadir",
@@ -886,7 +888,9 @@ const hitungPayroll = async (
         absen.jenis_hari_masuk == "Biasa" &&
         tipePenggajianKaryawan == "bulanan" &&
         absen.status_absen != "cuti tahunan" &&
-        absen.status_absen != "cuti khusus"
+        absen.status_absen != "cuti khusus" &&
+        absen.status_absen != "izin" &&
+        absen.status_absen != "sakit"
       ) {
         payroll.rincian.push({
           label: "uangHadir",
