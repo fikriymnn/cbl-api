@@ -1,18 +1,18 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const Okp = require("./okpModel");
+const Kalkulasi = require("./kalkulasiModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const okpUserAction = db.define(
-  "okp_user_action",
+const KalkulasiUserAction = db.define(
+  "kalkulasi_user_action",
   {
-    id_okp: {
+    id_kalkulasi: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Okp,
+        model: Kalkulasi,
         key: "id",
       },
     },
@@ -47,21 +47,21 @@ const okpUserAction = db.define(
   }
 );
 
-Okp.hasMany(okpUserAction, {
-  foreignKey: "id_okp",
-  as: "okp_action_user",
+Kalkulasi.hasMany(KalkulasiUserAction, {
+  foreignKey: "id_kalkulasi",
+  as: "kalkulasi_action_user",
 });
-okpUserAction.belongsTo(Okp, {
-  foreignKey: "id_okp",
-  as: "okp",
+KalkulasiUserAction.belongsTo(Kalkulasi, {
+  foreignKey: "id_kalkulasi",
+  as: "kalkulasi",
 });
 
-Users.hasMany(okpUserAction, {
+Users.hasMany(KalkulasiUserAction, {
   foreignKey: "id_user",
 });
-okpUserAction.belongsTo(Users, {
+KalkulasiUserAction.belongsTo(Users, {
   foreignKey: "id_user",
   as: "user",
 });
 
-module.exports = okpUserAction;
+module.exports = KalkulasiUserAction;

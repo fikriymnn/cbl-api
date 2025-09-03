@@ -6,12 +6,30 @@ const MasterProduk = require("../../masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../masterData/marketing/masterHargaPengirimanModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
 const MasterTahapanMesin = require("../../masterData/tahapan/masterTahapanMesinModel");
+const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
 const Kalkulasi = db.define(
   "kalkulasi",
   {
+    id_user_create: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+
+    id_user_approve: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     id_customer: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -579,7 +597,7 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status_kalkulasi: {
+    status_proses: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "draft",
@@ -599,6 +617,28 @@ const Kalkulasi = db.define(
     freezeTableName: true,
   }
 );
+
+//~~start~~//
+Users.hasMany(Kalkulasi, {
+  foreignKey: "id_user_create",
+  as: "kalkulasi_create",
+});
+Kalkulasi.belongsTo(Users, {
+  foreignKey: "id_user_create",
+  as: "user_create",
+});
+//~~end~~//
+
+//~~start~~//
+Users.hasMany(Kalkulasi, {
+  foreignKey: "id_user_approve",
+  as: "kalkulasi_approve",
+});
+Kalkulasi.belongsTo(Users, {
+  foreignKey: "id_user_approve",
+  as: "user_approve",
+});
+//~~end~~//
 
 //~~start~~//
 MasterCustomer.hasMany(Kalkulasi, {

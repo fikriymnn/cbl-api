@@ -280,6 +280,7 @@ const MasterTahapanMesin = require("./model/masterData/tahapan/masterTahapanMesi
 const Kalkulasi = require("./model/marketing/kalkulasi/kalkulasiModel");
 const KalkulasiQty = require("./model/marketing/kalkulasi/kalkulasiQtyModel");
 const KalkulasiLainLain = require("./model/marketing/kalkulasi/kalkulasiLainLainModel");
+const KalkulasiUserAction = require("./model/marketing/kalkulasi/kalkulasiUserActionModel");
 
 //okp
 const Okp = require("./model/marketing/okp/okpModel");
@@ -301,7 +302,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await OkpProses.sync({ alter: true });
+//   await OkpUserAction.sync({ alter: true });
 // })();
 
 // const ip100 = 75

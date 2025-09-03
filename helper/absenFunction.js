@@ -404,7 +404,9 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
+          startDate,
+          endDate
         ),
       ];
     });
@@ -1422,7 +1424,7 @@ const generateDailyCuti = (
 
   // Pastikan untuk memfilter berdasarkan rentang tanggal yang diinginkan
   if (endDate < new Date(startDateCuti) || startDate > new Date(endDateCuti)) {
-    return dailySakit; // Jika tidak dalam rentang, kembalikan array kosong
+    return dailycuti; // Jika tidak dalam rentang, kembalikan array kosong
   }
   // Sesuaikan startDate dan endDate untuk rentang yang relevan
   startDate =
@@ -1458,6 +1460,7 @@ const generateDailyCuti = (
     const isTodayOvertime = filterJadwalKaryawan.some(
       (data) => data.tanggal_libur == tglHariini
     );
+
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
     } else {
@@ -1512,7 +1515,9 @@ const generateDailyIzin = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
+  startDateIzin,
+  endDateIzin
 ) => {
   let dailyIzin = [];
   let startDate = new Date(izin.dari);
@@ -1539,6 +1544,16 @@ const generateDailyIzin = (
   const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
   const idDivisi = dataKaryawanBiodata?.id_divisi;
   const namaDivisi = dataMasterDivisi?.nama_divisi;
+
+  // Pastikan untuk memfilter berdasarkan rentang tanggal yang diinginkan
+  if (endDate < new Date(startDateIzin) || startDate > new Date(endDateIzin)) {
+    return dailyIzin; // Jika tidak dalam rentang, kembalikan array kosong
+  }
+
+  // Sesuaikan startDate dan endDate untuk rentang yang relevan
+  startDate =
+    startDate < new Date(startDateIzin) ? new Date(startDateIzin) : startDate;
+  endDate = endDate > new Date(endDateIzin) ? new Date(endDateIzin) : endDate;
 
   // Iterasi dari tanggal_dari hingga tanggal_sampai
   while (startDate <= endDate) {
@@ -1571,41 +1586,43 @@ const generateDailyIzin = (
     );
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
+    } else {
+      const dayName2 = new Date(
+        Date.UTC(
+          waktuMasuk.getUTCFullYear(),
+          waktuMasuk.getUTCMonth(),
+          waktuMasuk.getUTCDate()
+        )
+      ).toLocaleDateString("id-ID", {
+        weekday: "long",
+      });
+      dailyIzin.push({
+        userid: izin.id_karyawan,
+        waktu_masuk: new Date(startDate),
+        waktu_keluar: null,
+        tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
+        tgl_masuk: tglMasuk,
+        tgl_keluar: null,
+        jam_masuk: null,
+        jam_keluar: null,
+        menit_terlambat: null,
+        jam_lembur: null,
+        status_lembur: null,
+        status_masuk: null,
+        name: namaKaryawan,
+        status_keluar: null,
+        menit_pulang_cepat: null,
+        shift: null, // Menampilkan shift
+        status_absen: "izin",
+        id_department: namaKaryawanBiodata,
+        nama_department: namaDepartmentKaryawan,
+        id_divisi: idDivisi,
+        nama_divisi: namaDivisi,
+        hari: dayName2,
+        jenis_hari_masuk: jenisHariMasuk,
+      });
     }
-    const dayName2 = new Date(
-      Date.UTC(
-        waktuMasuk.getUTCFullYear(),
-        waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
-    ).toLocaleDateString("id-ID", {
-      weekday: "long",
-    });
-    dailyIzin.push({
-      userid: izin.id_karyawan,
-      waktu_masuk: new Date(startDate),
-      waktu_keluar: null,
-      tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
-      tgl_masuk: tglMasuk,
-      tgl_keluar: null,
-      jam_masuk: null,
-      jam_keluar: null,
-      menit_terlambat: null,
-      jam_lembur: null,
-      status_lembur: null,
-      status_masuk: null,
-      name: namaKaryawan,
-      status_keluar: null,
-      menit_pulang_cepat: null,
-      shift: null, // Menampilkan shift
-      status_absen: "izin",
-      id_department: namaKaryawanBiodata,
-      nama_department: namaDepartmentKaryawan,
-      id_divisi: idDivisi,
-      nama_divisi: namaDivisi,
-      hari: dayName2,
-      jenis_hari_masuk: jenisHariMasuk,
-    });
+
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
   }
@@ -1799,7 +1816,6 @@ const generateDailySakit = (
     const isTodayOvertime = filterJadwalKaryawan.some(
       (data) => data.tanggal_libur == tglHariini
     );
-
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
     } else {

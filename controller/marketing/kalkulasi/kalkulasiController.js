@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const KalkulasiQty = require("../../../model/marketing/kalkulasi/kalkulasiQtyModel");
 const KalkulasiLainLain = require("../../../model/marketing/kalkulasi/kalkulasiLainLainModel");
+const KalkulasiUserAction = require("../../../model/marketing/kalkulasi/kalkulasiUserActionModel");
 //master
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
@@ -160,6 +161,7 @@ const KalkulasiController = {
       total_harga_satuan_customer,
       keterangan_kerja,
       keterangan_harga,
+      lain_lain,
     } = req.body;
     const t = await db.transaction();
 
@@ -400,6 +402,7 @@ const KalkulasiController = {
       }
       const response = await Kalkulasi.create(
         {
+          id_user_create: req.user.id,
           id_customer: id_customer,
           nama_customer: checkCustomer.nama_customer,
           id_marketing: id_marketing,
@@ -528,6 +531,21 @@ const KalkulasiController = {
         },
         { transaction: t }
       );
+
+      if (lain_lain || lain_lain.length > 0) {
+        for (let i = 0; i < lain_lain.length; i++) {
+          const e = lain_lain[i];
+          await KalkulasiLainLain.create(
+            {
+              id_kalkulasi: response.id,
+              nama_item: e.nama_item,
+              harga: e.harga,
+            },
+            { transaction: t }
+          );
+        }
+      }
+
       await t.commit();
       return res.status(200).json({
         succes: true,
@@ -557,11 +575,19 @@ const KalkulasiController = {
           msg: "Data tidak ditemukan",
         });
       await Kalkulasi.update(
-        { status: "proses", status_kalkulasi: "request kabag" },
+        { status: "requested", status_proses: "request approval kabag" },
         {
           where: { id: _id },
           transaction: t,
         }
+      );
+      await KalkulasiUserAction.create(
+        {
+          id_kalkulasi: checkData.id,
+          id_user: req.user.id,
+          status: "submited",
+        },
+        { transaction: t }
       );
       await t.commit(),
         res
@@ -591,13 +617,22 @@ const KalkulasiController = {
       await Kalkulasi.update(
         {
           status: "draft",
-          status_kalkulasi: "reject kabag",
+          status_proses: "reject kabag",
           note_kabag: note_kabag,
         },
         {
           where: { id: _id },
           transaction: t,
         }
+      );
+
+      await KalkulasiUserAction.create(
+        {
+          id_kalkulasi: checkData.id,
+          id_user: req.user.id,
+          status: "rejected",
+        },
+        { transaction: t }
       );
       await t.commit(),
         res
@@ -628,6 +663,7 @@ const KalkulasiController = {
           status: "history",
           status_kalkulasi: "approve kabag",
           note_kabag: note_kabag,
+          id_user_approve: req.user.id,
         },
         {
           where: { id: _id },
@@ -1080,6 +1116,15 @@ const KalkulasiController = {
         where: { id: _id },
         transaction: t,
       });
+
+      await KalkulasiUserAction.create(
+        {
+          id_kalkulasi: checkData.id,
+          id_user: req.user.id,
+          status: "edited",
+        },
+        { transaction: t }
+      );
       await t.commit(),
         res
           .status(200)

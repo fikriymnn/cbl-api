@@ -424,7 +424,7 @@ const OkpController = {
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Action Successful" });
+          .json({ succes: true, status_code: 200, msg: "Reject Successful" });
     } catch (error) {
       res
         .status(400)
