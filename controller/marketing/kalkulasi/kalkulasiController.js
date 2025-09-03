@@ -14,6 +14,7 @@ const MasterBrand = require("../../../model/masterData/barang/masterBrandModel")
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const db = require("../../../config/database");
+const Users = require("../../../model/userModel");
 
 const KalkulasiController = {
   getKalkulasi: async (req, res) => {
@@ -51,7 +52,26 @@ const KalkulasiController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const response = await Kalkulasi.findByPk(_id);
+        const response = await Kalkulasi.findByPk(_id, {
+          include: [
+            {
+              model: KalkulasiLainLain,
+              as: "lain_lain",
+            },
+            {
+              model: KalkulasiUserAction,
+              as: "kalkulasi_action_user",
+            },
+            {
+              model: Users,
+              as: "user_create",
+            },
+            {
+              model: Users,
+              as: "user_approve",
+            },
+          ],
+        });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
@@ -166,6 +186,7 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -256,7 +277,9 @@ const KalkulasiController = {
 
       let checkMesinPotong = {};
       if (id_mesin_potong) {
-        checkMesinPotong = await MasterBarang.findByPk(id_mesin_potong);
+        checkMesinPotong = await MasterTahapanMesin.findByPk(id_mesin_potong, {
+          include: { model: MasterMesinTahapan, as: "mesin" },
+        });
         if (!checkMesinPotong)
           return res.status(404).json({
             succes: false,
@@ -447,7 +470,7 @@ const KalkulasiController = {
           total_kertas: parseFloat(total_kertas || "0"),
           total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
           id_mesin_potong: id_mesin_potong,
-          nama_mesin_potong: checkMesinPotong.nama_barang || null,
+          nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
           print_insheet: parseInt(print_insheet || "0"),
           id_jenis_mesin_cetak: id_jenis_mesin_cetak,
           jenis_mesin_cetak: checkMesinCetak.nama_barang || null,

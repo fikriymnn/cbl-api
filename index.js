@@ -302,7 +302,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await OkpUserAction.sync({ alter: true });
+//   await KalkulasiLainLain.sync({ alter: true });
 // })();
 
 // const ip100 = 75
