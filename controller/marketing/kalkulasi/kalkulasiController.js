@@ -19,7 +19,7 @@ const Users = require("../../../model/userModel");
 const KalkulasiController = {
   getKalkulasi: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search } = req.query;
+    const { is_active, page, limit, search, status, status_proses } = req.query;
 
     try {
       let obj = {};
@@ -37,6 +37,8 @@ const KalkulasiController = {
           ],
         };
       }
+      if (status) obj.status = status;
+      if (status_proses) obj.status_proses = status_proses;
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
         const length = await Kalkulasi.count({ where: obj });
@@ -61,6 +63,12 @@ const KalkulasiController = {
             {
               model: KalkulasiUserAction,
               as: "kalkulasi_action_user",
+              include: [
+                {
+                  model: Users,
+                  as: "user",
+                },
+              ],
             },
             {
               model: Users,
@@ -684,7 +692,7 @@ const KalkulasiController = {
       await Kalkulasi.update(
         {
           status: "history",
-          status_kalkulasi: "approve kabag",
+          status_proses: "approve kabag",
           note_kabag: note_kabag,
           id_user_approve: req.user.id,
         },
