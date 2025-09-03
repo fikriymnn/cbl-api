@@ -67,6 +67,10 @@ const okp = db.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    tahapan: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     id_pisau: {
       type: DataTypes.STRING,
       allowNull: true,

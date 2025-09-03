@@ -128,6 +128,7 @@ const OkpController = {
       rencana_tgl_kirim,
       status_po,
       keterangan_cetak,
+      tahapan,
     } = req.body;
     const t = await db.transaction();
     if (!id_kalkulasi)
@@ -161,15 +162,19 @@ const OkpController = {
           rencana_tgl_kirim: rencana_tgl_kirim,
           status_po: status_po,
           keterangan_cetak: keterangan_cetak,
+          tahapan: tahapan,
         },
         { transaction: t }
       );
       await OkpProses.create({ id_okp: response.id }, { transaction: t });
-      await OkpActionUser.create({
-        id_okp: response.id,
-        id_user: req.user.id,
-        status: "create",
-      });
+      await OkpActionUser.create(
+        {
+          id_okp: response.id,
+          id_user: req.user.id,
+          status: "create",
+        },
+        { transaction: t }
+      );
       await t.commit();
       return res.status(200).json({
         succes: true,
@@ -198,6 +203,7 @@ const OkpController = {
       rencana_tgl_kirim,
       status_po,
       keterangan_cetak,
+      tahapan,
     } = req.body;
     const t = await db.transaction();
 
@@ -224,6 +230,7 @@ const OkpController = {
       if (rencana_tgl_kirim) obj.rencana_tgl_kirim = rencana_tgl_kirim;
       if (status_po) obj.status_po = status_po;
       if (keterangan_cetak) obj.keterangan_cetak = keterangan_cetak;
+      if (tahapan) obj.tahapan = tahapan;
       const checkData = await Okp.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
@@ -302,7 +309,7 @@ const OkpController = {
         objProses.note_terima_marketing = note_terima_marketing;
 
         obj.status_proses = "request acc customer";
-        obj.posisi_proses = "marketing";
+        obj.posisi_proses = "customer";
       } else if (bagian == "customer") {
         objProses.id_acc_customer = req.user.id;
         objProses.tgl_acc_customer = tgl_acc_customer;
