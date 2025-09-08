@@ -287,6 +287,12 @@ const Okp = require("./model/marketing/okp/okpModel");
 const OkpProses = require("./model/marketing/okp/okpProsesModel");
 const OkpUserAction = require("./model/marketing/okp/okpUserActionModel");
 
+//io
+const Io = require("./model/marketing/io/ioModel");
+const IoMounting = require("./model/marketing/io/ioMountingModel");
+const IoTahapan = require("./model/marketing/io/ioTahapanModel");
+const IoUserAction = require("./model/marketing/io/ioActionActionModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -302,7 +308,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await Okp.sync({ alter: true });
+//   await IoTahapan.sync({ alter: true });
 // })();
 
 // const ip100 = 75
