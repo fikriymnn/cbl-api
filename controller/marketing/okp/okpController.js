@@ -320,6 +320,7 @@ const OkpController = {
     const _id = req.params.id;
     const {
       bagian,
+      id_pisau,
       tgl_okp_desain,
       tgl_terima_qa,
       tgl_terima_marketing,
@@ -354,6 +355,7 @@ const OkpController = {
 
         obj.status_proses = "request qa";
         obj.posisi_proses = "qa";
+        obj.id_pisau = id_pisau;
       } else if (bagian == "qa") {
         objProses.id_user_qa = req.user.id;
         objProses.tgl_terima_qa = tgl_terima_qa;
@@ -587,7 +589,7 @@ const OkpController = {
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       res
         .status(400)

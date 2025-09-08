@@ -163,6 +163,11 @@ const Kalkulasi = db.define(
       allowNull: true,
       defaultValue: "no",
     },
+    ukuran_cetak_panjang_2: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     ukuran_cetak_lebar_2: {
       type: DataTypes.FLOAT,
       allowNull: true,
