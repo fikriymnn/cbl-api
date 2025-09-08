@@ -36,7 +36,6 @@ const io = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-
     no_io: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -72,23 +71,22 @@ const io = db.define(
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "on progress",
+      defaultValue: "draft",
     },
     status_proses: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "on progress",
+      defaultValue: "draft",
     },
     status_send_proof: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "on progress",
+      defaultValue: "",
     },
     note_reject: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

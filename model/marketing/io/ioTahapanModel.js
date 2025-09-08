@@ -1,6 +1,7 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const Io = require("../io/ioModel");
+const IoMounting = require("../io/ioMountingModel");
 const MasterTahapanMesin = require("../../masterData/tahapan/masterTahapanMesinModel");
 const MasterSettingKapasitas = require("../../masterData/ppic/masterKategoriSettingKapasitasModel");
 const MasterDryingTime = require("../../masterData/ppic/masterDryingTimeModel");
@@ -16,6 +17,14 @@ const ioTahapan = db.define(
       allowNull: true,
       references: {
         model: Io,
+        key: "id",
+      },
+    },
+    id_io_mounting: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: IoMounting,
         key: "id",
       },
     },
@@ -97,6 +106,15 @@ Io.hasMany(ioTahapan, {
 ioTahapan.belongsTo(Io, {
   foreignKey: "id_io",
   as: "io",
+});
+
+IoMounting.hasMany(ioTahapan, {
+  foreignKey: "id_io_mounting",
+  as: "tahapan",
+});
+ioTahapan.belongsTo(IoMounting, {
+  foreignKey: "id_io_mounting",
+  as: "mounting",
 });
 
 MasterTahapanMesin.hasMany(ioTahapan, {

@@ -82,7 +82,14 @@ const IoController = {
             {
               model: IoMounting,
               as: "io_mounting",
+              include: [
+                {
+                  model: IoTahapan,
+                  as: "tahapan",
+                },
+              ],
             },
+
             {
               model: IoUserAction,
               as: "io_action_user",
@@ -109,20 +116,7 @@ const IoController = {
   },
 
   createIo: async (req, res) => {
-    const {
-      id_okp,
-      no_io,
-      status_Io,
-      tgl_target_marketing,
-      jenis_pekerjaan,
-      id_pisau,
-      file_spek_customer,
-      rencana_qty_po,
-      rencana_tgl_kirim,
-      status_po,
-      keterangan_cetak,
-      tahapan,
-    } = req.body;
+    const { id_okp, no_io, status_io, is_revisi, revisi_no_io } = req.body;
     const t = await db.transaction();
     if (!id_okp)
       return res.status(404).json({
@@ -155,16 +149,18 @@ const IoController = {
       const response = await Io.create(
         {
           id_okp: id_okp,
-          id_create_Io: req.user.id,
+          id_create_io: req.user.id,
           no_io: no_io,
           customer: checkOkp.nama_customer,
           produk: checkOkp.nama_produk,
-          status_Io: status_Io,
+          status_io: status_io,
+          is_revisi: is_revisi,
+          revisi_no_io: revisi_no_io,
         },
         { transaction: t }
       );
 
-      await IoMounting.create(
+      const dataMounting = await IoMounting.create(
         {
           id_io: response.id,
           nama_mounting: "A",
@@ -227,6 +223,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -259,6 +256,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -288,6 +286,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -317,6 +316,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -346,6 +346,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -378,6 +379,7 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
+            id_mounting: dataMounting.id,
             id_tahapan_mesin: id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
@@ -412,45 +414,75 @@ const IoController = {
 
   updateIo: async (req, res) => {
     const _id = req.params.id;
-    const {
-      id_kalkulasi,
-      status_Io,
-      tgl_target_marketing,
-      jenis_pekerjaan,
-      id_pisau,
-      file_spek_customer,
-      rencana_qty_po,
-      rencana_tgl_kirim,
-      status_po,
-      keterangan_cetak,
-      tahapan,
-    } = req.body;
+    const { id_okp, no_io, is_revisi, revisi_no_io, status_io } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
-      if (id_kalkulasi) {
-        const checkKalkulasi = await Kalkulasi.findByPk(id_kalkulasi);
+      let objMounting = {};
+      if (id_okp) {
+        const checkOkp = await Okp.findByPk(id_okp);
+        if (!checkOkp)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data Okp tidak ditemukan",
+          });
+
+        const checkKalkulasi = await Kalkulasi.findByPk(checkOkp.id_kalkulasi);
         if (!checkKalkulasi)
           return res.status(404).json({
             succes: false,
             status_code: 404,
             msg: "Data kalkulasi tidak ditemukan",
           });
-        obj.id_kalkulasi = id_kalkulasi;
-        obj.customer = checkKalkulasi.nama_customer;
-        obj.produk = checkKalkulasi.nama_produk;
+        obj.id_okp = id_okp;
+        obj.customer = checkOkp.nama_customer;
+        obj.produk = checkOkp.nama_produk;
+
+        objMounting.ukuran_jadi_panjang = checkKalkulasi.ukuran_jadi_panjang;
+        objMounting.ukuran_jadi_lebar = checkKalkulasi.ukuran_jadi_lebar;
+        objMounting.ukuran_jadi_tinggi = checkKalkulasi.ukuran_jadi_tinggi;
+        objMounting.ukuran_jadi_terb_panjang =
+          checkKalkulasi.ukuran_jadi_terb_panjang;
+        objMounting.ukuran_jadi_terb_lebar =
+          checkKalkulasi.ukuran_jadi_terb_lebar;
+        objMounting.warna_depan = checkKalkulasi.warna_depan;
+        objMounting.warna_belakang = checkKalkulasi.warna_belakang;
+        objMounting.jumlah_warna = checkKalkulasi.jumlah_warna;
+        objMounting.id_coating_depan = checkKalkulasi.id_coating_depan;
+        objMounting.nama_coating_depan = checkKalkulasi.nama_coating_depan;
+        objMounting.id_coating_belakang = checkKalkulasi.id_coating_belakang;
+        objMounting.nama_coating_belakang =
+          checkKalkulasi.nama_coating_belakang;
+        objMounting.jenis_kertas = checkKalkulasi.jenis_kertas;
+        objMounting.id_kertas = checkKalkulasi.id_kertas;
+        objMounting.nama_kertas = checkKalkulasi.nama_kertas;
+        objMounting.gramature_kertas = checkKalkulasi.gramature_kertas;
+        objMounting.panjang_plano = checkKalkulasi.panjang_kertas;
+        objMounting.lebar_plano = checkKalkulasi.lebar_kertas;
+        objMounting.ukuran_cetak_panjang_1 =
+          checkKalkulasi.ukuran_cetak_panjang_1;
+        objMounting.ukuran_cetak_lebar_1 = checkKalkulasi.ukuran_cetak_lebar_1;
+        objMounting.ukuran_cetak_bagian_1 =
+          checkKalkulasi.ukuran_cetak_bagian_1;
+        objMounting.ukuran_cetak_isi_1 = checkKalkulasi.ukuran_cetak_isi_1;
+        objMounting.ukuran_cetak_panjang_2 =
+          checkKalkulasi.ukuran_cetak_panjang_2;
+        objMounting.ukuran_cetak_lebar_2 = checkKalkulasi.ukuran_cetak_lebar_2;
+        objMounting.ukuran_cetak_bagian_2 =
+          checkKalkulasi.ukuran_cetak_bagian_2;
+        objMounting.ukuran_cetak_isi_2 = checkKalkulasi.ukuran_cetak_isi_2;
+        objMounting.id_jenis_pons = checkKalkulasi.id_jenis_pons;
+        objMounting.nama_jenis_pons = checkKalkulasi.nama_jenis_pons;
+        objMounting.id_lem = checkKalkulasi.id_lem;
+        objMounting.nama_lem = checkKalkulasi.nama_lem;
       }
-      if (status_Io) obj.status_Io = status_Io;
-      if (tgl_target_marketing) obj.tgl_target_marketing = tgl_target_marketing;
-      if (jenis_pekerjaan) obj.jenis_pekerjaan = jenis_pekerjaan;
-      if (id_pisau) obj.id_pisau = id_pisau;
-      if (file_spek_customer) obj.file_spek_customer = file_spek_customer;
-      if (rencana_qty_po) obj.rencana_qty_po = rencana_qty_po;
-      if (rencana_tgl_kirim) obj.rencana_tgl_kirim = rencana_tgl_kirim;
-      if (status_po) obj.status_po = status_po;
-      if (keterangan_cetak) obj.keterangan_cetak = keterangan_cetak;
-      if (tahapan) obj.tahapan = tahapan;
+      if (no_io) obj.no_io = no_io;
+      if (is_revisi) obj.is_revisi = is_revisi;
+      if (revisi_no_io) obj.revisi_no_io = revisi_no_io;
+      if (status_io) obj.status_io = status_io;
+
       const checkData = await Io.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
@@ -462,7 +494,12 @@ const IoController = {
         where: { id: _id },
         transaction: t,
       });
-      await IoActionUser.create(
+
+      await IoMounting.update(objMounting, {
+        where: { id_io: checkData.id },
+        transaction: t,
+      });
+      await IoUserAction.create(
         { id_Io: checkData.id, id_user: req.user.id, status: "update" },
         { transaction: t }
       );
@@ -478,180 +515,35 @@ const IoController = {
     }
   },
 
-  actionProsesTanggalIo: async (req, res) => {
+  submitRequestIo: async (req, res) => {
     const _id = req.params.id;
-    const {
-      bagian,
-      tgl_Io_desain,
-      tgl_terima_qa,
-      tgl_terima_marketing,
-      tgl_acc_customer,
-      note_Io_desain,
-      note_terima_qa,
-      note_terima_marketing,
-      note_acc_customer,
-    } = req.body;
     const t = await db.transaction();
     try {
-      let obj = {};
-      let objProses = {};
-      if (!bagian)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "bagian wajib di isi",
-        });
-      const checkData = await IoProses.findByPk(_id);
+      const checkData = await Io.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-
-      if (bagian == "desain") {
-        objProses.id_user_desain = req.user.id;
-        objProses.tgl_Io_desain = tgl_Io_desain;
-        objProses.note_Io_desain = note_Io_desain;
-
-        obj.status_proses = "request qa";
-        obj.posisi_proses = "qa";
-      } else if (bagian == "qa") {
-        objProses.id_user_qa = req.user.id;
-        objProses.tgl_terima_qa = tgl_terima_qa;
-        objProses.note_terima_qa = note_terima_qa;
-
-        obj.status_proses = "request marketing";
-        obj.posisi_proses = "marketing";
-      } else if (bagian == "marketing") {
-        objProses.id_user_terima_marketing = req.user.id;
-        objProses.tgl_terima_marketing = tgl_terima_marketing;
-        objProses.note_terima_marketing = note_terima_marketing;
-
-        obj.status_proses = "request acc customer";
-        obj.posisi_proses = "customer";
-      } else if (bagian == "customer") {
-        objProses.id_acc_customer = req.user.id;
-        objProses.tgl_acc_customer = tgl_acc_customer;
-        objProses.note_acc_customer = note_acc_customer;
-
-        obj.status_proses = "request approval kabag";
-        obj.posisi_proses = "kabag";
-      } else {
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Bagian tidak cocok dengan backend",
-        });
-      }
-      await IoProses.update(objProses, {
-        where: { id: _id },
-        transaction: t,
-      }),
-        await Io.update(obj, {
-          where: { id: checkData.id_Io },
+      await Io.update(
+        {
+          status: "requested",
+          status_proses: "request to kabag",
+        },
+        {
+          where: { id: _id },
           transaction: t,
-        }),
-        await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "Action Successful" });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
-    }
-  },
-
-  rejectProsesTanggalIo: async (req, res) => {
-    const _id = req.params.id;
-    const { bagian, note_reject } = req.body;
-    const t = await db.transaction();
-    try {
-      let obj = {};
-      let objProses = {};
-      if (!bagian)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "bagian wajib di isi",
-        });
-      const checkData = await IoProses.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-
-      if (bagian == "desain") {
-        objProses.id_user_reject = req.user.id;
-        objProses.tgl_reject = new Date();
-        objProses.bagian_reject = bagian;
-        objProses.note_reject = note_reject;
-        objProses.status = "non active";
-
-        obj.status_proses = "reject desain";
-        obj.posisi_proses = "desain";
-        obj.note_reject = note_reject;
-      } else if (bagian == "qa") {
-        objProses.id_user_reject = req.user.id;
-        objProses.tgl_reject = new Date();
-        objProses.bagian_reject = bagian;
-        objProses.note_reject = note_reject;
-        objProses.status = "non active";
-
-        obj.status_proses = "reject qa";
-        obj.posisi_proses = "desain";
-        obj.note_reject = note_reject;
-      } else if (bagian == "marketing") {
-        objProses.id_user_reject = req.user.id;
-        objProses.tgl_reject = new Date();
-        objProses.bagian_reject = bagian;
-        objProses.note_reject = note_reject;
-        objProses.status = "non active";
-
-        obj.status_proses = "reject marketing";
-        obj.posisi_proses = "desain";
-        obj.note_reject = note_reject;
-      } else if (bagian == "customer") {
-        objProses.id_user_reject = req.user.id;
-        objProses.tgl_reject = new Date();
-        objProses.bagian_reject = bagian;
-        objProses.note_reject = note_reject;
-        objProses.status = "non active";
-
-        obj.status_proses = "reject customer";
-        obj.posisi_proses = "desain";
-        obj.note_reject = note_reject;
-      } else {
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Bagian tidak cocok dengan backend",
-        });
-      }
-
-      //update reject proses
-      await IoProses.update(objProses, {
-        where: { id: _id },
-        transaction: t,
-      }),
-        // buat ulang proses baru
-        await IoProses.create(
-          {
-            id_Io: checkData.id_Io,
-          },
+        }
+      ),
+        await IoUserAction.create(
+          { id_Io: checkData.id, id_user: req.user.id, status: "submited" },
           { transaction: t }
         );
-      await Io.update(obj, {
-        where: { id: checkData.id_Io },
-        transaction: t,
-      }),
-        await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "Submit Successful" });
     } catch (error) {
       res
         .status(400)
@@ -674,15 +566,15 @@ const IoController = {
         {
           status: "history",
           status_proses: "done",
-          id_approve_Io: req.user.id,
-          tgl_approve_Io: new Date(),
+          id_approve_io: req.user.id,
+          tgl_approve_io: new Date(),
         },
         {
           where: { id: _id },
           transaction: t,
         }
       ),
-        await IoActionUser.create(
+        await IoUserAction.create(
           { id_Io: checkData.id, id_user: req.user.id, status: "approve" },
           { transaction: t }
         );
@@ -714,7 +606,7 @@ const IoController = {
       await Io.update(
         {
           status_proses: "reject kabag",
-          posisi_proses: "desain",
+          posisi_proses: "draft",
           note_reject: note_reject,
         },
         {
@@ -722,34 +614,289 @@ const IoController = {
           transaction: t,
         }
       ),
-        //setelah reject proses pengajuan tanggal di reject juga
-        await IoProses.update(
-          {
-            id_user_reject: req.user.id,
-            tgl_reject: new Date(),
-            bagian_reject: "kabag",
-            note_reject: note_reject,
-            status: "non active",
-          },
-          { where: { id: checkData.Io_proses[0].id }, transaction: t }
+        await IoUserAction.create(
+          { id_Io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+          { transaction: t }
         );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
 
-      //kemudian di buat lagi untuk proses pengajuan tanggal nya
-      await IoProses.create(
+  createMountingIo: async (req, res) => {
+    const _id = req.params.id;
+    const { nama_mounting } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await IoMounting.findAll({ where: { id_io: _id } });
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      const checkDataTahapan = await IoTahapan.findAll({
+        where: { id_mounting: checkData.id },
+      });
+
+      const dataLastMounting = checkData.reduce((prev, current) =>
+        prev.nama_mounting > current.nama_mounting ? prev : current
+      );
+
+      await IoMounting.create(
         {
-          id_Io: _id,
+          id_io: _id,
+          nama_mounting: nama_mounting,
+          keterangan_revisi: dataLastMounting.keterangan_revisi,
+          ukuran_jadi_panjang: dataLastMounting.ukuran_jadi_panjang,
+          ukuran_jadi_lebar: dataLastMounting.ukuran_jadi_lebar,
+          ukuran_jadi_tinggi: dataLastMounting.ukuran_jadi_tinggi,
+          ukuran_jadi_terb_panjang: dataLastMounting.ukuran_jadi_terb_panjang,
+          ukuran_jadi_terb_lebar: dataLastMounting.ukuran_jadi_terb_lebar,
+          warna_depan: dataLastMounting.warna_depan,
+          warna_belakang: dataLastMounting.warna_belakang,
+          jumlah_warna: dataLastMounting.jumlah_warna,
+          keterangan_warna_depan: dataLastMounting.keterangan_warna_depan,
+          keterangan_warna_belakang: dataLastMounting.keterangan_warna_belakang,
+          id_coating_depan: dataLastMounting.id_coating_depan,
+          nama_coating_depan: dataLastMounting.nama_coating_depan,
+          merk_coating_depan: dataLastMounting.merk_coating_depan,
+          id_coating_belakang: dataLastMounting.id_coating_belakang,
+          nama_coating_belakang: dataLastMounting.nama_coating_belakang,
+          merk_coating_belakang: dataLastMounting.merk_coating_belakang,
+          merk_serat_kertas: dataLastMounting.merk_serat_kertas,
+          jenis_kertas: dataLastMounting.jenis_kertas,
+          id_kertas: dataLastMounting.id_kertas,
+          nama_kertas: dataLastMounting.nama_kertas,
+          gramature_kertas: dataLastMounting.gramature_kertas,
+          panjang_plano: dataLastMounting.panjang_plano,
+          lebar_plano: dataLastMounting.lebar_plano,
+          panjang_layout: dataLastMounting.panjang_layout,
+          lebar_layout: dataLastMounting.lebar_layout,
+          ukuran_cetak_panjang_1: dataLastMounting.ukuran_cetak_panjang_1,
+          ukuran_cetak_lebar_1: dataLastMounting.ukuran_cetak_lebar_1,
+          ukuran_cetak_bagian_1: dataLastMounting.ukuran_cetak_bagian_1,
+          ukuran_cetak_isi_1: dataLastMounting.ukuran_cetak_isi_1,
+          ukuran_cetak_panjang_2: dataLastMounting.ukuran_cetak_panjang_2,
+          ukuran_cetak_lebar_2: dataLastMounting.ukuran_cetak_lebar_2,
+          ukuran_cetak_bagian_2: dataLastMounting.ukuran_cetak_bagian_2,
+          ukuran_cetak_isi_2: dataLastMounting.ukuran_cetak_isi_2,
+          id_layout: dataLastMounting.id_layout,
+          id_jenis_pons: dataLastMounting.id_jenis_pons,
+          nama_jenis_pons: dataLastMounting.nama_jenis_pons,
+          keterangan_jenis_pons: dataLastMounting.keterangan_jenis_pons,
+          id_lem: dataLastMounting.id_lem,
+          nama_lem: dataLastMounting.nama_lem,
+          merk_komp_lem: dataLastMounting.merk_komp_lem,
+          keterangan_lem: dataLastMounting.keterangan_lem,
+          isi_dalam_1_pack: dataLastMounting.isi_dalam_1_pack,
+          jenis_pack: dataLastMounting.jenis_pack,
+          keterangan_pack: dataLastMounting.keterangan_pack,
+          lampiran: dataLastMounting.lampiran,
+          is_ukuran_partisi_sekat: dataLastMounting.is_ukuran_partisi_sekat,
+          panjang_partisi_1: dataLastMounting.panjang_partisi_1,
+          lebar_partisi_1: dataLastMounting.lebar_partisi_1,
+          panjang_partisi_2: dataLastMounting.panjang_partisi_2,
+          lebar_partisi_2: dataLastMounting.lebar_partisi_2,
+          tambahan_insheet_druk: dataLastMounting.tambahan_insheet_druk,
         },
         { transaction: t }
       );
 
-      await IoActionUser.create(
-        { id_Io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+      for (let i = 0; i < checkDataTahapan.length; i++) {
+        const e = checkDataTahapan[i];
+        await IoTahapan.create(
+          {
+            id_io: _id,
+            id_io_mounting: checkData.id,
+            id_tahapan_mesin: e.id_tahapan_mesin,
+            id_setting_kapasitas: e.id_setting_kapasitas,
+            id_drying_time: e.id_drying_time,
+            nama_proses: e.nama_proses,
+            nama_mesin: e.nama_mesin,
+            nama_setting_kapasitas: e.nama_setting_kapasitas,
+            value_setting_kapasitas: e.value_setting_kapasitas,
+            nama_drying_time: e.nama_drying_time,
+            value_drying_time: e.value_drying_time,
+            index: e.index,
+          },
+          { transaction: t }
+        );
+      }
+
+      await IoUserAction.create(
+        {
+          id_Io: checkData.id,
+          id_user: req.user.id,
+          status: "create mounting",
+        },
         { transaction: t }
       );
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  updateMountingIo: async (req, res) => {
+    const _id = req.params.id;
+    const { data_mounting } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await IoMounting.findAll({ where: { id: _id } });
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      await IoMounting.update(
+        {
+          id_io: _id,
+          keterangan_revisi: data_mounting.keterangan_revisi,
+          ukuran_jadi_panjang: data_mounting.ukuran_jadi_panjang,
+          ukuran_jadi_lebar: data_mounting.ukuran_jadi_lebar,
+          ukuran_jadi_tinggi: data_mounting.ukuran_jadi_tinggi,
+          ukuran_jadi_terb_panjang: data_mounting.ukuran_jadi_terb_panjang,
+          ukuran_jadi_terb_lebar: data_mounting.ukuran_jadi_terb_lebar,
+          warna_depan: data_mounting.warna_depan,
+          warna_belakang: data_mounting.warna_belakang,
+          jumlah_warna: data_mounting.jumlah_warna,
+          keterangan_warna_depan: data_mounting.keterangan_warna_depan,
+          keterangan_warna_belakang: data_mounting.keterangan_warna_belakang,
+          id_coating_depan: data_mounting.id_coating_depan,
+          nama_coating_depan: data_mounting.nama_coating_depan,
+          merk_coating_depan: data_mounting.merk_coating_depan,
+          id_coating_belakang: data_mounting.id_coating_belakang,
+          nama_coating_belakang: data_mounting.nama_coating_belakang,
+          merk_coating_belakang: data_mounting.merk_coating_belakang,
+          merk_serat_kertas: data_mounting.merk_serat_kertas,
+          jenis_kertas: data_mounting.jenis_kertas,
+          id_kertas: data_mounting.id_kertas,
+          nama_kertas: data_mounting.nama_kertas,
+          gramature_kertas: data_mounting.gramature_kertas,
+          panjang_plano: data_mounting.panjang_plano,
+          lebar_plano: data_mounting.lebar_plano,
+          panjang_layout: data_mounting.panjang_layout,
+          lebar_layout: data_mounting.lebar_layout,
+          ukuran_cetak_panjang_1: data_mounting.ukuran_cetak_panjang_1,
+          ukuran_cetak_lebar_1: data_mounting.ukuran_cetak_lebar_1,
+          ukuran_cetak_bagian_1: data_mounting.ukuran_cetak_bagian_1,
+          ukuran_cetak_isi_1: data_mounting.ukuran_cetak_isi_1,
+          ukuran_cetak_panjang_2: data_mounting.ukuran_cetak_panjang_2,
+          ukuran_cetak_lebar_2: data_mounting.ukuran_cetak_lebar_2,
+          ukuran_cetak_bagian_2: data_mounting.ukuran_cetak_bagian_2,
+          ukuran_cetak_isi_2: data_mounting.ukuran_cetak_isi_2,
+          id_layout: data_mounting.id_layout,
+          id_jenis_pons: data_mounting.id_jenis_pons,
+          nama_jenis_pons: data_mounting.nama_jenis_pons,
+          keterangan_jenis_pons: data_mounting.keterangan_jenis_pons,
+          id_lem: data_mounting.id_lem,
+          nama_lem: data_mounting.nama_lem,
+          merk_komp_lem: data_mounting.merk_komp_lem,
+          keterangan_lem: data_mounting.keterangan_lem,
+          isi_dalam_1_pack: data_mounting.isi_dalam_1_pack,
+          jenis_pack: data_mounting.jenis_pack,
+          keterangan_pack: data_mounting.keterangan_pack,
+          lampiran: data_mounting.lampiran,
+          is_ukuran_partisi_sekat: data_mounting.is_ukuran_partisi_sekat,
+          panjang_partisi_1: data_mounting.panjang_partisi_1,
+          lebar_partisi_1: data_mounting.lebar_partisi_1,
+          panjang_partisi_2: data_mounting.panjang_partisi_2,
+          lebar_partisi_2: data_mounting.lebar_partisi_2,
+          tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
+        },
+        { transaction: t }
+      );
+
+      // Ambil semua data lama dari database
+      const dataFromDatabase = await IoTahapan.findAll({
+        where: { id_mounting: _id },
+      });
+
+      const dbIds = dataFromDatabase.map((d) => d.id);
+      const inputIds = data_mounting.tahapan
+        .filter((d) => d.id !== null)
+        .map((d) => d.id);
+
+      // 1. DELETE → id yg ada di DB tapi tidak ada di input
+      const idsToDelete = dbIds.filter((id) => !inputIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await IoTahapan.destroy({
+          where: { id: idsToDelete },
+          transaction: t,
+        });
+      }
+
+      // 2. UPDATE & CREATE
+      for (const item of dataUpdate) {
+        if (item.id === null) {
+          // CREATE
+          await IoTahapan.create(
+            {
+              id_io: checkData.id_io,
+              id_io_mounting: _id,
+              id_tahapan_mesin: item.id_tahapan_mesin,
+              id_setting_kapasitas: item.id_setting_kapasitas,
+              id_drying_time: item.id_drying_time,
+              nama_proses: item.nama_proses,
+              nama_mesin: item.nama_mesin,
+              nama_setting_kapasitas: item.nama_setting_kapasitas,
+              value_setting_kapasitas: item.value_setting_kapasitas,
+              nama_drying_time: item.nama_drying_time,
+              value_drying_time: item.value_drying_time,
+              index: item.index,
+            },
+            { transaction: t }
+          );
+        } else {
+          // UPDATE
+          await IoTahapan.update(
+            {
+              id_tahapan_mesin: item.id_tahapan_mesin,
+              id_setting_kapasitas: item.id_setting_kapasitas,
+              id_drying_time: item.id_drying_time,
+              nama_proses: item.nama_proses,
+              nama_mesin: item.nama_mesin,
+              nama_setting_kapasitas: item.nama_setting_kapasitas,
+              value_setting_kapasitas: item.value_setting_kapasitas,
+              nama_drying_time: item.nama_drying_time,
+              value_drying_time: item.value_drying_time,
+              index: item.index,
+            },
+            {
+              where: { id: item.id },
+              transaction: t,
+            }
+          );
+        }
+      }
+
+      await IoUserAction.create(
+        {
+          id_Io: checkData.id,
+          id_user: req.user.id,
+          status: "create mounting",
+        },
+        { transaction: t }
+      );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       res
         .status(400)
