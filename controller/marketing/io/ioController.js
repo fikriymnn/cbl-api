@@ -146,13 +146,14 @@ const IoController = {
           status_code: 404,
           msg: "Data Kalkulasi tidak ditemukan",
         });
+
       const response = await Io.create(
         {
           id_okp: id_okp,
           id_create_io: req.user.id,
           no_io: no_io,
-          customer: checkOkp.nama_customer,
-          produk: checkOkp.nama_produk,
+          customer: checkOkp.customer,
+          produk: checkOkp.produk,
           status_io: status_io,
           is_revisi: is_revisi,
           revisi_no_io: revisi_no_io,
@@ -203,7 +204,7 @@ const IoController = {
       //default potong
       if (checkKalkulasi.id_mesin_potong) {
         const tahapanMesin = await MasterTahapanMesin.findByPk(
-          id_mesin_potong,
+          checkKalkulasi.id_mesin_potong,
           {
             include: [
               {
@@ -214,6 +215,7 @@ const IoController = {
             ],
           }
         );
+
         if (!tahapanMesin)
           return res.status(404).json({
             succes: false,
@@ -223,8 +225,8 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_potong,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 1,
@@ -236,7 +238,7 @@ const IoController = {
       //default coating
       if (checkKalkulasi.id_mesin_coating_depan) {
         const tahapanMesin = await MasterTahapanMesin.findByPk(
-          id_mesin_coating_depan,
+          checkKalkulasi.id_mesin_coating_depan,
           {
             include: [
               {
@@ -256,8 +258,8 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_coating_depan,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 2,
@@ -268,98 +270,8 @@ const IoController = {
 
       //default pond
       if (checkKalkulasi.id_mesin_pons) {
-        const tahapanMesin = await MasterTahapanMesin.findByPk(id_mesin_pons, {
-          include: [
-            {
-              model: MasterMesinTahapan,
-              as: "mesin",
-            },
-            { model: MasterTahapan, as: "tahapan" },
-          ],
-        });
-        if (!tahapanMesin)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Data tahapan mesin pond tidak ditemukan",
-          });
-        await IoTahapan.create(
-          {
-            id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
-            nama_proses: tahapanMesin.tahapan.nama_tahapan,
-            nama_mesin: tahapanMesin.mesin.nama_mesin,
-            index: 3,
-          },
-          { transaction: t }
-        );
-      }
-
-      //default pond
-      if (checkKalkulasi.id_mesin_pons) {
-        const tahapanMesin = await MasterTahapanMesin.findByPk(id_mesin_pons, {
-          include: [
-            {
-              model: MasterMesinTahapan,
-              as: "mesin",
-            },
-            { model: MasterTahapan, as: "tahapan" },
-          ],
-        });
-        if (!tahapanMesin)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Data tahapan mesin pond tidak ditemukan",
-          });
-        await IoTahapan.create(
-          {
-            id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
-            nama_proses: tahapanMesin.tahapan.nama_tahapan,
-            nama_mesin: tahapanMesin.mesin.nama_mesin,
-            index: 4,
-          },
-          { transaction: t }
-        );
-      }
-
-      //default lipat
-      if (checkKalkulasi.id_mesin_lipat) {
-        const tahapanMesin = await MasterTahapanMesin.findByPk(id_mesin_lipat, {
-          include: [
-            {
-              model: MasterMesinTahapan,
-              as: "mesin",
-            },
-            { model: MasterTahapan, as: "tahapan" },
-          ],
-        });
-        if (!tahapanMesin)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Data tahapan mesin pond tidak ditemukan",
-          });
-        await IoTahapan.create(
-          {
-            id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
-            nama_proses: tahapanMesin.tahapan.nama_tahapan,
-            nama_mesin: tahapanMesin.mesin.nama_mesin,
-            index: 5,
-          },
-          { transaction: t }
-        );
-      }
-
-      //default finishing
-      if (checkKalkulasi.id_mesin_finishing) {
         const tahapanMesin = await MasterTahapanMesin.findByPk(
-          id_mesin_finishing,
+          checkKalkulasi.id_mesin_pons,
           {
             include: [
               {
@@ -379,8 +291,74 @@ const IoController = {
         await IoTahapan.create(
           {
             id_io: response.id,
-            id_mounting: dataMounting.id,
-            id_tahapan_mesin: id_mesin_potong,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_pons,
+            nama_proses: tahapanMesin.tahapan.nama_tahapan,
+            nama_mesin: tahapanMesin.mesin.nama_mesin,
+            index: 3,
+          },
+          { transaction: t }
+        );
+      }
+
+      //default pond
+      if (checkKalkulasi.id_mesin_pons) {
+        const tahapanMesin = await MasterTahapanMesin.findByPk(
+          checkKalkulasi.id_mesin_pons,
+          {
+            include: [
+              {
+                model: MasterMesinTahapan,
+                as: "mesin",
+              },
+              { model: MasterTahapan, as: "tahapan" },
+            ],
+          }
+        );
+        if (!tahapanMesin)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data tahapan mesin pond tidak ditemukan",
+          });
+        await IoTahapan.create(
+          {
+            id_io: response.id,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_pons,
+            nama_proses: tahapanMesin.tahapan.nama_tahapan,
+            nama_mesin: tahapanMesin.mesin.nama_mesin,
+            index: 4,
+          },
+          { transaction: t }
+        );
+      }
+
+      //default lipat
+      if (checkKalkulasi.id_mesin_lipat) {
+        const tahapanMesin = await MasterTahapanMesin.findByPk(
+          checkKalkulasi.id_mesin_lipat,
+          {
+            include: [
+              {
+                model: MasterMesinTahapan,
+                as: "mesin",
+              },
+              { model: MasterTahapan, as: "tahapan" },
+            ],
+          }
+        );
+        if (!tahapanMesin)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data tahapan mesin pond tidak ditemukan",
+          });
+        await IoTahapan.create(
+          {
+            id_io: response.id,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_lipat,
             nama_proses: tahapanMesin.tahapan.nama_tahapan,
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 5,
@@ -389,14 +367,39 @@ const IoController = {
         );
       }
 
-      await IoUserAction.create(
-        {
-          id_Io: response.id,
-          id_user: req.user.id,
-          status: "create",
-        },
-        { transaction: t }
-      );
+      //default finishing
+      if (checkKalkulasi.id_mesin_finishing) {
+        const tahapanMesin = await MasterTahapanMesin.findByPk(
+          checkKalkulasi.id_mesin_finishing,
+          {
+            include: [
+              {
+                model: MasterMesinTahapan,
+                as: "mesin",
+              },
+              { model: MasterTahapan, as: "tahapan" },
+            ],
+          }
+        );
+        if (!tahapanMesin)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data tahapan mesin pond tidak ditemukan",
+          });
+        await IoTahapan.create(
+          {
+            id_io: response.id,
+            id_io_mounting: dataMounting.id,
+            id_tahapan_mesin: checkKalkulasi.id_mesin_finishing,
+            nama_proses: tahapanMesin.tahapan.nama_tahapan,
+            nama_mesin: tahapanMesin.mesin.nama_mesin,
+            index: 5,
+          },
+          { transaction: t }
+        );
+      }
+
       await t.commit();
       return res.status(200).json({
         succes: true,
@@ -500,7 +503,7 @@ const IoController = {
         transaction: t,
       });
       await IoUserAction.create(
-        { id_Io: checkData.id, id_user: req.user.id, status: "update" },
+        { id_io: checkData.id, id_user: req.user.id, status: "update" },
         { transaction: t }
       );
       await t.commit(),
@@ -537,7 +540,7 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_Io: checkData.id, id_user: req.user.id, status: "submited" },
+          { id_io: checkData.id, id_user: req.user.id, status: "submited" },
           { transaction: t }
         );
       await t.commit(),
@@ -575,7 +578,7 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_Io: checkData.id, id_user: req.user.id, status: "approve" },
+          { id_io: checkData.id, id_user: req.user.id, status: "approve" },
           { transaction: t }
         );
       await t.commit(),
@@ -615,7 +618,7 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_Io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+          { id_io: checkData.id, id_user: req.user.id, status: "kabag reject" },
           { transaction: t }
         );
       await t.commit(),
@@ -733,7 +736,7 @@ const IoController = {
 
       await IoUserAction.create(
         {
-          id_Io: checkData.id,
+          id_io: checkData.id,
           id_user: req.user.id,
           status: "create mounting",
         },
@@ -887,9 +890,9 @@ const IoController = {
 
       await IoUserAction.create(
         {
-          id_Io: checkData.id,
+          id_io: checkData.id,
           id_user: req.user.id,
-          status: "create mounting",
+          status: "update mounting",
         },
         { transaction: t }
       );
@@ -922,7 +925,15 @@ const IoController = {
           transaction: t,
         }
       ),
-        await t.commit(),
+        await IoUserAction.create(
+          {
+            id_io: checkData.id,
+            id_user: req.user.id,
+            status: "delete io",
+          },
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "Delete Successful" });
