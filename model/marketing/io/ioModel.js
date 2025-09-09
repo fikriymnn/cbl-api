@@ -64,7 +64,7 @@ const io = db.define(
       defaultValue: false,
     },
     revisi_no_io: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.STRING,
       allowNull: true,
       defaultValue: false,
     },
