@@ -540,13 +540,13 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_io: checkData.id, id_user: req.user.id, status: "submited" },
+          { id_io: checkData.id, id_user: req.user.id, status: "requested" },
           { transaction: t }
         );
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Submit Successful" });
+          .json({ succes: true, status_code: 200, msg: "Request Successful" });
     } catch (error) {
       res
         .status(400)
