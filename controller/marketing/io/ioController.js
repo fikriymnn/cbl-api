@@ -540,13 +540,13 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_io: checkData.id, id_user: req.user.id, status: "submited" },
+          { id_io: checkData.id, id_user: req.user.id, status: "requested" },
           { transaction: t }
         );
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Submit Successful" });
+          .json({ succes: true, status_code: 200, msg: "Request Successful" });
     } catch (error) {
       res
         .status(400)
@@ -634,7 +634,7 @@ const IoController = {
 
   createMountingIo: async (req, res) => {
     const _id = req.params.id;
-    const { nama_mounting } = req.body;
+    const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
       const checkData = await IoMounting.findAll({ where: { id_io: _id } });
@@ -655,10 +655,6 @@ const IoController = {
           msg: "Data mounting A tidak ditemukan",
         });
 
-      const checkDataTahapan = await IoTahapan.findAll({
-        where: { id_mounting: checkDataMountingA.id },
-      });
-
       const dataLastMounting = checkData.reduce((prev, current) =>
         prev.nama_mounting > current.nama_mounting ? prev : current
       );
@@ -669,119 +665,6 @@ const IoController = {
         {
           id_io: _id,
           nama_mounting: namaMounting,
-          keterangan_revisi: checkDataMountingA.keterangan_revisi,
-          ukuran_jadi_panjang: checkDataMountingA.ukuran_jadi_panjang,
-          ukuran_jadi_lebar: checkDataMountingA.ukuran_jadi_lebar,
-          ukuran_jadi_tinggi: checkDataMountingA.ukuran_jadi_tinggi,
-          ukuran_jadi_terb_panjang: checkDataMountingA.ukuran_jadi_terb_panjang,
-          ukuran_jadi_terb_lebar: checkDataMountingA.ukuran_jadi_terb_lebar,
-          warna_depan: checkDataMountingA.warna_depan,
-          warna_belakang: checkDataMountingA.warna_belakang,
-          jumlah_warna: checkDataMountingA.jumlah_warna,
-          keterangan_warna_depan: checkDataMountingA.keterangan_warna_depan,
-          keterangan_warna_belakang:
-            checkDataMountingA.keterangan_warna_belakang,
-          id_coating_depan: checkDataMountingA.id_coating_depan,
-          nama_coating_depan: checkDataMountingA.nama_coating_depan,
-          merk_coating_depan: checkDataMountingA.merk_coating_depan,
-          id_coating_belakang: checkDataMountingA.id_coating_belakang,
-          nama_coating_belakang: checkDataMountingA.nama_coating_belakang,
-          merk_coating_belakang: checkDataMountingA.merk_coating_belakang,
-          merk_serat_kertas: checkDataMountingA.merk_serat_kertas,
-          jenis_kertas: checkDataMountingA.jenis_kertas,
-          id_kertas: checkDataMountingA.id_kertas,
-          nama_kertas: checkDataMountingA.nama_kertas,
-          gramature_kertas: checkDataMountingA.gramature_kertas,
-          panjang_plano: checkDataMountingA.panjang_plano,
-          lebar_plano: checkDataMountingA.lebar_plano,
-          panjang_layout: checkDataMountingA.panjang_layout,
-          lebar_layout: checkDataMountingA.lebar_layout,
-          ukuran_cetak_panjang_1: checkDataMountingA.ukuran_cetak_panjang_1,
-          ukuran_cetak_lebar_1: checkDataMountingA.ukuran_cetak_lebar_1,
-          ukuran_cetak_bagian_1: checkDataMountingA.ukuran_cetak_bagian_1,
-          ukuran_cetak_isi_1: checkDataMountingA.ukuran_cetak_isi_1,
-          ukuran_cetak_panjang_2: checkDataMountingA.ukuran_cetak_panjang_2,
-          ukuran_cetak_lebar_2: checkDataMountingA.ukuran_cetak_lebar_2,
-          ukuran_cetak_bagian_2: checkDataMountingA.ukuran_cetak_bagian_2,
-          ukuran_cetak_isi_2: checkDataMountingA.ukuran_cetak_isi_2,
-          id_layout: checkDataMountingA.id_layout,
-          id_jenis_pons: checkDataMountingA.id_jenis_pons,
-          nama_jenis_pons: checkDataMountingA.nama_jenis_pons,
-          keterangan_jenis_pons: checkDataMountingA.keterangan_jenis_pons,
-          id_lem: checkDataMountingA.id_lem,
-          nama_lem: checkDataMountingA.nama_lem,
-          merk_komp_lem: checkDataMountingA.merk_komp_lem,
-          keterangan_lem: checkDataMountingA.keterangan_lem,
-          isi_dalam_1_pack: checkDataMountingA.isi_dalam_1_pack,
-          jenis_pack: checkDataMountingA.jenis_pack,
-          keterangan_pack: checkDataMountingA.keterangan_pack,
-          lampiran: checkDataMountingA.lampiran,
-          is_ukuran_partisi_sekat: checkDataMountingA.is_ukuran_partisi_sekat,
-          panjang_partisi_1: checkDataMountingA.panjang_partisi_1,
-          lebar_partisi_1: checkDataMountingA.lebar_partisi_1,
-          panjang_partisi_2: checkDataMountingA.panjang_partisi_2,
-          lebar_partisi_2: checkDataMountingA.lebar_partisi_2,
-          tambahan_insheet_druk: checkDataMountingA.tambahan_insheet_druk,
-        },
-        { transaction: t }
-      );
-
-      for (let i = 0; i < checkDataTahapan.length; i++) {
-        const e = checkDataTahapan[i];
-        await IoTahapan.create(
-          {
-            id_io: _id,
-            id_io_mounting: newMounting.id,
-            id_tahapan_mesin: e.id_tahapan_mesin,
-            id_setting_kapasitas: e.id_setting_kapasitas,
-            id_drying_time: e.id_drying_time,
-            nama_proses: e.nama_proses,
-            nama_mesin: e.nama_mesin,
-            nama_setting_kapasitas: e.nama_setting_kapasitas,
-            value_setting_kapasitas: e.value_setting_kapasitas,
-            nama_drying_time: e.nama_drying_time,
-            value_drying_time: e.value_drying_time,
-            index: e.index,
-          },
-          { transaction: t }
-        );
-      }
-
-      await IoUserAction.create(
-        {
-          id_io: checkData.id,
-          id_user: req.user.id,
-          status: "create mounting",
-        },
-        { transaction: t }
-      );
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
-    }
-  },
-
-  updateMountingIo: async (req, res) => {
-    const _id = req.params.id;
-    const { data_mounting } = req.body;
-    const t = await db.transaction();
-    try {
-      const checkData = await IoMounting.findAll({ where: { id: _id } });
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-
-      await IoMounting.update(
-        {
-          id_io: _id,
           keterangan_revisi: data_mounting.keterangan_revisi,
           ukuran_jadi_panjang: data_mounting.ukuran_jadi_panjang,
           ukuran_jadi_lebar: data_mounting.ukuran_jadi_lebar,
@@ -838,9 +721,120 @@ const IoController = {
         { transaction: t }
       );
 
+      for (let i = 0; i < data_mounting.tahapan.length; i++) {
+        const e = data_mounting.tahapan[i];
+        await IoTahapan.create(
+          {
+            id_io: _id,
+            id_io_mounting: newMounting.id,
+            id_tahapan_mesin: e.id_tahapan_mesin,
+            id_setting_kapasitas: e.id_setting_kapasitas,
+            id_drying_time: e.id_drying_time,
+            nama_proses: e.nama_proses,
+            nama_mesin: e.nama_mesin,
+            nama_setting_kapasitas: e.nama_setting_kapasitas,
+            value_setting_kapasitas: e.value_setting_kapasitas,
+            nama_drying_time: e.nama_drying_time,
+            value_drying_time: e.value_drying_time,
+            index: e.index,
+          },
+          { transaction: t }
+        );
+      }
+
+      await IoUserAction.create(
+        {
+          id_io: checkData.id,
+          id_user: req.user.id,
+          status: "create mounting",
+        },
+        { transaction: t }
+      );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  updateMountingIo: async (req, res) => {
+    const _id = req.params.id;
+    const { data_mounting } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await IoMounting.findAll({ where: { id: _id } });
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      await IoMounting.update(
+        {
+          keterangan_revisi: data_mounting.keterangan_revisi,
+          ukuran_jadi_panjang: data_mounting.ukuran_jadi_panjang,
+          ukuran_jadi_lebar: data_mounting.ukuran_jadi_lebar,
+          ukuran_jadi_tinggi: data_mounting.ukuran_jadi_tinggi,
+          ukuran_jadi_terb_panjang: data_mounting.ukuran_jadi_terb_panjang,
+          ukuran_jadi_terb_lebar: data_mounting.ukuran_jadi_terb_lebar,
+          warna_depan: data_mounting.warna_depan,
+          warna_belakang: data_mounting.warna_belakang,
+          jumlah_warna: data_mounting.jumlah_warna,
+          keterangan_warna_depan: data_mounting.keterangan_warna_depan,
+          keterangan_warna_belakang: data_mounting.keterangan_warna_belakang,
+          id_coating_depan: data_mounting.id_coating_depan,
+          nama_coating_depan: data_mounting.nama_coating_depan,
+          merk_coating_depan: data_mounting.merk_coating_depan,
+          id_coating_belakang: data_mounting.id_coating_belakang,
+          nama_coating_belakang: data_mounting.nama_coating_belakang,
+          merk_coating_belakang: data_mounting.merk_coating_belakang,
+          merk_serat_kertas: data_mounting.merk_serat_kertas,
+          jenis_kertas: data_mounting.jenis_kertas,
+          id_kertas: data_mounting.id_kertas,
+          nama_kertas: data_mounting.nama_kertas,
+          gramature_kertas: data_mounting.gramature_kertas,
+          panjang_plano: data_mounting.panjang_plano,
+          lebar_plano: data_mounting.lebar_plano,
+          panjang_layout: data_mounting.panjang_layout,
+          lebar_layout: data_mounting.lebar_layout,
+          ukuran_cetak_panjang_1: data_mounting.ukuran_cetak_panjang_1,
+          ukuran_cetak_lebar_1: data_mounting.ukuran_cetak_lebar_1,
+          ukuran_cetak_bagian_1: data_mounting.ukuran_cetak_bagian_1,
+          ukuran_cetak_isi_1: data_mounting.ukuran_cetak_isi_1,
+          ukuran_cetak_panjang_2: data_mounting.ukuran_cetak_panjang_2,
+          ukuran_cetak_lebar_2: data_mounting.ukuran_cetak_lebar_2,
+          ukuran_cetak_bagian_2: data_mounting.ukuran_cetak_bagian_2,
+          ukuran_cetak_isi_2: data_mounting.ukuran_cetak_isi_2,
+          id_layout: data_mounting.id_layout,
+          id_jenis_pons: data_mounting.id_jenis_pons,
+          nama_jenis_pons: data_mounting.nama_jenis_pons,
+          keterangan_jenis_pons: data_mounting.keterangan_jenis_pons,
+          id_lem: data_mounting.id_lem,
+          nama_lem: data_mounting.nama_lem,
+          merk_komp_lem: data_mounting.merk_komp_lem,
+          keterangan_lem: data_mounting.keterangan_lem,
+          isi_dalam_1_pack: data_mounting.isi_dalam_1_pack,
+          jenis_pack: data_mounting.jenis_pack,
+          keterangan_pack: data_mounting.keterangan_pack,
+          lampiran: data_mounting.lampiran,
+          is_ukuran_partisi_sekat: data_mounting.is_ukuran_partisi_sekat,
+          panjang_partisi_1: data_mounting.panjang_partisi_1,
+          lebar_partisi_1: data_mounting.lebar_partisi_1,
+          panjang_partisi_2: data_mounting.panjang_partisi_2,
+          lebar_partisi_2: data_mounting.lebar_partisi_2,
+          tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
       // Ambil semua data lama dari database
       const dataFromDatabase = await IoTahapan.findAll({
-        where: { id_mounting: _id },
+        where: { id_io_mounting: _id },
       });
 
       const dbIds = dataFromDatabase.map((d) => d.id);
@@ -851,50 +845,54 @@ const IoController = {
       // 1. DELETE → id yg ada di DB tapi tidak ada di input
       const idsToDelete = dbIds.filter((id) => !inputIds.includes(id));
       if (idsToDelete.length > 0) {
-        await IoTahapan.destroy({
-          where: { id: idsToDelete },
-          transaction: t,
-        });
+        for (let i = 0; i < idsToDelete.length; i++) {
+          const e = idsToDelete[i];
+
+          await IoTahapan.destroy({
+            where: { id: e },
+            transaction: t,
+          });
+        }
       }
 
       // 2. UPDATE & CREATE
-      for (const item of dataUpdate) {
-        if (item.id === null) {
-          // CREATE
+      for (let index = 0; index < data_mounting.tahapan.length; index++) {
+        const e = data_mounting.tahapan[index];
+
+        if (e.id === null) {
           await IoTahapan.create(
             {
               id_io: checkData.id_io,
               id_io_mounting: _id,
-              id_tahapan_mesin: item.id_tahapan_mesin,
-              id_setting_kapasitas: item.id_setting_kapasitas,
-              id_drying_time: item.id_drying_time,
-              nama_proses: item.nama_proses,
-              nama_mesin: item.nama_mesin,
-              nama_setting_kapasitas: item.nama_setting_kapasitas,
-              value_setting_kapasitas: item.value_setting_kapasitas,
-              nama_drying_time: item.nama_drying_time,
-              value_drying_time: item.value_drying_time,
-              index: item.index,
+              id_tahapan_mesin: e.id_tahapan_mesin,
+              id_setting_kapasitas: e.id_setting_kapasitas,
+              id_drying_time: e.id_drying_time,
+              nama_proses: e.nama_proses,
+              nama_mesin: e.nama_mesin,
+              nama_setting_kapasitas: e.nama_setting_kapasitas,
+              value_setting_kapasitas: e.value_setting_kapasitas,
+              nama_drying_time: e.nama_drying_time,
+              value_drying_time: e.value_drying_time,
+              index: e.index,
             },
             { transaction: t }
           );
         } else {
-          // UPDATE
           await IoTahapan.update(
             {
-              id_tahapan_mesin: item.id_tahapan_mesin,
-              id_setting_kapasitas: item.id_setting_kapasitas,
-              id_drying_time: item.id_drying_time,
-              nama_proses: item.nama_proses,
-              nama_mesin: item.nama_mesin,
-              nama_setting_kapasitas: item.nama_setting_kapasitas,
-              value_setting_kapasitas: item.value_setting_kapasitas,
-              nama_drying_time: item.nama_drying_time,
-              value_drying_time: item.value_drying_time,
-              index: item.index,
+              id_tahapan_mesin: e.id_tahapan_mesin,
+              id_setting_kapasitas: e.id_setting_kapasitas,
+              id_drying_time: e.id_drying_time,
+              nama_proses: e.nama_proses,
+              nama_mesin: e.nama_mesin,
+              nama_setting_kapasitas: e.nama_setting_kapasitas,
+              value_setting_kapasitas: e.value_setting_kapasitas,
+              nama_drying_time: e.nama_drying_time,
+              value_drying_time: e.value_drying_time,
+              index: e.index,
             },
             {
-              where: { id: item.id },
+              where: { id: e.id },
               transaction: t,
             }
           );

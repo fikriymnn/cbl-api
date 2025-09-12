@@ -308,7 +308,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await Io.sync({ alter: true });
+//   await IoTahapan.sync({ alter: true });
 // })();
 
 // const ip100 = 75
