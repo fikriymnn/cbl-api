@@ -293,6 +293,10 @@ const IoMounting = require("./model/marketing/io/ioMountingModel");
 const IoTahapan = require("./model/marketing/io/ioTahapanModel");
 const IoUserAction = require("./model/marketing/io/ioActionActionModel");
 
+//so
+const So = require("./model/marketing/so/soModel");
+const SoUserAction = require("./model/marketing/so/soUserActionModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -308,7 +312,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await IoTahapan.sync({ alter: true });
+//   await SoUserAction.sync({ alter: true });
 // })();
 
 // const ip100 = 75
