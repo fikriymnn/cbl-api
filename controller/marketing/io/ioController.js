@@ -47,7 +47,6 @@ const IoController = {
         const length = await Io.count({ where: obj });
         const data = await Io.findAll({
           where: obj,
-
           offset: parseInt(offset),
           limit: parseInt(limit),
         });
@@ -103,6 +102,19 @@ const IoController = {
       } else {
         const response = await Io.findAll({
           where: obj,
+          include: [
+            {
+              model: Okp,
+              as: "okp",
+              attributes: ["id", "id_kalkulasi"],
+              include: [
+                {
+                  model: Kalkulasi,
+                  as: "kalkulasi",
+                },
+              ],
+            },
+          ],
         });
         res
           .status(200)
