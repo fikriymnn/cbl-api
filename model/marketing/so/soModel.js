@@ -1,30 +1,22 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const Kalkulasi = require("../kalkulasi/kalkulasiModel");
+const Io = require("../io/ioModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const okp = db.define(
-  "okp",
+const so = db.define(
+  "so",
   {
-    id_kalkulasi: {
+    id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Kalkulasi,
+        model: Io,
         key: "id",
       },
     },
-    id_create_okp: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: Users,
-        key: "id",
-      },
-    },
-    id_approve_okp: {
+    id_create_so: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -32,12 +24,23 @@ const okp = db.define(
         key: "id",
       },
     },
-    tgl_approve_okp: {
+    id_approve_so: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+    tgl_approve_so: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-
-    no_okp: {
+    no_io: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_so: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -49,51 +52,54 @@ const okp = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_pembuatan_okp: {
+    tgl_pembuatan_so: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: new Date(),
     },
-    status_okp: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "baru",
-    },
-    tgl_target_marketing: {
+    tgl_input_po: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: new Date(),
     },
-    jenis_pekerjaan: {
-      type: DataTypes.JSON,
-      allowNull: true,
-    },
-    tahapan: {
-      type: DataTypes.JSON,
-      allowNull: true,
-    },
-    id_pisau: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    file_spek_customer: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    rencana_qty_po: {
+    id_so_cancel: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      defaultValue: 0,
     },
-    rencana_tgl_kirim: {
+    so_cancel: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    status_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status_produk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tgl_acc_customer: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    status_po: {
-      type: DataTypes.STRING,
+    tgl_po_customer: {
+      type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: "tidak",
     },
-    keterangan_cetak: {
+    po_qty: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    harga_jual: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    total_harga: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    no_po_customer: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -101,20 +107,35 @@ const okp = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    ppn: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    profit: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    tgl_pengiriman: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    alamat_pengiriman: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    ada_standar_warna: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "on progress",
+      defaultValue: "draft",
     },
     status_proses: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "request desain",
-    },
-    posisi_proses: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "desain",
+      defaultValue: "draft",
     },
     note_reject: {
       type: DataTypes.STRING,
@@ -132,31 +153,31 @@ const okp = db.define(
   }
 );
 
-Kalkulasi.hasMany(okp, {
-  foreignKey: "id_kalkulasi",
-  as: "okp",
+Io.hasMany(so, {
+  foreignKey: "id_io",
+  as: "so",
 });
-okp.belongsTo(Kalkulasi, {
-  foreignKey: "id_kalkulasi",
-  as: "kalkulasi",
+so.belongsTo(Io, {
+  foreignKey: "id_io",
+  as: "io",
 });
 
-Users.hasMany(okp, {
-  foreignKey: "id_create_okp",
-  as: "okp_create",
+Users.hasMany(so, {
+  foreignKey: "id_create_so",
+  as: "so_create",
 });
-okp.belongsTo(Users, {
-  foreignKey: "id_create_okp",
+so.belongsTo(Users, {
+  foreignKey: "id_create_so",
   as: "user_create",
 });
 
-Users.hasMany(okp, {
-  foreignKey: "id_approve_okp",
-  as: "okp_approve",
+Users.hasMany(so, {
+  foreignKey: "id_approve_so",
+  as: "so_approve",
 });
-okp.belongsTo(Users, {
-  foreignKey: "id_approve_okp",
+so.belongsTo(Users, {
+  foreignKey: "id_approve_so",
   as: "user_approve",
 });
 
-module.exports = okp;
+module.exports = so;

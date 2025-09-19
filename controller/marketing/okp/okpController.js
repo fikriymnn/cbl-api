@@ -186,6 +186,7 @@ const OkpController = {
       rencana_tgl_kirim,
       status_po,
       keterangan_cetak,
+      keterangan,
       tahapan,
     } = req.body;
     const t = await db.transaction();
@@ -220,6 +221,7 @@ const OkpController = {
           rencana_tgl_kirim: rencana_tgl_kirim,
           status_po: status_po,
           keterangan_cetak: keterangan_cetak,
+          keterangan: keterangan,
           tahapan: tahapan,
         },
         { transaction: t }
@@ -261,6 +263,7 @@ const OkpController = {
       rencana_tgl_kirim,
       status_po,
       keterangan_cetak,
+      keterangan,
       tahapan,
     } = req.body;
     const t = await db.transaction();
@@ -288,6 +291,7 @@ const OkpController = {
       if (rencana_tgl_kirim) obj.rencana_tgl_kirim = rencana_tgl_kirim;
       if (status_po) obj.status_po = status_po;
       if (keterangan_cetak) obj.keterangan_cetak = keterangan_cetak;
+      if (keterangan) obj.keterangan = keterangan;
       if (tahapan) obj.tahapan = tahapan;
       const checkData = await Okp.findByPk(_id);
       if (!checkData)
