@@ -32,11 +32,14 @@ const okp = db.define(
         key: "id",
       },
     },
+    id_okp_previous: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     tgl_approve_okp: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-
     no_okp: {
       type: DataTypes.STRING,
       allowNull: true,

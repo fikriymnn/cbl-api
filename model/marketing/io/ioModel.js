@@ -36,6 +36,10 @@ const io = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    base_no_io: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     no_io: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -85,6 +89,10 @@ const io = db.define(
     },
     note_reject: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    revisi_ke: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     is_active: {

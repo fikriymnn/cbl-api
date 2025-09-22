@@ -224,18 +224,20 @@ const OkpController = {
             status_code: 404,
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
+        const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
         await Okp.update(
           {
             is_active: false,
           },
           {
-            where: { id: previousKalkulasi.id_okp, is_active: true },
+            where: { id: checkOkpPrevious.id, is_active: true },
           }
         );
 
         const response = await Okp.create(
           {
             id_kalkulasi: id_kalkulasi,
+            id_okp_previous: checkOkpPrevious.id,
             id_create_okp: req.user.id,
             no_okp: previousKalkulasi.no_okp,
             customer: checkKalkulasi.nama_customer,
