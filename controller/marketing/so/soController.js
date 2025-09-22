@@ -137,7 +137,7 @@ const SoController = {
       const response = await SoModel.create(
         {
           id_io: checkIo.id,
-          id_create_io: req.user.id,
+          id_create_so: req.user.id,
           no_io: checkIo.no_io,
           no_so: no_so,
           customer: checkIo.customer,
@@ -225,7 +225,7 @@ const SoController = {
       );
 
       await SoUserAction.create(
-        { id_io: checkData.id, id_user: req.user.id, status: "update" },
+        { id_so: checkData.id, id_user: req.user.id, status: "update" },
         { transaction: t }
       );
       await t.commit(),

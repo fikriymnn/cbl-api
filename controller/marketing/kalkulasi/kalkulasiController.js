@@ -13,13 +13,23 @@ const MasterBarang = require("../../../model/masterData/barang/masterBarangModel
 const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
+const MasterCustomerGudang = require("../../../model/masterData/marketing/masterCustomerGudangModel");
 const db = require("../../../config/database");
 const Users = require("../../../model/userModel");
 
 const KalkulasiController = {
   getKalkulasi: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, status, status_proses } = req.query;
+    const {
+      is_active,
+      is_okp_done,
+      is_io_active,
+      page,
+      limit,
+      search,
+      status,
+      status_proses,
+    } = req.query;
 
     try {
       let obj = {};
@@ -40,6 +50,9 @@ const KalkulasiController = {
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
       if (is_active) obj.is_active = is_active == "true" ? true : false;
+      if (is_okp_done) obj.is_okp_done = is_okp_done == "true" ? true : false;
+      if (is_io_active)
+        obj.is_io_active = is_io_active == "true" ? true : false;
       if (page && limit) {
         const length = await Kalkulasi.count({ where: obj });
         const data = await Kalkulasi.findAll({
@@ -84,7 +97,16 @@ const KalkulasiController = {
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       } else {
-        const response = await Kalkulasi.findAll({ where: obj });
+        const response = await Kalkulasi.findAll({
+          where: obj,
+          include: [
+            {
+              model: MasterCustomer,
+              as: "customer",
+              include: [{ model: MasterCustomerGudang, as: "gudang" }],
+            },
+          ],
+        });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
