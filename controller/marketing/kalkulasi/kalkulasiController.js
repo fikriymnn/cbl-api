@@ -580,7 +580,7 @@ const KalkulasiController = {
           total_harga_satuan_customer: total_harga_satuan_customer,
           keterangan_kerja: keterangan_kerja,
           keterangan_harga: keterangan_harga,
-          is_io_active: is_io_active,
+          is_io_active: false,
         };
       } else {
         objCreate = {
@@ -842,12 +842,18 @@ const KalkulasiController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      let isIoActive = false;
+      if (checkData.status_kalkulasi == "repeat") {
+        isIoActive = true;
+      }
       await Kalkulasi.update(
         {
           status: "history",
           status_proses: "approve kabag",
           note_kabag: note_kabag,
           id_user_approve: req.user.id,
+          is_io_active: isIoActive,
         },
         {
           where: { id: _id },

@@ -165,6 +165,7 @@ const IoController = {
       if (status_io == "repeat perubahan") {
         const checkIoPrevious = Io.findOne({
           where: { id_okp: checkOkp.id_okp_previous },
+          transaction: t,
         });
         await Io.update(
           { is_active: false },
@@ -226,6 +227,18 @@ const IoController = {
           nama_lem: checkKalkulasi.nama_lem,
         },
         { transaction: t }
+      );
+
+      //proses update no io dan id io di kalkulasi
+      await Kalkulasi.update(
+        { id_io: response.id, no_io: no_io, is_io_active: true },
+        { where: { id: checkKalkulasi.id }, transaction: t }
+      );
+
+      //proses update okp untuk done io
+      await Okp.update(
+        { is_io_done: true },
+        { where: { id: checkOkp.id }, transaction: t }
       );
 
       //proses default tahapan

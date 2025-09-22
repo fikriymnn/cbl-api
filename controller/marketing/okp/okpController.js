@@ -231,6 +231,7 @@ const OkpController = {
           },
           {
             where: { id: checkOkpPrevious.id, is_active: true },
+            transaction: t,
           }
         );
 
@@ -267,9 +268,22 @@ const OkpController = {
         );
         //update kalkulasi untuk id okp dan no okp
         await Kalkulasi.update(
-          { id_okp: response.id, no_okp: no_okp, is_io_active: false },
+          {
+            id_okp: response.id,
+            no_okp: response.no_okp,
+            is_io_active: false,
+            is_okp_done: true,
+          },
           { where: { id: id_kalkulasi }, transaction: t }
         );
+
+        await t.commit();
+        return res.status(200).json({
+          succes: true,
+          status_code: 200,
+          msg: "Create Successful",
+          data: response,
+        });
       } else {
         const response = await Okp.create(
           {
@@ -301,20 +315,25 @@ const OkpController = {
           },
           { transaction: t }
         );
+
         //update kalkulasi untuk id okp dan no okp
         await Kalkulasi.update(
-          { id_okp: response.id, no_okp: no_okp, is_io_active: false },
+          {
+            id_okp: response.id,
+            no_okp: response.no_okp,
+            is_io_active: false,
+            is_okp_done: true,
+          },
           { where: { id: id_kalkulasi }, transaction: t }
         );
+        await t.commit();
+        return res.status(200).json({
+          succes: true,
+          status_code: 200,
+          msg: "Create Successful",
+          data: response,
+        });
       }
-
-      await t.commit();
-      return res.status(200).json({
-        succes: true,
-        status_code: 200,
-        msg: "Create Successful",
-        data: response,
-      });
     } catch (error) {
       await t.rollback();
       return res
