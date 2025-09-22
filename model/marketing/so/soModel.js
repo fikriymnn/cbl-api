@@ -108,7 +108,7 @@ const so = db.define(
       allowNull: true,
     },
     ppn: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     profit: {

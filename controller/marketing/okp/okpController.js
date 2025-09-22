@@ -10,7 +10,7 @@ const OkpController = {
   getOkp: async (req, res) => {
     const _id = req.params.id;
     const {
-      is_active = true,
+      is_active,
       page,
       limit,
       search,
@@ -37,7 +37,7 @@ const OkpController = {
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
       if (posisi_proses) obj.posisi_proses = posisi_proses;
-      if (is_active) obj.is_active = is_active;
+      if (is_active) obj.is_active = is_active == "true" ? true : false;
       if (page && limit) {
         const length = await Okp.count({ where: obj });
         const data = await Okp.findAll({
@@ -205,36 +205,107 @@ const OkpController = {
 
     try {
       const checkKalkulasi = await Kalkulasi.findByPk(id_kalkulasi);
-      const response = await Okp.create(
-        {
-          id_kalkulasi: id_kalkulasi,
-          id_create_okp: req.user.id,
-          no_okp: no_okp,
-          customer: checkKalkulasi.nama_customer,
-          produk: checkKalkulasi.nama_produk,
-          status_okp: status_okp,
-          tgl_target_marketing: tgl_target_marketing,
-          jenis_pekerjaan: jenis_pekerjaan,
-          id_pisau: id_pisau,
-          file_spek_customer: file_spek_customer,
-          rencana_qty_po: rencana_qty_po,
-          rencana_tgl_kirim: rencana_tgl_kirim,
-          status_po: status_po,
-          keterangan_cetak: keterangan_cetak,
-          keterangan: keterangan,
-          tahapan: tahapan,
-        },
-        { transaction: t }
-      );
-      await OkpProses.create({ id_okp: response.id }, { transaction: t });
-      await OkpActionUser.create(
-        {
-          id_okp: response.id,
-          id_user: req.user.id,
-          status: "create",
-        },
-        { transaction: t }
-      );
+
+      if (!checkKalkulasi)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data kalkulasi tidak ditemukan",
+        });
+
+      if (status_okp == "repeat perubahan") {
+        // cek kalkulasi sebelumnya
+        const previousKalkulasi = await Kalkulasi.findByPk(
+          checkKalkulasi.id_kalkulasi_previous
+        );
+        if (!previousKalkulasi)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data kalkulasi sebelumnya tidak ditemukan",
+          });
+        await Okp.update(
+          {
+            is_active: false,
+          },
+          {
+            where: { id: previousKalkulasi.id_okp, is_active: true },
+          }
+        );
+
+        const response = await Okp.create(
+          {
+            id_kalkulasi: id_kalkulasi,
+            id_create_okp: req.user.id,
+            no_okp: previousKalkulasi.no_okp,
+            customer: checkKalkulasi.nama_customer,
+            produk: checkKalkulasi.nama_produk,
+            status_okp: status_okp,
+            tgl_target_marketing: tgl_target_marketing,
+            jenis_pekerjaan: jenis_pekerjaan,
+            id_pisau: id_pisau,
+            file_spek_customer: file_spek_customer,
+            rencana_qty_po: rencana_qty_po,
+            rencana_tgl_kirim: rencana_tgl_kirim,
+            status_po: status_po,
+            keterangan_cetak: keterangan_cetak,
+            keterangan: keterangan,
+            tahapan: tahapan,
+          },
+          { transaction: t }
+        );
+        await OkpProses.create({ id_okp: response.id }, { transaction: t });
+        await OkpActionUser.create(
+          {
+            id_okp: response.id,
+            id_user: req.user.id,
+            status: "create",
+          },
+          { transaction: t }
+        );
+        //update kalkulasi untuk id okp dan no okp
+        await Kalkulasi.update(
+          { id_okp: response.id, no_okp: no_okp, is_io_active: false },
+          { where: { id: id_kalkulasi }, transaction: t }
+        );
+      } else {
+        const response = await Okp.create(
+          {
+            id_kalkulasi: id_kalkulasi,
+            id_create_okp: req.user.id,
+            no_okp: no_okp,
+            customer: checkKalkulasi.nama_customer,
+            produk: checkKalkulasi.nama_produk,
+            status_okp: status_okp,
+            tgl_target_marketing: tgl_target_marketing,
+            jenis_pekerjaan: jenis_pekerjaan,
+            id_pisau: id_pisau,
+            file_spek_customer: file_spek_customer,
+            rencana_qty_po: rencana_qty_po,
+            rencana_tgl_kirim: rencana_tgl_kirim,
+            status_po: status_po,
+            keterangan_cetak: keterangan_cetak,
+            keterangan: keterangan,
+            tahapan: tahapan,
+          },
+          { transaction: t }
+        );
+        await OkpProses.create({ id_okp: response.id }, { transaction: t });
+        await OkpActionUser.create(
+          {
+            id_okp: response.id,
+            id_user: req.user.id,
+            status: "create",
+          },
+          { transaction: t }
+        );
+        //update kalkulasi untuk id okp dan no okp
+        await Kalkulasi.update(
+          { id_okp: response.id, no_okp: no_okp, is_io_active: false },
+          { where: { id: id_kalkulasi }, transaction: t }
+        );
+      }
+
       await t.commit();
       return res.status(200).json({
         succes: true,

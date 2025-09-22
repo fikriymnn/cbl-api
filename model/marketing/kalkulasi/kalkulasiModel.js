@@ -21,7 +21,6 @@ const Kalkulasi = db.define(
         key: "id",
       },
     },
-
     id_user_approve: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -29,6 +28,26 @@ const Kalkulasi = db.define(
         model: Users,
         key: "id",
       },
+    },
+    id_kalkulasi_previous: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_okp: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    no_okp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    id_io: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    no_io: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     id_customer: {
       type: DataTypes.INTEGER,
@@ -611,6 +630,11 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "draft",
+    },
+    is_io_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
     is_active: {
       type: DataTypes.BOOLEAN,

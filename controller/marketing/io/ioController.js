@@ -42,7 +42,7 @@ const IoController = {
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
       if (status_send_proof) obj.status_send_proof = status_send_proof;
-      if (is_active) obj.is_active = is_active;
+      if (is_active) obj.is_active = is_active == "true" ? true : false;
       if (page && limit) {
         const length = await Io.count({ where: obj });
         const data = await Io.findAll({

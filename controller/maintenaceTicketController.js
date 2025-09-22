@@ -63,6 +63,7 @@ const ticketController = {
         };
       }
 
+      if (unit) obj.unit = unit;
       if (status_tiket) obj.status_tiket = status_tiket;
       if (status_qc) obj.status_qc = status_qc;
       if (type_mtc) obj.type_mtc = type_mtc;
@@ -95,7 +96,6 @@ const ticketController = {
       }
 
       if (id_eksekutor) objEksekutor.id_eksekutor = id_eksekutor;
-      if (unit) objEksekutor.unit = unit;
 
       if (bagian_tiket == "os2") {
         des.push("waktu_respon", "DESC");
