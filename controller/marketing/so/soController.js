@@ -8,14 +8,7 @@ const db = require("../../../config/database");
 const SoController = {
   getSo: async (req, res) => {
     const _id = req.params.id;
-    const {
-      is_active = true,
-      page,
-      limit,
-      search,
-      status,
-      status_proses,
-    } = req.query;
+    const { is_active, page, limit, search, status, status_proses } = req.query;
 
     try {
       let obj = {};
@@ -33,8 +26,9 @@ const SoController = {
       }
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
-      if (status_send_proof) obj.status_send_proof = status_send_proof;
-      if (is_active) obj.is_active = is_active;
+      if (is_active) {
+        obj.is_active = is_active == "true" ? true : false;
+      }
       if (page && limit) {
         const length = await SoModel.count({ where: obj });
         const data = await SoModel.findAll({
@@ -113,13 +107,13 @@ const SoController = {
       return res.status(404).json({
         succes: false,
         status_code: 404,
-        msg: "okp wajib di isi!!",
+        msg: "io wajib di isi!!",
       });
     if (!no_so)
       return res.status(404).json({
         succes: false,
         status_code: 404,
-        msg: "no Io wajib di isi!!",
+        msg: "no so wajib di isi!!",
       });
 
     try {
@@ -131,7 +125,7 @@ const SoController = {
           msg: "Data Okp tidak ditemukan",
         });
 
-      const response = await Io.create(
+      const response = await SoModel.create(
         {
           id_io: id_io,
           id_create_io: req.user.id,

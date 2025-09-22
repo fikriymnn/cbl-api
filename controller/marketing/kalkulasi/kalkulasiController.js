@@ -39,7 +39,7 @@ const KalkulasiController = {
       }
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
-      if (is_active) obj.is_active = is_active;
+      if (is_active) obj.is_active = is_active == "true" ? true : false;
       if (page && limit) {
         const length = await Kalkulasi.count({ where: obj });
         const data = await Kalkulasi.findAll({
@@ -98,6 +98,7 @@ const KalkulasiController = {
 
   createKalkulasi: async (req, res) => {
     const {
+      id_kalkulasi_previous,
       id_customer,
       id_marketing,
       id_produk,
@@ -194,7 +195,6 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -431,9 +431,30 @@ const KalkulasiController = {
             msg: "packing tidak ditemukan",
           });
       }
-      const response = await Kalkulasi.create(
-        {
+
+      //untuk mengaktifkan list io di so jika repeat
+      const is_io_active = status_kalkulasi == "repeat" ? true : false;
+
+      const objCreate = {};
+
+      if (status_kalkulasi == "repeat") {
+        // cek kalkulasi sebelumnya
+        const previousKalkulasi = await Kalkulasi.findByPk(
+          id_kalkulasi_previous
+        );
+        if (!previousKalkulasi)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data kalkulasi sebelumnya tidak ditemukan",
+          });
+        objCreate = {
           id_user_create: req.user.id,
+          id_kalkulasi_previous: id_kalkulasi_previous,
+          id_okp: previousKalkulasi.id_okp,
+          no_okp: previousKalkulasi.no_okp,
+          id_io: previousKalkulasi.id_io,
+          no_io: previousKalkulasi.no_io,
           id_customer: id_customer,
           nama_customer: checkCustomer.nama_customer,
           id_marketing: id_marketing,
@@ -559,9 +580,141 @@ const KalkulasiController = {
           total_harga_satuan_customer: total_harga_satuan_customer,
           keterangan_kerja: keterangan_kerja,
           keterangan_harga: keterangan_harga,
-        },
-        { transaction: t }
-      );
+          is_io_active: is_io_active,
+        };
+      } else {
+        objCreate = {
+          id_user_create: req.user.id,
+          id_kalkulasi_previous: id_kalkulasi_previous,
+          id_customer: id_customer,
+          nama_customer: checkCustomer.nama_customer,
+          id_marketing: id_marketing,
+          nama_marketing: checkMarketing.data_karyawan.name,
+          kode_marketing: checkMarketing.kode,
+          id_produk: id_produk,
+          nama_produk: checkProduk.nama_produk,
+          id_area_pengiriman: id_area_pengiriman,
+          nama_area_pengiriman: checkHargaPengiriman.nama_area,
+          harga_area_pengiriman: checkHargaPengiriman.harga,
+          qty_kalkulasi: qty_kalkulasi,
+          presentase_insheet: presentase_insheet,
+          spesifikasi: spesifikasi,
+          status_kalkulasi: status_kalkulasi,
+          ukuran_jadi_panjang: ukuran_jadi_panjang,
+          ukuran_jadi_lebar: ukuran_jadi_lebar,
+          ukuran_jadi_tinggi: ukuran_jadi_tinggi,
+          ukuran_jadi_terb_panjang: ukuran_jadi_terb_panjang,
+          ukuran_jadi_terb_lebar: ukuran_jadi_terb_lebar,
+          ukuran_cetak_panjang_1: ukuran_cetak_panjang_1,
+          ukuran_cetak_lebar_1: ukuran_cetak_lebar_1,
+          ukuran_cetak_bagian_1: ukuran_cetak_bagian_1,
+          ukuran_cetak_isi_1: ukuran_cetak_isi_1,
+          ukuran_cetak_bbs_1: ukuran_cetak_bbs_1,
+          ukuran_cetak_panjang_2: ukuran_cetak_panjang_2,
+          ukuran_cetak_lebar_2: ukuran_cetak_lebar_2,
+          ukuran_cetak_bagian_2: ukuran_cetak_bagian_2,
+          ukuran_cetak_isi_2: ukuran_cetak_isi_2,
+          ukuran_cetak_bbs_2: ukuran_cetak_bbs_2,
+          warna_depan: parseFloat(warna_depan || "0"),
+          warna_belakang: parseFloat(warna_belakang || "0"),
+          jumlah_warna: parseFloat(jumlah_warna || "0"),
+          jenis_kertas: jenis_kertas,
+          id_kertas: id_kertas,
+          nama_kertas: checkKertas.nama_barang,
+          brand_kertas: checkKertas.brand?.nama_brand || null,
+          gramature_kertas: checkKertas.gramatur,
+          panjang_kertas: checkKertas.panjang,
+          lebar_kertas: checkKertas.lebar,
+          persentase_kertas: checkKertas.persentase,
+          persentase_apki_kertas: parseFloat(percentage || "0"),
+          total_kertas: parseFloat(total_kertas || "0"),
+          total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
+          id_mesin_potong: id_mesin_potong,
+          nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
+          print_insheet: parseInt(print_insheet || "0"),
+          id_jenis_mesin_cetak: id_jenis_mesin_cetak,
+          jenis_mesin_cetak: checkMesinCetak.nama_barang || null,
+          plate_cetak: plate_cetak,
+          harga_plate: harga_plate,
+          jumlah_harga_cetak: parseFloat(jumlah_harga_cetak || "0"),
+          id_coating_depan: id_coating_depan,
+          nama_coating_depan: checkCoatingDepan.nama_barang || null,
+          jumlah_harga_coating_depan: parseFloat(
+            jumlah_harga_coating_depan || "0"
+          ),
+          id_coating_belakang: id_coating_belakang,
+          nama_coating_belakang: checkCoatingBelakang.nama_barang || null,
+          jumlah_harga_coating_belakang: parseFloat(
+            jumlah_harga_coating_belakang || "0"
+          ),
+          total_harga_coating: parseFloat(total_harga_coating || "0"),
+          id_mesin_coating_depan: id_mesin_coating_depan,
+          nama_mesin_coating_depan:
+            checkMesinCoatingDepan.mesin?.nama_mesin || null,
+          id_mesin_coating_belakang: id_mesin_coating_belakang,
+          nama_mesin_coating_belakang:
+            checkMesinCoatingBelakang.mesin?.nama_mesin || null,
+          pons_insheet: parseInt(pons_insheet || "0"),
+          id_jenis_pons: id_jenis_pons,
+          nama_jenis_pons: checkJenisPons.nama_barang || null,
+          id_mesin_pons: id_mesin_pons,
+          nama_mesin_pons: checkMesinPons.mesin?.nama_mesin || null,
+          harga_pisau: parseFloat(harga_pisau || "0"),
+          ongkos_pons: ongkos_pons,
+          ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
+          harga_satuan_ongkos_pons: parseStringSparator(
+            harga_satuan_ongkos_pons || "0"
+          ),
+          total_harga_ongkos_pons: parseStringSparator(
+            total_harga_ongkos_pons || "0"
+          ),
+          lipat: lipat,
+          id_mesin_lipat: id_mesin_lipat,
+          nama_mesin_lipat: checkMesinLipat.mesin?.nama_mesin || null,
+          qty_lipat: qty_lipat,
+          harga_lipat: parseStringSparator(harga_lipat || "0"),
+          potong_jadi: potong_jadi,
+          qty_potong: parseInt(qty_potong || "0"),
+          harga_potong_jadi: parseStringSparator(harga_potong_jadi || "0"),
+          finishing_insheet: parseInt(finishing_insheet || "0"),
+          id_lem: id_lem,
+          nama_lem: checkLem.nama_barang || null,
+          jumlah_harga_lem: parseStringSparator(jumlah_harga_lem || "0"),
+          id_mesin_finishing: id_mesin_finishing,
+          nama_mesin_finishing: checkMesinFinishing.mesin?.nama_mesin || null,
+          foil: foil,
+          harga_foil_manual: parseFloat(harga_foil_manual || "0"),
+          spot_foil: spot_foil,
+          harga_spot_foil_manual: parseFloat(harga_spot_foil_manual || "0"),
+          harga_polimer_manual: parseFloat(harga_polimer_manual || "0"),
+          panjang_packaging: panjang_packaging,
+          lebar_packaging: lebar_packaging,
+          no_packaging: no_packaging,
+          jumlah_kirim: jumlah_kirim,
+          harga_packaging: harga_packaging,
+          harga_pengiriman: harga_pengiriman,
+          jenis_packing: jenis_packing,
+          id_packing: id_packing,
+          nama_packing: checkPacking.nama_barang || null,
+          qty_packing: qty_packing,
+          harga_packing: harga_packing,
+          harga_produksi: harga_produksi,
+          profit: profit,
+          profit_harga: profit_harga,
+          jumlah_harga_jual: parseFloat(jumlah_harga_jual || "0"),
+          ppn: parseFloat(ppn || "0"),
+          harga_ppn: harga_ppn,
+          diskon: diskon,
+          harga_diskon: harga_diskon,
+          total_harga: total_harga,
+          harga_satuan: harga_satuan,
+          total_harga_satuan_customer: total_harga_satuan_customer,
+          keterangan_kerja: keterangan_kerja,
+          keterangan_harga: keterangan_harga,
+          is_io_active: is_io_active,
+        };
+      }
+      const response = await Kalkulasi.create(objCreate, { transaction: t });
 
       if (lain_lain || lain_lain.length > 0) {
         for (let i = 0; i < lain_lain.length; i++) {
@@ -912,7 +1065,6 @@ const KalkulasiController = {
         obj.panjang_kertas = checkData.panjang;
         obj.lebar_kertas = checkData.lebar;
         obj.persentase_kertas = checkData.persentase;
-        console.log(checkData.gramatur);
       }
 
       if (percentage)
