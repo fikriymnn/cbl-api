@@ -435,7 +435,7 @@ const KalkulasiController = {
       //untuk mengaktifkan list io di so jika repeat
       const is_io_active = status_kalkulasi == "repeat" ? true : false;
 
-      const objCreate = {};
+      let objCreate = {};
 
       if (status_kalkulasi == "repeat") {
         // cek kalkulasi sebelumnya
