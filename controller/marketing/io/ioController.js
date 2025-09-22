@@ -15,7 +15,7 @@ const IoController = {
   getIo: async (req, res) => {
     const _id = req.params.id;
     const {
-      is_active = true,
+      is_active,
       page,
       limit,
       search,
@@ -128,7 +128,8 @@ const IoController = {
   },
 
   createIo: async (req, res) => {
-    const { id_okp, no_io, status_io, is_revisi, revisi_no_io } = req.body;
+    const { id_okp, base_no_io, no_io, status_io, is_revisi, revisi_no_io } =
+      req.body;
     const t = await db.transaction();
     if (!id_okp)
       return res.status(404).json({
@@ -159,9 +160,23 @@ const IoController = {
           msg: "Data Kalkulasi tidak ditemukan",
         });
 
+      let revisiKe = 0;
+
+      if (status_io == "repeat perubahan") {
+        const checkIoPrevious = Io.findOne({
+          where: { id_okp: checkOkp.id_okp_previous },
+        });
+        await Io.update(
+          { is_active: false },
+          { where: { id_okp: checkOkp.id_okp_previous }, transaction: t }
+        );
+        revisiKe = checkIoPrevious.revisi_ke + 1;
+      }
+
       const response = await Io.create(
         {
           id_okp: id_okp,
+          base_no_io: base_no_io,
           id_create_io: req.user.id,
           no_io: no_io,
           customer: checkOkp.customer,
@@ -169,6 +184,7 @@ const IoController = {
           status_io: status_io,
           is_revisi: is_revisi,
           revisi_no_io: revisi_no_io,
+          revisi_ke: revisiKe,
         },
         { transaction: t }
       );
