@@ -163,7 +163,7 @@ const masterSparepartController = {
           tgl_pasang,
           tgl_rusak: !tgl_rusak ? null : tgl_rusak,
           jenis_part,
-          umur_service: sisa_umur,
+          umur_service: stokSparepart.umur_sparepart,
           keterangan,
           peruntukan,
           file,

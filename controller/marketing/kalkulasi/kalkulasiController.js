@@ -665,7 +665,7 @@ const KalkulasiController = {
           lebar_kertas: checkKertas.lebar,
           persentase_kertas: checkKertas.persentase,
           persentase_apki_kertas: parseFloat(percentage || "0"),
-          total_kertas: parseFloat(total_kertas || "0"),
+          total_kertas: parseStringSparator(total_kertas || "0"),
           total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
           id_mesin_potong: id_mesin_potong,
           nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
