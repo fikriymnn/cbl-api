@@ -9,7 +9,7 @@ const user = require("./model/userModel");
 const master = require("./model/masterData/masterMesinModel");
 const master2 = require("./model/masterData/masterSparepart");
 const masterGrade = require("./model/masterData/mtc/masterGradeModel");
-const mtc = require("./model/mtc/sparepartProblem");
+const mtcSparepartProblem = require("./model/mtc/sparepartProblem");
 const mtcAction = require("./model/mtc/userActionMtc");
 const stok = require("./model/mtc/stokSparepart");
 const spbStok = require("./model/mtc/spbStokSparepart");
@@ -312,7 +312,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await Io.sync({ alter: true });
+//   await mtcSparepartProblem.sync({ alter: true });
 // })();
 
 // const ip100 = 75

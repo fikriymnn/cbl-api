@@ -155,6 +155,7 @@ const MasterCustomerController = {
         },
         { transaction: t }
       );
+
       for (let i = 0; i < gudang.length; i++) {
         const e = gudang[i];
         await MasterCustomerGudang.create(
@@ -247,25 +248,51 @@ const MasterCustomerController = {
           msg: "Data customer tidak ditemukan",
         });
       if (gudang) {
-        for (let i = 0; i < gudang.length; i++) {
-          const e = gudang[i];
+        // Ambil semua data lama dari database
+        const dataFromDatabase = await MasterCustomerGudang.findAll({
+          where: { id_customer: _id },
+        });
 
-          if (e.id != null && e.id != undefined) {
-            await MasterCustomerGudang.update(
-              {
-                alamat_gudang: e.alamat_gudang,
-                telepon_gudang: e.telepon_gudang,
-              },
-              { where: { id: e.id }, transaction: t }
-            );
-          } else {
+        const dbIds = dataFromDatabase.map((d) => d.id);
+        const inputIds = gudang.filter((d) => d.id !== null).map((d) => d.id);
+
+        // 1. DELETE → id yg ada di DB tapi tidak ada di input
+        const idsToDelete = dbIds.filter((id) => !inputIds.includes(id));
+        if (idsToDelete.length > 0) {
+          for (let i = 0; i < idsToDelete.length; i++) {
+            const e = idsToDelete[i];
+
+            await MasterCustomerGudang.destroy({
+              where: { id: e },
+              transaction: t,
+            });
+          }
+        }
+
+        // 2. UPDATE & CREATE
+        for (let index = 0; index < gudang.length; index++) {
+          const e = gudang[index];
+
+          if (e.id === null) {
             await MasterCustomerGudang.create(
               {
-                id_customer: _id,
+                id_customer: checkData.id,
                 alamat_gudang: e.alamat_gudang,
                 telepon_gudang: e.telepon_gudang,
               },
               { transaction: t }
+            );
+          } else {
+            await MasterCustomerGudang.update(
+              {
+                id_customer: checkData.id,
+                alamat_gudang: e.alamat_gudang,
+                telepon_gudang: e.telepon_gudang,
+              },
+              {
+                where: { id: e.id },
+                transaction: t,
+              }
             );
           }
         }

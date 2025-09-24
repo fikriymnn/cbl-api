@@ -127,6 +127,24 @@ const IoController = {
     }
   },
 
+  getIoJumlahData: async (req, res) => {
+    try {
+      const length = await Io.count({
+        where: { status_io: "baru" },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createIo: async (req, res) => {
     const { id_okp, base_no_io, no_io, status_io, is_revisi, revisi_no_io } =
       req.body;
@@ -165,6 +183,7 @@ const IoController = {
       if (status_io == "repeat perubahan") {
         const checkIoPrevious = Io.findOne({
           where: { id_okp: checkOkp.id_okp_previous },
+          transaction: t,
         });
         await Io.update(
           { is_active: false },
@@ -226,6 +245,18 @@ const IoController = {
           nama_lem: checkKalkulasi.nama_lem,
         },
         { transaction: t }
+      );
+
+      //proses update no io dan id io di kalkulasi
+      await Kalkulasi.update(
+        { id_io: response.id, no_io: no_io, is_io_active: true },
+        { where: { id: checkKalkulasi.id }, transaction: t }
+      );
+
+      //proses update okp untuk done io
+      await Okp.update(
+        { is_io_done: true },
+        { where: { id: checkOkp.id }, transaction: t }
       );
 
       //proses default tahapan

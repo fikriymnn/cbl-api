@@ -62,16 +62,7 @@ const io = db.define(
       allowNull: true,
       defaultValue: "baru",
     },
-    is_revisi: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    revisi_no_io: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: false,
-    },
+
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -94,6 +85,7 @@ const io = db.define(
     revisi_ke: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 0,
     },
     is_active: {
       type: DataTypes.BOOLEAN,

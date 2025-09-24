@@ -13,13 +13,23 @@ const MasterBarang = require("../../../model/masterData/barang/masterBarangModel
 const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
+const MasterCustomerGudang = require("../../../model/masterData/marketing/masterCustomerGudangModel");
 const db = require("../../../config/database");
 const Users = require("../../../model/userModel");
 
 const KalkulasiController = {
   getKalkulasi: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, status, status_proses } = req.query;
+    const {
+      is_active,
+      is_okp_done,
+      is_io_active,
+      page,
+      limit,
+      search,
+      status,
+      status_proses,
+    } = req.query;
 
     try {
       let obj = {};
@@ -40,6 +50,9 @@ const KalkulasiController = {
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
       if (is_active) obj.is_active = is_active == "true" ? true : false;
+      if (is_okp_done) obj.is_okp_done = is_okp_done == "true" ? true : false;
+      if (is_io_active)
+        obj.is_io_active = is_io_active == "true" ? true : false;
       if (page && limit) {
         const length = await Kalkulasi.count({ where: obj });
         const data = await Kalkulasi.findAll({
@@ -84,11 +97,36 @@ const KalkulasiController = {
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       } else {
-        const response = await Kalkulasi.findAll({ where: obj });
+        const response = await Kalkulasi.findAll({
+          where: obj,
+          include: [
+            {
+              model: MasterCustomer,
+              as: "customer",
+              include: [{ model: MasterCustomerGudang, as: "gudang" }],
+            },
+          ],
+        });
         res
           .status(200)
           .json({ succes: true, status_code: 200, data: response });
       }
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getKalkulasiJumlahData: async (req, res) => {
+    try {
+      const length = await Kalkulasi.count();
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
     } catch (error) {
       res
         .status(400)
@@ -580,7 +618,7 @@ const KalkulasiController = {
           total_harga_satuan_customer: total_harga_satuan_customer,
           keterangan_kerja: keterangan_kerja,
           keterangan_harga: keterangan_harga,
-          is_io_active: is_io_active,
+          is_io_active: false,
         };
       } else {
         objCreate = {
@@ -627,7 +665,7 @@ const KalkulasiController = {
           lebar_kertas: checkKertas.lebar,
           persentase_kertas: checkKertas.persentase,
           persentase_apki_kertas: parseFloat(percentage || "0"),
-          total_kertas: parseFloat(total_kertas || "0"),
+          total_kertas: parseStringSparator(total_kertas || "0"),
           total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
           id_mesin_potong: id_mesin_potong,
           nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
@@ -842,12 +880,18 @@ const KalkulasiController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      let isIoActive = false;
+      if (checkData.status_kalkulasi == "repeat") {
+        isIoActive = true;
+      }
       await Kalkulasi.update(
         {
           status: "history",
           status_proses: "approve kabag",
           note_kabag: note_kabag,
           id_user_approve: req.user.id,
+          is_io_active: isIoActive,
         },
         {
           where: { id: _id },

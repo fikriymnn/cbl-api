@@ -3,6 +3,7 @@ const SoController = require("../../controller/marketing/so/soController");
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/so/:id?", auth, SoController.getSo);
+router.get("/marketing/soJumlahData", auth, SoController.getSoJumlahData);
 router.post("/marketing/so", auth, SoController.createSo);
 router.put("/marketing/so/:id", auth, SoController.updateSo);
 router.put("/marketing/so/request/:id", auth, SoController.submitRequestSo);

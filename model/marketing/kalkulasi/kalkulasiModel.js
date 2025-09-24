@@ -636,6 +636,11 @@ const Kalkulasi = db.define(
       allowNull: true,
       defaultValue: false,
     },
+    is_okp_done: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

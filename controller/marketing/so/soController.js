@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const SoModel = require("../../../model/marketing/so/soModel");
+const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
 const Io = require("../../../model/marketing/io/ioModel");
 const Users = require("../../../model/userModel");
@@ -80,9 +81,25 @@ const SoController = {
     }
   },
 
+  getSoJumlahData: async (req, res) => {
+    try {
+      const length = await SoModel.count();
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createSo: async (req, res) => {
     const {
-      id_io,
+      id_kalkulasi,
       no_so,
       tgl_input_po,
       id_so_cancel,
@@ -101,13 +118,14 @@ const SoController = {
       tgl_pengiriman,
       alamat_pengiriman,
       ada_standar_warna,
+      is_io_selesai,
     } = req.body;
     const t = await db.transaction();
-    if (!id_io)
+    if (!id_kalkulasi)
       return res.status(404).json({
         succes: false,
         status_code: 404,
-        msg: "io wajib di isi!!",
+        msg: "kalkulasi wajib di isi!!",
       });
     if (!no_so)
       return res.status(404).json({
@@ -117,18 +135,25 @@ const SoController = {
       });
 
     try {
-      const checkIo = await Io.findByPk(id_io);
+      const checkKalkulasi = await Kalkulasi.findByPk(id_kalkulasi);
+      if (!checkKalkulasi)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Kalkulasi tidak ditemukan",
+        });
+      const checkIo = await Io.findByPk(checkKalkulasi.id_io);
       if (!checkIo)
         return res.status(404).json({
           succes: false,
           status_code: 404,
-          msg: "Data Okp tidak ditemukan",
+          msg: "Data io tidak ditemukan",
         });
 
       const response = await SoModel.create(
         {
-          id_io: id_io,
-          id_create_io: req.user.id,
+          id_io: checkIo.id,
+          id_create_so: req.user.id,
           no_io: checkIo.no_io,
           no_so: no_so,
           customer: checkIo.customer,
@@ -153,6 +178,13 @@ const SoController = {
         },
         { transaction: t }
       );
+
+      if (is_io_selesai == true || is_io_selesai == "true") {
+        await Kalkulasi.update(
+          { is_io_active: false },
+          { where: { id: id_kalkulasi }, transaction: t }
+        );
+      }
 
       await t.commit();
       return res.status(200).json({
@@ -209,7 +241,7 @@ const SoController = {
       );
 
       await SoUserAction.create(
-        { id_io: checkData.id, id_user: req.user.id, status: "update" },
+        { id_so: checkData.id, id_user: req.user.id, status: "update" },
         { transaction: t }
       );
       await t.commit(),

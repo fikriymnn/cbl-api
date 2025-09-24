@@ -3,6 +3,7 @@ const IoController = require("../../controller/marketing/io/ioController");
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/io/:id?", auth, IoController.getIo);
+router.get("/marketing/ioJumlahData", auth, IoController.getIoJumlahData);
 router.post("/marketing/io", auth, IoController.createIo);
 router.put("/marketing/io/:id", auth, IoController.updateIo);
 router.put("/marketing/io/request/:id", auth, IoController.submitRequestIo);
