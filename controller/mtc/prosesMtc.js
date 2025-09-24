@@ -406,6 +406,7 @@ const ProsessMtc = {
       jenis_analisis_mtc,
       note_analisis,
       masalah_sparepart,
+      masalah_service,
       skor_mtc,
       cara_perbaikan,
       note_mtc,
@@ -595,6 +596,7 @@ const ProsessMtc = {
         res.status(200).json({ msg: "Ticket maintenance finish Successfuly" });
       } else {
         let sparepart_masalah_data = [];
+        let sparepart_service_masalah_data = [];
         await Ticket.update(obj, { where: { id: _id }, transaction: t }),
           await ProsesMtc.update(obj_proses, {
             where: { id: id_proses },
@@ -636,13 +638,49 @@ const ProsessMtc = {
             grade_sparepart_baru: sparepartStok.grade,
             tgl_ganti: new Date(),
             status: "incoming",
+            tipe_perbaikan: "ganti",
             use_qty: 1,
           });
         }
 
-        await MasalahSparepart.bulkCreate(sparepart_masalah_data, {
-          transaction: t,
-        });
+        for (let i = 0; i < masalah_service.length; i++) {
+          const sparepartStok = await StokSparepart.findByPk(
+            masalah_sparepart[i].id_stok
+          );
+
+          const masterSparepart = await MasterSparepart.findByPk(
+            masalah_sparepart[i].id_ms_sparepart
+          );
+
+          sparepart_service_masalah_data.push({
+            id_tiket: _id,
+            id_proses: id_proses,
+            id_ms_sparepart: masterSparepart.id,
+            id_stok_sparepart: sparepartStok.id,
+            nama_sparepart_sebelumnya: masterSparepart.nama_sparepart,
+            lokasi_sparepart_sebelumnya: masterSparepart.posisi_part,
+            grade_sparepart_sebelumnya: masterSparepart.grade_2,
+            nama_sparepart_baru: sparepartStok.nama_sparepart,
+            lokasi_sparepart_baru: sparepartStok.lokasi,
+            grade_sparepart_baru: sparepartStok.grade,
+            tgl_ganti: new Date(),
+            status: "incoming",
+            tipe_perbaikan: "service",
+            use_qty: 1,
+          });
+        }
+
+        if (sparepart_masalah_data.length > 0) {
+          await MasalahSparepart.bulkCreate(sparepart_masalah_data, {
+            transaction: t,
+          });
+        }
+
+        if (sparepart_service_masalah_data.length > 0) {
+          await MasalahSparepart.bulkCreate(sparepart_service_masalah_data, {
+            transaction: t,
+          });
+        }
 
         // for (let i = 0; i < sparepart_masalah_data.length; i++) {
         //   StokSparepart.findOne({
@@ -814,24 +852,42 @@ const ProsessMtc = {
             }
 
             const umur = stokSparepart.umur_sparepart * percentage;
+            const umurService = stokSparepart.umur_sparepart;
 
-            await MasterSparepart.update(
-              {
-                nama_sparepart: stokSparepart.nama_sparepart,
-                umur_a: stokSparepart.umur_sparepart,
-                umur_grade: umurGrade,
-                grade_2: stokSparepart.grade,
-                actual_umur: umur,
-                sisa_umur: umur,
-                tgl_pasang: new Date(),
-                tgl_rusak: ticket.createdAt,
-                jenis_part: "ganti",
-              },
-              {
-                where: { id: masalahSparepart[i].id_ms_sparepart },
-                transaction: t,
-              }
-            );
+            if (masalahSparepart[i].tipe_perbaikan == "service") {
+              await MasterSparepart.update(
+                {
+                  nama_sparepart: stokSparepart.nama_sparepart,
+                  umur_service: umurService,
+                  tgl_pasang: new Date(),
+                  tgl_rusak: ticket.createdAt,
+                  jenis_part: "service",
+                },
+                {
+                  where: { id: masalahSparepart[i].id_ms_sparepart },
+                  transaction: t,
+                }
+              );
+            } else {
+              await MasterSparepart.update(
+                {
+                  nama_sparepart: stokSparepart.nama_sparepart,
+                  umur_a: stokSparepart.umur_sparepart,
+                  umur_grade: umurGrade,
+                  grade_2: stokSparepart.grade,
+                  actual_umur: umur,
+                  sisa_umur: umur,
+                  tgl_pasang: new Date(),
+                  tgl_rusak: ticket.createdAt,
+                  jenis_part: "ganti",
+                },
+                {
+                  where: { id: masalahSparepart[i].id_ms_sparepart },
+                  transaction: t,
+                }
+              );
+            }
+
             await StokSparepart.update(
               { stok: stok },
               { where: { id: stokSparepart.id }, transaction: t }

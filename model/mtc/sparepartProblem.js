@@ -91,6 +91,11 @@ const SparepartProblem = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+
+    tipe_perbaikan: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       defaultValue: "on progress",
