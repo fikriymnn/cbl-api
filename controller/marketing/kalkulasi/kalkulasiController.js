@@ -118,6 +118,22 @@ const KalkulasiController = {
     }
   },
 
+  getKalkulasiJumlahData: async (req, res) => {
+    try {
+      const length = await Kalkulasi.count();
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createKalkulasi: async (req, res) => {
     const {
       id_kalkulasi_previous,

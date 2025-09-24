@@ -3,6 +3,7 @@ const OkpController = require("../../controller/marketing/okp/okpController");
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/okp/:id?", auth, OkpController.getOkp);
+router.get("/marketing/okpJumlahData", auth, OkpController.getOkpJumlahData);
 router.post("/marketing/okp", auth, OkpController.createOkp);
 router.put("/marketing/okp/:id", auth, OkpController.updateOkp);
 router.put(

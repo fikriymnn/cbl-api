@@ -3,6 +3,11 @@ const KalkulasiController = require("../../controller/marketing/kalkulasi/kalkul
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/kalkulasi/:id?", auth, KalkulasiController.getKalkulasi);
+router.get(
+  "/marketing/kalkulasiJumlahData",
+  auth,
+  KalkulasiController.getKalkulasiJumlahData
+);
 router.post("/marketing/kalkulasi", auth, KalkulasiController.createKalkulasi);
 router.put(
   "/marketing/kalkulasi/:id",

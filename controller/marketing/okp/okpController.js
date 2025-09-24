@@ -173,6 +173,24 @@ const OkpController = {
     }
   },
 
+  getOkpJumlahData: async (req, res) => {
+    try {
+      const length = await Okp.count({
+        where: { status_okp: "baru" },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createOkp: async (req, res) => {
     const {
       id_kalkulasi,
