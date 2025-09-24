@@ -145,6 +145,33 @@ const IoController = {
     }
   },
 
+  getIoDataPrevious: async (req, res) => {
+    const _id = req.params.id;
+    try {
+      const checkOkp = await Okp.findByPk(_id);
+      if (!checkOkp)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Okp tidak ditemukan",
+        });
+
+      const checkIoPrevious = await Io.findOne({
+        where: { id_okp: checkOkp.id_okp_previous },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: checkIoPrevious,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createIo: async (req, res) => {
     const { id_okp, base_no_io, no_io, status_io, is_revisi, revisi_no_io } =
       req.body;
@@ -179,9 +206,10 @@ const IoController = {
         });
 
       let revisiKe = 0;
+      let basenoIo = "";
 
       if (status_io == "repeat perubahan") {
-        const checkIoPrevious = Io.findOne({
+        const checkIoPrevious = await Io.findOne({
           where: { id_okp: checkOkp.id_okp_previous },
           transaction: t,
         });
@@ -190,12 +218,13 @@ const IoController = {
           { where: { id_okp: checkOkp.id_okp_previous }, transaction: t }
         );
         revisiKe = checkIoPrevious.revisi_ke + 1;
+        basenoIo = checkIoPrevious.base_no_io;
       }
 
       const response = await Io.create(
         {
           id_okp: id_okp,
-          base_no_io: base_no_io,
+          base_no_io: basenoIo,
           id_create_io: req.user.id,
           no_io: no_io,
           customer: checkOkp.customer,
@@ -249,7 +278,7 @@ const IoController = {
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
-        { id_io: response.id, no_io: no_io, is_io_active: true },
+        { id_io: response.id, no_io: no_io },
         { where: { id: checkKalkulasi.id }, transaction: t }
       );
 
@@ -640,6 +669,12 @@ const IoController = {
           { id_io: checkData.id, id_user: req.user.id, status: "approve" },
           { transaction: t }
         );
+
+      //proses update no io dan id io di kalkulasi
+      await Kalkulasi.update(
+        { is_iooo_active: true },
+        { where: { id_io: checkData.id }, transaction: t }
+      );
       await t.commit(),
         res
           .status(200)
