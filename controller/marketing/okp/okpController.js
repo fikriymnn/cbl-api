@@ -17,6 +17,7 @@ const OkpController = {
       status,
       status_proses,
       posisi_proses,
+      is_io_done,
     } = req.query;
 
     try {
@@ -38,6 +39,7 @@ const OkpController = {
       if (status_proses) obj.status_proses = status_proses;
       if (posisi_proses) obj.posisi_proses = posisi_proses;
       if (is_active) obj.is_active = is_active == "true" ? true : false;
+      if (is_io_done) obj.is_io_done = is_io_done == "true" ? true : false;
       if (page && limit) {
         const length = await Okp.count({ where: obj });
         const data = await Okp.findAll({
@@ -243,15 +245,6 @@ const OkpController = {
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
         const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
-        await Okp.update(
-          {
-            is_active: false,
-          },
-          {
-            where: { id: checkOkpPrevious.id, is_active: true },
-            transaction: t,
-          }
-        );
 
         const response = await Okp.create(
           {
@@ -624,6 +617,29 @@ const OkpController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      const checkKalkulasi = await Kalkulasi.findByPk(checkData.id_kalkulasi);
+
+      // cek kalkulasi sebelumnya
+      const previousKalkulasi = await Kalkulasi.findByPk(
+        checkKalkulasi.id_kalkulasi_previous
+      );
+      if (!previousKalkulasi)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data kalkulasi sebelumnya tidak ditemukan",
+        });
+      const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
+      await Okp.update(
+        {
+          is_active: false,
+        },
+        {
+          where: { id: checkOkpPrevious.id, is_active: true },
+          transaction: t,
+        }
+      );
       await Okp.update(
         {
           status: "history",

@@ -233,6 +233,7 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -619,6 +620,7 @@ const KalkulasiController = {
           keterangan_kerja: keterangan_kerja,
           keterangan_harga: keterangan_harga,
           is_io_active: false,
+          is_okp_done: true,
         };
       } else {
         objCreate = {
@@ -750,6 +752,7 @@ const KalkulasiController = {
           keterangan_kerja: keterangan_kerja,
           keterangan_harga: keterangan_harga,
           is_io_active: is_io_active,
+          is_okp_done: true,
         };
       }
       const response = await Kalkulasi.create(objCreate, { transaction: t });
@@ -882,8 +885,10 @@ const KalkulasiController = {
         });
 
       let isIoActive = false;
+      let isOkpDone = false;
       if (checkData.status_kalkulasi == "repeat") {
         isIoActive = true;
+        isOkpDone = true;
       }
       await Kalkulasi.update(
         {
@@ -892,6 +897,7 @@ const KalkulasiController = {
           note_kabag: note_kabag,
           id_user_approve: req.user.id,
           is_io_active: isIoActive,
+          is_okp_done: isOkpDone,
         },
         {
           where: { id: _id },
