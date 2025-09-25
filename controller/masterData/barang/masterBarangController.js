@@ -220,7 +220,7 @@ const MasterBarangController = {
     const t = await db.transaction();
 
     try {
-      let obj = {};
+      let obj = { persentase: persentase };
       if (kode_barang) obj.kode_barang = kode_barang;
       if (nama_barang) obj.nama_barang = nama_barang;
       if (kategori) obj.kategori = kategori;
@@ -230,7 +230,7 @@ const MasterBarangController = {
       if (lebar) obj.lebar = lebar;
       if (harga) obj.harga = harga;
       if (batas_harga) obj.batas_harga = batas_harga;
-      if (persentase) obj.persentase = persentase;
+
       if (pajak) obj.pajak = pajak;
       if (harga_per_satuan) obj.harga_per_satuan = harga_per_satuan;
       if (inventory_convert) obj.inventory_convert = inventory_convert;
