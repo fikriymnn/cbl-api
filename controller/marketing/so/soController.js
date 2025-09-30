@@ -182,7 +182,10 @@ const SoController = {
       if (is_io_selesai == true || is_io_selesai == "true") {
         await Kalkulasi.update(
           { is_io_active: false },
-          { where: { id: id_kalkulasi }, transaction: t }
+          {
+            where: { id_io: checkKalkulasi.id_io, is_io_active: true },
+            transaction: t,
+          }
         );
       }
 

@@ -312,7 +312,7 @@ const app = express();
 
 // // model sync to table (pancingan)
 // (async () => {
-//   await mtcSparepartProblem.sync({ alter: true });
+//   await SoUserAction.sync({ alter: true });
 // })();
 
 // const ip100 = 75

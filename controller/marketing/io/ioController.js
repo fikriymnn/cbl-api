@@ -233,6 +233,7 @@ const IoController = {
           is_revisi: is_revisi,
           revisi_no_io: revisi_no_io,
           revisi_ke: revisiKe,
+          is_active: true,
         },
         { transaction: t }
       );
@@ -672,7 +673,7 @@ const IoController = {
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
-        { is_iooo_active: true },
+        { is_io_active: true },
         { where: { id_io: checkData.id }, transaction: t }
       );
       await t.commit(),
