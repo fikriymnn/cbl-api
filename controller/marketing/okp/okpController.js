@@ -624,22 +624,20 @@ const OkpController = {
       const previousKalkulasi = await Kalkulasi.findByPk(
         checkKalkulasi.id_kalkulasi_previous
       );
-      if (!previousKalkulasi)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data kalkulasi sebelumnya tidak ditemukan",
-        });
-      const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
-      await Okp.update(
-        {
-          is_active: false,
-        },
-        {
-          where: { id: checkOkpPrevious.id, is_active: true },
-          transaction: t,
-        }
-      );
+
+      if (previousKalkulasi) {
+        const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
+        await Okp.update(
+          {
+            is_active: false,
+          },
+          {
+            where: { id: checkOkpPrevious.id, is_active: true },
+            transaction: t,
+          }
+        );
+      }
+
       await Okp.update(
         {
           status: "history",

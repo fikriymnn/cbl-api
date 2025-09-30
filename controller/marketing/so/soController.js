@@ -9,7 +9,8 @@ const db = require("../../../config/database");
 const SoController = {
   getSo: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, status, status_proses } = req.query;
+    const { is_active, id_io, page, limit, search, status, status_proses } =
+      req.query;
 
     try {
       let obj = {};
@@ -27,6 +28,7 @@ const SoController = {
       }
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
+      if (id_io) obj.id_io = id_io;
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
       }
@@ -182,7 +184,10 @@ const SoController = {
       if (is_io_selesai == true || is_io_selesai == "true") {
         await Kalkulasi.update(
           { is_io_active: false },
-          { where: { id: id_kalkulasi }, transaction: t }
+          {
+            where: { id_io: checkKalkulasi.id_io, is_io_active: true },
+            transaction: t,
+          }
         );
       }
 

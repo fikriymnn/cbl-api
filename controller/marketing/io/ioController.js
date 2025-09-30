@@ -173,8 +173,15 @@ const IoController = {
   },
 
   createIo: async (req, res) => {
-    const { id_okp, base_no_io, no_io, status_io, is_revisi, revisi_no_io } =
-      req.body;
+    const {
+      id_okp,
+      base_no_io,
+      no_io,
+      status_io,
+      is_revisi,
+      revisi_no_io,
+      keterangan,
+    } = req.body;
     const t = await db.transaction();
     if (!id_okp)
       return res.status(404).json({
@@ -233,6 +240,7 @@ const IoController = {
           is_revisi: is_revisi,
           revisi_no_io: revisi_no_io,
           revisi_ke: revisiKe,
+          keterangan: keterangan,
         },
         { transaction: t }
       );
@@ -672,7 +680,7 @@ const IoController = {
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
-        { is_iooo_active: true },
+        { is_io_active: true },
         { where: { id_io: checkData.id }, transaction: t }
       );
       await t.commit(),
