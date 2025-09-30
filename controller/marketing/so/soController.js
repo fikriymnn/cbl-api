@@ -9,7 +9,8 @@ const db = require("../../../config/database");
 const SoController = {
   getSo: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, status, status_proses } = req.query;
+    const { is_active, id_io, page, limit, search, status, status_proses } =
+      req.query;
 
     try {
       let obj = {};
@@ -27,6 +28,7 @@ const SoController = {
       }
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
+      if (id_io) obj.id_io = id_io;
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
       }

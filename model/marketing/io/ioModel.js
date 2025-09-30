@@ -87,6 +87,10 @@ const io = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    keterangan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

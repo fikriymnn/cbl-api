@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
+const IoModel = require("../../../model/marketing/io/ioModel");
 const KalkulasiQty = require("../../../model/marketing/kalkulasi/kalkulasiQtyModel");
 const KalkulasiLainLain = require("../../../model/marketing/kalkulasi/kalkulasiLainLainModel");
 const KalkulasiUserAction = require("../../../model/marketing/kalkulasi/kalkulasiUserActionModel");
@@ -233,7 +234,6 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -487,6 +487,7 @@ const KalkulasiController = {
             status_code: 404,
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
+
         objCreate = {
           id_user_create: req.user.id,
           id_kalkulasi_previous: id_kalkulasi_previous,
@@ -889,6 +890,10 @@ const KalkulasiController = {
       if (checkData.status_kalkulasi == "repeat") {
         isIoActive = true;
         isOkpDone = true;
+        await IoModel.update(
+          { status_io: "repeat" },
+          { where: { id: checkData.id_io }, transaction: t }
+        );
       }
       await Kalkulasi.update(
         {
