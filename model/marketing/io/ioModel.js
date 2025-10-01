@@ -91,6 +91,11 @@ const io = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_updated: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
