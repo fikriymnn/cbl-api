@@ -394,7 +394,7 @@ const SoController = {
         });
       await SoModel.update(
         {
-          status_proses: "note_cancel",
+          status_proses: "cancel",
           note_cancel: note_cancel,
         },
         {
