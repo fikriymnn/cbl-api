@@ -121,7 +121,16 @@ const KalkulasiController = {
 
   getKalkulasiJumlahData: async (req, res) => {
     try {
-      const length = await Kalkulasi.count();
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+      const length = await Kalkulasi.count({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+        },
+      });
 
       return res.status(200).json({
         succes: true,

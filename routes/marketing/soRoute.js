@@ -9,6 +9,7 @@ router.put("/marketing/so/:id", auth, SoController.updateSo);
 router.put("/marketing/so/request/:id", auth, SoController.submitRequestSo);
 router.put("/marketing/so/approve/:id", auth, SoController.approveSo);
 router.put("/marketing/so/reject/:id", auth, SoController.rejectSo);
+router.put("/marketing/so/cancel/:id", auth, SoController.cancelSo);
 router.delete("/marketing/so/:id", auth, SoController.deleteSo);
 
 module.exports = router;

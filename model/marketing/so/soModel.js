@@ -141,7 +141,10 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    note_cancel: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -177,8 +177,16 @@ const OkpController = {
 
   getOkpJumlahData: async (req, res) => {
     try {
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
       const length = await Okp.count({
-        where: { status_okp: "baru" },
+        where: {
+          is_new_okp: true,
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+        },
       });
 
       return res.status(200).json({
@@ -314,6 +322,7 @@ const OkpController = {
             keterangan_cetak: keterangan_cetak,
             keterangan: keterangan,
             tahapan: tahapan,
+            is_new_okp: true,
           },
           { transaction: t }
         );

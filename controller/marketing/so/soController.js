@@ -191,6 +191,17 @@ const SoController = {
         );
       }
 
+      if (id_so_cancel && so_cancel) {
+        await SoModel.update(
+          { status_proses: "cancel" },
+          { where: { id: id_so_cancel }, transaction: t }
+        );
+        await SoUserAction.create(
+          { id_io: id_so_cancel, id_user: req.user.id, status: "cancel" },
+          { transaction: t }
+        );
+      }
+
       await t.commit();
       return res.status(200).json({
         succes: true,
@@ -356,6 +367,43 @@ const SoController = {
       ),
         await SoUserAction.create(
           { id_io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+          { transaction: t }
+        );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  cancelSo: async (req, res) => {
+    const _id = req.params.id;
+    const { note_cancel } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await SoModel.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await SoModel.update(
+        {
+          status_proses: "note_cancel",
+          note_cancel: note_cancel,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await SoUserAction.create(
+          { id_io: checkData.id, id_user: req.user.id, status: "cancel" },
           { transaction: t }
         );
       await t.commit(),

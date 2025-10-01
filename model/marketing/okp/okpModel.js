@@ -128,6 +128,11 @@ const okp = db.define(
       allowNull: true,
       defaultValue: false,
     },
+    is_new_okp: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
 
     is_active: {
       type: DataTypes.BOOLEAN,
