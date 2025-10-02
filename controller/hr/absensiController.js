@@ -393,7 +393,7 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj, absen) {
 
     if (absen == true) {
       dataResult.push({
-        nama_karyawan: data.karyawan.name,
+        nama_karyawan: data?.karyawan?.name,
         nik: data.nik,
         id_department: data.id_department,
         divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
@@ -417,7 +417,7 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj, absen) {
       });
     } else {
       dataResult.push({
-        nama_karyawan: data.karyawan.name,
+        nama_karyawan: data?.karyawan?.name,
         nik: data.nik,
         id_department: data.id_department,
         divisi: data.divisi == null ? null : data.divisi?.nama_divisi,
