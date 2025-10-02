@@ -61,8 +61,8 @@ const AbsensiCheckInOutController = {
         dataResult.push({
           userid: dataAbsen.userid,
           nama:
-            resultFindKaryawan.name == undefined
-              ? "noName"
+            resultFindKaryawan?.name == undefined
+              ? "NO NAME"
               : resultFindKaryawan.name,
           checkTime: dataAbsen.checktime,
           tglCheck: `${tglCheck} ${jamCheck}`,
