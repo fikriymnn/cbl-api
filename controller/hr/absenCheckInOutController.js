@@ -60,7 +60,7 @@ const AbsensiCheckInOutController = {
 
         dataResult.push({
           userid: dataAbsen.userid,
-          nama: resultFindKaryawan.name,
+          nama: resultFindKaryawan?.name,
           checkTime: dataAbsen.checktime,
           tglCheck: `${tglCheck} ${jamCheck}`,
           checkType: dataAbsen.checktype == "0" ? "Masuk" : "Keluar",

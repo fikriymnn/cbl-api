@@ -763,6 +763,11 @@ const IoController = {
 
       const namaMounting = nextAlphabet(dataLastMounting.nama_mounting);
 
+      await Io.update(
+        { is_updated: true },
+        { where: { id: _id }, transaction: t }
+      );
+
       const newMounting = await IoMounting.create(
         {
           id_io: _id,
@@ -875,6 +880,11 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      await Io.update(
+        { is_updated: true },
+        { where: { id: checkData.id_io }, transaction: t }
+      );
 
       await IoMounting.update(
         {
