@@ -16,6 +16,7 @@ router.put("/marketing/io/approve/:id", auth, IoController.approveIo);
 router.put("/marketing/io/reject/:id", auth, IoController.rejectIo);
 router.post("/marketing/io/mounting/:id", auth, IoController.createMountingIo);
 router.put("/marketing/io/mounting/:id", auth, IoController.updateMountingIo);
+router.put("/marketing/io/doneManual/:id", auth, IoController.doneManualIo);
 router.delete("/marketing/io/:id", auth, IoController.deleteIo);
 
 module.exports = router;

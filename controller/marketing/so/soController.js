@@ -272,6 +272,67 @@ const SoController = {
     }
   },
 
+  kelengkapanPoSo: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      status_pemesanan,
+      acuan_warna,
+      artwork,
+      harga,
+      partial,
+      kirim_semua,
+      note,
+      create_by,
+      ppic,
+    } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const checkData = await SoModel.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await SoModel.update(
+        {
+          status_pemesanan: status_pemesanan,
+          acuan_warna: acuan_warna,
+          artwork: artwork,
+          harga: harga,
+          partial: partial,
+          kirim_semua: kirim_semua,
+          note: note,
+          create_by: create_by,
+          ppic: ppic,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      );
+
+      await SoUserAction.create(
+        {
+          id_so: checkData.id,
+          id_user: req.user.id,
+          status: "update kelengkapan po",
+        },
+        { transaction: t }
+      );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   submitRequestSo: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
@@ -323,6 +384,7 @@ const SoController = {
         {
           status: "history",
           status_proses: "done",
+          status_work: "progress",
           id_approve_io: req.user.id,
           tgl_approve_io: new Date(),
         },
@@ -357,7 +419,7 @@ const SoController = {
       await SoModel.update(
         {
           status_proses: "reject kabag",
-          posisi_proses: "draft",
+          status: "draft",
           note_reject: note_reject,
         },
         {
@@ -410,6 +472,37 @@ const SoController = {
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  doneWorkSo: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await SoModel.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await SoModel.update(
+        {
+          status_work: "done",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "done Successful" });
     } catch (error) {
       res
         .status(400)

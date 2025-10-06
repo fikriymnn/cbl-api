@@ -276,6 +276,11 @@ const MasterMesinTahapan = require("./model/masterData/tahapan/masterMesinTahapa
 const MasterTahapan = require("./model/masterData/tahapan/masterTahapanModel");
 const MasterTahapanMesin = require("./model/masterData/tahapan/masterTahapanMesinModel");
 
+//master jenis
+const MasterJenisKertas = require("./model/masterData/masterJenisKertasModel");
+const MasterJenisTinta = require("./model/masterData/masterJenisTintaModel");
+const MasterJenisWarnaTinta = require("./model/masterData/masterJenisWarnaTintaModel");
+
 //kalkulasi
 const Kalkulasi = require("./model/marketing/kalkulasi/kalkulasiModel");
 const KalkulasiQty = require("./model/marketing/kalkulasi/kalkulasiQtyModel");
@@ -297,6 +302,18 @@ const IoUserAction = require("./model/marketing/io/ioActionActionModel");
 const So = require("./model/marketing/so/soModel");
 const SoUserAction = require("./model/marketing/so/soUserActionModel");
 
+//bom
+const BomModel = require("./model/ppic/bom/bomModel");
+const BomMounting = require("./model/ppic/bom/bomMountingModel");
+const BomKertas = require("./model/ppic/bom/bomKertasModel");
+const BomPoliban = require("./model/ppic/bom/bomPolibanModel");
+const BomLem = require("./model/ppic/bom/bomLemModel");
+const BomCorrugated = require("./model/ppic/bom/bomCorrugatedModel");
+const BomCoating = require("./model/ppic/bom/bomCoatingModel");
+const BomTinta = require("./model/ppic/bom/bomTintaModel");
+const BomTintaDetail = require("./model/ppic/bom/bomTintaDetailModel");
+const BomUserAction = require("./model/ppic/bom/bomUserActionModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -310,9 +327,9 @@ const app = express();
 //   await db.sync({ alter: true });
 // })();
 
-// // model sync to table (pancingan)
+// model sync to table (pancingan)
 // (async () => {
-//   await mtcSparepartProblem.sync({ alter: true });
+//   await BomTintaDetail.sync({ alter: true });
 // })();
 
 // const ip100 = 75
