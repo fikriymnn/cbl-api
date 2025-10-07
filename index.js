@@ -329,7 +329,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomTintaDetail.sync({ alter: true });
+//   await MasterJenisTinta.sync({ alter: true });
 // })();
 
 // const ip100 = 75

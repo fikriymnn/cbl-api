@@ -15,7 +15,7 @@ const MasterJenisTinta = db.define(
       },
     },
     bobot: {
-      type: DataTypes.DECIMAL(10, 2), // 10 total digit, 2 di belakang koma
+      type: DataTypes.DECIMAL(10, 1), // 10 total digit, 2 di belakang koma
       allowNull: false,
       defaultValue: 0.0,
     },
