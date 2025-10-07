@@ -264,6 +264,7 @@ router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
 router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
 router.use("/", require("./ppic/jadwalKirim/jadwalKirimRoute"));
 router.use("/", require("./ppic/report/reportKapasitasRoute"));
+router.use("/", require("./ppic/bom/bomRoute"));
 
 //master data marketing
 router.use("/", require("./masterdata/marketing/masterHargaPengirimanRoute"));
@@ -286,6 +287,15 @@ router.use("/", require("./marketing/kalkulasiRoute"));
 router.use("/", require("./marketing/okpRoute"));
 router.use("/", require("./marketing/ioRoute"));
 router.use("/", require("./marketing/soRoute"));
+
+//master jenis kertas
+router.use("/", require("./masterdata/masterJenisKertasRoute"));
+
+//master jenis tinta
+router.use("/", require("./masterdata/masterJenisTintaRoute"));
+
+//master jenis warna tinta
+router.use("/", require("./masterdata/masterJenisWarnaTintaRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

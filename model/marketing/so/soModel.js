@@ -127,6 +127,42 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    status_pemesanan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    acuan_warna: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    artwork: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    harga: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    partial: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kirim_semua: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    note: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    create_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    ppic: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -136,6 +172,11 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "draft",
+    },
+    status_work: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "",
     },
     note_reject: {
       type: DataTypes.STRING,

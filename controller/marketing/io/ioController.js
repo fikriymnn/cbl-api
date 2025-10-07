@@ -226,6 +226,8 @@ const IoController = {
         );
         revisiKe = checkIoPrevious.revisi_ke + 1;
         basenoIo = checkIoPrevious.base_no_io;
+      } else {
+        basenoIo = base_no_io;
       }
 
       const response = await Io.create(
@@ -611,6 +613,30 @@ const IoController = {
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  doneManualIo: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      await Kalkulasi.update(
+        {
+          is_io_active: false,
+        },
+        {
+          where: { id_io: _id, is_io_active: true },
+          transaction: t,
+        }
+      ),
+        await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Done Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
 
