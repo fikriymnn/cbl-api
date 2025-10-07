@@ -32,6 +32,10 @@ const so = db.define(
         key: "id",
       },
     },
+    id_kalkulasi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     tgl_approve_so: {
       type: DataTypes.DATE,
       allowNull: true,

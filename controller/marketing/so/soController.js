@@ -65,9 +65,19 @@ const SoController = {
             },
           ],
         });
+
+        let dataKalkulasi = null;
+        if (response.id_kalkulasi) {
+          dataKalkulasi = await Kalkulasi.findByPk(response.id_kalkulasi);
+        }
         res
           .status(200)
-          .json({ succes: true, status_code: 200, data: response });
+          .json({
+            succes: true,
+            status_code: 200,
+            data: response,
+            data_kalkulasi: dataKalkulasi,
+          });
       } else {
         const response = await SoModel.findAll({
           where: obj,
@@ -155,6 +165,7 @@ const SoController = {
       const response = await SoModel.create(
         {
           id_io: checkIo.id,
+          id_kalkulasi: id_kalkulasi,
           id_create_so: req.user.id,
           no_io: checkIo.no_io,
           no_so: no_so,
