@@ -50,6 +50,10 @@ const Bom = db.define(
         key: "id",
       },
     },
+    tgl_approve_bom: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
 
     nama_mounting: {
       type: DataTypes.STRING,
@@ -98,11 +102,6 @@ const Bom = db.define(
     note_reject: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    is_io_done: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
     },
     is_active: {
       type: DataTypes.BOOLEAN,

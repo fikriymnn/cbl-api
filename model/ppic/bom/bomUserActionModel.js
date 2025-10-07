@@ -48,12 +48,12 @@ const BomUserAction = db.define(
 );
 
 BomModel.hasMany(BomUserAction, {
-  foreignKey: "id_so",
-  as: "so_action_user",
+  foreignKey: "id_bom",
+  as: "bom_action_user",
 });
 BomUserAction.belongsTo(BomModel, {
-  foreignKey: "id_so",
-  as: "so",
+  foreignKey: "id_bom",
+  as: "bom",
 });
 
 Users.hasMany(BomUserAction, {

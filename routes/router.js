@@ -264,6 +264,7 @@ router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
 router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
 router.use("/", require("./ppic/jadwalKirim/jadwalKirimRoute"));
 router.use("/", require("./ppic/report/reportKapasitasRoute"));
+router.use("/", require("./ppic/bom/bomRoute"));
 
 //master data marketing
 router.use("/", require("./masterdata/marketing/masterHargaPengirimanRoute"));
