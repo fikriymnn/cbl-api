@@ -36,6 +36,7 @@ const so = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+
     tgl_approve_so: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -189,6 +190,11 @@ const so = db.define(
     note_cancel: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    is_bom_done: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
     is_active: {
       type: DataTypes.BOOLEAN,
