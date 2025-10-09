@@ -10,6 +10,7 @@ const BomLemModel = require("../../../model/ppic/bom/bomLemModel");
 const BomUserAction = require("../../../model/ppic/bom/bomLemModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
+const soModel = require("../../../model/marketing/so/soModel");
 
 const BomController = {
   getBomModel: async (req, res) => {
@@ -148,6 +149,7 @@ const BomController = {
         },
         { transaction: t }
       );
+
       if (bom_kertas && bom_kertas.length > 0) {
         let dataBomKertas = [];
         for (let iKertas = 0; iKertas < bom_kertas.length; iKertas++) {
@@ -557,10 +559,15 @@ const BomController = {
           transaction: t,
         }
       ),
-        await BomUserAction.create(
-          { id_bom: checkData.id, id_user: req.user.id, status: "approve" },
+        await soModel.update(
+          { is_bom_done: true },
+          { where: { id: checkData.id_so } },
           { transaction: t }
         );
+      await BomUserAction.create(
+        { id_bom: checkData.id, id_user: req.user.id, status: "approve" },
+        { transaction: t }
+      );
 
       await t.commit(),
         res

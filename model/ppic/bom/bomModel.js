@@ -123,7 +123,7 @@ Bom.belongsTo(IoModel, {
   as: "io",
 });
 
-SoModel.hasMany(Bom, {
+SoModel.hasOne(Bom, {
   foreignKey: "id_so",
   as: "bom",
 });

@@ -3,14 +3,23 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
 const Io = require("../../../model/marketing/io/ioModel");
+const BomModel = require("../../../model/ppic/bom/bomModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
 const SoController = {
   getSo: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, id_io, page, limit, search, status, status_proses } =
-      req.query;
+    const {
+      is_active,
+      is_bom_done,
+      id_io,
+      page,
+      limit,
+      search,
+      status,
+      status_proses,
+    } = req.query;
 
     try {
       let obj = {};
@@ -29,6 +38,9 @@ const SoController = {
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
       if (id_io) obj.id_io = id_io;
+      if (is_bom_done) {
+        obj.is_bom_done = is_bom_done == "true" ? true : false;
+      }
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
       }
@@ -36,7 +48,7 @@ const SoController = {
         const length = await SoModel.count({ where: obj });
         const data = await SoModel.findAll({
           where: obj,
-
+          include: [{ model: BomModel, as: "bom" }],
           offset: parseInt(offset),
           limit: parseInt(limit),
         });
@@ -49,6 +61,7 @@ const SoController = {
       } else if (_id) {
         const response = await SoModel.findByPk(_id, {
           include: [
+            { model: BomModel, as: "bom" },
             {
               model: Users,
               as: "user_create",
@@ -70,17 +83,16 @@ const SoController = {
         if (response.id_kalkulasi) {
           dataKalkulasi = await Kalkulasi.findByPk(response.id_kalkulasi);
         }
-        res
-          .status(200)
-          .json({
-            succes: true,
-            status_code: 200,
-            data: response,
-            data_kalkulasi: dataKalkulasi,
-          });
+        res.status(200).json({
+          succes: true,
+          status_code: 200,
+          data: response,
+          data_kalkulasi: dataKalkulasi,
+        });
       } else {
         const response = await SoModel.findAll({
           where: obj,
+          include: [{ model: BomModel, as: "bom" }],
         });
         res
           .status(200)
