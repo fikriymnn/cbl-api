@@ -7,6 +7,7 @@ const BomCorrugatedModel = require("../../../model/ppic/bom/bomCorrugatedModel")
 const BomPolibanModel = require("../../../model/ppic/bom/bomPolibanModel");
 const BomCoatingModel = require("../../../model/ppic/bom/bomCoatingModel");
 const BomLemModel = require("../../../model/ppic/bom/bomLemModel");
+const BomLainLain = require("../../../model/ppic/bom/bomLainLainModel");
 const BomUserAction = require("../../../model/ppic/bom/bomLemModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
@@ -113,6 +114,31 @@ const BomController = {
     }
   },
 
+  getBomJumlahData: async (req, res) => {
+    try {
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+      const length = await BomModel.count({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+        },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        total_data: length,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createBomModel: async (req, res) => {
     const {
       id_io,
@@ -130,6 +156,7 @@ const BomController = {
       bom_poliban,
       bom_coating,
       bom_lem,
+      lain_lain,
     } = req.body;
     const t = await db.transaction();
 
@@ -293,6 +320,21 @@ const BomController = {
         });
       }
 
+      if (lain_lain && lain_lain.length > 0) {
+        let dataBomLainLain = [];
+        for (let i = 0; i < lain_lain.length; i++) {
+          const e = lain_lain[i];
+          dataBomLainLain.push({
+            id_bom: dataBomModel.id,
+            nama_item: e.nama_item,
+            harga: e.harga,
+          });
+        }
+        await BomLainLain.bulkCreate(dataBomLainLain, {
+          transaction: t,
+        });
+      }
+
       await t.commit();
       res.status(200).json({
         msg: "Create Successfully",
@@ -322,6 +364,7 @@ const BomController = {
       bom_poliban,
       bom_coating,
       bom_lem,
+      lain_lain,
     } = req.body;
 
     const t = await db.transaction();
@@ -412,6 +455,9 @@ const BomController = {
 
       if (bom_lem) {
         await syncChild(BomLemModel, "bom_lem", "id_bom", bom_lem);
+      }
+      if (lain_lain) {
+        await syncChild(BomLainLain, "lain_lain", "id_bom", lain_lain);
       }
 
       // === Khusus bom_tinta karena ada child tinta_detail ===

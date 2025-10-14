@@ -312,6 +312,7 @@ const BomCorrugated = require("./model/ppic/bom/bomCorrugatedModel");
 const BomCoating = require("./model/ppic/bom/bomCoatingModel");
 const BomTinta = require("./model/ppic/bom/bomTintaModel");
 const BomTintaDetail = require("./model/ppic/bom/bomTintaDetailModel");
+const BomLainLain = require("./model/ppic/bom/bomLainLainModel");
 const BomUserAction = require("./model/ppic/bom/bomUserActionModel");
 
 const cookieParser = require("cookie-parser");
@@ -329,7 +330,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await So.sync({ alter: true });
+//   await BomLainLain.sync({ alter: true });
 // })();
 
 // const ip100 = 75
