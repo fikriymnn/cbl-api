@@ -1,18 +1,18 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const BomTintaModel = require("./bomTintaModel");
+const BomPpicTintaModel = require("./bomPpicTintaModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
 
 const { DataTypes } = Sequelize;
 
-const BomTintaDetail = db.define(
-  "bom_tinta_detail",
+const BomPpicTintaDetail = db.define(
+  "bom_ppic_tinta_detail",
   {
-    id_bom_tinta: {
+    id_bom_ppic_tinta: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: BomTintaModel,
+        model: BomPpicTintaModel,
         key: "id",
       },
     },
@@ -32,7 +32,17 @@ const BomTintaDetail = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    qty_tinta_detail: {
+    qty_tinta: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_beli: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_stok: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
@@ -48,22 +58,22 @@ const BomTintaDetail = db.define(
   }
 );
 
-BomTintaModel.hasMany(BomTintaDetail, {
-  foreignKey: "id_bom_tinta",
+BomPpicTintaModel.hasMany(BomPpicTintaDetail, {
+  foreignKey: "id_bom_ppic_tinta",
   as: "tinta_detail",
 });
-BomTintaDetail.belongsTo(BomTintaModel, {
-  foreignKey: "id_bom_tinta",
+BomPpicTintaDetail.belongsTo(BomPpicTintaModel, {
+  foreignKey: "id_bom_ppic_tinta",
   as: "tinta",
 });
 
-MasterBarang.hasMany(BomTintaDetail, {
+MasterBarang.hasMany(BomPpicTintaDetail, {
   foreignKey: "id_item_tinta",
-  as: "bom_tinta_detail",
+  as: "bom_ppic_tinta_detail",
 });
-BomTintaDetail.belongsTo(MasterBarang, {
+BomPpicTintaDetail.belongsTo(MasterBarang, {
   foreignKey: "id_item_tinta",
   as: "tinta_item",
 });
 
-module.exports = BomTintaDetail;
+module.exports = BomPpicTintaDetail;
