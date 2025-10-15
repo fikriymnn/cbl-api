@@ -88,6 +88,10 @@ const BomController = {
               as: "bom_lem",
             },
             {
+              model: BomLainLain,
+              as: "lain_lain",
+            },
+            {
               model: Users,
               as: "user_create",
             },
