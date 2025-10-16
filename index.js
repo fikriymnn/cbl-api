@@ -341,7 +341,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomPpicModel.sync({ alter: true });
+//   await BomModel.sync({ alter: true });
 // })();
 
 // const ip100 = 75

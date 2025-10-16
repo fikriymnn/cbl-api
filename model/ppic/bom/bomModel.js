@@ -103,6 +103,11 @@ const Bom = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_bom_ppic_done: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

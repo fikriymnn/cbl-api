@@ -1,5 +1,6 @@
 const { Op, Sequelize, where } = require("sequelize");
 const BomModel = require("../../../model/ppic/bom/bomModel");
+const BomPpicModel = require("../../../model/ppic/bomPpic/bomPpicModel");
 const BomKertasModel = require("../../../model/ppic/bom/bomKertasModel");
 const BomTintaModel = require("../../../model/ppic/bom/bomTintaModel");
 const BomTintaDetailModel = require("../../../model/ppic/bom/bomTintaDetailModel");
@@ -16,8 +17,17 @@ const soModel = require("../../../model/marketing/so/soModel");
 const BomController = {
   getBomModel: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, status, status_proses, search } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      is_bom_ppic_done,
+      is_active,
+      status,
+      status_proses,
+      search,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search) {
@@ -34,6 +44,9 @@ const BomController = {
     }
     if (status_proses) obj.status_tiket = status_tiket;
     if (status) obj.status = status;
+    if (is_active) obj.is_active = is_active == "true" ? true : false;
+    if (is_bom_ppic_done)
+      obj.is_bom_ppic_done = is_bom_ppic_done == "true" ? true : false;
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
@@ -45,7 +58,12 @@ const BomController = {
         const data = await BomModel.findAll({
           order: [["tgl_pembuatan_bom", "DESC"]],
           limit: parseInt(limit),
-
+          include: [
+            {
+              model: BomPpicModel,
+              as: "bom_ppic",
+            },
+          ],
           offset,
           where: obj,
         });
@@ -107,6 +125,12 @@ const BomController = {
       } else {
         const data = await BomModel.findAll({
           order: [["tgl_pembuatan_bom", "DESC"]],
+          include: [
+            {
+              model: BomPpicModel,
+              as: "bom_ppic",
+            },
+          ],
           where: obj,
         });
         return res.status(200).json({
@@ -599,6 +623,7 @@ const BomController = {
           status_proses: "done",
           id_approve_bom: req.user.id,
           tgl_approve_bom: new Date(),
+          is_bom_ppic_done: false,
         },
         {
           where: { id: _id },
