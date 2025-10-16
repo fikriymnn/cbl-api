@@ -39,29 +39,10 @@ const BomLem = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    qty_lock_bottom: {
+    qty_lem: {
       type: DataTypes.FLOAT,
       allowNull: true,
-    },
-    qty_lem_samping: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    qty_four_corner: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    qty_samping_lock_bottom: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    qty_six_corner: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    qty_ujung_lock_bottom: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
+      defaultValue: 0,
     },
     tipe: {
       type: DataTypes.STRING,

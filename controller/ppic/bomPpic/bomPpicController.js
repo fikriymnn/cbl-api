@@ -7,7 +7,7 @@ const BomPpicCorrugatedModel = require("../../../model/ppic/bomPpic/bomPpicCorru
 const BomPpicPolibanModel = require("../../../model/ppic/bomPpic/bomPpicPolibanModel");
 const BomPpicCoatingModel = require("../../../model/ppic/bomPpic/bomPpicCoatingModel");
 const BomPpicLemModel = require("../../../model/ppic/bomPpic/bomPpicLemModel");
-const BomUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
+const BomPpicUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const soModel = require("../../../model/marketing/so/soModel");
@@ -37,13 +37,13 @@ const BomPpicController = {
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      obj.tgl_pembuatan_bom_ppic_ppic = { [Op.between]: [startDate, endDate] };
+      obj.tgl_pembuatan_bom_ppic = { [Op.between]: [startDate, endDate] };
     }
     try {
       if (page && limit) {
         const length = await BomPpicModel.count({ where: obj });
         const data = await BomPpicModel.findAll({
-          order: [["tgl_pembuatan_bom_ppic_ppic", "DESC"]],
+          order: [["tgl_pembuatan_bom_ppic", "DESC"]],
           limit: parseInt(limit),
 
           offset,
@@ -114,7 +114,7 @@ const BomPpicController = {
     }
   },
 
-  getBomJumlahData: async (req, res) => {
+  getBomPpicJumlahData: async (req, res) => {
     try {
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
@@ -168,6 +168,7 @@ const BomPpicController = {
           id_io,
           id_so,
           id_bom,
+          id_create_bom_ppic: req.user.id,
           no_bom_ppic,
           no_io,
           no_so,
@@ -314,12 +315,7 @@ const BomPpicController = {
             nama_lem: e.nama_lem,
             rumus_lem: e.rumus_lem,
             qty_konstanta: e.qty_konstanta,
-            qty_lock_bottom: e.qty_lock_bottom,
-            qty_lem_samping: e.qty_lem_samping,
-            qty_four_corner: e.qty_four_corner,
-            qty_samping_lock_bottom: e.qty_samping_lock_bottom,
-            qty_six_corner: e.qty_six_corner,
-            qty_ujung_lock_bottom: e.qty_ujung_lock_bottom,
+            qty_lem: e.qty_lem,
             qty_beli: e.qty_beli,
             qty_stok: e.qty_stok,
           });
@@ -559,7 +555,7 @@ const BomPpicController = {
     }
   },
 
-  submitRequestBom: async (req, res) => {
+  submitRequestBomPpic: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
@@ -595,7 +591,7 @@ const BomPpicController = {
     }
   },
 
-  approveBom: async (req, res) => {
+  approveBomPpic: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
@@ -610,23 +606,22 @@ const BomPpicController = {
         {
           status: "history",
           status_proses: "done",
-          id_approve_bom: req.user.id,
-          tgl_approve_bom: new Date(),
+          id_approve_bom_ppic: req.user.id,
+          tgl_approve_bom_ppic: new Date(),
         },
         {
           where: { id: _id },
           transaction: t,
         }
       ),
-        await soModel.update(
-          { is_bom_ppic_done: true },
-          { where: { id: checkData.id_so } },
+        await BomPpicUserAction.create(
+          {
+            id_bom_ppic: checkData.id,
+            id_user: req.user.id,
+            status: "approve",
+          },
           { transaction: t }
         );
-      await BomUserAction.create(
-        { id_bom: checkData.id, id_user: req.user.id, status: "approve" },
-        { transaction: t }
-      );
 
       await t.commit(),
         res
@@ -639,7 +634,7 @@ const BomPpicController = {
     }
   },
 
-  rejectBom: async (req, res) => {
+  rejectBomPpic: async (req, res) => {
     const _id = req.params.id;
     const { note_reject } = req.body;
     const t = await db.transaction();
@@ -662,7 +657,7 @@ const BomPpicController = {
           transaction: t,
         }
       ),
-        await BomUserAction.create(
+        await BomPpicUserAction.create(
           {
             id_bom: checkData.id,
             id_user: req.user.id,

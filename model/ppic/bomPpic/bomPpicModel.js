@@ -88,7 +88,7 @@ const BomPpic = db.define(
       allowNull: true,
       defaultValue: new Date(),
     },
-    tgl_pembuatan_bom: {
+    tgl_pembuatan_bom_ppic: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: new Date(),

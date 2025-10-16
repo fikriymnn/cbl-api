@@ -310,12 +310,7 @@ const BomController = {
             nama_lem: e.nama_lem,
             rumus_lem: e.rumus_lem,
             qty_konstanta: e.qty_konstanta,
-            qty_lock_bottom: e.qty_lock_bottom,
-            qty_lem_samping: e.qty_lem_samping,
-            qty_four_corner: e.qty_four_corner,
-            qty_samping_lock_bottom: e.qty_samping_lock_bottom,
-            qty_six_corner: e.qty_six_corner,
-            qty_ujung_lock_bottom: e.qty_ujung_lock_bottom,
+            qty_lem: e.qty_lem,
             tipe: e.tipe,
             is_selected: e.is_selected,
           });
