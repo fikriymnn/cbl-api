@@ -1,4 +1,5 @@
 const { Op, Sequelize, where } = require("sequelize");
+const BomModel = require("../../../model/ppic/bom/bomModel");
 const BomPpicModel = require("../../../model/ppic/bomPpic/bomPpicModel");
 const BomPpicKertasModel = require("../../../model/ppic/bomPpic/bomPpicKertasModel");
 const BomPpicTintaModel = require("../../../model/ppic/bomPpic/bomPpicTintaModel");
@@ -8,6 +9,7 @@ const BomPpicPolibanModel = require("../../../model/ppic/bomPpic/bomPpicPolibanM
 const BomPpicCoatingModel = require("../../../model/ppic/bomPpic/bomPpicCoatingModel");
 const BomPpicLemModel = require("../../../model/ppic/bomPpic/bomPpicLemModel");
 const BomPpicUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
+const BomPpicLainLain = require("../../../model/ppic/bomPpic/bomPpicLainLainModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const soModel = require("../../../model/marketing/so/soModel");
@@ -28,7 +30,7 @@ const BomPpicController = {
           { no_bom: { [Op.like]: `%${search}%` } },
           { customer: { [Op.like]: `%${search}%` } },
           { produk: { [Op.like]: `%${search}%` } },
-          { status_bom_ppic_ppic: { [Op.like]: `%${search}%` } },
+          { status_bom_ppic: { [Op.like]: `%${search}%` } },
         ],
       };
     }
@@ -86,6 +88,10 @@ const BomPpicController = {
             {
               model: BomPpicLemModel,
               as: "bom_ppic_lem",
+            },
+            {
+              model: BomPpicLainLain,
+              as: "lain_lain",
             },
             {
               model: Users,
@@ -176,7 +182,7 @@ const BomPpicController = {
           no_jo,
           customer,
           produk,
-          tgl_kirim_customer,
+          tgl_kirim_customer: tgl_kirim_customer || null,
         },
         { transaction: t }
       );
@@ -325,6 +331,23 @@ const BomPpicController = {
         });
       }
 
+      if (lain_lain && lain_lain.length > 0) {
+        let dataBomPpicLainLain = [];
+        for (let i = 0; i < lain_lain.length; i++) {
+          const e = lain_lain[i];
+          dataBomPpicLainLain.push({
+            id_bom: dataBomPpicModel.id,
+            nama_item: e.nama_item,
+            harga: e.harga,
+            qty_beli: e.qty_beli,
+            qty_stok: e.qty_stok,
+          });
+        }
+        await BomPpicLainLain.bulkCreate(dataBomPpicLainLain, {
+          transaction: t,
+        });
+      }
+
       await t.commit();
       res.status(200).json({
         msg: "Create Successfully",
@@ -465,6 +488,10 @@ const BomPpicController = {
           "id_bom_ppic",
           bom_ppic_lem
         );
+      }
+
+      if (lain_lain) {
+        await syncChild(BomPpicLainLain, "lain_lain", "id_bom_ppic", lain_lain);
       }
 
       // === Khusus bom_ppic_tinta karena ada child tinta_detail ===
@@ -614,14 +641,18 @@ const BomPpicController = {
           transaction: t,
         }
       ),
-        await BomPpicUserAction.create(
-          {
-            id_bom_ppic: checkData.id,
-            id_user: req.user.id,
-            status: "approve",
-          },
-          { transaction: t }
+        await BomModel.update(
+          { is_bom_ppic_done: true },
+          { where: { id: checkData.id_bom }, transaction: t }
         );
+      await BomPpicUserAction.create(
+        {
+          id_bom_ppic: checkData.id,
+          id_user: req.user.id,
+          status: "approve",
+        },
+        { transaction: t }
+      );
 
       await t.commit(),
         res

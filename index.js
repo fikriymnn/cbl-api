@@ -325,6 +325,7 @@ const BomPpicCoating = require("./model/ppic/bomPpic/bomPpicCoatingModel");
 const BomPpicTinta = require("./model/ppic/bomPpic/bomPpicTintaModel");
 const BomPpicTintaDetail = require("./model/ppic/bomPpic/bomPpicTintaDetailModel");
 const BomPpicUserAction = require("./model/ppic/bomPpic/bomPpicUserActionModel");
+const BomPpicLainLain = require("./model/ppic/bomPpic/bomPpicLainLainModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -341,7 +342,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomModel.sync({ alter: true });
+//   await BomPpicLainLain.sync({ alter: true });
 // })();
 
 // const ip100 = 75
