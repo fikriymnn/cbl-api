@@ -307,12 +307,10 @@ const BomController = {
           const e = bom_coating[iCoating];
           dataBomCoating.push({
             id_bom: dataBomModel.id,
-            id_coating_depan: e.id_coating_depan,
-            id_coating_belakang: e.id_coating_belakang,
-            nama_coating_depan: e.nama_coating_depan,
-            nama_coating_belakang: e.nama_coating_belakang,
-            qty_coating_depan: e.qty_coating_depan,
-            qty_coating_belakang: e.qty_coating_belakang,
+            id_coating: e.id_coating,
+            nama_coating: e.nama_coating,
+            tipe_coating: e.tipe_coating,
+            qty_coating: e.qty_coating,
             uv_wb: e.uv_wb,
             varnish_doff: e.varnish_doff,
             tipe: e.tipe,
@@ -351,7 +349,7 @@ const BomController = {
           dataBomLainLain.push({
             id_bom: dataBomModel.id,
             nama_item: e.nama_item,
-            harga: e.harga,
+            qty: e.qty,
           });
         }
         await BomLainLain.bulkCreate(dataBomLainLain, {

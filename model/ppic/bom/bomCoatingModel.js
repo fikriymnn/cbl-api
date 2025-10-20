@@ -17,15 +17,7 @@ const BomCoating = db.define(
         key: "id",
       },
     },
-    id_coating_depan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: MasterBarang,
-        key: "id",
-      },
-    },
-    id_coating_belakang: {
+    id_coating: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -34,22 +26,19 @@ const BomCoating = db.define(
       },
     },
 
-    nama_coating_depan: {
+    nama_coating: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    nama_coating_belakang: {
+    tipe_coating: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_coating_depan: {
+    qty_coating: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    qty_coating_belakang: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
+
     uv_wb: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -89,19 +78,11 @@ BomCoating.belongsTo(BomModel, {
 });
 
 MasterBarang.hasMany(BomCoating, {
-  foreignKey: "id_coating_depan",
+  foreignKey: "id_coating",
 });
 BomCoating.belongsTo(MasterBarang, {
-  foreignKey: "id_coating_depan",
-  as: "coating_depan",
-});
-
-MasterBarang.hasMany(BomCoating, {
-  foreignKey: "id_coating_belakang",
-});
-BomCoating.belongsTo(MasterBarang, {
-  foreignKey: "id_coating_belakang",
-  as: "coating_belakang",
+  foreignKey: "id_coating",
+  as: "coating",
 });
 
 module.exports = BomCoating;

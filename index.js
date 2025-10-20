@@ -327,6 +327,11 @@ const BomPpicTintaDetail = require("./model/ppic/bomPpic/bomPpicTintaDetailModel
 const BomPpicUserAction = require("./model/ppic/bomPpic/bomPpicUserActionModel");
 const BomPpicLainLain = require("./model/ppic/bomPpic/bomPpicLainLainModel");
 
+//jo
+const JobOrderModel = require("./model/ppic/jobOrder/jobOrderModel");
+const JobOrderMountingModel = require("./model/ppic/jobOrder/joMountingModel");
+const JobOrderUserAction = require("./model/ppic/jobOrder/joUserActionModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -342,7 +347,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomPpicLainLain.sync({ alter: true });
+//   await BomCoating.sync({ alter: true });
 // })();
 
 // const ip100 = 75

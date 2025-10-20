@@ -19,7 +19,7 @@ const BomLainLain = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    harga: {
+    qty: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },

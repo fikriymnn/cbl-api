@@ -1,22 +1,33 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const Io = require("../io/ioModel");
+const IoModel = require("../../marketing/io/ioModel");
+const SoModel = require("../../marketing//so/soModel");
+const MasterCustomer = require("../../masterData/marketing/masterCustomerModel");
+const MasterProduk = require("../../masterData/marketing/masterProdukModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const so = db.define(
-  "so",
+const JobOrder = db.define(
+  "jo",
   {
     id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Io,
+        model: IoModel,
         key: "id",
       },
     },
-    id_create_so: {
+    id_so: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: SoModel,
+        key: "id",
+      },
+    },
+    id_create_jo: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -24,7 +35,7 @@ const so = db.define(
         key: "id",
       },
     },
-    id_approve_so: {
+    id_approve_jo: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -32,13 +43,29 @@ const so = db.define(
         key: "id",
       },
     },
-    id_kalkulasi: {
+    id_customer: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterCustomer,
+        key: "id",
+      },
+    },
+    id_produk: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterProduk,
+        key: "id",
+      },
+    },
+    tgl_approve_jo: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
 
-    tgl_approve_so: {
-      type: DataTypes.DATE,
+    no_jo: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     no_io: {
@@ -49,6 +76,7 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     customer: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -57,117 +85,61 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_pembuatan_so: {
+
+    tgl_pembuatan_jo: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: new Date(),
     },
-    tgl_input_po: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: new Date(),
-    },
-    id_so_cancel: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    so_cancel: {
+    status_kalkulasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
     status_jo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status_produk: {
-      type: DataTypes.STRING,
+    stok_fg: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
-    tgl_acc_customer: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    tgl_po_customer: {
-      type: DataTypes.DATE,
+    qty: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     po_qty: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    harga_jual: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    total_harga: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    no_po_customer: {
+    spesifikasi: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    keterangan: {
+    keterangan_pengerjaan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    ppn: {
+    toleransi: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    profit: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    tgl_pengiriman: {
-      type: DataTypes.DATE,
       allowNull: true,
     },
     alamat_pengiriman: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    ada_standar_warna: {
+    tgl_kirim: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    standar_warna: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status_pemesanan: {
+    tipe_jo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    acuan_warna: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    artwork: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    harga: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    partial: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    kirim_semua: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    note: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    create_by: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    ppic: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -178,28 +150,9 @@ const so = db.define(
       allowNull: true,
       defaultValue: "draft",
     },
-    status_work: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "",
-    },
     note_reject: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    note_cancel: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    is_bom_done: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    is_jo_done: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: true,
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -212,31 +165,57 @@ const so = db.define(
   }
 );
 
-Io.hasMany(so, {
+IoModel.hasMany(JobOrder, {
   foreignKey: "id_io",
-  as: "so",
+  as: "job_order",
 });
-so.belongsTo(Io, {
+JobOrder.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-Users.hasMany(so, {
-  foreignKey: "id_create_so",
-  as: "so_create",
+SoModel.hasOne(JobOrder, {
+  foreignKey: "id_so",
+  as: "job_order",
 });
-so.belongsTo(Users, {
-  foreignKey: "id_create_so",
+JobOrder.belongsTo(SoModel, {
+  foreignKey: "id_so",
+  as: "so",
+});
+MasterCustomer.hasMany(JobOrder, {
+  foreignKey: "id_customer",
+  as: "job_order",
+});
+JobOrder.belongsTo(MasterCustomer, {
+  foreignKey: "id_customer",
+  as: "detail_customer",
+});
+
+MasterProduk.hasMany(JobOrder, {
+  foreignKey: "id_produk",
+  as: "job_order",
+});
+JobOrder.belongsTo(MasterProduk, {
+  foreignKey: "id_produk",
+  as: "detail_produk",
+});
+
+Users.hasMany(JobOrder, {
+  foreignKey: "id_create_jo",
+  as: "jo_create",
+});
+JobOrder.belongsTo(Users, {
+  foreignKey: "id_create_jo",
   as: "user_create",
 });
 
-Users.hasMany(so, {
-  foreignKey: "id_approve_so",
-  as: "so_approve",
+Users.hasMany(JobOrder, {
+  foreignKey: "id_approve_jo",
+  as: "jo_approve",
 });
-so.belongsTo(Users, {
-  foreignKey: "id_approve_so",
+JobOrder.belongsTo(Users, {
+  foreignKey: "id_approve_jo",
   as: "user_approve",
 });
 
-module.exports = so;
+module.exports = JobOrder;
