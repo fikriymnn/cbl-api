@@ -1,19 +1,19 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const BomModel = require("./bomModel");
+const BomPpicModel = require("./bomPpicModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const BomLem = db.define(
-  "bom_lem",
+const BomPpicLem = db.define(
+  "bom_ppic_lem",
   {
-    id_bom: {
+    id_bom_ppic: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: BomModel,
+        model: BomPpicModel,
         key: "id",
       },
     },
@@ -39,20 +39,21 @@ const BomLem = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+
     qty_lem: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
     },
-    tipe: {
-      type: DataTypes.STRING,
+    qty_beli: {
+      type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: "draft",
+      defaultValue: 0,
     },
-    is_selected: {
-      type: DataTypes.BOOLEAN,
+    qty_stok: {
+      type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: false,
+      defaultValue: 0,
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -65,22 +66,22 @@ const BomLem = db.define(
   }
 );
 
-BomModel.hasMany(BomLem, {
-  foreignKey: "id_bom",
-  as: "bom_lem",
+BomPpicModel.hasMany(BomPpicLem, {
+  foreignKey: "id_bom_ppic",
+  as: "bom_ppic_lem",
 });
-BomLem.belongsTo(BomModel, {
-  foreignKey: "id_bom",
-  as: "bom",
+BomPpicLem.belongsTo(BomPpicModel, {
+  foreignKey: "id_bom_ppic",
+  as: "bom_ppic",
 });
 
-MasterBarang.hasMany(BomLem, {
+MasterBarang.hasMany(BomPpicLem, {
   foreignKey: "id_lem",
-  as: "bom_coating_depan",
+  as: "bom_ppic_lem",
 });
-BomLem.belongsTo(MasterBarang, {
+BomPpicLem.belongsTo(MasterBarang, {
   foreignKey: "id_lem",
   as: "lem",
 });
 
-module.exports = BomLem;
+module.exports = BomPpicLem;

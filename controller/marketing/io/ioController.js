@@ -907,11 +907,6 @@ const IoController = {
           msg: "Data tidak ditemukan",
         });
 
-      await Io.update(
-        { is_updated: true },
-        { where: { id: checkData.id_io }, transaction: t }
-      );
-
       await IoMounting.update(
         {
           keterangan_revisi: data_mounting.keterangan_revisi,

@@ -1,23 +1,22 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
-const BomModel = require("./bomModel");
+const BomPpicTintaModel = require("./bomPpicTintaModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
-const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const BomLem = db.define(
-  "bom_lem",
+const BomPpicTintaDetail = db.define(
+  "bom_ppic_tinta_detail",
   {
-    id_bom: {
+    id_bom_ppic_tinta: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: BomModel,
+        model: BomPpicTintaModel,
         key: "id",
       },
     },
-    id_lem: {
+    id_item_tinta: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -25,34 +24,28 @@ const BomLem = db.define(
         key: "id",
       },
     },
-
-    nama_lem: {
+    nama_item_tinta: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    rumus_lem: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-
-    qty_konstanta: {
+    persentase_tinta: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    qty_lem: {
+    qty_tinta: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
     },
-    tipe: {
-      type: DataTypes.STRING,
+    qty_beli: {
+      type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: "draft",
+      defaultValue: 0,
     },
-    is_selected: {
-      type: DataTypes.BOOLEAN,
+    qty_stok: {
+      type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: false,
+      defaultValue: 0,
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -65,22 +58,22 @@ const BomLem = db.define(
   }
 );
 
-BomModel.hasMany(BomLem, {
-  foreignKey: "id_bom",
-  as: "bom_lem",
+BomPpicTintaModel.hasMany(BomPpicTintaDetail, {
+  foreignKey: "id_bom_ppic_tinta",
+  as: "tinta_detail",
 });
-BomLem.belongsTo(BomModel, {
-  foreignKey: "id_bom",
-  as: "bom",
-});
-
-MasterBarang.hasMany(BomLem, {
-  foreignKey: "id_lem",
-  as: "bom_coating_depan",
-});
-BomLem.belongsTo(MasterBarang, {
-  foreignKey: "id_lem",
-  as: "lem",
+BomPpicTintaDetail.belongsTo(BomPpicTintaModel, {
+  foreignKey: "id_bom_ppic_tinta",
+  as: "tinta",
 });
 
-module.exports = BomLem;
+MasterBarang.hasMany(BomPpicTintaDetail, {
+  foreignKey: "id_item_tinta",
+  as: "bom_ppic_tinta_detail",
+});
+BomPpicTintaDetail.belongsTo(MasterBarang, {
+  foreignKey: "id_item_tinta",
+  as: "tinta_item",
+});
+
+module.exports = BomPpicTintaDetail;

@@ -32,6 +32,11 @@ const BomTintaDetail = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    qty_tinta_detail: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -1,14 +1,14 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const IoModel = require("../../marketing/io/ioModel");
-const IoMountingModel = require("../../marketing/io/ioMountingModel");
+const BomModel = require("../bom/bomModel");
 const SoModel = require("../../marketing//so/soModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const Bom = db.define(
-  "bom",
+const BomPpic = db.define(
+  "bom_ppic",
   {
     id_io: {
       type: DataTypes.INTEGER,
@@ -26,23 +26,15 @@ const Bom = db.define(
         key: "id",
       },
     },
-    id_io_mounting: {
+    id_bom: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: IoMountingModel,
+        model: BomModel,
         key: "id",
       },
     },
-    id_create_bom: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: Users,
-        key: "id",
-      },
-    },
-    id_approve_bom: {
+    id_create_bom_ppic: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -50,16 +42,20 @@ const Bom = db.define(
         key: "id",
       },
     },
-    tgl_approve_bom: {
+    id_approve_bom_ppic: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+    tgl_approve_bom_ppic: {
       type: DataTypes.DATE,
       allowNull: true,
     },
 
-    nama_mounting: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    no_bom: {
+    no_bom_ppic: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -71,6 +67,14 @@ const Bom = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_bom: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_jo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     customer: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -79,12 +83,18 @@ const Bom = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_pembuatan_bom: {
+    tgl_kirim_customer: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: new Date(),
     },
-    status_bom: {
+    tgl_pembuatan_bom_ppic: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
+    },
+
+    status_bom_ppic: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "baru",
@@ -103,11 +113,6 @@ const Bom = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    is_bom_ppic_done: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: true,
-    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
@@ -119,49 +124,49 @@ const Bom = db.define(
   }
 );
 
-IoModel.hasMany(Bom, {
+IoModel.hasMany(BomPpic, {
   foreignKey: "id_io",
-  as: "bom",
+  as: "bom_ppic",
 });
-Bom.belongsTo(IoModel, {
+BomPpic.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-SoModel.hasOne(Bom, {
+SoModel.hasOne(BomPpic, {
   foreignKey: "id_so",
-  as: "bom",
+  as: "bom_ppic",
 });
-Bom.belongsTo(SoModel, {
+BomPpic.belongsTo(SoModel, {
   foreignKey: "id_so",
   as: "so",
 });
 
-IoMountingModel.hasMany(Bom, {
-  foreignKey: "id_io_mounting",
+BomModel.hasMany(BomPpic, {
+  foreignKey: "id_bom",
+  as: "bom_ppic",
+});
+BomPpic.belongsTo(BomModel, {
+  foreignKey: "id_bom",
   as: "bom",
 });
-Bom.belongsTo(IoMountingModel, {
-  foreignKey: "id_io_mounting",
-  as: "io_mounting",
-});
 
-Users.hasMany(Bom, {
-  foreignKey: "id_create_bom",
-  as: "bom_create",
+Users.hasMany(BomPpic, {
+  foreignKey: "id_create_bom_ppic",
+  as: "bom_ppic_create",
 });
-Bom.belongsTo(Users, {
-  foreignKey: "id_create_bom",
+BomPpic.belongsTo(Users, {
+  foreignKey: "id_create_bom_ppic",
   as: "user_create",
 });
 
-Users.hasMany(Bom, {
-  foreignKey: "id_approve_bom",
-  as: "bom_approve",
+Users.hasMany(BomPpic, {
+  foreignKey: "id_approve_bom_ppic",
+  as: "bom_ppic_approve",
 });
-Bom.belongsTo(Users, {
-  foreignKey: "id_approve_bom",
+BomPpic.belongsTo(Users, {
+  foreignKey: "id_approve_bom_ppic",
   as: "user_approve",
 });
 
-module.exports = Bom;
+module.exports = BomPpic;

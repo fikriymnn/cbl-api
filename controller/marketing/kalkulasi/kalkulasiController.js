@@ -643,6 +643,7 @@ const KalkulasiController = {
           id_marketing: id_marketing,
           nama_marketing: checkMarketing.data_karyawan.name,
           kode_marketing: checkMarketing.kode,
+          kode_kalkulasi: kode_kalkulasi,
           id_produk: id_produk,
           nama_produk: checkProduk.nama_produk,
           id_area_pengiriman: id_area_pengiriman,

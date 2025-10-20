@@ -312,7 +312,25 @@ const BomCorrugated = require("./model/ppic/bom/bomCorrugatedModel");
 const BomCoating = require("./model/ppic/bom/bomCoatingModel");
 const BomTinta = require("./model/ppic/bom/bomTintaModel");
 const BomTintaDetail = require("./model/ppic/bom/bomTintaDetailModel");
+const BomLainLain = require("./model/ppic/bom/bomLainLainModel");
 const BomUserAction = require("./model/ppic/bom/bomUserActionModel");
+
+//bom ppic
+const BomPpicModel = require("./model/ppic/bomPpic/bomPpicModel");
+const BomPpicKertas = require("./model/ppic/bomPpic/bomPpicKertasModel");
+const BomPpicPoliban = require("./model/ppic/bomPpic/bomPpicPolibanModel");
+const BomPpicLem = require("./model/ppic/bomPpic/bomPpicLemModel");
+const BomPpicCorrugated = require("./model/ppic/bomPpic/bomPpicCorrugatedModel");
+const BomPpicCoating = require("./model/ppic/bomPpic/bomPpicCoatingModel");
+const BomPpicTinta = require("./model/ppic/bomPpic/bomPpicTintaModel");
+const BomPpicTintaDetail = require("./model/ppic/bomPpic/bomPpicTintaDetailModel");
+const BomPpicUserAction = require("./model/ppic/bomPpic/bomPpicUserActionModel");
+const BomPpicLainLain = require("./model/ppic/bomPpic/bomPpicLainLainModel");
+
+//jo
+const JobOrderModel = require("./model/ppic/jobOrder/jobOrderModel");
+const JobOrderMountingModel = require("./model/ppic/jobOrder/joMountingModel");
+const JobOrderUserAction = require("./model/ppic/jobOrder/joUserActionModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -329,7 +347,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await So.sync({ alter: true });
+//   await BomCoating.sync({ alter: true });
 // })();
 
 // const ip100 = 75

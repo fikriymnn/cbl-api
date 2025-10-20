@@ -13,6 +13,7 @@ const SoController = {
     const {
       is_active,
       is_bom_done,
+      is_jo_done,
       id_io,
       page,
       limit,
@@ -40,6 +41,9 @@ const SoController = {
       if (id_io) obj.id_io = id_io;
       if (is_bom_done) {
         obj.is_bom_done = is_bom_done == "true" ? true : false;
+      }
+      if (is_jo_done) {
+        obj.is_jo_done = is_jo_done == "true" ? true : false;
       }
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
@@ -410,6 +414,7 @@ const SoController = {
           status_work: "progress",
           id_approve_io: req.user.id,
           tgl_approve_io: new Date(),
+          is_jo_done: false,
         },
         {
           where: { id: _id },
