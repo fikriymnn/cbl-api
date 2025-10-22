@@ -145,12 +145,21 @@ const BomController = {
     const t = await db.transaction();
 
     try {
+      const checkSo = await SoModel.findByPk(id_so);
+
+      if (!checkSo)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data SO tidak ditemukan",
+        });
+
       const dataJobOrder = await JobOrder.create(
         {
           id_io,
           id_so,
-          id_customer,
-          id_produk,
+          id_customer: checkSo.id_customer,
+          id_produk: checkSo.id_produk,
           id_create_jo: req.user.id,
           no_jo,
           no_io,
@@ -219,12 +228,16 @@ const BomController = {
 
       await t.commit();
       res.status(200).json({
+        succes: true,
+        status_code: 200,
         msg: "Create Successfully",
         data: dataJobOrder,
       });
     } catch (error) {
       await t.rollback();
-      res.status(500).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
@@ -329,10 +342,14 @@ const BomController = {
       }
 
       await t.commit();
-      res.status(200).json({ msg: "Update JO berhasil" });
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Update JO berhasil" });
     } catch (error) {
       await t.rollback();
-      res.status(500).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
