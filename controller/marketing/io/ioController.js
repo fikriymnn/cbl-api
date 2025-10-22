@@ -235,6 +235,8 @@ const IoController = {
           id_okp: id_okp,
           base_no_io: basenoIo,
           id_create_io: req.user.id,
+          id_customer: checkOkp.id_customer,
+          id_produk: checkOkp.id_produk,
           no_io: no_io,
           customer: checkOkp.customer,
           produk: checkOkp.produk,
