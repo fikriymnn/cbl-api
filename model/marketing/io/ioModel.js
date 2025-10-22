@@ -1,6 +1,8 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const Okp = require("../okp/okpModel");
+const MasterCustomer = require("../../masterData/marketing/masterCustomerModel");
+const MasterProduk = require("../../masterData/marketing/masterProdukModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -13,6 +15,22 @@ const io = db.define(
       allowNull: true,
       references: {
         model: Okp,
+        key: "id",
+      },
+    },
+    id_customer: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterCustomer,
+        key: "id",
+      },
+    },
+    id_produk: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterProduk,
         key: "id",
       },
     },
@@ -115,6 +133,28 @@ io.belongsTo(Okp, {
   foreignKey: "id_okp",
   as: "okp",
 });
+
+//~~start~~//
+MasterCustomer.hasMany(io, {
+  foreignKey: "id_customer",
+  as: "io",
+});
+io.belongsTo(MasterCustomer, {
+  foreignKey: "id_customer",
+  as: "data_customer",
+});
+//~~end~~//
+
+//~~start~~//
+MasterProduk.hasMany(io, {
+  foreignKey: "id_produk",
+  as: "io",
+});
+io.belongsTo(MasterProduk, {
+  foreignKey: "id_produk",
+  as: "data_produk",
+});
+//~~end~~//
 
 Users.hasMany(io, {
   foreignKey: "id_create_io",

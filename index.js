@@ -281,6 +281,12 @@ const MasterJenisKertas = require("./model/masterData/masterJenisKertasModel");
 const MasterJenisTinta = require("./model/masterData/masterJenisTintaModel");
 const MasterJenisWarnaTinta = require("./model/masterData/masterJenisWarnaTintaModel");
 
+//master ketentuan insheet
+const MasterKetentuanInsheet = require("./model/masterData/masterKetentuanInsheetModel");
+
+//master proses insheet
+const MasterProsesInsheet = require("./model/masterData/masterProsesInsheetModel");
+
 //kalkulasi
 const Kalkulasi = require("./model/marketing/kalkulasi/kalkulasiModel");
 const KalkulasiQty = require("./model/marketing/kalkulasi/kalkulasiQtyModel");
@@ -347,7 +353,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomCoating.sync({ alter: true });
+//   await So.sync({ alter: true });
 // })();
 
 // const ip100 = 75

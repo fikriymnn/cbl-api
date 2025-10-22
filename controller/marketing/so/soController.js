@@ -184,6 +184,8 @@ const SoController = {
           id_kalkulasi: id_kalkulasi,
           id_create_so: req.user.id,
           no_io: checkIo.no_io,
+          id_customer: checkIo.id_customer,
+          id_produk: checkIo.id_produk,
           no_so: no_so,
           customer: checkIo.customer,
           produk: checkIo.produk,

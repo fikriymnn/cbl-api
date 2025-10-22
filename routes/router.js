@@ -284,6 +284,12 @@ router.use("/", require("./masterdata/tahapan/masterMesinTahapanRoute"));
 router.use("/", require("./masterdata/tahapan/masterTahapanRoute"));
 router.use("/", require("./masterdata/tahapan/masterTahapanMesinRoute"));
 
+//master ketentuan insheet
+router.use("/", require("./masterdata/masterKetentuanInsheetRoute"));
+
+//master proses insheet
+router.use("/", require("./masterdata/masterProsesInsheetRoute"));
+
 //marketing
 router.use("/", require("./marketing/kalkulasiRoute"));
 router.use("/", require("./marketing/okpRoute"));
