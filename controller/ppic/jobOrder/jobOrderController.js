@@ -145,12 +145,21 @@ const BomController = {
     const t = await db.transaction();
 
     try {
+      const checkSo = await SoModel.findByPk(id_so);
+
+      if (!checkSo)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data SO tidak ditemukan",
+        });
+
       const dataJobOrder = await JobOrder.create(
         {
           id_io,
           id_so,
-          id_customer,
-          id_produk,
+          id_customer: checkSo.id_customer,
+          id_produk: checkSo.id_produk,
           id_create_jo: req.user.id,
           no_jo,
           no_io,
@@ -219,17 +228,21 @@ const BomController = {
 
       await t.commit();
       res.status(200).json({
+        succes: true,
+        status_code: 200,
         msg: "Create Successfully",
         data: dataJobOrder,
       });
     } catch (error) {
       await t.rollback();
-      res.status(500).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
   updateJobOrder: async (req, res) => {
-    const { id } = req.params; // id bom utama
+    const _id = req.params.id; // id bom utama
     const {
       id_io,
       id_so,
@@ -258,8 +271,8 @@ const BomController = {
 
     const t = await db.transaction();
     try {
-      // Update BOM utama
-      const dataJo = await JobOrder.findByPk(id);
+      console.log(jo_mounting);
+      const dataJo = await JobOrder.findByPk(_id);
       if (!dataJo)
         return res.status(404).json({ msg: "Data JO tidak ditemukan" });
 
@@ -278,7 +291,7 @@ const BomController = {
           standar_warna,
           tipe_jo,
         },
-        { transaction: t }
+        { where: { id: _id }, transaction: t }
       );
 
       // === Fungsi util untuk update child ===
@@ -312,6 +325,7 @@ const BomController = {
         // 🔸 Update & Insert
         for (const item of newData) {
           if (item[idField]) {
+            console.log(idField, item[idField]);
             await model.update(item, {
               where: { [idField]: item[idField] },
               transaction: t,
@@ -325,14 +339,24 @@ const BomController = {
 
       // === Sinkronisasi setiap bagian ===
       if (jo_mounting) {
-        await syncChild(JobOrderMounting, "jo_mounting", "id_jo", jo_mounting);
+        for (let i = 0; i < jo_mounting.length; i++) {
+          const e = jo_mounting[i];
+          await JobOrderMounting.update(
+            { e },
+            { where: { id: e.id }, transaction: t }
+          );
+        }
       }
 
       await t.commit();
-      res.status(200).json({ msg: "Update JO berhasil" });
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Update JO berhasil" });
     } catch (error) {
       await t.rollback();
-      res.status(500).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
