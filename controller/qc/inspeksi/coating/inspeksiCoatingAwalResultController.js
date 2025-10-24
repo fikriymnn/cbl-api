@@ -1,11 +1,20 @@
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
+const InspeksiCoatingSubAwal = require("../../../../model/qc/inspeksi/coating/sub/inspeksiCoatingSubAwalModel");
 const InspeksiCoatingResultAwal = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultAwalModel");
 
 const inspeksiCoatingAwalResultController = {
   addInspeksiCoatingAwalResult: async (req, res) => {
     try {
       const { id } = req.params;
-      await InspeksiCoatingResultAwal.create({ id_inspeksi_coating: id });
+      // const response = await InspeksiCoatingResultAwal.create({
+      //   id_inspeksi_coating: id,
+      // });
+
+      // ini kode baru karena menyesuaikan dengan FE, karena fe mengirim id coating awal bukan id coating
+      const checkData = await InspeksiCoatingSubAwal.findByPk(id);
+      await InspeksiCoatingResultAwal.create({
+        id_inspeksi_coating: checkData.id_inspeksi_coating,
+      });
 
       res.status(200).json({ data: "create data successfully", msg: "OK" });
     } catch (err) {
