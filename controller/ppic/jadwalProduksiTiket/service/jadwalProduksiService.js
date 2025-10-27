@@ -9,8 +9,8 @@ const JadwalProduksi = require("../../../../model/ppic/jadwalProduksi/jadwalProd
 const masterShift = require("../../../../model/masterData/hr/masterShift/masterShiftModel");
 const masterIstirahat = require("../../../../model/masterData/hr/masterShift/masterIstirahatModel");
 
-const JadwalProduksiFunction = {
-  creteJadwalProduksiFunction: async (
+const JadwalProduksiService = {
+  creteJadwalProduksiService: async (
     item,
     no_jo,
     no_booking,
@@ -26,9 +26,11 @@ const JadwalProduksiFunction = {
     qty_druk,
     qty_lp,
     tahap,
-    id_jo
+    id_jo,
+    transaction = null
   ) => {
-    const t = await db.transaction();
+    const t = transaction || (await db.transaction());
+    console.log(tgl_so);
     try {
       if (no_jo && no_booking) {
         let obj = {};
@@ -59,15 +61,17 @@ const JadwalProduksiFunction = {
           { status_tiket: "history", no_jo: no_jo },
           { where: { no_booking: no_booking }, transaction: t }
         );
-        await t.commit();
+        if (!transaction) await t.commit();
+        console.log("update booking with jo success");
         return {
           status_code: 200,
           success: true,
-          msg: "update booking with jo success",
+          message: "update booking with jo success",
         };
       } else if (no_jo) {
         const dataTiket = await TiketJadwalProduksi.create(
           {
+            id_jo,
             item,
             no_jo,
             no_po,
@@ -166,11 +170,12 @@ const JadwalProduksiFunction = {
         await TiketJadwalProduksiTahapan.bulkCreate(dataTahapan, {
           transaction: t,
         });
-        await t.commit();
+        if (!transaction) await t.commit();
+        console.log(dataTiket);
         return {
           status_code: 200,
           success: true,
-          msg: "create jadwal success",
+          message: "create jadwal success",
         };
       } else if (no_booking) {
         const dataTiket = await TiketJadwalProduksi.create(
@@ -275,24 +280,25 @@ const JadwalProduksiFunction = {
         await TiketJadwalProduksiTahapan.bulkCreate(dataTahapan, {
           transaction: t,
         });
-        await t.commit();
+        if (!transaction) await t.commit();
+        console.log(dataTiket);
         return {
           status_code: 200,
           success: true,
-          msg: "create booking success",
+          message: "create booking success",
         };
       } else {
         return {
           status_code: 404,
           success: false,
-          msg: "tidak ada no_jo atau no_booking",
+          message: "tidak ada no_jo atau no_booking",
         };
       }
     } catch (error) {
-      await t.rollback();
-      throw { success: false, msg: error.message };
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
     }
   },
 };
 
-module.exports = JadwalProduksiFunction;
+module.exports = JadwalProduksiService;

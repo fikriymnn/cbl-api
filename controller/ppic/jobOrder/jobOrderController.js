@@ -6,6 +6,7 @@ const JobOrderUserAction = require("../../../model/ppic/jobOrder/joUserActionMod
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const soModel = require("../../../model/marketing/so/soModel");
+const JadwalProduksiService = require("../jadwalProduksiTiket/service/jadwalProduksiService");
 
 const BomController = {
   getJobOrder: async (req, res) => {
@@ -226,6 +227,52 @@ const BomController = {
         { where: { id: id_so }, transaction: t }
       );
 
+      // const dataSo = await soModel.findByPk(id_so);
+      // const dataMountingSelected = jo_mounting.find(
+      //   (e) => e.is_selected === true
+      // );
+
+      // function formatDate(dateStr, locale = "en-GB") {
+      //   const date = new Date(dateStr);
+      //   return date.toLocaleDateString(locale, {
+      //     day: "numeric",
+      //     month: "long",
+      //     year: "numeric",
+      //     timeZone: "Asia/Jakarta", // pastikan sesuai zona waktu lokal kamu
+      //   });
+      // }
+
+      // const createTiketJadwal =
+      //   await JadwalProduksiService.creteJadwalProduksiService(
+      //     produk,
+      //     no_jo,
+      //     null,
+      //     dataSo.no_po_customer,
+      //     no_io,
+      //     customer,
+      //     dataMountingSelected.nama_kertas,
+      //     formatDate(tgl_kirim),
+      //     formatDate(dataSo.tgl_pembuatan_so),
+      //     null,
+      //     po_qty,
+      //     0,
+      //     0,
+      //     0,
+      //     [],
+      //     dataJobOrder.id,
+      //     t
+      //   );
+
+      // if (createTiketJadwal.success === false) {
+      //   await t.rollback();
+
+      //   return res.status(400).json({
+      //     succes: false,
+      //     status_code: 400,
+      //     msg: createTiketJadwal.msg,
+      //   });
+      // }
+
       await t.commit();
       res.status(200).json({
         succes: true,
@@ -235,6 +282,7 @@ const BomController = {
       });
     } catch (error) {
       await t.rollback();
+      console.log(error);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });
