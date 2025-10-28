@@ -338,6 +338,11 @@ const JobOrderModel = require("./model/ppic/jobOrder/jobOrderModel");
 const JobOrderMountingModel = require("./model/ppic/jobOrder/joMountingModel");
 const JobOrderUserAction = require("./model/ppic/jobOrder/joUserActionModel");
 
+//master produksi
+const MasterKategoriKendala = require("./model/masterData/kodeProduksi/masterKategoriKendalaModel");
+const MasterKriteriaKendala = require("./model/masterData/kodeProduksi/masterKriteriaKendalaModel");
+const MasterKodeProduksi = require("./model/masterData/kodeProduksi/masterKodeProduksiModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -353,7 +358,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await TiketJadwalProduksi.sync({ alter: true });
+//   await mtcSparepartProblem.sync({ alter: true });
 // })();
 
 // const ip100 = 75

@@ -305,6 +305,18 @@ router.use("/", require("./masterdata/masterJenisTintaRoute"));
 //master jenis warna tinta
 router.use("/", require("./masterdata/masterJenisWarnaTintaRoute"));
 
+//master produksi
+router.use(
+  "/",
+  require("./masterdata/kodeProduksi/masterKategoriKendalaRoute")
+);
+router.use(
+  "/",
+  require("./masterdata/kodeProduksi/masterKriteriaKendalaRoute")
+);
+
+router.use("/", require("./masterdata/kodeProduksi/masterKodeProduksiRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;
