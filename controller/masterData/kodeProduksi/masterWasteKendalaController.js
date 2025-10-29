@@ -141,7 +141,11 @@ const MasterWasteKendalaController = {
             const { waste, ...rest } = item.toJSON();
             return {
               ...rest,
-              kendala: waste.map((w) => w.kode_kendala),
+              kendala: waste.map((w) => ({
+                ...w.kode_kendala, // ambil semua field dari w
+                id_waste_kendala: w.id, // tambahkan field id_waste_kendala
+                status: "update", // tambahkan field status
+              })),
             };
           });
         res.status(200).json({ succes: true, status_code: 200, data: result });
@@ -208,16 +212,18 @@ const MasterWasteKendalaController = {
               transaction: t,
             });
           } else {
+            // console.log(e.kendala);
             for (let i = 0; i < e.kendala.length; i++) {
               const element = e.kendala[i];
-              if (element.status === "delete") {
+              if (element.status == "delete") {
+                console.log(element);
                 await MasterWasteKendala.destroy({
-                  where: { id: element.id },
+                  where: { id: element.id_waste_kendala },
                   transaction: t,
                 });
               }
 
-              if (element.status === "new") {
+              if (element.status == "new") {
                 await MasterWasteKendala.create(
                   {
                     id_tahapan_produksi: e.id_tahapan_produksi,
