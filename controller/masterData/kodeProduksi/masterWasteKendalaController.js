@@ -69,7 +69,11 @@ const MasterWasteKendalaController = {
             const { waste, ...rest } = item.toJSON();
             return {
               ...rest,
-              kendala: waste.map((w) => w.kode_kendala),
+              kendala: waste.map((w) => ({
+                ...w.kode_kendala, // ambil semua field dari w
+                id_waste_kendala: w.id, // tambahkan field id_waste_kendala
+                status: "update", // tambahkan field status
+              })),
             };
           });
         return res.status(200).json({
@@ -216,7 +220,6 @@ const MasterWasteKendalaController = {
             for (let i = 0; i < e.kendala.length; i++) {
               const element = e.kendala[i];
               if (element.status == "delete") {
-                console.log(element);
                 await MasterWasteKendala.destroy({
                   where: { id: element.id_waste_kendala },
                   transaction: t,
