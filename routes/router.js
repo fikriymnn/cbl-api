@@ -314,6 +314,7 @@ router.use(
   "/",
   require("./masterdata/kodeProduksi/masterKriteriaKendalaRoute")
 );
+router.use("/", require("./masterdata/kodeProduksi/masterWasteKendalaRoute"));
 
 router.use("/", require("./masterdata/kodeProduksi/masterKodeProduksiRoute"));
 
