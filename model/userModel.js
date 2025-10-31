@@ -77,6 +77,10 @@ const Users = db.define(
         notEmpty: true,
       },
     },
+    divisi_bawahan: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: false,
