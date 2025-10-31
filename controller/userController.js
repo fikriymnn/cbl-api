@@ -143,6 +143,7 @@ const userController = {
       confPassword,
       role,
       bagian,
+      divisi_bawahan,
     } = req.body;
 
     if (
@@ -187,6 +188,7 @@ const userController = {
         role: role,
         no: no,
         bagian: bagian,
+        divisi_bawahan: divisi_bawahan,
       }),
         res.status(201).json({
           succes: true,
@@ -212,6 +214,7 @@ const userController = {
       no,
       status,
       bagian,
+      divisi_bawahan,
     } = req.body;
 
     try {
@@ -251,6 +254,7 @@ const userController = {
           no: no,
           status: status,
           bagian: bagian,
+          divisi_bawahan: divisi_bawahan,
         },
         {
           where: {
