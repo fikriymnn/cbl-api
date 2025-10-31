@@ -154,20 +154,30 @@ const userController = {
       !role ||
       !bagian
     )
-      return res.status(400).json({ msg: "incomplite data" });
-
-    if (password !== confPassword)
       return res
         .status(400)
-        .json({ msg: "Password And Confirm Password Doesn't Mact" });
+        .json({ succes: false, status_code: 404, msg: "incomplite data" });
+
+    if (password !== confPassword)
+      return res.status(400).json({
+        succes: false,
+        status_code: 404,
+        msg: "Password And Confirm Password Doesn't Mact",
+      });
 
     try {
+      console.log(req.body);
       const users = await Users.findOne({
         where: {
           email: email,
         },
       });
-      if (users) return res.status(404).json({ msg: "Email Alredy To Use" });
+      if (users)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Email Alredy To Use",
+        });
       const hasPassword = await bcrypt.hash(password, 10);
       await Users.create({
         nama: nama,
@@ -178,9 +188,15 @@ const userController = {
         no: no,
         bagian: bagian,
       }),
-        res.status(201).json({ msg: "Register Successfuly" });
+        res.status(201).json({
+          succes: true,
+          status_code: 200,
+          msg: "Register Successfuly",
+        });
     } catch (error) {
-      res.status(400).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
@@ -204,20 +220,25 @@ const userController = {
           uuid: req.params.id,
         },
       });
-      if (!users) return res.status(404).json({ msg: "User Not Found" });
+      if (!users)
+        return res
+          .status(404)
+          .json({ succes: false, status_code: 404, msg: "User Not Found" });
 
       let hashPassword;
       //console.log(password);
-      if (password === "" || password === null) {
+      if (password === "" || password === null || password === undefined) {
         hashPassword = users.password;
       } else {
         hashPassword = await bcrypt.hash(password, 10);
       }
 
       if (password !== confPassword)
-        return res
-          .status(400)
-          .json({ msg: "Password And Confirm Password Doesn't Mact" });
+        return res.status(400).json({
+          succes: false,
+          status_code: 404,
+          msg: "Password And Confirm Password Doesn't Mact",
+        });
 
       await Users.update(
         {
@@ -237,9 +258,16 @@ const userController = {
           },
         }
       ),
-        res.status(200).json({ msg: "User Update Successfuly" });
+        res.status(200).json({
+          succes: true,
+          status_code: 200,
+          msg: "User Update Successfuly",
+        });
     } catch (error) {
-      res.status(400).json({ msg: error.message });
+      console.log(error);
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
@@ -250,7 +278,10 @@ const userController = {
           uuid: req.params.id,
         },
       });
-      if (!users) return res.status(404).json({ msg: "User Not Found" });
+      if (!users)
+        return res
+          .status(404)
+          .json({ succes: false, status_code: 404, msg: "User Not Found" });
       await Users.update(
         { status: "in_aktif" },
         {
@@ -259,9 +290,15 @@ const userController = {
           },
         }
       ),
-        res.status(200).json({ msg: "User Delete Successfuly" });
+        res.status(200).json({
+          succes: true,
+          status_code: 200,
+          msg: "User Delete Successfuly",
+        });
     } catch (error) {
-      res.status(400).json({ msg: error.message });
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 };
