@@ -36,6 +36,7 @@ const karyawanController = {
       limit,
       search,
       id_department,
+      divisi_bawahan,
       tipe_penggajian,
       is_active,
       is_cutoff,
@@ -59,6 +60,7 @@ const karyawanController = {
     if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
 
     if (id_department) obj2.id_department = id_department;
+    if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
 
     try {
       const startToday = new Date().setHours(0, 0, 0, 0);
