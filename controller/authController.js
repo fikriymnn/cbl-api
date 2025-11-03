@@ -1,4 +1,5 @@
 const Users = require("../model/userModel");
+const { Sequelize } = require("sequelize");
 const { generate_access_token } = require("../utils/jwt");
 const authMiddlewares = require("../middlewares/authMiddlewares");
 const bcrypt = require("bcryptjs");
@@ -31,6 +32,7 @@ const authController = {
       const no = users.no;
       const bagian = users.bagian;
       const id_karyawan = users.id_karyawan;
+      const divisi_bawahan = users.divisi_bawahan;
 
       const access_token = generate_access_token({
         id: id,
@@ -40,6 +42,7 @@ const authController = {
         no: no,
         role: role,
         id_karyawan: id_karyawan,
+        divisi_bawahan: divisi_bawahan,
       });
 
       res.cookie("access_token", access_token, {
@@ -73,6 +76,7 @@ const authController = {
           "no",
           "status",
           "bagian",
+          "divisi_bawahan",
         ],
         where: {
           uuid: uuid,
@@ -93,6 +97,16 @@ const authController = {
         ],
       });
       if (!users) return res.status(404).json({ msg: "User Not Found" });
+      if (users && typeof users.divisi_bawahan === "string") {
+        try {
+          users.divisi_bawahan = JSON.parse(users.divisi_bawahan);
+        } catch (e) {
+          console.warn(
+            "divisi_bawahan bukan JSON valid:",
+            users.divisi_bawahan
+          );
+        }
+      }
       res.status(200).json(users);
     } catch (error) {
       res.status(500).json({ msg: error.message });

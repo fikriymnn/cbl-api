@@ -13,11 +13,13 @@ const { Op, fn, col, literal, Sequelize } = require("sequelize");
 
 const AbsensiController = {
   getAbsensi: async (req, res) => {
-    const { idDepartment, is_active, startDate, endDate } = req.query;
+    const { idDepartment, divisi_bawahan, is_active, startDate, endDate } =
+      req.query;
 
     let obj = {};
     let day = null;
     if (idDepartment) obj.id_department = idDepartment;
+    if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
     // if (is_active && is_active == "true") {
     //   console.log(1);
     //   obj.is_active = true;
@@ -113,11 +115,18 @@ const AbsensiController = {
   },
 
   getAbsensiRekap: async (req, res) => {
-    const { idDepartment, id_karyawan, is_active, startDate, endDate } =
-      req.query;
+    const {
+      idDepartment,
+      divisi_bawahan,
+      id_karyawan,
+      is_active,
+      startDate,
+      endDate,
+    } = req.query;
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
+    if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
     if (id_karyawan) obj.id_karyawan = id_karyawan;
     if (is_active && is_active == "true") {
       obj.is_active = true;
