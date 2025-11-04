@@ -1,4 +1,8 @@
 const { Op, Sequelize, where } = require("sequelize");
+const ProduksiLkhTahapan = require("../../../model/produksi/produksiLkhTahapanModel");
+const ioMountingModel = require("../../../model/marketing/io/ioMountingModel");
+const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
+const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const SoModel = require("../../../model/marketing/so/soModel");
 const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const JobOrderMounting = require("../../../model/ppic/jobOrder/joMountingModel");
@@ -448,13 +452,35 @@ const BomController = {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
-      const checkData = await JobOrder.findByPk(_id);
+      const checkData = await JobOrder.findByPk(_id, {
+        include: [
+          {
+            where: { is_active: true },
+            required: false,
+            model: JobOrderMounting,
+            as: "jo_mounting",
+          },
+        ],
+      });
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      const ioMounting = await ioMountingModel.findByPk(
+        checkData.jo_mounting[0].id_io_mounting,
+        {
+          include: [
+            {
+              model: IoTahapan,
+              as: "tahapan",
+              include: [{ model: MasterTahapanMesin, as: "tahapan_mesin" }],
+            },
+          ],
+        }
+      );
       await JobOrder.update(
         {
           status: "history",
@@ -471,7 +497,30 @@ const BomController = {
           { id_jo: checkData.id, id_user: req.user.id, status: "approve" },
           { transaction: t }
         );
-
+      for (let i = 0; i < ioMounting.tahapan.length; i++) {
+        const e = ioMounting.tahapan[i];
+        await ProduksiLkhTahapan.create(
+          {
+            id_jo: checkData.id,
+            id_io: checkData.id_io,
+            id_so: checkData.id_so,
+            id_customer: checkData.id_customer,
+            id_produk: checkData.id_produk,
+            id_tahapan: e.tahapan_mesin.id_tahapan,
+            index: e.index,
+            no_jo: checkData.no_jo,
+            no_io: checkData.no_io,
+            no_so: checkData.no_so,
+            customer: checkData.customer,
+            produk: checkData.produk,
+            tgl_kirim: checkData.tgl_kirim,
+            qty_jo: checkData.qty,
+            spesifikasi: checkData.spesifikasi,
+            status: e.index == 1 ? "active" : "nonactive",
+          },
+          { transaction: t }
+        );
+      }
       await t.commit(),
         res
           .status(200)

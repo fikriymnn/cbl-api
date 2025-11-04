@@ -32,12 +32,18 @@ const db = new Sequelize(
       debug: false,
       trace: false,
       multipleStatements: false,
+      charset: "utf8mb4",
 
       // SSL configuration jika diperlukan
       // ssl: {
       //   require: false,
       //   rejectUnauthorized: false
       // }
+    },
+
+    define: {
+      charset: "utf8mb4",
+      collate: "utf8mb4_unicode_ci",
     },
 
     // Query options
