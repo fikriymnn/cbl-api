@@ -30,7 +30,7 @@ const BomController = {
         ],
       };
     }
-    if (status_proses) obj.status_tiket = status_tiket;
+    if (status_proses) obj.status_proses = status_proses;
     if (status) obj.status = status;
 
     if (start_date && end_date) {
