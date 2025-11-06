@@ -30,6 +30,7 @@ const ProduksiLkhTahapanController = {
       id_customer,
       id_produk,
     } = req.query;
+
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search) {
