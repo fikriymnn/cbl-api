@@ -65,16 +65,36 @@ const ProduksiLkhProsesController = {
         const data = await ProduksiLkhProses.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
-
           offset,
           where: obj,
+          include: [
+            {
+              model: ProduksiLkh,
+              as: "produksi_lkh",
+            },
+            {
+              model: Users,
+              as: "operator",
+            },
+          ],
         });
         return res.status(200).json({
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const data = await ProduksiLkhProses.findByPk(_id, {});
+        const data = await ProduksiLkhProses.findByPk(_id, {
+          include: [
+            {
+              model: ProduksiLkh,
+              as: "produksi_lkh",
+            },
+            {
+              model: Users,
+              as: "operator",
+            },
+          ],
+        });
         return res.status(200).json({
           data: data,
         });
@@ -82,6 +102,16 @@ const ProduksiLkhProsesController = {
         const data = await ProduksiLkhProses.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
+          include: [
+            {
+              model: ProduksiLkh,
+              as: "produksi_lkh",
+            },
+            {
+              model: Users,
+              as: "operator",
+            },
+          ],
         });
         return res.status(200).json({
           data: data,
@@ -98,6 +128,7 @@ const ProduksiLkhProsesController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
       const checkJo = await JobOrder.findByPk(id_jo);
       if (!checkJo)
         return res.status(404).json({
@@ -116,9 +147,11 @@ const ProduksiLkhProsesController = {
 
       if (!checkProduksiLkh) {
         const dataProduksiLkhTahapan = await ProduksiLkhTahapan.findOne({
-          id_jo: id_jo,
-          id_tahapan: id_tahapan,
-          is_active: true,
+          where: {
+            id_jo: id_jo,
+            id_tahapan: id_tahapan,
+            is_active: true,
+          },
         });
         const dataProduksiLkh = await ProduksiLkh.create(
           {
