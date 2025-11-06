@@ -344,6 +344,11 @@ const MasterKriteriaKendala = require("./model/masterData/kodeProduksi/masterKri
 const MasterKodeProduksi = require("./model/masterData/kodeProduksi/masterKodeProduksiModel");
 const MasterWasteKendala = require("./model/masterData/kodeProduksi/masterWasteKendalaModel");
 
+//produksi
+const ProduksiLkhTahapan = require("./model/produksi/produksiLkhTahapanModel");
+const ProduksiLkh = require("./model/produksi/produksiLkhModel");
+const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -359,7 +364,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({ alter: true });
+//   await ProduksiLkhTahapan.sync({ alter: true });
 // })();
 
 // const ip100 = 75

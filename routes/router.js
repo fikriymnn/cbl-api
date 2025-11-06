@@ -315,8 +315,12 @@ router.use(
   require("./masterdata/kodeProduksi/masterKriteriaKendalaRoute")
 );
 router.use("/", require("./masterdata/kodeProduksi/masterWasteKendalaRoute"));
-
 router.use("/", require("./masterdata/kodeProduksi/masterKodeProduksiRoute"));
+
+//produksi
+router.use("/", require("./produksi/produksiLkhRoute"));
+router.use("/", require("./produksi/produksiLkhTahapanRoute"));
+router.use("/", require("./produksi/produksiLkhProsesRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
