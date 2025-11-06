@@ -1,7 +1,7 @@
 const { Op, Sequelize, where } = require("sequelize");
 const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const ProduksiLkh = require("../../model/produksi/produksiLkhModel");
-const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesTesModel");
+const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapanMesin = require("../../model/masterData/tahapan/masterTahapanMesinModel");
