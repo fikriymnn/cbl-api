@@ -19,4 +19,10 @@ router.put(
   ProduksiLkhProsesController.stopProduksiLkhProses
 );
 
+router.put(
+  "/produksi/lkhProses/approveSpv/:id",
+  auth,
+  ProduksiLkhProsesController.approveSpvProduksiLkhProses
+);
+
 module.exports = router;

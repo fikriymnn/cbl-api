@@ -29,6 +29,7 @@ const ProduksiLkhProsesController = {
       id_mesin,
       id_operator,
       search,
+      is_approved_svp,
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -51,6 +52,7 @@ const ProduksiLkhProsesController = {
     if (id_tahapan) obj.id_tahapan = id_tahapan;
     if (id_mesin) obj.id_mesin = id_mesin;
     if (id_operator) obj.id_operator = id_operator;
+    if (is_approved_svp) obj.status = "request to spv";
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -219,9 +221,21 @@ const ProduksiLkhProsesController = {
 
       // hasil dalam detik
       const totalDetik = Math.floor((end - start) / 1000);
+      let obj = {};
 
-      await ProduksiLkhProses.update(
-        {
+      if (checkData.kode == 5.2) {
+        obj = {
+          baik: baik,
+          rusak_sebagian: rusak_sebagian,
+          rusak_total: rusak_total,
+          pallet: pallet,
+          note: note,
+          waktu_selesai: new Date(),
+          total_waktu: totalDetik,
+          status: "request to spv",
+        };
+      } else {
+        obj = {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
           rusak_total: rusak_total,
@@ -230,7 +244,73 @@ const ProduksiLkhProsesController = {
           waktu_selesai: new Date(),
           total_waktu: totalDetik,
           status: "done",
+        };
+      }
+
+      await ProduksiLkhProses.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      }),
+        await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Stop Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  approveSpvProduksiLkhProses: async (req, res) => {
+    const _id = req.params.id;
+    const { baik, rusak_sebagian, rusak_total, pallet, note } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await ProduksiLkhProses.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      const checkDataLkh = await ProduksiLkh.findByPk(
+        checkData.id_produksi_lkh
+      );
+      const checkDataLkhtahapan = await ProduksiLkhTahapan.findByPk(
+        checkData.id_produksi_lkh_tahapan
+      );
+
+      if (!checkDataLkhtahapan)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data lkh tidak ditemukan",
+        });
+
+      //doone untuk tahapan yg di action
+      await ProduksiLkhTahapan.update(
+        { status: "done" },
+        { where: { id: checkDataLkhtahapan.id }, transaction: t }
+      );
+
+      //get data tahapan selnjutnya
+      const checkDataLkhtahapanNext = await ProduksiLkhTahapan.findOne({
+        where: {
+          id_jo: checkDataLkhtahapan.id_jo,
+          index: checkDataLkhtahapan.index + 1,
+          is_active: true,
         },
+      });
+
+      if (checkDataLkhtahapanNext) {
+        await ProduksiLkhTahapan.update(
+          { status: "active" },
+          { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+        );
+      }
+      await ProduksiLkhProses.update(
+        { status: "done" },
         {
           where: { id: _id },
           transaction: t,
