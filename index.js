@@ -347,7 +347,7 @@ const MasterWasteKendala = require("./model/masterData/kodeProduksi/masterWasteK
 //produksi
 const ProduksiLkhTahapan = require("./model/produksi/produksiLkhTahapanModel");
 const ProduksiLkh = require("./model/produksi/produksiLkhModel");
-const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesModel");
+const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesTesModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
