@@ -255,19 +255,8 @@ const ProduksiLkhProsesController = {
       const totalDetik = Math.floor((end - start) / 1000);
       let obj = {};
 
-      if (checkData.kode == 5.2) {
-        obj = {
-          baik: baik,
-          rusak_sebagian: rusak_sebagian,
-          rusak_total: rusak_total,
-          pallet: pallet,
-          note: note,
-          waktu_selesai: new Date(),
-          total_waktu: totalDetik,
-          status: "request to spv",
-        };
-      } else {
-        obj = {
+      await ProduksiLkhProses.update(
+        {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
           rusak_total: rusak_total,
@@ -276,13 +265,12 @@ const ProduksiLkhProsesController = {
           waktu_selesai: new Date(),
           total_waktu: totalDetik,
           status: "done",
-        };
-      }
-
-      await ProduksiLkhProses.update(obj, {
-        where: { id: _id },
-        transaction: t,
-      }),
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
         await t.commit(),
         res
           .status(200)
