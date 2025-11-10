@@ -128,7 +128,6 @@ const ProduksiLkhProsesController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       const checkJo = await JobOrder.findByPk(id_jo);
       if (!checkJo)
         return res.status(404).json({

@@ -334,9 +334,7 @@ const KalkulasiController = {
 
       let checkMesinPotong = {};
       if (id_mesin_potong) {
-        checkMesinPotong = await MasterTahapanMesin.findByPk(id_mesin_potong, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        checkMesinPotong = await MasterMesinTahapan.findByPk(id_mesin_potong);
         if (!checkMesinPotong)
           return res.status(404).json({
             succes: false,
@@ -379,11 +377,8 @@ const KalkulasiController = {
 
       let checkMesinCoatingDepan = {};
       if (id_mesin_coating_depan) {
-        checkMesinCoatingDepan = await MasterTahapanMesin.findByPk(
-          id_mesin_coating_depan,
-          {
-            include: { model: MasterMesinTahapan, as: "mesin" },
-          }
+        checkMesinCoatingDepan = await MasterMesinTahapan.findByPk(
+          id_mesin_coating_depan
         );
         if (!checkMesinCoatingDepan)
           return res.status(404).json({
@@ -394,11 +389,8 @@ const KalkulasiController = {
       }
       let checkMesinCoatingBelakang = {};
       if (id_mesin_coating_belakang) {
-        checkMesinCoatingBelakang = await MasterTahapanMesin.findByPk(
-          id_mesin_coating_belakang,
-          {
-            include: { model: MasterMesinTahapan, as: "mesin" },
-          }
+        checkMesinCoatingBelakang = await MasterMesinTahapan.findByPk(
+          id_mesin_coating_belakang
         );
         if (!checkMesinCoatingBelakang)
           return res.status(404).json({
@@ -420,9 +412,7 @@ const KalkulasiController = {
 
       let checkMesinPons = {};
       if (id_mesin_pons) {
-        checkMesinPons = await MasterTahapanMesin.findByPk(id_mesin_pons, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        checkMesinPons = await MasterMesinTahapan.findByPk(id_mesin_pons);
         if (!checkMesinPons)
           return res.status(404).json({
             succes: false,
@@ -432,9 +422,7 @@ const KalkulasiController = {
       }
       let checkMesinLipat = {};
       if (id_mesin_lipat) {
-        checkMesinLipat = await MasterTahapanMesin.findByPk(id_mesin_lipat, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        checkMesinLipat = await MasterMesinTahapan.findByPk(id_mesin_lipat);
         if (!checkMesinLipat)
           return res.status(404).json({
             succes: false,
@@ -456,11 +444,8 @@ const KalkulasiController = {
 
       let checkMesinFinishing = {};
       if (id_mesin_finishing) {
-        checkMesinFinishing = await MasterTahapanMesin.findByPk(
-          id_mesin_finishing,
-          {
-            include: { model: MasterMesinTahapan, as: "mesin" },
-          }
+        checkMesinFinishing = await MasterMesinTahapan.findByPk(
+          id_mesin_finishing
         );
         if (!checkMesinFinishing)
           return res.status(404).json({
@@ -550,7 +535,7 @@ const KalkulasiController = {
           total_kertas: parseFloat(total_kertas || "0"),
           total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
           id_mesin_potong: id_mesin_potong || null,
-          nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
+          nama_mesin_potong: checkMesinPotong?.nama_mesin || null,
           print_insheet: parseInt(print_insheet || "0"),
           id_jenis_mesin_cetak: id_jenis_mesin_cetak || null,
           jenis_mesin_cetak: checkMesinCetak.nama_barang || null,
@@ -569,16 +554,15 @@ const KalkulasiController = {
           ),
           total_harga_coating: parseFloat(total_harga_coating || "0"),
           id_mesin_coating_depan: id_mesin_coating_depan || null,
-          nama_mesin_coating_depan:
-            checkMesinCoatingDepan.mesin?.nama_mesin || null,
+          nama_mesin_coating_depan: checkMesinCoatingDepan?.nama_mesin || null,
           id_mesin_coating_belakang: id_mesin_coating_belakang || null,
           nama_mesin_coating_belakang:
-            checkMesinCoatingBelakang.mesin?.nama_mesin || null,
+            checkMesinCoatingBelakang?.nama_mesin || null,
           pons_insheet: parseInt(pons_insheet || "0"),
           id_jenis_pons: id_jenis_pons || null,
           nama_jenis_pons: checkJenisPons.nama_barang || null,
           id_mesin_pons: id_mesin_pons || null,
-          nama_mesin_pons: checkMesinPons.mesin?.nama_mesin || null,
+          nama_mesin_pons: checkMesinPons?.nama_mesin || null,
           harga_pisau: parseFloat(harga_pisau || "0"),
           ongkos_pons: ongkos_pons,
           ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
@@ -590,7 +574,7 @@ const KalkulasiController = {
           ),
           lipat: lipat,
           id_mesin_lipat: id_mesin_lipat || null,
-          nama_mesin_lipat: checkMesinLipat.mesin?.nama_mesin || null,
+          nama_mesin_lipat: checkMesinLipat?.nama_mesin || null,
           qty_lipat: qty_lipat,
           harga_lipat: parseStringSparator(harga_lipat || "0"),
           potong_jadi: potong_jadi,
@@ -601,7 +585,7 @@ const KalkulasiController = {
           nama_lem: checkLem.nama_barang || null,
           jumlah_harga_lem: parseStringSparator(jumlah_harga_lem || "0"),
           id_mesin_finishing: id_mesin_finishing || null,
-          nama_mesin_finishing: checkMesinFinishing.mesin?.nama_mesin || null,
+          nama_mesin_finishing: checkMesinFinishing?.nama_mesin || null,
           foil: foil,
           harga_foil_manual: parseFloat(harga_foil_manual || "0"),
           spot_foil: spot_foil,
@@ -682,36 +666,35 @@ const KalkulasiController = {
           persentase_apki_kertas: parseFloat(percentage || "0"),
           total_kertas: parseStringSparator(total_kertas || "0"),
           total_harga_kertas: parseStringSparator(total_harga_kertas || "0"),
-          id_mesin_potong: id_mesin_potong,
-          nama_mesin_potong: checkMesinPotong.mesin?.nama_mesin || null,
+          id_mesin_potong: id_mesin_potong || null,
+          nama_mesin_potong: checkMesinPotong?.nama_mesin || null,
           print_insheet: parseInt(print_insheet || "0"),
-          id_jenis_mesin_cetak: id_jenis_mesin_cetak,
+          id_jenis_mesin_cetak: id_jenis_mesin_cetak || null,
           jenis_mesin_cetak: checkMesinCetak.nama_barang || null,
           plate_cetak: plate_cetak,
           harga_plate: harga_plate,
           jumlah_harga_cetak: parseFloat(jumlah_harga_cetak || "0"),
-          id_coating_depan: id_coating_depan,
+          id_coating_depan: id_coating_depan || null,
           nama_coating_depan: checkCoatingDepan.nama_barang || null,
           jumlah_harga_coating_depan: parseFloat(
             jumlah_harga_coating_depan || "0"
           ),
-          id_coating_belakang: id_coating_belakang,
+          id_coating_belakang: id_coating_belakang || null,
           nama_coating_belakang: checkCoatingBelakang.nama_barang || null,
           jumlah_harga_coating_belakang: parseFloat(
             jumlah_harga_coating_belakang || "0"
           ),
           total_harga_coating: parseFloat(total_harga_coating || "0"),
-          id_mesin_coating_depan: id_mesin_coating_depan,
-          nama_mesin_coating_depan:
-            checkMesinCoatingDepan.mesin?.nama_mesin || null,
-          id_mesin_coating_belakang: id_mesin_coating_belakang,
+          id_mesin_coating_depan: id_mesin_coating_depan || null,
+          nama_mesin_coating_depan: checkMesinCoatingDepan?.nama_mesin || null,
+          id_mesin_coating_belakang: id_mesin_coating_belakang || null,
           nama_mesin_coating_belakang:
-            checkMesinCoatingBelakang.mesin?.nama_mesin || null,
+            checkMesinCoatingBelakang?.nama_mesin || null,
           pons_insheet: parseInt(pons_insheet || "0"),
-          id_jenis_pons: id_jenis_pons,
+          id_jenis_pons: id_jenis_pons || null,
           nama_jenis_pons: checkJenisPons.nama_barang || null,
-          id_mesin_pons: id_mesin_pons,
-          nama_mesin_pons: checkMesinPons.mesin?.nama_mesin || null,
+          id_mesin_pons: id_mesin_pons || null,
+          nama_mesin_pons: checkMesinPons?.nama_mesin || null,
           harga_pisau: parseFloat(harga_pisau || "0"),
           ongkos_pons: ongkos_pons,
           ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
@@ -722,19 +705,19 @@ const KalkulasiController = {
             total_harga_ongkos_pons || "0"
           ),
           lipat: lipat,
-          id_mesin_lipat: id_mesin_lipat,
-          nama_mesin_lipat: checkMesinLipat.mesin?.nama_mesin || null,
+          id_mesin_lipat: id_mesin_lipat || null,
+          nama_mesin_lipat: checkMesinLipat?.nama_mesin || null,
           qty_lipat: qty_lipat,
           harga_lipat: parseStringSparator(harga_lipat || "0"),
           potong_jadi: potong_jadi,
           qty_potong: parseInt(qty_potong || "0"),
           harga_potong_jadi: parseStringSparator(harga_potong_jadi || "0"),
           finishing_insheet: parseInt(finishing_insheet || "0"),
-          id_lem: id_lem,
+          id_lem: id_lem || null,
           nama_lem: checkLem.nama_barang || null,
           jumlah_harga_lem: parseStringSparator(jumlah_harga_lem || "0"),
-          id_mesin_finishing: id_mesin_finishing,
-          nama_mesin_finishing: checkMesinFinishing.mesin?.nama_mesin || null,
+          id_mesin_finishing: id_mesin_finishing || null,
+          nama_mesin_finishing: checkMesinFinishing?.nama_mesin || null,
           foil: foil,
           harga_foil_manual: parseFloat(harga_foil_manual || "0"),
           spot_foil: spot_foil,
@@ -747,7 +730,7 @@ const KalkulasiController = {
           harga_packaging: harga_packaging,
           harga_pengiriman: harga_pengiriman,
           jenis_packing: jenis_packing,
-          id_packing: id_packing,
+          id_packing: id_packing || null,
           nama_packing: checkPacking.nama_barang || null,
           qty_packing: qty_packing,
           harga_packing: harga_packing,
@@ -768,6 +751,7 @@ const KalkulasiController = {
           is_okp_done: true,
         };
       }
+
       const response = await Kalkulasi.create(objCreate, { transaction: t });
 
       if (lain_lain || lain_lain.length > 0) {
@@ -1140,9 +1124,7 @@ const KalkulasiController = {
       if (total_harga_kertas) obj.total_harga_kertas = total_harga_kertas;
       if (id_mesin_potong) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_potong, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        const checkData = await MasterMesinTahapan.findByPk(id_mesin_potong);
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1150,7 +1132,7 @@ const KalkulasiController = {
             msg: "mesin potong tidak ditemukan",
           });
         obj.id_mesin_potong = id_mesin_potong;
-        obj.nama_mesin_potong = checkData.mesin?.nama_mesin;
+        obj.nama_mesin_potong = checkData?.nama_mesin;
       }
       if (print_insheet) obj.print_insheet = parseInt(print_insheet || "0");
       if (id_jenis_mesin_cetak) {
@@ -1201,7 +1183,9 @@ const KalkulasiController = {
       if (total_harga_coating) obj.total_harga_coating = total_harga_coating;
       if (id_mesin_coating_depan) {
         //check data
-        const checkData = await MasterBarang.findByPk(id_mesin_coating_depan);
+        const checkData = await MasterMesinTahapan.findByPk(
+          id_mesin_coating_depan
+        );
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1209,12 +1193,12 @@ const KalkulasiController = {
             msg: "mesin coating depan tidak ditemukan",
           });
         obj.id_mesin_coating_depan = id_mesin_coating_depan;
-        obj.nama_mesin_coating_depan = checkData.nama_barang;
+        obj.nama_mesin_coating_depan = checkData.nama_mesin;
       }
 
       if (id_mesin_coating_belakang) {
         //check data
-        const checkData = await MasterBarang.findByPk(
+        const checkData = await MasterMesinTahapan.findByPk(
           id_mesin_coating_belakang
         );
         if (!checkData)
@@ -1224,7 +1208,7 @@ const KalkulasiController = {
             msg: "mesin coating belakang tidak ditemukan",
           });
         obj.id_mesin_coating_belakang = id_mesin_coating_belakang;
-        obj.nama_mesin_coating_belakang = checkData.nama_barang;
+        obj.nama_mesin_coating_belakang = checkData.nama_mesin;
       }
       if (pons_insheet) obj.pons_insheet = pons_insheet;
       if (id_jenis_pons) {
@@ -1241,9 +1225,7 @@ const KalkulasiController = {
       }
       if (id_mesin_pons) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_pons, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        const checkData = await MasterMesinTahapan.findByPk(id_mesin_pons);
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1251,7 +1233,7 @@ const KalkulasiController = {
             msg: "mesin pons tidak ditemukan",
           });
         obj.id_mesin_pons = id_mesin_pons;
-        obj.nama_mesin_pons = checkData.mesin?.nama_mesin;
+        obj.nama_mesin_pons = checkData?.nama_mesin;
       }
       if (harga_pisau) obj.harga_pisau = parseFloat(harga_pisau || "0");
       if (ongkos_pons) obj.ongkos_pons = ongkos_pons;
@@ -1264,9 +1246,7 @@ const KalkulasiController = {
 
       if (id_mesin_lipat) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(id_mesin_lipat, {
-          include: { model: MasterMesinTahapan, as: "mesin" },
-        });
+        const checkData = await MasterMesinTahapan.findByPk(id_mesin_lipat);
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1274,7 +1254,7 @@ const KalkulasiController = {
             msg: "mesin lipat tidak ditemukan",
           });
         obj.id_mesin_lipat = id_mesin_lipat;
-        obj.nama_mesin_lipat = checkData.mesin?.nama_mesin;
+        obj.nama_mesin_lipat = checkData.nama_mesin;
       }
       if (qty_lipat) obj.qty_lipat = qty_lipat;
       if (harga_lipat) obj.harga_lipat = harga_lipat;
@@ -1298,12 +1278,7 @@ const KalkulasiController = {
       if (jumlah_harga_lem) obj.jumlah_harga_lem = jumlah_harga_lem;
       if (id_mesin_finishing) {
         //check data
-        const checkData = await MasterTahapanMesin.findByPk(
-          id_mesin_finishing,
-          {
-            include: { model: MasterMesinTahapan, as: "mesin" },
-          }
-        );
+        const checkData = await MasterMesinTahapan.findByPk(id_mesin_finishing);
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1311,7 +1286,7 @@ const KalkulasiController = {
             msg: "mesin finishing tidak ditemukan",
           });
         obj.id_mesin_finishing = id_mesin_finishing;
-        obj.nama_mesin_finishing = checkData.mesin?.nama_mesin;
+        obj.nama_mesin_finishing = checkData.nama_mesin;
       }
       if (foil) obj.foil = foil;
       if (harga_foil_manual) obj.harga_foil_manual = harga_foil_manual;
