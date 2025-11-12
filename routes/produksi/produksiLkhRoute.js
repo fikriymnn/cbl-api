@@ -3,5 +3,10 @@ const ProduksiLkhController = require("../../controller/produksi/produksiLkhCont
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/produksi/lkh/:id?", auth, ProduksiLkhController.getProduksiLkh);
+router.put(
+  "/produksi/lkh/finish/:id",
+  auth,
+  ProduksiLkhController.finishProduksiLkh
+);
 
 module.exports = router;

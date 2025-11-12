@@ -23,7 +23,6 @@ const ProduksiLkhTahapanController = {
       start_date,
       end_date,
       status,
-      status_proses,
       search,
       id_jo,
       id_io,
@@ -45,7 +44,6 @@ const ProduksiLkhTahapanController = {
         ],
       };
     }
-    if (status_proses) obj.status_tiket = status_tiket;
     if (status) obj.status = status;
     if (id_jo) obj.id_jo = id_jo;
     if (id_io) obj.id_io = id_io;
@@ -64,9 +62,20 @@ const ProduksiLkhTahapanController = {
         const data = await ProduksiLkhTahapan.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
-
           offset,
           where: obj,
+          include: [
+            {
+              model: ProduksiLkh,
+              as: "produksi_kh",
+              include: [
+                {
+                  model: ProduksiLkhProses,
+                  as: "produksi_lkh_proses",
+                },
+              ],
+            },
+          ],
         });
         return res.status(200).json({
           data: data,
@@ -82,6 +91,20 @@ const ProduksiLkhTahapanController = {
           order: [["createdAt", "DESC"]],
           include: [
             {
+              model: ProduksiLkh,
+              as: "produksi_lkh",
+              include: [
+                {
+                  model: ProduksiLkhProses,
+                  as: "produksi_lkh_proses",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+            {
               model: MasterTahapan,
               as: "tahapan",
             },
@@ -94,55 +117,6 @@ const ProduksiLkhTahapanController = {
       }
     } catch (error) {
       res.status(500).json({ msg: error.message });
-    }
-  },
-
-  finishProduksiLkhTahapan: async (req, res) => {
-    const _id = req.params.id;
-    const { data_proses } = req.body;
-    const t = await db.transaction();
-    try {
-      const checkData = await ProduksiLkhTahapan.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-
-      await ProduksiLkhTahapan.update(
-        {
-          status: "request to spv",
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      );
-
-      for (let i = 0; i < data_proses.length; i++) {
-        const e = data_proses[i];
-        await ProduksiLkhProses.update(
-          {
-            baik: e.baik,
-            rusak_sebagian: e.rusak_sebagian,
-            rusak_total: e.rusak_total,
-            pallet: e.pallet,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          }
-        );
-      }
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
 
