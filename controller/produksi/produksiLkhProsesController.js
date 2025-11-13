@@ -2,6 +2,10 @@ const { Op, Sequelize, where } = require("sequelize");
 const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
 const MasterKodeProduksi = require("../../model/masterData/kodeProduksi/masterKodeProduksiModel");
+const MasterKategoriKendala = require("../../model/masterData/kodeProduksi/masterKategoriKendalaModel");
+const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
+const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTahapanModel");
+const MasterKriteriaKendala = require("../../model/masterData/kodeProduksi/masterKriteriaKendalaModel");
 const ProduksiLkh = require("../../model/produksi/produksiLkhModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
@@ -13,6 +17,9 @@ const JobOrderUserAction = require("../../model/ppic/jobOrder/joUserActionModel"
 const Users = require("../../model/userModel");
 const db = require("../../config/database");
 const soModel = require("../../model/marketing/so/soModel");
+const {
+  creteTicketMtcOs2Service,
+} = require("../mtc/ticketMaintenance/ticketMaintenanceService");
 
 const ProduksiLkhProsesController = {
   getProduksiLkhProses: async (req, res) => {
@@ -128,7 +135,6 @@ const ProduksiLkhProsesController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       const checkJo = await JobOrder.findByPk(id_jo);
       if (!checkJo)
         return res.status(404).json({
@@ -143,6 +149,12 @@ const ProduksiLkhProsesController = {
           id_mesin: id_mesin,
           id_operator: id_operator,
         },
+        include: [
+          {
+            model: MasterTahapan,
+            as: "tahapan",
+          },
+        ],
       });
 
       if (!checkProduksiLkh) {
@@ -152,7 +164,14 @@ const ProduksiLkhProsesController = {
             id_tahapan: id_tahapan,
             is_active: true,
           },
+          include: [
+            {
+              model: MasterTahapan,
+              as: "tahapan",
+            },
+          ],
         });
+
         const dataProduksiLkh = await ProduksiLkh.create(
           {
             id_produksi_lkh_tahapan: dataProduksiLkhTahapan.id,
@@ -175,10 +194,32 @@ const ProduksiLkhProsesController = {
           },
           { transaction: t }
         );
+
         //crete lkh prosess
         const dataKodeProduksi = await MasterKodeProduksi.findByPk(
-          id_kode_produksi
+          id_kode_produksi,
+          {
+            include: [
+              {
+                model: MasterKategoriKendala,
+                as: "kategori_kendala",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_qty_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_waktu_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_frekuensi_mtc",
+              },
+            ],
+          }
         );
+
         await ProduksiLkhProses.create(
           {
             id_produksi_lkh: dataProduksiLkh.id,
@@ -189,10 +230,49 @@ const ProduksiLkhProsesController = {
             id_kode_produksi: id_kode_produksi,
             kode: dataKodeProduksi.kode,
             deskripsi: dataKodeProduksi.deskripsi,
+            proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
           { transaction: t }
         );
+
+        if (
+          dataKodeProduksi.kategori_kendala != null &&
+          dataKodeProduksi.kategori_kendala.kategori
+            .toLowerCase()
+            .includes("mesin")
+        ) {
+          const dataMesin = await MasterMesinTahapan.findByPk(id_mesin);
+          const dataUser = await Users.findByPk(id_operator);
+          //kirim tiket ke mtc
+          await creteTicketMtcOs2Service(
+            dataKodeProduksi.kode, //kode produksi
+            dataProduksiLkhTahapan.id_jo, //id jo
+            dataProduksiLkhTahapan.no_jo, // no jo
+            dataProduksiLkhTahapan.produk, // nama produk
+            dataProduksiLkhTahapan.no_io, // no io
+            dataProduksiLkhTahapan.no_so, // no so
+            dataProduksiLkhTahapan.customer, //  nama customer
+            dataProduksiLkhTahapan.qty_jo, //qty jo
+            dataProduksiLkhTahapan.qty_druk, //qty druk belum di buat
+            dataProduksiLkhTahapan.spesifikasi, //spesifikasi
+            dataProduksiLkhTahapan.tahapan.nama_tahapan, //nama proses/tahapan
+            dataMesin.nama_mesin, //nama mesin
+            "ini bagian", //masih belum di buat
+            dataUser.nama, //nama operator
+            new Date(), //tanggal
+            dataKodeProduksi.kategori_kendala.kategori, //kategori kendala
+            dataKodeProduksi.id, //id kode produksi
+            dataKodeProduksi.deskripsi, // nama kendala
+            "unit", // unit => belum tau dimana ngambilnya
+            "0", //bagian => belum tau dimana ngambilnya
+            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
+            dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
+            dataKodeProduksi.target_department, //target department
+            t //transaction
+          );
+        }
 
         await t.commit();
         res.status(200).json({
@@ -203,7 +283,27 @@ const ProduksiLkhProsesController = {
       } else {
         //create lkh proses
         const dataKodeProduksi = await MasterKodeProduksi.findByPk(
-          id_kode_produksi
+          id_kode_produksi,
+          {
+            include: [
+              {
+                model: MasterKategoriKendala,
+                as: "kategori_kendala",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_qty_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_waktu_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_frekuensi_mtc",
+              },
+            ],
+          }
         );
         await ProduksiLkhProses.create(
           {
@@ -215,10 +315,50 @@ const ProduksiLkhProsesController = {
             id_kode_produksi: id_kode_produksi,
             kode: dataKodeProduksi.kode,
             deskripsi: dataKodeProduksi.deskripsi,
+            proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
           { transaction: t }
         );
+
+        if (
+          dataKodeProduksi.kategori_kendala != null &&
+          dataKodeProduksi.kategori_kendala.kategori
+            .toLowerCase()
+            .includes("mesin")
+        ) {
+          const dataMesin = await MasterMesinTahapan.findByPk(id_mesin);
+          const dataUser = await Users.findByPk(id_operator);
+          //kirim tiket ke mtc
+          await creteTicketMtcOs2Service(
+            dataKodeProduksi.kode, //kode produksi
+            checkProduksiLkh.id_jo, //id jo
+            checkProduksiLkh.no_jo, // no jo
+            checkProduksiLkh.produk, // nama produk
+            checkProduksiLkh.no_io, // no io
+            checkProduksiLkh.no_so, // no so
+            checkProduksiLkh.customer, //  nama customer
+            checkProduksiLkh.qty_jo, //qty jo
+            checkProduksiLkh.qty_druk, //qty druk belum di buat
+            checkProduksiLkh.spesifikasi, //spesifikasi
+            checkProduksiLkh.tahapan.nama_tahapan, //nama proses/tahapan
+            dataMesin.nama_mesin, //nama mesin
+            "ini bagian", //masih belum di buat
+            dataUser.nama, //nama operator
+            new Date(), //tanggal
+            dataKodeProduksi.kategori_kendala.kategori, //kategori kendala
+            dataKodeProduksi.id, //id kode produksi
+            dataKodeProduksi.deskripsi, // nama kendala
+            "unit", // unit => belum tau dimana ngambilnya
+            "0", //bagian => belum tau dimana ngambilnya
+            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
+            dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
+            dataKodeProduksi.target_department, //target department
+            t //transaction
+          );
+          console.log("create mtc tiket");
+        }
 
         await t.commit();
         res.status(200).json({
@@ -256,19 +396,8 @@ const ProduksiLkhProsesController = {
       const totalDetik = Math.floor((end - start) / 1000);
       let obj = {};
 
-      if (checkData.kode == 5.2) {
-        obj = {
-          baik: baik,
-          rusak_sebagian: rusak_sebagian,
-          rusak_total: rusak_total,
-          pallet: pallet,
-          note: note,
-          waktu_selesai: new Date(),
-          total_waktu: totalDetik,
-          status: "request to spv",
-        };
-      } else {
-        obj = {
+      await ProduksiLkhProses.update(
+        {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
           rusak_total: rusak_total,
@@ -277,13 +406,12 @@ const ProduksiLkhProsesController = {
           waktu_selesai: new Date(),
           total_waktu: totalDetik,
           status: "done",
-        };
-      }
-
-      await ProduksiLkhProses.update(obj, {
-        where: { id: _id },
-        transaction: t,
-      }),
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
         await t.commit(),
         res
           .status(200)

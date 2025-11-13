@@ -901,6 +901,7 @@ const IoController = {
     const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
+      console.log(data_mounting);
       const checkData = await IoMounting.findAll({ where: { id: _id } });
       if (!checkData)
         return res.status(404).json({

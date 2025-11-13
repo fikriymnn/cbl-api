@@ -5,7 +5,7 @@ const MasterCustomer = require("../../masterData/marketing/masterCustomerModel")
 const MasterProduk = require("../../masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../masterData/marketing/masterHargaPengirimanModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
-const MasterTahapanMesin = require("../../masterData/tahapan/masterTahapanMesinModel");
+const MasterMesinTahapan = require("../../masterData/tahapan/masterMesinTahapanModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -281,7 +281,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterTahapanMesin,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -397,7 +397,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterTahapanMesin,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -435,7 +435,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterTahapanMesin,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -489,7 +489,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterTahapanMesin,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -729,10 +729,10 @@ Kalkulasi.belongsTo(MasterBarang, {
 //~~end~~//
 
 //~~start~~//
-MasterTahapanMesin.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_potong",
 });
-Kalkulasi.belongsTo(MasterTahapanMesin, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_potong",
   as: "mesin_potong",
 });
@@ -799,20 +799,20 @@ Kalkulasi.belongsTo(MasterBarang, {
 //~~end~~//
 
 //~~start~~//
-MasterTahapanMesin.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_pons",
 });
-Kalkulasi.belongsTo(MasterTahapanMesin, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_pons",
   as: "mesin_pons",
 });
 //~~end~~//
 
 //~~start~~//
-MasterTahapanMesin.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_lipat",
 });
-Kalkulasi.belongsTo(MasterTahapanMesin, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_lipat",
   as: "mesin_lipat",
 });
@@ -829,10 +829,10 @@ Kalkulasi.belongsTo(MasterBarang, {
 //~~end~~//
 
 //~~start~~//
-MasterTahapanMesin.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_finishing",
 });
-Kalkulasi.belongsTo(MasterTahapanMesin, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_finishing",
   as: "mesin_finishing",
 });

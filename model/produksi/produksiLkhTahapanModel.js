@@ -62,6 +62,14 @@ const ProduksiLkhTahapan = db.define(
         key: "id",
       },
     },
+    id_approve: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     // id_mesin: {
     //   type: DataTypes.INTEGER,
     //   allowNull: true,
@@ -196,12 +204,12 @@ ProduksiLkhTahapan.belongsTo(MasterTahapan, {
   as: "tahapan",
 });
 
-// Users.hasMany(ProduksiLkhTahapan, {
-//   foreignKey: "id_create_produksi_lkh",
-//   as: "produksi_lkh_create",
-// });
-// ProduksiLkhTahapan.belongsTo(Users, {
-//   foreignKey: "id_create_produksi_lkh",
-//   as: "user_create",
-// });
+Users.hasMany(ProduksiLkhTahapan, {
+  foreignKey: "id_approve",
+  as: "produksi_lkh_tahapan_approve",
+});
+ProduksiLkhTahapan.belongsTo(Users, {
+  foreignKey: "id_approve",
+  as: "user_approve",
+});
 module.exports = ProduksiLkhTahapan;

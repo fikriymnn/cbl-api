@@ -68,6 +68,10 @@ const ProduksiLkhProses = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    proses: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     baik: {
       type: DataTypes.INTEGER,
       allowNull: true,

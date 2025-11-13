@@ -23,6 +23,7 @@ const ProduksiLkhController = {
       end_date,
       status,
       status_proses,
+      status_lkh_proses,
       search,
       id_jo,
       id_io,
@@ -103,7 +104,7 @@ const ProduksiLkhController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
-              where: { status: "progress" },
+              where: { status: status_lkh_proses ?? "progress" },
               required: false,
             },
           ],
@@ -117,11 +118,16 @@ const ProduksiLkhController = {
     }
   },
 
-  approveProduksiLkh: async (req, res) => {
+  finishProduksiLkh: async (req, res) => {
     const _id = req.params.id;
+    const {
+      id_produksi_lkh_tahapan,
+      send_request_to_spv,
+      produksi_lkh_proses,
+    } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await ProduksiLkh.findByPk(_id);
+      const checkData = await ProduksiLkhTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -130,15 +136,38 @@ const ProduksiLkhController = {
         });
 
       await ProduksiLkh.update(
-        {
-          status: "done",
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      ),
-        await t.commit(),
+        { status: "done" },
+        { where: { id: _id }, transaction: t }
+      );
+
+      if (send_request_to_spv == true || send_request_to_spv == "true") {
+        await ProduksiLkhTahapan.update(
+          {
+            status: "request to spv",
+          },
+          {
+            where: { id: id_produksi_lkh_tahapan },
+            transaction: t,
+          }
+        );
+      }
+
+      for (let i = 0; i < produksi_lkh_proses.length; i++) {
+        const e = produksi_lkh_proses[i];
+        await ProduksiLkhProses.update(
+          {
+            baik: e.baik,
+            rusak_sebagian: e.rusak_sebagian,
+            rusak_total: e.rusak_total,
+            pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          }
+        );
+      }
+      await t.commit(),
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "Approve Successful" });
@@ -148,6 +177,38 @@ const ProduksiLkhController = {
         .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
+
+  // approveProduksiLkh: async (req, res) => {
+  //   const _id = req.params.id;
+  //   const t = await db.transaction();
+  //   try {
+  //     const checkData = await ProduksiLkh.findByPk(_id);
+  //     if (!checkData)
+  //       return res.status(404).json({
+  //         succes: false,
+  //         status_code: 404,
+  //         msg: "Data tidak ditemukan",
+  //       });
+
+  //     await ProduksiLkh.update(
+  //       {
+  //         status: "done",
+  //       },
+  //       {
+  //         where: { id: _id },
+  //         transaction: t,
+  //       }
+  //     ),
+  //       await t.commit(),
+  //       res
+  //         .status(200)
+  //         .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+  //   } catch (error) {
+  //     res
+  //       .status(400)
+  //       .json({ succes: true, status_code: 400, msg: error.message });
+  //   }
+  // },
 };
 
 module.exports = ProduksiLkhController;

@@ -676,7 +676,11 @@ const OkpController = {
     const t = await db.transaction();
     try {
       const checkData = await Okp.findByPk(_id, {
-        include: { OkpProses, as: "okp_proses", where: { status: "active" } },
+        include: {
+          model: OkpProses,
+          as: "okp_proses",
+          where: { status: "active" },
+        },
       });
       if (!checkData)
         return res.status(404).json({
@@ -684,6 +688,7 @@ const OkpController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
       await Okp.update(
         {
           status_proses: "reject kabag",
@@ -719,6 +724,7 @@ const OkpController = {
         { id_okp: checkData.id, id_user: req.user.id, status: "kabag reject" },
         { transaction: t }
       );
+      console.log(6);
       await t.commit(),
         res
           .status(200)

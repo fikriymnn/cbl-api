@@ -98,6 +98,7 @@ const MasterCustomerController = {
       telepon,
       toleransi_pengiriman,
       top_faktur,
+      is_customer_kanban,
     } = req.body;
     const t = await db.transaction();
     try {
@@ -152,6 +153,7 @@ const MasterCustomerController = {
           toleransi_pengiriman,
           top_faktur,
           kode_marketing: dataMarketing ? dataMarketing.kode : null,
+          is_customer_kanban: is_customer_kanban ? is_customer_kanban : false,
         },
         { transaction: t }
       );
@@ -198,6 +200,7 @@ const MasterCustomerController = {
       telepon,
       toleransi_pengiriman,
       top_faktur,
+      is_customer_kanban,
       is_active,
     } = req.body;
     const t = await db.transaction();
@@ -238,6 +241,8 @@ const MasterCustomerController = {
       if (toleransi_pengiriman) obj.toleransi_pengiriman = toleransi_pengiriman;
       if (top_faktur) obj.top_faktur = top_faktur;
       if (fax) obj.fax = fax;
+      if (is_customer_kanban)
+        obj.is_customer_kanban = is_customer_kanban == "true" ? true : false;
       if (is_active) obj.is_active = is_active;
 
       const checkData = await MasterCustomer.findByPk(_id);
