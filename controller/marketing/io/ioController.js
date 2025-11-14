@@ -852,6 +852,7 @@ const IoController = {
           panjang_partisi_2: data_mounting.panjang_partisi_2,
           lebar_partisi_2: data_mounting.lebar_partisi_2,
           tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
+          file: data_mounting.file,
         },
         { transaction: t }
       );
@@ -901,7 +902,6 @@ const IoController = {
     const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
-      console.log(data_mounting);
       const checkData = await IoMounting.findAll({ where: { id: _id } });
       if (!checkData)
         return res.status(404).json({
@@ -964,6 +964,7 @@ const IoController = {
           panjang_partisi_2: data_mounting.panjang_partisi_2,
           lebar_partisi_2: data_mounting.lebar_partisi_2,
           tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
+          file: data_mounting.file,
         },
         { where: { id: _id }, transaction: t }
       );

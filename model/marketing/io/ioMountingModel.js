@@ -284,7 +284,10 @@ const ioMounting = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-
+    file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
