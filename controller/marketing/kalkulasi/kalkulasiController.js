@@ -75,6 +75,10 @@ const KalkulasiController = {
               as: "lain_lain",
             },
             {
+              model: KalkulasiQty,
+              as: "qty_list",
+            },
+            {
               model: KalkulasiUserAction,
               as: "kalkulasi_action_user",
               include: [
@@ -240,6 +244,9 @@ const KalkulasiController = {
       keterangan_kerja,
       keterangan_harga,
       lain_lain,
+      tipe_kalkulasi,
+      label,
+      qty_list,
     } = req.body;
     const t = await db.transaction();
 
@@ -617,6 +624,8 @@ const KalkulasiController = {
           keterangan_harga: keterangan_harga,
           is_io_active: false,
           is_okp_done: true,
+          tipe_kalkulasi: tipe_kalkulasi,
+          label: label,
         };
       } else {
         objCreate = {
@@ -749,6 +758,8 @@ const KalkulasiController = {
           keterangan_harga: keterangan_harga,
           is_io_active: is_io_active,
           is_okp_done: true,
+          tipe_kalkulasi: tipe_kalkulasi,
+          label: label,
         };
       }
 
@@ -766,6 +777,19 @@ const KalkulasiController = {
             { transaction: t }
           );
         }
+      }
+
+      if (qty_list || qty_list.length > 0) {
+        let dataQtyList = [];
+        for (let i = 0; i < qty_list.length; i++) {
+          const e = qty_list[i];
+          dataQtyList.push({
+            id_kalkulasi: response.id,
+            qty: e.qty,
+            is_selected: e.is_selected,
+          });
+        }
+        await KalkulasiQty.bulkCreate(dataQtyList, { transaction: t });
       }
 
       await t.commit();
@@ -928,7 +952,6 @@ const KalkulasiController = {
       qty_kalkulasi,
       presentase_insheet,
       spesifikasi,
-      status_kalkulasi,
       ukuran_jadi_panjang,
       ukuran_jadi_lebar,
       ukuran_jadi_tinggi,
@@ -1012,11 +1035,15 @@ const KalkulasiController = {
       total_harga_satuan_customer,
       keterangan_kerja,
       keterangan_harga,
+      lain_lain,
+      label,
+      qty_list,
     } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
+
       if (id_customer) {
         //check data customer
         const checkData = await MasterCustomer.findByPk(id_customer);
@@ -1029,9 +1056,15 @@ const KalkulasiController = {
         obj.id_customer = id_customer;
         obj.nama_customer = checkData.nama_customer;
       }
+
       if (id_marketing) {
         //check data
-        const checkData = await MasterMarketing.findByPk(id_marketing);
+        const checkData = await MasterMarketing.findByPk(id_marketing, {
+          include: {
+            model: MasterKaryawan,
+            as: "data_karyawan",
+          },
+        });
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1042,6 +1075,7 @@ const KalkulasiController = {
         obj.nama_marketing = checkData.data_karyawan.name;
         obj.kode_marketing = checkData.kode;
       }
+
       if (id_produk) {
         //check data
         const checkData = await MasterProduk.findByPk(id_produk);
@@ -1096,8 +1130,9 @@ const KalkulasiController = {
       if (ukuran_cetak_isi_2) obj.ukuran_cetak_isi_2 = ukuran_cetak_isi_2;
       if (ukuran_cetak_bbs_2) obj.ukuran_cetak_bbs_2 = ukuran_cetak_bbs_2;
       if (warna_depan) obj.warna_depan = parseFloat(warna_depan || "0");
-      if (warna_belakang) obj.warna_belakang = warna_belakang;
-      if (jumlah_warna) obj.jumlah_warna = jumlah_warna;
+      if (warna_belakang)
+        obj.warna_belakang = parseFloat(warna_belakang || "0");
+      if (jumlah_warna) obj.jumlah_warna = parseFloat(jumlah_warna || "0");
       if (jenis_kertas) obj.jenis_kertas = jenis_kertas;
 
       if (id_kertas) {
@@ -1120,8 +1155,10 @@ const KalkulasiController = {
 
       if (percentage)
         obj.persentase_apki_kertas = parseFloat(percentage || "0");
-      if (total_kertas) obj.total_kertas = total_kertas;
-      if (total_harga_kertas) obj.total_harga_kertas = total_harga_kertas;
+      if (total_kertas) obj.total_kertas = parseFloat(total_kertas || "0");
+      if (total_harga_kertas)
+        obj.total_harga_kertas = parseStringSparator(total_harga_kertas || "0");
+
       if (id_mesin_potong) {
         //check data
         const checkData = await MasterMesinTahapan.findByPk(id_mesin_potong);
@@ -1134,6 +1171,7 @@ const KalkulasiController = {
         obj.id_mesin_potong = id_mesin_potong;
         obj.nama_mesin_potong = checkData?.nama_mesin;
       }
+
       if (print_insheet) obj.print_insheet = parseInt(print_insheet || "0");
       if (id_jenis_mesin_cetak) {
         //check data
@@ -1147,9 +1185,11 @@ const KalkulasiController = {
         obj.id_jenis_mesin_cetak = id_jenis_mesin_cetak;
         obj.jenis_mesin_cetak = checkData.nama_barang;
       }
+
       if (plate_cetak) obj.plate_cetak = plate_cetak;
       if (harga_plate) obj.harga_plate = harga_plate;
-      if (jumlah_harga_cetak) obj.jumlah_harga_cetak = jumlah_harga_cetak;
+      if (jumlah_harga_cetak)
+        obj.jumlah_harga_cetak = parseFloat(jumlah_harga_cetak || "0");
 
       if (id_coating_depan) {
         //check data
@@ -1164,7 +1204,9 @@ const KalkulasiController = {
         obj.nama_coating_depan = checkData.nama_barang;
       }
       if (jumlah_harga_coating_depan)
-        obj.jumlah_harga_coating_depan = jumlah_harga_coating_depan;
+        obj.jumlah_harga_coating_depan = parseFloat(
+          jumlah_harga_coating_depan || "0"
+        );
 
       if (id_coating_belakang) {
         //check data
@@ -1179,8 +1221,11 @@ const KalkulasiController = {
         obj.nama_coating_belakang = checkData.nama_barang;
       }
       if (jumlah_harga_coating_belakang)
-        obj.jumlah_harga_coating_belakang = jumlah_harga_coating_belakang;
-      if (total_harga_coating) obj.total_harga_coating = total_harga_coating;
+        obj.jumlah_harga_coating_belakang = parseFloat(
+          jumlah_harga_coating_belakang || "0"
+        );
+      if (total_harga_coating)
+        obj.total_harga_coating = parseFloat(total_harga_coating || "0");
       if (id_mesin_coating_depan) {
         //check data
         const checkData = await MasterMesinTahapan.findByPk(
@@ -1210,7 +1255,7 @@ const KalkulasiController = {
         obj.id_mesin_coating_belakang = id_mesin_coating_belakang;
         obj.nama_mesin_coating_belakang = checkData.nama_mesin;
       }
-      if (pons_insheet) obj.pons_insheet = pons_insheet;
+      if (pons_insheet) obj.pons_insheet = parseInt(pons_insheet || "0");
       if (id_jenis_pons) {
         //check data
         const checkData = await MasterBarang.findByPk(id_jenis_pons);
@@ -1237,11 +1282,16 @@ const KalkulasiController = {
       }
       if (harga_pisau) obj.harga_pisau = parseFloat(harga_pisau || "0");
       if (ongkos_pons) obj.ongkos_pons = ongkos_pons;
-      if (ongkos_pons_qty) obj.ongkos_pons_qty = ongkos_pons_qty;
+      if (ongkos_pons_qty)
+        obj.ongkos_pons_qty = parseFloat(ongkos_pons_qty || "0");
       if (harga_satuan_ongkos_pons)
-        obj.harga_satuan_ongkos_pons = harga_satuan_ongkos_pons;
+        obj.harga_satuan_ongkos_pons = parseStringSparator(
+          harga_satuan_ongkos_pons || "0"
+        );
       if (total_harga_ongkos_pons)
-        obj.total_harga_ongkos_pons = total_harga_ongkos_pons;
+        obj.total_harga_ongkos_pons = parseStringSparator(
+          total_harga_ongkos_pons || "0"
+        );
       if (lipat) obj.lipat = lipat;
 
       if (id_mesin_lipat) {
@@ -1257,11 +1307,14 @@ const KalkulasiController = {
         obj.nama_mesin_lipat = checkData.nama_mesin;
       }
       if (qty_lipat) obj.qty_lipat = qty_lipat;
-      if (harga_lipat) obj.harga_lipat = harga_lipat;
+      if (harga_lipat)
+        obj.harga_lipat = parseStringSparator(harga_lipat || "0");
       if (potong_jadi) obj.potong_jadi = potong_jadi;
-      if (qty_potong) obj.qty_potong = qty_potong;
-      if (harga_potong_jadi) obj.harga_potong_jadi = harga_potong_jadi;
-      if (finishing_insheet) obj.finishing_insheet = finishing_insheet;
+      if (qty_potong) obj.qty_potong = parseInt(qty_potong || "0");
+      if (harga_potong_jadi)
+        obj.harga_potong_jadi = parseStringSparator(harga_potong_jadi || "0");
+      if (finishing_insheet)
+        obj.finishing_insheet = parseInt(finishing_insheet || "0");
 
       if (id_lem) {
         //check data
@@ -1275,7 +1328,8 @@ const KalkulasiController = {
         obj.id_lem = id_lem;
         obj.nama_lem = checkData.nama_barang;
       }
-      if (jumlah_harga_lem) obj.jumlah_harga_lem = jumlah_harga_lem;
+      if (jumlah_harga_lem)
+        obj.jumlah_harga_lem = parseStringSparator(jumlah_harga_lem || "0");
       if (id_mesin_finishing) {
         //check data
         const checkData = await MasterMesinTahapan.findByPk(id_mesin_finishing);
@@ -1289,11 +1343,13 @@ const KalkulasiController = {
         obj.nama_mesin_finishing = checkData.nama_mesin;
       }
       if (foil) obj.foil = foil;
-      if (harga_foil_manual) obj.harga_foil_manual = harga_foil_manual;
+      if (harga_foil_manual)
+        obj.harga_foil_manual = parseFloat(harga_foil_manual || "0");
       if (spot_foil) obj.spot_foil = spot_foil;
       if (harga_spot_foil_manual)
-        obj.harga_spot_foil_manual = harga_spot_foil_manual;
-      if (harga_polimer_manual) obj.harga_polimer_manual = harga_polimer_manual;
+        obj.harga_spot_foil_manual = parseFloat(harga_spot_foil_manual || "0");
+      if (harga_polimer_manual)
+        obj.harga_polimer_manual = parseFloat(harga_polimer_manual || "0");
       if (panjang_packaging) obj.panjang_packaging = panjang_packaging;
       if (lebar_packaging) obj.lebar_packaging = lebar_packaging;
       if (no_packaging) obj.no_packaging = no_packaging;
@@ -1311,16 +1367,17 @@ const KalkulasiController = {
             msg: "Packing tidak ditemukan",
           });
         obj.id_packing = id_packing;
-        obj.nama_packing = checkData.nama_barang;
+        obj.nama_packing = checkData?.nama_barang;
       }
       if (qty_packing) obj.qty_packing = qty_packing;
       if (harga_packing) obj.harga_packing = harga_packing;
       if (harga_produksi) obj.harga_produksi = harga_produksi;
       if (profit) obj.profit = profit;
       if (profit_harga) obj.profit_harga = profit_harga;
-      if (jumlah_harga_jual) obj.jumlah_harga_jual = jumlah_harga_jual;
+      if (jumlah_harga_jual)
+        obj.jumlah_harga_jual = parseFloat(jumlah_harga_jual || "0");
       if (ppn) obj.ppn = ppn;
-      if (harga_ppn) obj.harga_ppn = harga_ppn;
+      if (harga_ppn) obj.harga_ppn = parseFloat(ppn || "0");
       if (diskon) obj.diskon = diskon;
       if (harga_diskon) obj.harga_diskon = harga_diskon;
       if (total_harga) obj.total_harga = total_harga;
@@ -1329,6 +1386,7 @@ const KalkulasiController = {
         obj.total_harga_satuan_customer = total_harga_satuan_customer;
       if (keterangan_kerja) obj.keterangan_kerja = keterangan_kerja;
       if (keterangan_harga) obj.keterangan_harga = keterangan_harga;
+      if (label) obj.label = label;
 
       const checkData = await Kalkulasi.findByPk(_id);
       if (!checkData)
@@ -1341,6 +1399,62 @@ const KalkulasiController = {
         where: { id: _id },
         transaction: t,
       });
+
+      // === Fungsi util untuk update child CRUD database ===
+      async function syncChild(
+        model,
+        tableName,
+        foreignKey,
+        newData,
+        idField = "id"
+      ) {
+        const existing = await model.findAll({
+          where: { [foreignKey]: _id },
+          transaction: t,
+        });
+        const existingIds = existing.map((e) => e[idField]);
+        const incomingIds = newData
+          .filter((d) => d[idField])
+          .map((d) => d[idField]);
+
+        // 🔸 Hapus data yang tidak ada lagi di frontend
+        const deletedIds = existingIds.filter(
+          (eid) => !incomingIds.includes(eid)
+        );
+        if (deletedIds.length > 0) {
+          await model.destroy({
+            where: { [idField]: deletedIds },
+            transaction: t,
+          });
+        }
+
+        // 🔸 Update & Insert
+        for (const item of newData) {
+          if (item[idField]) {
+            await model.update(item, {
+              where: { [idField]: item[idField] },
+              transaction: t,
+            });
+          } else {
+            item[foreignKey] = _id;
+            await model.create(item, { transaction: t });
+          }
+        }
+      }
+
+      // === Sinkronisasi lain-lain ===
+      if (lain_lain) {
+        await syncChild(
+          KalkulasiLainLain,
+          "lain_lain",
+          "id_kalkulasi",
+          lain_lain
+        );
+      }
+
+      if (qty_list) {
+        await syncChild(KalkulasiQty, "qty_list", "id_kalkulasi", qty_list);
+      }
 
       await KalkulasiUserAction.create(
         {
@@ -1394,10 +1508,10 @@ const KalkulasiController = {
 
 const parseStringSparator = (value) => {
   // 1. Hapus semua titik (pemisah ribuan)
-  value = value.replace(/\./g, "");
+  value = value.toString().replace(/\./g, "");
 
   // 2. Ganti koma menjadi titik
-  value = value.replace(",", ".");
+  value = value.toString().replace(",", ".");
 
   return parseFloat(value);
 };

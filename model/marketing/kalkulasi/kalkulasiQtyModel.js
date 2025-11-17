@@ -36,7 +36,7 @@ const KalkulasiQty = db.define(
 
 Kalkulasi.hasMany(KalkulasiQty, {
   foreignKey: "id_kalkulasi",
-  as: "qty",
+  as: "qty_list",
 });
 KalkulasiQty.belongsTo(Kalkulasi, {
   foreignKey: "id_kalkulasi",
