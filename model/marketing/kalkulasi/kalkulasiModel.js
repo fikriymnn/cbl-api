@@ -621,6 +621,15 @@ const Kalkulasi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    label: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tipe_kalkulasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "normal",
+    },
     status_proses: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -692,7 +692,7 @@ const OkpController = {
       await Okp.update(
         {
           status_proses: "reject kabag",
-          posisi_proses: "desain",
+          posisi_proses: "customer",
           note_reject: note_reject,
         },
         {
@@ -700,31 +700,34 @@ const OkpController = {
           transaction: t,
         }
       ),
-        //setelah reject proses pengajuan tanggal di reject juga
-        await OkpProses.update(
+        //   //setelah reject proses pengajuan tanggal di reject juga
+        //   await OkpProses.update(
+        //     {
+        //       id_user_reject: req.user.id,
+        //       tgl_reject: new Date(),
+        //       bagian_reject: "kabag",
+        //       note_reject: note_reject,
+        //       status: "non active",
+        //     },
+        //     { where: { id: checkData.okp_proses[0].id }, transaction: t }
+        //   );
+
+        // //kemudian di buat lagi untuk proses pengajuan tanggal nya
+        // await OkpProses.create(
+        //   {
+        //     id_okp: _id,
+        //   },
+        //   { transaction: t }
+        // );
+
+        await OkpActionUser.create(
           {
-            id_user_reject: req.user.id,
-            tgl_reject: new Date(),
-            bagian_reject: "kabag",
-            note_reject: note_reject,
-            status: "non active",
+            id_okp: checkData.id,
+            id_user: req.user.id,
+            status: "kabag reject",
           },
-          { where: { id: checkData.okp_proses[0].id }, transaction: t }
+          { transaction: t }
         );
-
-      //kemudian di buat lagi untuk proses pengajuan tanggal nya
-      await OkpProses.create(
-        {
-          id_okp: _id,
-        },
-        { transaction: t }
-      );
-
-      await OkpActionUser.create(
-        { id_okp: checkData.id, id_user: req.user.id, status: "kabag reject" },
-        { transaction: t }
-      );
-      console.log(6);
       await t.commit(),
         res
           .status(200)
