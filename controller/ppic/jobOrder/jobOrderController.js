@@ -183,6 +183,7 @@ const BomController = {
           tgl_kirim,
           standar_warna,
           tipe_jo,
+          label: checkSo.label,
         },
         { transaction: t }
       );

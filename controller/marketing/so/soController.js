@@ -206,6 +206,7 @@ const SoController = {
           tgl_pengiriman,
           alamat_pengiriman,
           ada_standar_warna,
+          label: checkKalkulasi.label,
         },
         { transaction: t }
       );
