@@ -109,6 +109,10 @@ const io = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    label: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_updated: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -269,6 +269,7 @@ const OkpController = {
             keterangan_cetak: keterangan_cetak,
             keterangan: keterangan,
             tahapan: tahapan,
+            label: checkKalkulasi.label,
           },
           { transaction: t }
         );
@@ -318,6 +319,7 @@ const OkpController = {
             keterangan_cetak: keterangan_cetak,
             keterangan: keterangan,
             tahapan: tahapan,
+            label: checkKalkulasi.label,
             is_new_okp: true,
           },
           { transaction: t }

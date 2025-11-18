@@ -121,6 +121,10 @@ const okp = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    label: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

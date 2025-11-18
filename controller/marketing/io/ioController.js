@@ -245,6 +245,7 @@ const IoController = {
           revisi_no_io: revisi_no_io,
           revisi_ke: revisiKe,
           keterangan: keterangan,
+          label: checkKalkulasi.label,
         },
         { transaction: t }
       );
