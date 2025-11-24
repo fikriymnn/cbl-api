@@ -8,6 +8,7 @@ const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
+const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
@@ -212,6 +213,16 @@ const IoController = {
           msg: "Data Kalkulasi tidak ditemukan",
         });
 
+      const checkDataKertas = await MasterBarang.findByPk(
+        checkKalkulasi.id_kertas
+      );
+
+      if (!checkDataKertas)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Kertas tidak ditemukan",
+        });
       let revisiKe = 0;
       let basenoIo = "";
 
@@ -250,6 +261,12 @@ const IoController = {
         { transaction: t }
       );
 
+      let merkSeratKertas = "Serat Panjang";
+
+      if (checkDataKertas.lebar_kertas > checkDataKertas.panjang_kertas) {
+        merkSeratKertas = "Serat Pendek";
+      }
+
       const dataMounting = await IoMounting.create(
         {
           id_io: response.id,
@@ -285,6 +302,8 @@ const IoController = {
           nama_jenis_pons: checkKalkulasi.nama_jenis_pons,
           id_lem: checkKalkulasi.id_lem,
           nama_lem: checkKalkulasi.nama_lem,
+          id_layout: checkOkp.id_pisau,
+          merk_serat_kertas: `${checkKalkulasi.brand_kertas} / ${merkSeratKertas}`,
         },
         { transaction: t }
       );
@@ -768,7 +787,9 @@ const IoController = {
     const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await IoMounting.findAll({ where: { id_io: _id } });
+      const checkData = await IoMounting.findAll({
+        where: { id_io: _id, is_active: true },
+      });
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -1049,6 +1070,43 @@ const IoController = {
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  deleteMountingIo: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await IoMounting.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await IoMounting.update(
+        { is_active: false },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await IoUserAction.create(
+          {
+            id_io: checkData.id,
+            id_user: req.user.id,
+            status: `delete Mounting ${checkData.nama_mounting}`,
+          },
+          { transaction: t }
+        );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)
