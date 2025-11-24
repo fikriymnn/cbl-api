@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const Io = require("../../../model/marketing/io/ioModel");
 const IoMounting = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
+const IoMountingLainLain = require("../../../model/marketing/io/ioMountingLainLain");
 const IoUserAction = require("../../../model/marketing/io/ioActionActionModel");
 const Okp = require("../../../model/marketing/okp/okpModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
@@ -990,6 +991,58 @@ const IoController = {
         },
         { where: { id: _id }, transaction: t }
       );
+
+      // === Fungsi util untuk update child ===
+      async function syncChild(
+        model,
+        tableName,
+        foreignKey,
+        newData,
+        idField = "id"
+      ) {
+        const existing = await model.findAll({
+          where: { [foreignKey]: _id },
+          transaction: t,
+        });
+        const existingIds = existing.map((e) => e[idField]);
+        const incomingIds = newData
+          .filter((d) => d[idField])
+          .map((d) => d[idField]);
+
+        // 🔸 Hapus data yang tidak ada lagi di frontend
+        const deletedIds = existingIds.filter(
+          (eid) => !incomingIds.includes(eid)
+        );
+        if (deletedIds.length > 0) {
+          await model.destroy({
+            where: { [idField]: deletedIds },
+            transaction: t,
+          });
+        }
+
+        // 🔸 Update & Insert
+        for (const item of newData) {
+          if (item[idField]) {
+            await model.update(item, {
+              where: { [idField]: item[idField] },
+              transaction: t,
+            });
+          } else {
+            item[foreignKey] = id;
+            await model.create(item, { transaction: t });
+          }
+        }
+      }
+
+      // === Sinkronisasi setiap bagian ===
+      if (data_mounting.lain_lain) {
+        await syncChild(
+          IoMountingLainLain,
+          "lain_lain",
+          "id_io_mounting",
+          data_mounting.lain_lain
+        );
+      }
 
       // Ambil semua data lama dari database
       const dataFromDatabase = await IoTahapan.findAll({
