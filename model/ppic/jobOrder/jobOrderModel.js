@@ -108,6 +108,10 @@ const JobOrder = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    qty_druk: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     po_qty: {
       type: DataTypes.FLOAT,
       allowNull: true,

@@ -30,7 +30,7 @@ const JadwalProduksiService = {
     transaction = null
   ) => {
     const t = transaction || (await db.transaction());
-    console.log(tgl_so);
+
     try {
       if (no_jo && no_booking) {
         let obj = {};
@@ -62,7 +62,7 @@ const JadwalProduksiService = {
           { where: { no_booking: no_booking }, transaction: t }
         );
         if (!transaction) await t.commit();
-        console.log("update booking with jo success");
+
         return {
           status_code: 200,
           success: true,
@@ -171,7 +171,7 @@ const JadwalProduksiService = {
           transaction: t,
         });
         if (!transaction) await t.commit();
-        console.log(dataTiket);
+
         return {
           status_code: 200,
           success: true,
@@ -281,7 +281,7 @@ const JadwalProduksiService = {
           transaction: t,
         });
         if (!transaction) await t.commit();
-        console.log(dataTiket);
+
         return {
           status_code: 200,
           success: true,

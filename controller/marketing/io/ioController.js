@@ -748,9 +748,7 @@ const IoController = {
     const { note_reject } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await Io.findByPk(_id, {
-        include: { IoProses, as: "Io_proses", where: { status: "active" } },
-      });
+      const checkData = await Io.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -759,8 +757,8 @@ const IoController = {
         });
       await Io.update(
         {
-          status_proses: "reject kabag",
-          posisi_proses: "draft",
+          status_proses: "reject npd",
+          status: "draft",
           note_reject: note_reject,
         },
         {
@@ -769,7 +767,7 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+          { id_io: checkData.id, id_user: req.user.id, status: "npd reject" },
           { transaction: t }
         );
       await t.commit(),
@@ -1122,7 +1120,7 @@ const IoController = {
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
     } catch (error) {
       res
         .status(400)

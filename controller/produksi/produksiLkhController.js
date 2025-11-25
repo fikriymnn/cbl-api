@@ -140,7 +140,9 @@ const ProduksiLkhController = {
         { where: { id: _id }, transaction: t }
       );
 
-      if (send_request_to_spv == true || send_request_to_spv == "true") {
+      const findFinishJo = produksi_lkh_proses.find((e) => e.kode == "5.2");
+
+      if (findFinishJo) {
         await ProduksiLkhTahapan.update(
           {
             status: "request to spv",
