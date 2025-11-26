@@ -37,7 +37,7 @@ const BomController = {
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      obj.tgl_pembuatan_bom = { [Op.between]: [startDate, endDate] };
+      obj.tgl_pembuatan_jo = { [Op.between]: [startDate, endDate] };
     }
     try {
       if (page && limit) {
@@ -55,6 +55,8 @@ const BomController = {
           where: obj,
         });
         return res.status(200).json({
+          succes: true,
+          status_code: 200,
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
@@ -76,6 +78,8 @@ const BomController = {
           ],
         });
         return res.status(200).json({
+          succes: true,
+          status_code: 200,
           data: data,
         });
       } else {
@@ -90,11 +94,15 @@ const BomController = {
           where: obj,
         });
         return res.status(200).json({
+          succes: true,
+          status_code: 200,
           data: data,
         });
       }
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res
+        .status(500)
+        .json({ succes: false, status_code: 500, msg: error.message });
     }
   },
 
