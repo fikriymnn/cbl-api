@@ -365,7 +365,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await JobOrderModel.sync({ alter: true });
+//   await JobOrderUserAction.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

@@ -67,7 +67,22 @@ const ioTahapan = db.define(
       allowNull: true,
       defaultValue: true,
     },
-    value_setting_kapasitas: {
+    nama_setting: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: true,
+    },
+    nama_kapasitas: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: true,
+    },
+    value_setting: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: true,
+    },
+    value_kapasitas: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: true,
