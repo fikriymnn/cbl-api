@@ -17,6 +17,7 @@ const JobOrderUserAction = require("../../model/ppic/jobOrder/joUserActionModel"
 const Users = require("../../model/userModel");
 const db = require("../../config/database");
 const soModel = require("../../model/marketing/so/soModel");
+const masterShift = require("../../model/masterData/hr/masterShift/masterShiftModel");
 const {
   creteTicketMtcOs2Service,
 } = require("../mtc/ticketMaintenance/ticketMaintenanceService");
@@ -156,6 +157,10 @@ const ProduksiLkhProsesController = {
           },
         ],
       });
+
+      // Ambil shift untuk semua hari
+      const checkShifts = await masterShift.findAll();
+      const shiftInfo = getCurrentShiftInfo(checkShifts);
 
       if (!checkProduksiLkh) {
         const dataProduksiLkhTahapan = await ProduksiLkhTahapan.findOne({
@@ -488,5 +493,86 @@ const ProduksiLkhProsesController = {
     }
   },
 };
+
+function getCurrentShiftInfo(shiftData) {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 60 + currentMinute; // dalam menit
+  const currentDay = now.getDay(); // 0 = Minggu, 1 = Senin, dst
+
+  // Mapping hari
+  const dayNames = [
+    "Minggu",
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat",
+    "Sabtu",
+  ];
+  let dayName = dayNames[currentDay];
+
+  // Cari data shift untuk hari ini
+  let todayShift = shiftData.find((s) => s.hari === dayName);
+
+  // Jika tidak ada (Minggu), gunakan data Libur
+  if (!todayShift) {
+    todayShift = shiftData.find((s) => s.hari === "Libur");
+  }
+
+  // Parse waktu shift
+  const shift1Start = parseTime(todayShift.shift_1_masuk);
+  const shift1End = parseTime(todayShift.shift_1_keluar);
+  const shift2Start = parseTime(todayShift.shift_2_masuk);
+  const shift2End = parseTime(todayShift.shift_2_keluar);
+
+  let shiftNumber = null;
+  let periodDate = new Date(now);
+
+  // Logika penentuan shift dengan inklusi waktu di luar shift
+  if (currentTime >= shift1Start && currentTime < shift2Start) {
+    // Shift 1: dari 08:00 sampai sebelum 20:00
+    // Termasuk waktu 16:00-20:00 yang awalnya di luar shift
+    shiftNumber = 1;
+  } else if (currentTime >= shift2Start) {
+    // Shift 2 dimulai (20:00 ke atas sampai 23:59)
+    shiftNumber = 2;
+  } else if (currentTime < shift2End) {
+    // Shift 2 masih berlanjut dari hari sebelumnya (00:00 - 04:00)
+    shiftNumber = 2;
+    // Periode tanggal mundur 1 hari
+    periodDate.setDate(periodDate.getDate() - 1);
+  } else {
+    // Waktu antara shift2End dan shift1Start (04:00 - 08:00)
+    // Masukkan ke shift 2 periode kemarin
+    shiftNumber = 2;
+    periodDate.setDate(periodDate.getDate() - 1);
+  }
+
+  return {
+    shift: shiftNumber,
+    periodDate: periodDate.toISOString().split("T")[0], // Format YYYY-MM-DD
+    periodDateFormatted: formatDate(periodDate),
+    currentTime: `${String(currentHour).padStart(2, "0")}:${String(
+      currentMinute
+    ).padStart(2, "0")}`,
+    dayName: dayName,
+  };
+}
+
+// Helper function untuk parse waktu HH:MM:SS ke menit
+function parseTime(timeString) {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+// Helper function untuk format tanggal
+function formatDate(date) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 module.exports = ProduksiLkhProsesController;

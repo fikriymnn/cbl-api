@@ -2,12 +2,14 @@ const { Op } = require("sequelize");
 const Io = require("../../../model/marketing/io/ioModel");
 const IoMounting = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
+const IoMountingLainLain = require("../../../model/marketing/io/ioMountingLainLain");
 const IoUserAction = require("../../../model/marketing/io/ioActionActionModel");
 const Okp = require("../../../model/marketing/okp/okpModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
+const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
@@ -212,6 +214,16 @@ const IoController = {
           msg: "Data Kalkulasi tidak ditemukan",
         });
 
+      const checkDataKertas = await MasterBarang.findByPk(
+        checkKalkulasi.id_kertas
+      );
+
+      if (!checkDataKertas)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Kertas tidak ditemukan",
+        });
       let revisiKe = 0;
       let basenoIo = "";
 
@@ -250,6 +262,12 @@ const IoController = {
         { transaction: t }
       );
 
+      let merkSeratKertas = "Serat Panjang";
+
+      if (checkDataKertas.lebar_kertas > checkDataKertas.panjang_kertas) {
+        merkSeratKertas = "Serat Pendek";
+      }
+
       const dataMounting = await IoMounting.create(
         {
           id_io: response.id,
@@ -285,6 +303,8 @@ const IoController = {
           nama_jenis_pons: checkKalkulasi.nama_jenis_pons,
           id_lem: checkKalkulasi.id_lem,
           nama_lem: checkKalkulasi.nama_lem,
+          id_layout: checkOkp.id_pisau,
+          merk_serat_kertas: `${checkKalkulasi.brand_kertas} / ${merkSeratKertas}`,
         },
         { transaction: t }
       );
@@ -728,9 +748,7 @@ const IoController = {
     const { note_reject } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await Io.findByPk(_id, {
-        include: { IoProses, as: "Io_proses", where: { status: "active" } },
-      });
+      const checkData = await Io.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -739,8 +757,8 @@ const IoController = {
         });
       await Io.update(
         {
-          status_proses: "reject kabag",
-          posisi_proses: "draft",
+          status_proses: "reject npd",
+          status: "draft",
           note_reject: note_reject,
         },
         {
@@ -749,7 +767,7 @@ const IoController = {
         }
       ),
         await IoUserAction.create(
-          { id_io: checkData.id, id_user: req.user.id, status: "kabag reject" },
+          { id_io: checkData.id, id_user: req.user.id, status: "npd reject" },
           { transaction: t }
         );
       await t.commit(),
@@ -768,7 +786,9 @@ const IoController = {
     const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await IoMounting.findAll({ where: { id_io: _id } });
+      const checkData = await IoMounting.findAll({
+        where: { id_io: _id, is_active: true },
+      });
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -970,6 +990,58 @@ const IoController = {
         { where: { id: _id }, transaction: t }
       );
 
+      // === Fungsi util untuk update child ===
+      async function syncChild(
+        model,
+        tableName,
+        foreignKey,
+        newData,
+        idField = "id"
+      ) {
+        const existing = await model.findAll({
+          where: { [foreignKey]: _id },
+          transaction: t,
+        });
+        const existingIds = existing.map((e) => e[idField]);
+        const incomingIds = newData
+          .filter((d) => d[idField])
+          .map((d) => d[idField]);
+
+        // 🔸 Hapus data yang tidak ada lagi di frontend
+        const deletedIds = existingIds.filter(
+          (eid) => !incomingIds.includes(eid)
+        );
+        if (deletedIds.length > 0) {
+          await model.destroy({
+            where: { [idField]: deletedIds },
+            transaction: t,
+          });
+        }
+
+        // 🔸 Update & Insert
+        for (const item of newData) {
+          if (item[idField]) {
+            await model.update(item, {
+              where: { [idField]: item[idField] },
+              transaction: t,
+            });
+          } else {
+            item[foreignKey] = id;
+            await model.create(item, { transaction: t });
+          }
+        }
+      }
+
+      // === Sinkronisasi setiap bagian ===
+      if (data_mounting.lain_lain) {
+        await syncChild(
+          IoMountingLainLain,
+          "lain_lain",
+          "id_io_mounting",
+          data_mounting.lain_lain
+        );
+      }
+
       // Ambil semua data lama dari database
       const dataFromDatabase = await IoTahapan.findAll({
         where: { id_io_mounting: _id },
@@ -1048,7 +1120,44 @@ const IoController = {
       await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  deleteMountingIo: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await IoMounting.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await IoMounting.update(
+        { is_active: false },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await IoUserAction.create(
+          {
+            id_io: checkData.id,
+            id_user: req.user.id,
+            status: `delete Mounting ${checkData.nama_mounting}`,
+          },
+          { transaction: t }
+        );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)

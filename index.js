@@ -302,6 +302,7 @@ const OkpUserAction = require("./model/marketing/okp/okpUserActionModel");
 const Io = require("./model/marketing/io/ioModel");
 const IoMounting = require("./model/marketing/io/ioMountingModel");
 const IoTahapan = require("./model/marketing/io/ioTahapanModel");
+const IoMountingLainLain = require("./model/marketing/io/ioMountingLainLain");
 const IoUserAction = require("./model/marketing/io/ioActionActionModel");
 
 //so
