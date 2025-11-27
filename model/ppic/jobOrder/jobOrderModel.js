@@ -10,7 +10,7 @@ const Users = require("../../userModel");
 const { DataTypes } = Sequelize;
 
 const JobOrder = db.define(
-  "jo",
+  "jo_new",
   {
     id_io: {
       type: DataTypes.INTEGER,
@@ -108,6 +108,10 @@ const JobOrder = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    qty_lp: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     qty_druk: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -120,6 +124,7 @@ const JobOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
     keterangan_pengerjaan: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -6,7 +6,7 @@ const Users = require("../../userModel");
 const { DataTypes } = Sequelize;
 
 const JobOrderUserAction = db.define(
-  "jo_user_action",
+  "jo_user_action_new",
   {
     id_jo: {
       type: DataTypes.INTEGER,

@@ -147,6 +147,7 @@ const BomController = {
       stok_fg,
       qty,
       qty_druk,
+      qty_lp,
       po_qty,
       spesifikasi,
       keterangan_pengerjaan,
@@ -186,6 +187,7 @@ const BomController = {
           stok_fg,
           qty,
           qty_druk,
+          qty_lp,
           po_qty,
           spesifikasi,
           keterangan_pengerjaan,
@@ -269,12 +271,12 @@ const BomController = {
           tahapan: e.nama_proses,
           tahapan_ke: e.index,
           nama_kategori: e.nama_setting_kapasitas,
-          kategori: "", //ini belum ngambil dari mana mana
+          kategori: e.nama_kapasitas, //ini belum ngambil dari mana mana
           kategori_drying_time: e.nama_drying_time,
           mesin: e.nama_mesin,
-          kapasitas_per_jam: 2500, //ini belum tau ngambil dari mana
+          kapasitas_per_jam: e.value_kapasitas,
           drying_time: e.value_drying_time,
-          setting: e.value_setting_kapasitas,
+          setting: e.value_setting,
           toleransi: 0,
         });
       }
@@ -353,6 +355,8 @@ const BomController = {
       status_jo,
       stok_fg,
       qty,
+      qty_druk,
+      qty_lp,
       po_qty,
       spesifikasi,
       keterangan_pengerjaan,
@@ -377,6 +381,8 @@ const BomController = {
           status_jo,
           stok_fg,
           qty,
+          qty_druk,
+          qty_lp,
           po_qty,
           spesifikasi,
           keterangan_pengerjaan,

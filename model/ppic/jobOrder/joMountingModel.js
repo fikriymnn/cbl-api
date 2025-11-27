@@ -7,7 +7,7 @@ const MasterBarang = require("../../masterData/barang/masterBarangModel");
 const { DataTypes } = Sequelize;
 
 const JobOrderMounting = db.define(
-  "jo_mounting",
+  "jo_mounting_new",
   {
     id_jo: {
       type: DataTypes.INTEGER,
