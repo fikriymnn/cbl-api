@@ -11,7 +11,6 @@ const MasterSkorAnalisis = db.define(
       allowNull: false,
       validate: {
         notEmpty: true,
-        len: [3, 100],
       },
     },
     nama_skor: {
