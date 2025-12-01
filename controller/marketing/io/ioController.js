@@ -83,6 +83,7 @@ const IoController = {
             {
               model: IoMounting,
               as: "io_mounting",
+              where: { is_active: true },
               include: [
                 {
                   model: IoTahapan,
@@ -498,6 +499,7 @@ const IoController = {
                 model: MasterMesinTahapan,
                 as: "mesin",
               },
+
               { model: MasterTahapan, as: "tahapan" },
             ],
           }
@@ -798,6 +800,12 @@ const IoController = {
 
       const checkDataMountingA = await IoMounting.findOne({
         where: { id_io: _id, nama_mounting: "A" },
+        include: [
+          {
+            model: IoTahapan,
+            as: "tahapan",
+          },
+        ],
       });
       if (!checkDataMountingA)
         return res.status(404).json({
@@ -821,65 +829,68 @@ const IoController = {
         {
           id_io: _id,
           nama_mounting: namaMounting,
-          keterangan_revisi: data_mounting.keterangan_revisi,
-          ukuran_jadi_panjang: data_mounting.ukuran_jadi_panjang,
-          ukuran_jadi_lebar: data_mounting.ukuran_jadi_lebar,
-          ukuran_jadi_tinggi: data_mounting.ukuran_jadi_tinggi,
-          ukuran_jadi_terb_panjang: data_mounting.ukuran_jadi_terb_panjang,
-          ukuran_jadi_terb_lebar: data_mounting.ukuran_jadi_terb_lebar,
-          warna_depan: data_mounting.warna_depan,
-          warna_belakang: data_mounting.warna_belakang,
-          jumlah_warna: data_mounting.jumlah_warna,
-          keterangan_warna_depan: data_mounting.keterangan_warna_depan,
-          keterangan_warna_belakang: data_mounting.keterangan_warna_belakang,
-          id_coating_depan: data_mounting.id_coating_depan,
-          nama_coating_depan: data_mounting.nama_coating_depan,
-          merk_coating_depan: data_mounting.merk_coating_depan,
-          id_coating_belakang: data_mounting.id_coating_belakang,
-          nama_coating_belakang: data_mounting.nama_coating_belakang,
-          merk_coating_belakang: data_mounting.merk_coating_belakang,
-          merk_serat_kertas: data_mounting.merk_serat_kertas,
-          jenis_kertas: data_mounting.jenis_kertas,
-          id_kertas: data_mounting.id_kertas,
-          nama_kertas: data_mounting.nama_kertas,
-          gramature_kertas: data_mounting.gramature_kertas,
-          panjang_plano: data_mounting.panjang_plano,
-          lebar_plano: data_mounting.lebar_plano,
-          panjang_layout: data_mounting.panjang_layout,
-          lebar_layout: data_mounting.lebar_layout,
-          ukuran_cetak_panjang_1: data_mounting.ukuran_cetak_panjang_1,
-          ukuran_cetak_lebar_1: data_mounting.ukuran_cetak_lebar_1,
-          ukuran_cetak_bagian_1: data_mounting.ukuran_cetak_bagian_1,
-          ukuran_cetak_isi_1: data_mounting.ukuran_cetak_isi_1,
-          ukuran_cetak_panjang_2: data_mounting.ukuran_cetak_panjang_2,
-          ukuran_cetak_lebar_2: data_mounting.ukuran_cetak_lebar_2,
-          ukuran_cetak_bagian_2: data_mounting.ukuran_cetak_bagian_2,
-          ukuran_cetak_isi_2: data_mounting.ukuran_cetak_isi_2,
-          id_layout: data_mounting.id_layout,
-          id_jenis_pons: data_mounting.id_jenis_pons,
-          nama_jenis_pons: data_mounting.nama_jenis_pons,
-          keterangan_jenis_pons: data_mounting.keterangan_jenis_pons,
-          id_lem: data_mounting.id_lem,
-          nama_lem: data_mounting.nama_lem,
-          merk_komp_lem: data_mounting.merk_komp_lem,
-          keterangan_lem: data_mounting.keterangan_lem,
-          isi_dalam_1_pack: data_mounting.isi_dalam_1_pack,
-          jenis_pack: data_mounting.jenis_pack,
-          keterangan_pack: data_mounting.keterangan_pack,
-          lampiran: data_mounting.lampiran,
-          is_ukuran_partisi_sekat: data_mounting.is_ukuran_partisi_sekat,
-          panjang_partisi_1: data_mounting.panjang_partisi_1,
-          lebar_partisi_1: data_mounting.lebar_partisi_1,
-          panjang_partisi_2: data_mounting.panjang_partisi_2,
-          lebar_partisi_2: data_mounting.lebar_partisi_2,
-          tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
-          file: data_mounting.file,
+          barcode: checkDataMountingA.barcode,
+          format_data: checkDataMountingA.format_data,
+          keterangan_revisi: checkDataMountingA.keterangan_revisi,
+          ukuran_jadi_panjang: checkDataMountingA.ukuran_jadi_panjang,
+          ukuran_jadi_lebar: checkDataMountingA.ukuran_jadi_lebar,
+          ukuran_jadi_tinggi: checkDataMountingA.ukuran_jadi_tinggi,
+          ukuran_jadi_terb_panjang: checkDataMountingA.ukuran_jadi_terb_panjang,
+          ukuran_jadi_terb_lebar: checkDataMountingA.ukuran_jadi_terb_lebar,
+          warna_depan: checkDataMountingA.warna_depan,
+          warna_belakang: checkDataMountingA.warna_belakang,
+          jumlah_warna: checkDataMountingA.jumlah_warna,
+          keterangan_warna_depan: checkDataMountingA.keterangan_warna_depan,
+          keterangan_warna_belakang:
+            checkDataMountingA.keterangan_warna_belakang,
+          id_coating_depan: checkDataMountingA.id_coating_depan,
+          nama_coating_depan: checkDataMountingA.nama_coating_depan,
+          merk_coating_depan: checkDataMountingA.merk_coating_depan,
+          id_coating_belakang: checkDataMountingA.id_coating_belakang,
+          nama_coating_belakang: checkDataMountingA.nama_coating_belakang,
+          merk_coating_belakang: checkDataMountingA.merk_coating_belakang,
+          merk_serat_kertas: checkDataMountingA.merk_serat_kertas,
+          jenis_kertas: checkDataMountingA.jenis_kertas,
+          id_kertas: checkDataMountingA.id_kertas,
+          nama_kertas: checkDataMountingA.nama_kertas,
+          gramature_kertas: checkDataMountingA.gramature_kertas,
+          panjang_plano: checkDataMountingA.panjang_plano,
+          lebar_plano: checkDataMountingA.lebar_plano,
+          panjang_layout: checkDataMountingA.panjang_layout,
+          lebar_layout: checkDataMountingA.lebar_layout,
+          ukuran_cetak_panjang_1: checkDataMountingA.ukuran_cetak_panjang_1,
+          ukuran_cetak_lebar_1: checkDataMountingA.ukuran_cetak_lebar_1,
+          ukuran_cetak_bagian_1: checkDataMountingA.ukuran_cetak_bagian_1,
+          ukuran_cetak_isi_1: checkDataMountingA.ukuran_cetak_isi_1,
+          ukuran_cetak_panjang_2: checkDataMountingA.ukuran_cetak_panjang_2,
+          ukuran_cetak_lebar_2: checkDataMountingA.ukuran_cetak_lebar_2,
+          ukuran_cetak_bagian_2: checkDataMountingA.ukuran_cetak_bagian_2,
+          ukuran_cetak_isi_2: checkDataMountingA.ukuran_cetak_isi_2,
+          id_layout: checkDataMountingA.id_layout,
+          id_jenis_pons: checkDataMountingA.id_jenis_pons,
+          nama_jenis_pons: checkDataMountingA.nama_jenis_pons,
+          keterangan_jenis_pons: checkDataMountingA.keterangan_jenis_pons,
+          id_lem: checkDataMountingA.id_lem,
+          nama_lem: checkDataMountingA.nama_lem,
+          merk_komp_lem: checkDataMountingA.merk_komp_lem,
+          keterangan_lem: checkDataMountingA.keterangan_lem,
+          isi_dalam_1_pack: checkDataMountingA.isi_dalam_1_pack,
+          jenis_pack: checkDataMountingA.jenis_pack,
+          keterangan_pack: checkDataMountingA.keterangan_pack,
+          lampiran: checkDataMountingA.lampiran,
+          is_ukuran_partisi_sekat: checkDataMountingA.is_ukuran_partisi_sekat,
+          panjang_partisi_1: checkDataMountingA.panjang_partisi_1,
+          lebar_partisi_1: checkDataMountingA.lebar_partisi_1,
+          panjang_partisi_2: checkDataMountingA.panjang_partisi_2,
+          lebar_partisi_2: checkDataMountingA.lebar_partisi_2,
+          tambahan_insheet_druk: checkDataMountingA.tambahan_insheet_druk,
+          file: checkDataMountingA.file,
         },
         { transaction: t }
       );
 
-      for (let i = 0; i < data_mounting.tahapan.length; i++) {
-        const e = data_mounting.tahapan[i];
+      for (let i = 0; i < checkDataMountingA.tahapan.length; i++) {
+        const e = checkDataMountingA.tahapan[i];
         await IoTahapan.create(
           {
             id_io: _id,
@@ -1111,7 +1122,7 @@ const IoController = {
 
       await IoUserAction.create(
         {
-          id_io: checkData.id,
+          id_io: checkData.id_io,
           id_user: req.user.id,
           status: "update mounting",
         },
@@ -1148,9 +1159,9 @@ const IoController = {
       ),
         await IoUserAction.create(
           {
-            id_io: checkData.id,
+            id_io: checkData.id_io,
             id_user: req.user.id,
-            status: `delete Mounting ${checkData.nama_mounting}`,
+            status: `delete Mounting`,
           },
           { transaction: t }
         );
