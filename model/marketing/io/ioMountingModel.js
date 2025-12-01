@@ -243,7 +243,7 @@ const ioMounting = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    isi_salam_1_pack: {
+    isi_dalam_1_pack: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
