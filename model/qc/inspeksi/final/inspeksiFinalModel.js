@@ -10,6 +10,10 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,

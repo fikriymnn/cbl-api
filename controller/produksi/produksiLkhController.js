@@ -172,10 +172,12 @@ const ProduksiLkhController = {
 
       const finalResult = getValidLatestData(produksi_lkh_proses);
 
-      await ProduksiLkhProses.update(
-        { is_final_result: true },
-        { where: { id: finalResult.id }, transaction: t }
-      );
+      if (finalResult) {
+        await ProduksiLkhProses.update(
+          { is_final_result: true },
+          { where: { id: finalResult.id }, transaction: t }
+        );
+      }
 
       await t.commit(),
         res
