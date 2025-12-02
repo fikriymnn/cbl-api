@@ -209,6 +209,7 @@ const BomController = {
             id_jo: dataJobOrder.id,
             id_io_mounting: e.id_io_mounting,
             id_kertas: e.id_kertas,
+            nama_mounting: e.nama_mounting,
             nama_kertas: e.nama_kertas,
             gramature_kertas: e.gramature_kertas,
             panjang_kertas: e.panjang_kertas,
