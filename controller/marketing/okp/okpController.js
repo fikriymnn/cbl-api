@@ -306,6 +306,8 @@ const OkpController = {
             id_kalkulasi: id_kalkulasi,
             id_create_okp: req.user.id,
             no_okp: no_okp,
+            id_produk: checkKalkulasi.id_produk,
+            id_customer: checkKalkulasi.id_customer,
             customer: checkKalkulasi.nama_customer,
             produk: checkKalkulasi.nama_produk,
             status_okp: status_okp,
