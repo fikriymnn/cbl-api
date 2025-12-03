@@ -5,6 +5,7 @@ const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel")
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
+const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTahapanModel");
 const SoModel = require("../../model/marketing/so/soModel");
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
 const JobOrderMounting = require("../../model/ppic/jobOrder/joMountingModel");
@@ -236,6 +237,10 @@ const ProduksiLkhController = {
                   as: "tahapan",
                 },
                 {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
+                },
+                {
                   model: Users,
                   as: "operator",
                 },
@@ -259,6 +264,10 @@ const ProduksiLkhController = {
                 {
                   model: MasterTahapan,
                   as: "tahapan",
+                },
+                {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
                 },
                 {
                   model: Users,
@@ -285,6 +294,10 @@ const ProduksiLkhController = {
                 {
                   model: MasterTahapan,
                   as: "tahapan",
+                },
+                {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
                 },
                 {
                   model: Users,

@@ -352,6 +352,7 @@ const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesModel");
 const ProduksiJoDone = require("./model/produksi/produksiJoDoneModel");
 
 //delivery Order
+const DeliveryOrderGroup = require("./model/deliveryOrder/deliveryOrderGroupModel");
 const DeliveryOrder = require("./model/deliveryOrder/deliveryOrderModel");
 
 const cookieParser = require("cookie-parser");
@@ -369,7 +370,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await ProduksiJoDone.sync({ alter: true, logging: console.log });
+//   await DeliveryOrderGroup.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

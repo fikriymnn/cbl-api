@@ -1,6 +1,5 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
-const DeliveryOrderGroup = require("./deliveryOrderGroupModel");
 const JoModel = require("../ppic/jobOrder/jobOrderModel");
 const IoModel = require("../marketing/io/ioModel");
 const SoModel = require("../marketing/so/soModel");
@@ -12,26 +11,9 @@ const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
 
-const DeliveryOrder = db.define(
-  "delivery_order",
+const DeliveryOrderGroup = db.define(
+  "delivery_order_group",
   {
-    id_do_group: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: DeliveryOrderGroup,
-        key: "id",
-      },
-    },
-    id_jo: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: JoModel,
-        key: "id",
-      },
-    },
-
     id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -64,6 +46,26 @@ const DeliveryOrder = db.define(
         key: "id",
       },
     },
+    id_create: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+    id_approve: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
+    no_do: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -88,15 +90,11 @@ const DeliveryOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    po_qty: {
-      type: DataTypes.FLOAT,
+    alamat: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
-    jumlah_qty: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    toleransi_pengiriman: {
+    kota: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -104,32 +102,13 @@ const DeliveryOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_pengiriman: {
+    tgl_do: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: new Date(),
     },
-    pack_1: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    pack_2: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    pack_3: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    isi_1: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    isi_2: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    isi_3: {
-      type: DataTypes.FLOAT,
+    is_tax: {
+      type: DataTypes.BOOLEAN,
       allowNull: true,
     },
     status: {
@@ -148,56 +127,55 @@ const DeliveryOrder = db.define(
   }
 );
 
-DeliveryOrderGroup.hasMany(DeliveryOrder, {
-  foreignKey: "id_do_group",
-  as: "delivery_order",
-});
-DeliveryOrder.belongsTo(DeliveryOrderGroup, {
-  foreignKey: "id_do_group",
+IoModel.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_io",
   as: "delivery_order_group",
 });
-
-JoModel.hasMany(DeliveryOrder, {
-  foreignKey: "id_jo",
-  as: "delivery_order",
-});
-DeliveryOrder.belongsTo(JoModel, {
-  foreignKey: "id_jo",
-  as: "jo",
-});
-
-IoModel.hasMany(DeliveryOrder, {
-  foreignKey: "id_io",
-  as: "delivery_order",
-});
-DeliveryOrder.belongsTo(IoModel, {
+DeliveryOrderGroup.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-SoModel.hasOne(DeliveryOrder, {
+SoModel.hasOne(DeliveryOrderGroup, {
   foreignKey: "id_so",
-  as: "delivery_order",
+  as: "delivery_order_group",
 });
-DeliveryOrder.belongsTo(SoModel, {
+DeliveryOrderGroup.belongsTo(SoModel, {
   foreignKey: "id_so",
   as: "so",
 });
-MasterCustomer.hasMany(DeliveryOrder, {
+MasterCustomer.hasMany(DeliveryOrderGroup, {
   foreignKey: "id_customer",
-  as: "delivery_order",
+  as: "delivery_order_group",
 });
-DeliveryOrder.belongsTo(MasterCustomer, {
+DeliveryOrderGroup.belongsTo(MasterCustomer, {
   foreignKey: "id_customer",
   as: "detail_customer",
 });
 
-MasterProduk.hasMany(DeliveryOrder, {
+MasterProduk.hasMany(DeliveryOrderGroup, {
   foreignKey: "id_produk",
-  as: "delivery_order",
+  as: "delivery_order_group",
 });
-DeliveryOrder.belongsTo(MasterProduk, {
+DeliveryOrderGroup.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "detail_produk",
 });
-module.exports = DeliveryOrder;
+Users.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_create",
+  as: "do_group_create",
+});
+DeliveryOrderGroup.belongsTo(Users, {
+  foreignKey: "id_create",
+  as: "user_create",
+});
+
+Users.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_approve",
+  as: "do_group_approve",
+});
+DeliveryOrderGroup.belongsTo(Users, {
+  foreignKey: "id_approve",
+  as: "user_approve",
+});
+module.exports = DeliveryOrderGroup;

@@ -1,8 +1,8 @@
 const { Op, Sequelize, where } = require("sequelize");
 const DeliveryOrderService = require("./service/deliveryOrderService");
 
-const ProduksiJoDoneController = {
-  getProduksiJoDone: async (req, res) => {
+const DeliveryOrderController = {
+  getDeliveryOrder: async (req, res) => {
     const _id = req.params.id;
     const {
       page,
@@ -40,4 +40,4 @@ const ProduksiJoDoneController = {
   },
 };
 
-module.exports = ProduksiJoDoneController;
+module.exports = DeliveryOrderController;

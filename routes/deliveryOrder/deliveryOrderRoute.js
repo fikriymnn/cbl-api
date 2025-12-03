@@ -5,7 +5,7 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/deliveryOrder/:id?",
   auth,
-  DeliveryOrderController.getProduksiJoDone
+  DeliveryOrderController.getDeliveryOrder
 );
 
 module.exports = router;

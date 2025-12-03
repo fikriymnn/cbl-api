@@ -325,6 +325,7 @@ router.use("/", require("./produksi/produksiJoDoneRoute"));
 
 //delivery order
 router.use("/", require("./deliveryOrder/deliveryOrderRoute"));
+router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
