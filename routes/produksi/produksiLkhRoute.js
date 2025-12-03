@@ -9,4 +9,10 @@ router.put(
   ProduksiLkhController.finishProduksiLkh
 );
 
+router.get(
+  "/produksi/listAllData/:id?",
+  auth,
+  ProduksiLkhController.getProduksiLkhAllData
+);
+
 module.exports = router;

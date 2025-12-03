@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
+const JoModel = require("../ppic/jobOrder/jobOrderModel");
 const produksiLkhTahapan = require("./produksiLkhTahapanModel");
 const produksiLkh = require("./produksiLkhModel");
 const MasterKodeProduksi = require("../masterData/kodeProduksi/masterKodeProduksiModel");
@@ -12,6 +13,14 @@ const { DataTypes } = Sequelize;
 const ProduksiLkhProses = db.define(
   "produksi_lkh_proses",
   {
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JoModel,
+        key: "id",
+      },
+    },
     id_produksi_lkh: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -128,6 +137,15 @@ const ProduksiLkhProses = db.define(
     freezeTableName: true,
   }
 );
+
+JoModel.hasMany(ProduksiLkhProses, {
+  foreignKey: "id_jo",
+  as: "produksi_lkh_proses",
+});
+ProduksiLkhProses.belongsTo(JoModel, {
+  foreignKey: "id_jo",
+  as: "jo",
+});
 
 produksiLkh.hasMany(ProduksiLkhProses, {
   foreignKey: "id_produksi_lkh",

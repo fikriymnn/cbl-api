@@ -4,7 +4,7 @@ const ProduksiLkh = require("../../model/produksi/produksiLkhModel");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
-const MasterTahapanMesin = require("../../model/masterData/tahapan/masterTahapanMesinModel");
+const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
 const SoModel = require("../../model/marketing/so/soModel");
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
 const JobOrderMounting = require("../../model/ppic/jobOrder/joMountingModel");
@@ -187,6 +187,121 @@ const ProduksiLkhController = {
       res
         .status(400)
         .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  getProduksiLkhAllData: async (req, res) => {
+    const _id = req.params.id;
+    const { page, limit, start_date, end_date, status, search } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    let obj = {};
+
+    if (search) {
+      obj = {
+        [Op.or]: [
+          { no_jo: { [Op.like]: `%${search}%` } },
+          { no_io: { [Op.like]: `%${search}%` } },
+          { no_so: { [Op.like]: `%${search}%` } },
+          { customer: { [Op.like]: `%${search}%` } },
+          { produk: { [Op.like]: `%${search}%` } },
+        ],
+      };
+    }
+
+    if (status) obj.status = status;
+
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      obj.createdAt = { [Op.between]: [startDate, endDate] };
+    }
+    obj.is_active = true;
+    try {
+      if (page && limit) {
+        const length = await JobOrder.count({ where: obj });
+        const data = await JobOrder.findAll({
+          order: [["createdAt", "DESC"]],
+          limit: parseInt(limit),
+          offset,
+          where: obj,
+          include: [
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+          ],
+        });
+        return res.status(200).json({
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        });
+      } else if (_id) {
+        const data = await JobOrder.findByPk(_id, {
+          include: [
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+          ],
+        });
+        return res.status(200).json({
+          data: data,
+        });
+      } else {
+        const data = await JobOrder.findAll({
+          order: [["createdAt", "DESC"]],
+          where: obj,
+          include: [
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+          ],
+        });
+        return res.status(200).json({
+          status_code: 200,
+          success: true,
+          data: data,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
     }
   },
 

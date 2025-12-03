@@ -1,6 +1,5 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
-const produksiLkhTahapan = require("./produksiLkhTahapanModel");
 const JoModel = require("../ppic/jobOrder/jobOrderModel");
 const IoModel = require("../marketing/io/ioModel");
 const SoModel = require("../marketing/so/soModel");
@@ -12,8 +11,8 @@ const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
 
-const ProduksiJoDone = db.define(
-  "produksi_jo_done",
+const DeliveryOrder = db.define(
+  "delivery_order",
   {
     id_jo: {
       type: DataTypes.INTEGER,
@@ -56,14 +55,6 @@ const ProduksiJoDone = db.define(
         key: "id",
       },
     },
-    id_user: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: Users,
-        key: "id",
-      },
-    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -76,6 +67,10 @@ const ProduksiJoDone = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_po_customer: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     customer: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -84,20 +79,47 @@ const ProduksiJoDone = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_kirim: {
+    po_qty: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    is_jo_done: {
-      type: DataTypes.BOOLEAN,
+    toleransi_pengiriman: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    note: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tgl_pengiriman: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    pack_1: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    pack_2: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    pack_3: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    isi_1: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    isi_2: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    isi_3: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     status: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "progress",
-    },
-    status_proses: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "progress",
@@ -113,56 +135,47 @@ const ProduksiJoDone = db.define(
   }
 );
 
-JoModel.hasMany(ProduksiJoDone, {
+JoModel.hasMany(DeliveryOrder, {
   foreignKey: "id_jo",
-  as: "list_jo_selesai",
+  as: "delivery_order",
 });
-ProduksiJoDone.belongsTo(JoModel, {
+DeliveryOrder.belongsTo(JoModel, {
   foreignKey: "id_jo",
   as: "jo",
 });
 
-IoModel.hasMany(ProduksiJoDone, {
+IoModel.hasMany(DeliveryOrder, {
   foreignKey: "id_io",
-  as: "list_jo_selesai",
+  as: "delivery_order",
 });
-ProduksiJoDone.belongsTo(IoModel, {
+DeliveryOrder.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-SoModel.hasOne(ProduksiJoDone, {
+SoModel.hasOne(DeliveryOrder, {
   foreignKey: "id_so",
-  as: "list_jo_selesai",
+  as: "delivery_order",
 });
-ProduksiJoDone.belongsTo(SoModel, {
+DeliveryOrder.belongsTo(SoModel, {
   foreignKey: "id_so",
   as: "so",
 });
-MasterCustomer.hasMany(ProduksiJoDone, {
+MasterCustomer.hasMany(DeliveryOrder, {
   foreignKey: "id_customer",
-  as: "list_jo_selesai",
+  as: "delivery_order",
 });
-ProduksiJoDone.belongsTo(MasterCustomer, {
+DeliveryOrder.belongsTo(MasterCustomer, {
   foreignKey: "id_customer",
   as: "detail_customer",
 });
 
-MasterProduk.hasMany(ProduksiJoDone, {
+MasterProduk.hasMany(DeliveryOrder, {
   foreignKey: "id_produk",
-  as: "list_jo_selesai",
+  as: "delivery_order",
 });
-ProduksiJoDone.belongsTo(MasterProduk, {
+DeliveryOrder.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "detail_produk",
 });
-
-Users.hasMany(ProduksiJoDone, {
-  foreignKey: "id_user",
-  as: "list_jo_selesai",
-});
-ProduksiJoDone.belongsTo(Users, {
-  foreignKey: "id_user",
-  as: "user",
-});
-module.exports = ProduksiJoDone;
+module.exports = DeliveryOrder;

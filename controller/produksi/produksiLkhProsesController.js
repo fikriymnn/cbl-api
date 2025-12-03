@@ -230,6 +230,7 @@ const ProduksiLkhProsesController = {
 
         await ProduksiLkhProses.create(
           {
+            id_jo: id_jo,
             id_produksi_lkh: dataProduksiLkh.id,
             id_produksi_lkh_tahapan: dataProduksiLkhTahapan.id,
             id_tahapan: dataProduksiLkhTahapan.id_tahapan,
@@ -319,6 +320,7 @@ const ProduksiLkhProsesController = {
 
         await ProduksiLkhProses.create(
           {
+            id_jo: id_jo,
             id_produksi_lkh: checkProduksiLkh.id,
             id_produksi_lkh_tahapan: checkProduksiLkh.id_produksi_lkh_tahapan,
             id_tahapan: checkProduksiLkh.id_tahapan,
