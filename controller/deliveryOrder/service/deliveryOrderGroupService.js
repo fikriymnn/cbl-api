@@ -163,7 +163,7 @@ const DeliveryOrderGroupService = {
           message: "Data DO Kosong",
         };
       }
-      await DeliveryOrderGroup.create(
+      const dataDoGroup = await DeliveryOrderGroup.create(
         {
           id_io: id_io,
           id_so: id_so,
@@ -190,6 +190,7 @@ const DeliveryOrderGroupService = {
         const e = data_do[i];
         await DeliveryOrder.update(
           {
+            id_do_group: dataDoGroup.id,
             jumlah_qty: e.jumlah_qty,
             isi_1: e.isi_1,
             isi_2: e.isi_2,
