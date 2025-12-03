@@ -209,6 +209,7 @@ const BomController = {
             id_jo: dataJobOrder.id,
             id_io_mounting: e.id_io_mounting,
             id_kertas: e.id_kertas,
+            nama_mounting: e.nama_mounting,
             nama_kertas: e.nama_kertas,
             gramature_kertas: e.gramature_kertas,
             panjang_kertas: e.panjang_kertas,
@@ -291,36 +292,36 @@ const BomController = {
         });
       }
 
-      const createTiketJadwal =
-        await JadwalProduksiService.creteJadwalProduksiService(
-          produk,
-          no_jo,
-          null,
-          dataSo.no_po_customer,
-          no_io,
-          customer,
-          dataMountingSelected.nama_kertas,
-          formatDate(tgl_kirim),
-          formatDate(dataSo.tgl_pembuatan_so),
-          null,
-          po_qty || 0,
-          qty || 0,
-          qty_druk || 0,
-          0,
-          dataTahapanMounting,
-          dataJobOrder.id,
-          t
-        );
+      // const createTiketJadwal =
+      //   await JadwalProduksiService.creteJadwalProduksiService(
+      //     produk,
+      //     no_jo,
+      //     null,
+      //     dataSo.no_po_customer,
+      //     no_io,
+      //     customer,
+      //     dataMountingSelected.nama_kertas,
+      //     formatDate(tgl_kirim),
+      //     formatDate(dataSo.tgl_pembuatan_so),
+      //     null,
+      //     po_qty || 0,
+      //     qty || 0,
+      //     qty_druk || 0,
+      //     0,
+      //     dataTahapanMounting,
+      //     dataJobOrder.id,
+      //     t
+      //   );
 
-      if (createTiketJadwal.success === false) {
-        await t.rollback();
+      // if (createTiketJadwal.success === false) {
+      //   await t.rollback();
 
-        return res.status(400).json({
-          succes: false,
-          status_code: 400,
-          msg: createTiketJadwal.msg,
-        });
-      }
+      //   return res.status(400).json({
+      //     succes: false,
+      //     status_code: 400,
+      //     msg: createTiketJadwal.msg,
+      //   });
+      // }
 
       await t.commit();
       res.status(200).json({
@@ -443,8 +444,11 @@ const BomController = {
         for (let i = 0; i < jo_mounting.length; i++) {
           const e = jo_mounting[i];
           await JobOrderMounting.update(
-            { e },
-            { where: { id: e.id }, transaction: t }
+            { is_selected: e.is_selected },
+            {
+              where: { id: e.id },
+              transaction: t,
+            }
           );
         }
       }

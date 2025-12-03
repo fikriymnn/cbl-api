@@ -169,6 +169,16 @@ const ProduksiLkhController = {
           }
         );
       }
+
+      const finalResult = getValidLatestData(produksi_lkh_proses);
+
+      if (finalResult) {
+        await ProduksiLkhProses.update(
+          { is_final_result: true },
+          { where: { id: finalResult.id }, transaction: t }
+        );
+      }
+
       await t.commit(),
         res
           .status(200)
@@ -212,5 +222,23 @@ const ProduksiLkhController = {
   //   }
   // },
 };
+
+function getValidLatestData(data) {
+  // Filter data yang baik tidak 0
+  const validData = data.filter((item) => item.baik !== 0);
+
+  // Jika tidak ada data valid, return null
+  if (validData.length === 0) {
+    return null;
+  }
+
+  // Sort berdasarkan createdAt descending (terbaru di atas)
+  const sortedData = validData.sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  // Ambil data paling baru (index 0)
+  return sortedData[0];
+}
 
 module.exports = ProduksiLkhController;

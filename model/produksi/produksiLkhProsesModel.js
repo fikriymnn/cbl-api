@@ -113,6 +113,11 @@ const ProduksiLkhProses = db.define(
       allowNull: true,
       defaultValue: "progress",
     },
+    is_final_result: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

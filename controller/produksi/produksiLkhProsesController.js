@@ -177,6 +177,9 @@ const ProduksiLkhProsesController = {
           ],
         });
 
+        console.log(dataProduksiLkhTahapan.tahapan.nama_tahapan);
+        handleTahapan(dataProduksiLkhTahapan.tahapan.nama_tahapan);
+
         const dataProduksiLkh = await ProduksiLkh.create(
           {
             id_produksi_lkh_tahapan: dataProduksiLkhTahapan.id,
@@ -310,6 +313,10 @@ const ProduksiLkhProsesController = {
             ],
           }
         );
+
+        console.log(checkProduksiLkh.tahapan.nama_tahapan);
+        handleTahapan(checkProduksiLkh.tahapan.nama_tahapan);
+
         await ProduksiLkhProses.create(
           {
             id_produksi_lkh: checkProduksiLkh.id,
@@ -573,6 +580,76 @@ function formatDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+}
+
+function handleTahapan(tahapan) {
+  // Normalisasi input menjadi lowercase untuk pencocokan yang lebih fleksibel
+  const tahapanLower = tahapan.toLowerCase();
+
+  // Cek setiap tahapan berdasarkan kata kunci
+  if (tahapanLower.includes("potong")) {
+    console.log("Menjalankan proses pemotongan...");
+    // Logika untuk tahap potong
+    return {
+      tahap: "potong",
+      action: "proses_potong",
+    };
+  } else if (tahapanLower.includes("cetak")) {
+    console.log("Menjalankan proses pencetakan...");
+    // Logika untuk tahap cetak
+    return {
+      tahap: "cetak",
+      action: "proses_cetak",
+    };
+  } else if (tahapanLower.includes("coating")) {
+    console.log("Menjalankan proses coating...");
+    // Logika untuk tahap coating
+    return {
+      tahap: "coating",
+      action: "proses_coating",
+    };
+  } else if (tahapanLower.includes("pond")) {
+    console.log("Menjalankan proses pond...");
+    // Logika untuk tahap pond
+    return {
+      tahap: "pond",
+      action: "proses_pond",
+    };
+  } else if (tahapanLower.includes("lem")) {
+    console.log("Menjalankan proses pelemanan...");
+    // Logika untuk tahap lem
+    return {
+      tahap: "lem",
+      action: "proses_lem",
+    };
+  } else if (tahapanLower.includes("rabut")) {
+    console.log("Menjalankan proses rabut...");
+    // Logika untuk tahap rabut
+    return {
+      tahap: "rabut",
+      action: "proses_rabut",
+    };
+  } else if (tahapanLower.includes("sortir")) {
+    console.log("Menjalankan proses sortir...");
+    // Logika untuk tahap sortir
+    return {
+      tahap: "sortir",
+      action: "proses_sortir",
+    };
+  } else if (tahapanLower.includes("lipat")) {
+    console.log("Menjalankan proses lipat...");
+    // Logika untuk tahap lipat
+    return {
+      tahap: "lipat",
+      action: "proses_lipat",
+    };
+  } else {
+    console.log("Tahapan tidak dikenali");
+    return {
+      tahap: "unknown",
+      action: "tidak_ada_aksi",
+    };
+  }
 }
 
 module.exports = ProduksiLkhProsesController;

@@ -13,6 +13,9 @@ const JobOrderUserAction = require("../../model/ppic/jobOrder/joUserActionModel"
 const Users = require("../../model/userModel");
 const db = require("../../config/database");
 const soModel = require("../../model/marketing/so/soModel");
+const {
+  creteProduksiJoDoneService,
+} = require("./service/produksiJoDoneService");
 
 const ProduksiLkhTahapanController = {
   getProduksiLkhTahapan: async (req, res) => {
@@ -144,7 +147,7 @@ const ProduksiLkhTahapanController = {
         }
       );
 
-      //buat tahapan selanjutnya jadi active
+      //buat tahapan selanjutnya jadi active & cek apakah tahapan ini adalah tahapan terakhir (untuk kirim tiket ke list jo selesai)
       const checkDataLkhtahapanNext = await ProduksiLkhTahapan.findOne({
         where: {
           id_jo: checkData.id_jo,
@@ -154,11 +157,32 @@ const ProduksiLkhTahapanController = {
       });
 
       if (checkDataLkhtahapanNext) {
+        //buat tahapan selanjutnya active
         await ProduksiLkhTahapan.update(
           { status: "active" },
           { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
         );
+      } else {
+        //jika tidak ada maka kirim tiket ke list produksi jo selesai
+        const createProduksiLkhProsesDone = await creteProduksiJoDoneService({
+          id_jo: checkData.id_jo,
+          id_io: checkData.id_io,
+          id_so: checkData.id_so,
+          id_customer: checkData.id_customer,
+          id_produk: checkData.id_produk,
+          transaction: t,
+        });
+        if (createProduksiLkhProsesDone.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: createProduksiLkhProsesDone.message,
+          });
+        }
       }
+
       await t.commit(),
         res
           .status(200)

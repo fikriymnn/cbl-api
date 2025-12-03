@@ -25,6 +25,10 @@ const JobOrderMounting = db.define(
         key: "id",
       },
     },
+    nama_mounting: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     id_kertas: {
       type: DataTypes.INTEGER,
       allowNull: true,
