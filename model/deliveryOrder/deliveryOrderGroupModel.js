@@ -5,8 +5,8 @@ const IoModel = require("../marketing/io/ioModel");
 const SoModel = require("../marketing/so/soModel");
 const MasterCustomer = require("../masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../masterData/marketing/masterProdukModel");
-const MasterTahapan = require("../masterData/tahapan/masterTahapanModel");
-const MasterMesinTahapan = require("../masterData/tahapan/masterMesinTahapanModel");
+const MasterKendaraan = require("../masterData/kendaraan/masterKendaraanModel");
+const MasterKaryawan = require("../hr/karyawanModel");
 const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
@@ -60,6 +60,30 @@ const DeliveryOrderGroup = db.define(
       references: {
         model: Users,
         key: "id",
+      },
+    },
+    id_kendaraan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterKendaraan,
+        key: "id",
+      },
+    },
+    id_supir: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterKaryawan,
+        key: "userid",
+      },
+    },
+    id_kenek: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterKaryawan,
+        key: "userid",
       },
     },
     no_do: {
@@ -177,5 +201,32 @@ Users.hasMany(DeliveryOrderGroup, {
 DeliveryOrderGroup.belongsTo(Users, {
   foreignKey: "id_approve",
   as: "user_approve",
+});
+
+MasterKendaraan.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_kendaraan",
+  as: "do_group",
+});
+DeliveryOrderGroup.belongsTo(MasterKendaraan, {
+  foreignKey: "id_kendaraan",
+  as: "kendaraan",
+});
+
+MasterKaryawan.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_supir",
+  as: "do_group_supir",
+});
+DeliveryOrderGroup.belongsTo(MasterKaryawan, {
+  foreignKey: "id_supir",
+  as: "supir",
+});
+
+MasterKaryawan.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_kenek",
+  as: "do_group_kenek",
+});
+DeliveryOrderGroup.belongsTo(MasterKaryawan, {
+  foreignKey: "id_kenek",
+  as: "kenek",
 });
 module.exports = DeliveryOrderGroup;

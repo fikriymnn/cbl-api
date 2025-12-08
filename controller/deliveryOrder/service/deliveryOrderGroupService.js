@@ -22,6 +22,9 @@ const DeliveryOrderGroupService = {
     id_io,
     id_so,
     id_produk,
+    id_kendaraan,
+    id_supir,
+    id_kenek,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -43,6 +46,9 @@ const DeliveryOrderGroupService = {
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
+    if (id_kendaraan) obj.id_kendaraan = id_kendaraan;
+    if (id_supir) obj.id_supir = id_supir;
+    if (id_kenek) obj.id_kenek = id_kenek;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -112,6 +118,9 @@ const DeliveryOrderGroupService = {
     note,
     data_do,
     id_create,
+    id_kendaraan,
+    id_supir,
+    id_kenek,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -182,6 +191,9 @@ const DeliveryOrderGroupService = {
           note: note,
           tgl_pengiriman: dataSo?.tgl_pengiriman || null,
           id_create: id_create,
+          id_kendaraan: id_kendaraan || null,
+          id_supir: id_supir || null,
+          id_kenek: id_kenek || null,
         },
         { transaction: t }
       );
@@ -230,6 +242,9 @@ const DeliveryOrderGroupService = {
     note,
     data_do,
     id_approve,
+    id_kendaraan,
+    id_supir,
+    id_kenek,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -301,6 +316,9 @@ const DeliveryOrderGroupService = {
           tgl_pengiriman: dataSo?.tgl_pengiriman || null,
           status: "done",
           id_approve: id_approve,
+          id_kendaraan: id_kendaraan,
+          id_supir: id_supir,
+          id_kenek: id_kenek,
         },
         { where: { id: id }, transaction: t }
       );

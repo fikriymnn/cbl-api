@@ -355,6 +355,9 @@ const ProduksiJoDone = require("./model/produksi/produksiJoDoneModel");
 const DeliveryOrderGroup = require("./model/deliveryOrder/deliveryOrderGroupModel");
 const DeliveryOrder = require("./model/deliveryOrder/deliveryOrderModel");
 
+//master kendaraan
+const MasterKendaraan = require("./model/masterData/kendaraan/masterKendaraanModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -370,7 +373,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiCetak.sync({ alter: true, logging: console.log });
+//   await DeliveryOrderGroup.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

@@ -52,6 +52,9 @@ const DeliveryOrderGroupController = {
       is_tax,
       note,
       data_do,
+      id_kendaraan,
+      id_supir,
+      id_kenek,
     } = req.body;
 
     try {
@@ -70,6 +73,9 @@ const DeliveryOrderGroupController = {
           note: note,
           data_do: data_do,
           id_create: req.user.id,
+          id_kendaraan: id_kendaraan,
+          id_supir: id_supir,
+          id_kenek: id_kenek,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -94,6 +100,9 @@ const DeliveryOrderGroupController = {
       is_tax,
       note,
       data_do,
+      id_kendaraan,
+      id_supir,
+      id_kenek,
     } = req.body;
 
     try {
@@ -113,6 +122,9 @@ const DeliveryOrderGroupController = {
           note: note,
           data_do: data_do,
           id_approve: req.user.id,
+          id_kendaraan: id_kendaraan,
+          id_supir: id_supir,
+          id_kenek: id_kenek,
         });
       return res.status(200).json(getData);
     } catch (error) {

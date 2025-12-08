@@ -323,6 +323,9 @@ router.use("/", require("./produksi/produksiLkhTahapanRoute"));
 router.use("/", require("./produksi/produksiLkhProsesRoute"));
 router.use("/", require("./produksi/produksiJoDoneRoute"));
 
+//master kendaraan
+router.use("/", require("./masterdata/kendaraan/masterKendaraanRoute"));
+
 //delivery order
 router.use("/", require("./deliveryOrder/deliveryOrderRoute"));
 router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
