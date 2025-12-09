@@ -4,8 +4,16 @@ const InvoiceService = require("./service/invoiceService");
 const InvoiceController = {
   getInvoice: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, id_customer } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      id_customer,
+      status,
+      status_proses,
+    } = req.query;
 
     try {
       const getData = await InvoiceService.getInvoiceService({
@@ -16,6 +24,8 @@ const InvoiceController = {
         end_date: end_date,
         search: search,
         id_customer: id_customer,
+        status: status,
+        status_proses: status_proses,
       });
       return res.status(200).json(getData);
     } catch (error) {

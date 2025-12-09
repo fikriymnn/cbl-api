@@ -13,6 +13,8 @@ const DepositService = {
     end_date,
     search,
     id_customer,
+    status,
+    status_proses,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -25,6 +27,8 @@ const DepositService = {
       };
     }
     if (id_customer) obj.id_customer = id_customer;
+    if (status) obj.status = status;
+    if (status_proses) obj.status_proses = status_proses;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
