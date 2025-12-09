@@ -1,11 +1,12 @@
 const db = require("../../../../config/database");
 const { Op, fn, col, literal } = require("sequelize");
-const DepositModel = require("../../../../model/akunting/deposit/depositModel");
-const MasterCustomer = require("../../../../model/masterData/marketing/masterCustomerModel");
+const InvoiceModel = require("../../../../model/akunting/invoice/invoiceModel");
+const InvoiceProdukModel = require("../../../../model/akunting/invoice/invoiceProdukModel");
+const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
 const Users = require("../../../../model/userModel");
 
-const DepositService = {
-  getDepositService: async ({
+const InvoiceService = {
+  getInvoiceService: async ({
     id,
     page,
     limit,
@@ -19,8 +20,10 @@ const DepositService = {
     if (search) {
       obj = {
         [Op.or]: [
-          { no_deposit: { [Op.like]: `%${search}%` } },
-          { cara_bayar: { [Op.like]: `%${search}%` } },
+          { nama_customer: { [Op.like]: `%${search}%` } },
+          { no_po: { [Op.like]: `%${search}%` } },
+          { no_invoice: { [Op.like]: `%${search}%` } },
+          { no_do: { [Op.like]: `%${search}%` } },
         ],
       };
     }
@@ -33,18 +36,12 @@ const DepositService = {
     }
     try {
       if (page && limit) {
-        const length = await DepositModel.count({ where: obj });
-        const data = await DepositModel.findAll({
+        const length = await InvoiceModel.count({ where: obj });
+        const data = await InvoiceModel.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
           where: obj,
-          include: [
-            {
-              model: MasterCustomer,
-              as: "customer",
-            },
-          ],
         });
         return {
           status: 200,
@@ -53,12 +50,8 @@ const DepositService = {
           total_page: Math.ceil(length / parseInt(limit)),
         };
       } else if (id) {
-        const data = await DepositModel.findByPk(id, {
+        const data = await InvoiceModel.findByPk(id, {
           include: [
-            {
-              model: MasterCustomer,
-              as: "customer",
-            },
             {
               model: Users,
               as: "user_create",
@@ -71,6 +64,16 @@ const DepositService = {
               model: Users,
               as: "user_reject",
             },
+            {
+              model: InvoiceProdukModel,
+              as: "invoice_produk",
+              //   include: [
+              //     {
+              //       model: MasterProduk,
+              //       as: "produk",
+              //     },
+              //   ],
+            },
           ],
         });
         return {
@@ -79,15 +82,9 @@ const DepositService = {
           data: data,
         };
       } else {
-        const data = await DepositModel.findAll({
+        const data = await InvoiceModel.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
-          include: [
-            {
-              model: MasterCustomer,
-              as: "customer",
-            },
-          ],
         });
         return {
           status: 200,
@@ -104,24 +101,24 @@ const DepositService = {
     }
   },
 
-  getNoDepositService: async () => {
+  getNoInvoiceService: async () => {
     try {
       //get data terakhir
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
 
-      const lastDeposit = await DepositModel.findOne({
+      const lastInvoice = await InvoiceModel.findOne({
         where: {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
         },
         order: [
-          // extract nomor urut pada format SDP00001/12/25
+          // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_deposit, 4), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 5), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -136,8 +133,8 @@ const DepositService = {
       // 2. Tentukan nomor urut berikutnya
       let nextNumber = 1;
 
-      if (lastDeposit) {
-        const lastNo = lastDeposit.no_deposit; // contoh: SDP00005/12/25
+      if (lastInvoice) {
+        const lastNo = lastInvoice.no_invoice; // contoh: SDP00005/12/25
 
         // Ambil "00005" → ubah ke integer
         const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
@@ -149,12 +146,12 @@ const DepositService = {
       const paddedNumber = String(nextNumber).padStart(5, "0");
 
       // 4. Susun format akhir
-      const newDepositNumber = `SDP${paddedNumber}/${currentMonth}/${shortYear}`;
+      const newInvoiceNumber = `SI${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
       return {
         status: 200,
         success: true,
-        no_deposit: lastDeposit.no_deposit,
-        new_no_deposit: newDepositNumber,
+        no_invoice: lastInvoice.no_invoice,
+        new_no_invoice: newInvoiceNumber,
       };
     } catch (error) {
       return {
@@ -165,33 +162,87 @@ const DepositService = {
     }
   },
 
-  creteDepositService: async ({
+  creteInvoiceService: async ({
     id_customer,
     id_create,
-    no_deposit,
-    cara_bayar,
-    billing_address,
+    nama_customer,
+    no_po,
+    no_invoice,
+    tgl_po,
+    no_do,
+    tgl_kirim,
+    alamat,
     tgl_faktur,
-    nominal,
+    tgl_jatuh_tempo,
+    waktu_jatuh_tempo,
+    sub_total,
+    dpp,
+    diskon,
+    ppn,
+    total,
+    dp,
+    balance_due,
     note,
+    is_show_dpp,
+    invoice_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      await DepositModel.create(
+      if (invoice_produk.length == 0)
+        throw {
+          status_code: 404,
+          success: false,
+          message: "data produk tidak boleh kosong",
+        };
+      const dataInvoice = await InvoiceModel.create(
         {
           id_customer: id_customer,
           id_create: id_create,
-          no_deposit: no_deposit,
-          cara_bayar: cara_bayar,
-          billing_address: billing_address,
+          nama_customer: nama_customer,
+          no_po: no_po,
+          no_invoice: no_invoice,
+          tgl_po: tgl_po,
+          no_do: no_do,
+          tgl_kirim: tgl_kirim,
+          alamat: alamat,
           tgl_faktur: tgl_faktur,
-          nominal: nominal,
+          tgl_jatuh_tempo: tgl_jatuh_tempo,
+          waktu_jatuh_tempo: waktu_jatuh_tempo,
+          sub_total: sub_total,
+          dpp: dpp,
+          diskon: diskon,
+          ppn: ppn,
+          total: total,
+          dp: dp,
+          balance_due: balance_due,
           note: note,
+          is_show_dpp: is_show_dpp,
         },
         { transaction: t }
       );
+
+      let dataProdukInvoice = [];
+      for (let i = 0; i < invoice_produk.length; i++) {
+        const e = invoice_produk[i];
+        dataProdukInvoice.push({
+          id_invoice: dataInvoice.id,
+          id_produk: e.id_produk,
+          nama_produk: e.nama_produk,
+          kode_produk: e.kode_produk,
+          qty: e.qty,
+          unit: e.unit,
+          harga: e.harga,
+          dpp: e.dpp,
+          total: e.total,
+          pajak: e.pajak,
+        });
+      }
+
+      await InvoiceProdukModel.bulkCreate(dataProdukInvoice, {
+        transaction: t,
+      });
       if (!transaction) await t.commit();
       return {
         status_code: 200,
@@ -204,34 +255,84 @@ const DepositService = {
     }
   },
 
-  updateDepositService: async ({
+  updateInvoiceService: async ({
     id,
     id_customer,
-    no_deposit,
-    cara_bayar,
-
-    billing_address,
+    nama_customer,
+    no_po,
+    no_invoice,
+    tgl_po,
+    no_do,
+    tgl_kirim,
+    alamat,
     tgl_faktur,
-    nominal,
+    tgl_jatuh_tempo,
+    waktu_jatuh_tempo,
+    sub_total,
+    dpp,
+    diskon,
+    ppn,
+    total,
+    dp,
+    balance_due,
     note,
+    is_show_dpp,
+    invoice_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      await DepositModel.update(
+      if (invoice_produk.length == 0)
+        throw {
+          status_code: 404,
+          success: false,
+          message: "data produk tidak boleh kosong",
+        };
+      const dataInvoice = await InvoiceModel.update(
         {
           id_customer: id_customer,
-          no_deposit: no_deposit,
-          cara_bayar: cara_bayar,
-
-          billing_address: billing_address,
+          nama_customer: nama_customer,
+          no_po: no_po,
+          no_invoice: no_invoice,
+          tgl_po: tgl_po,
+          no_do: no_do,
+          tgl_kirim: tgl_kirim,
+          alamat: alamat,
           tgl_faktur: tgl_faktur,
-          nominal: nominal,
+          tgl_jatuh_tempo: tgl_jatuh_tempo,
+          waktu_jatuh_tempo: waktu_jatuh_tempo,
+          sub_total: sub_total,
+          dpp: dpp,
+          diskon: diskon,
+          ppn: ppn,
+          total: total,
+          dp: dp,
+          balance_due: balance_due,
           note: note,
+          is_show_dpp: is_show_dpp,
         },
         { where: { id: id }, transaction: t }
       );
+
+      for (let i = 0; i < invoice_produk.length; i++) {
+        const e = array[i];
+        await InvoiceProdukModel.update(
+          {
+            id_produk: e.id_produk,
+            nama_produk: e.nama_produk,
+            kode_produk: e.kode_produk,
+            qty: e.qty,
+            unit: e.unit,
+            harga: e.harga,
+            dpp: e.dpp,
+            total: e.total,
+            pajak: e.pajak,
+          },
+          { where: { id: e.id }, transaction: t }
+        );
+      }
+
       if (!transaction) await t.commit();
       return {
         status_code: 200,
@@ -244,11 +345,18 @@ const DepositService = {
     }
   },
 
-  requestDepositService: async ({ id, transaction = null }) => {
+  requestInvoiceService: async ({ id, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      await DepositModel.update(
+      const getDataInvoice = await InvoiceModel.findByPk(id);
+      if (!getDataInvoice)
+        throw {
+          success: false,
+          status_code: 404,
+          message: "data invoice tidak di temukan",
+        };
+      await InvoiceModel.update(
         {
           status: "requested",
           status_proses: "requested",
@@ -267,28 +375,19 @@ const DepositService = {
     }
   },
 
-  approveDepositService: async ({ id, id_approve, transaction = null }) => {
+  approveInvoiceService: async ({ id, id_approve, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataDeposit = await DepositModel.findByPk(id);
-      if (!getDataDeposit)
+      const getDataInvoice = await InvoiceModel.findByPk(id);
+      if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
-          message: "data deposit tidak di temukan",
+          message: "data invoice tidak di temukan",
         };
 
-      const getDataCustomer = await MasterCustomer.findByPk(
-        getDataDeposit.id_customer
-      );
-      if (!getDataCustomer)
-        throw {
-          success: false,
-          status_code: 404,
-          message: "data customer tidak di temukan",
-        };
-      await DepositModel.update(
+      await InvoiceModel.update(
         {
           status: "approved",
           status_proses: "done",
@@ -297,10 +396,6 @@ const DepositService = {
         { where: { id: id }, transaction: t }
       );
 
-      await MasterCustomer.update(
-        { saldo: getDataCustomer.saldo || 0 + getDataDeposit.nominal },
-        { where: { id: getDataCustomer.id }, transaction: t }
-      );
       if (!transaction) await t.commit();
       return {
         status_code: 200,
@@ -313,14 +408,21 @@ const DepositService = {
     }
   },
 
-  rejectDepositService: async ({ id, id_reject, transaction = null }) => {
+  rejectInvoiceService: async ({ id, id_reject, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      await DepositModel.update(
+      const getDataInvoice = await InvoiceModel.findByPk(id);
+      if (!getDataInvoice)
+        throw {
+          success: false,
+          status_code: 404,
+          message: "data invoice tidak di temukan",
+        };
+      await InvoiceModel.update(
         {
           status: "draft",
-          status_proses: "requested",
+          status_proses: "rejected",
           id_reject: id_reject,
         },
         { where: { id: id }, transaction: t }
@@ -337,11 +439,18 @@ const DepositService = {
     }
   },
 
-  deleteDepositService: async ({ id, transaction = null }) => {
+  deleteInvoiceService: async ({ id, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      await DepositModel.update(
+      const getDataInvoice = await InvoiceModel.findByPk(id);
+      if (!getDataInvoice)
+        throw {
+          success: false,
+          status_code: 404,
+          message: "data invoice tidak di temukan",
+        };
+      await InvoiceModel.update(
         {
           is_active: false,
         },
@@ -360,4 +469,4 @@ const DepositService = {
   },
 };
 
-module.exports = DepositService;
+module.exports = InvoiceService;
