@@ -358,6 +358,9 @@ const DeliveryOrder = require("./model/deliveryOrder/deliveryOrderModel");
 //master kendaraan
 const MasterKendaraan = require("./model/masterData/kendaraan/masterKendaraanModel");
 
+//akunting
+const Deposit = require("./model/akunting/deposit/depositModel");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -373,7 +376,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await DeliveryOrderGroup.sync({ alter: true, logging: console.log });
+//   await MasterCustomer.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

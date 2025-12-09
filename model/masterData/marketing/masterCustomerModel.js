@@ -70,6 +70,11 @@ const MasterCustomer = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    saldo: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     is_customer_kanban: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -38,6 +38,16 @@ const DeliveryOrderGroupController = {
     }
   },
 
+  getNoDeliveryOrderGroup: async (req, res) => {
+    try {
+      const getData =
+        await DeliveryOrderGroupService.getNoDeliveryOrderGroupService();
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   createDeliveryOrderGroup: async (req, res) => {
     const {
       id_io,

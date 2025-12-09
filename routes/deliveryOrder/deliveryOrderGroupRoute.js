@@ -7,6 +7,12 @@ router.get(
   auth,
   DeliveryOrderGroupController.getDeliveryOrderGroup
 );
+
+router.get(
+  "/deliveryOrderGroupNomor",
+  auth,
+  DeliveryOrderGroupController.getNoDeliveryOrderGroup
+);
 router.post(
   "/deliveryOrderGroup",
   auth,

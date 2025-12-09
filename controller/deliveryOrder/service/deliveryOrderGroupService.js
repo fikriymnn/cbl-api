@@ -1,5 +1,5 @@
 const db = require("../../../config/database");
-const { Op, Sequelize, where } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const DeliveryOrderGroup = require("../../../model/deliveryOrder/deliveryOrderGroupModel");
 const DeliveryOrder = require("../../../model/deliveryOrder/deliveryOrderModel");
 const IoModel = require("../../../model/marketing/io/ioModel");
@@ -95,6 +95,110 @@ const DeliveryOrderGroupService = {
           data: data,
         };
       }
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
+  getNoDeliveryOrderGroupService: async () => {
+    try {
+      //get data terakhir
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+
+      //get data untuk type pajak
+      const lastdataPajak = await DeliveryOrderGroup.findOne({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+          is_tax: true,
+        },
+        order: [
+          // extract nomor urut pada format SDP00001/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      //get data untuk type non pajak
+      const lastdataNonPajak = await DeliveryOrderGroup.findOne({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+          is_tax: false,
+        },
+        order: [
+          // extract nomor urut pada format SDP00001/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '-', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      //tentukan no_do type tax dan non tax selanjutnya
+      const currentYear = new Date().getFullYear();
+      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+      const shortYear = String(currentYear).slice(2); // 2025 => "25"
+      // 2. Tentukan nomor urut berikutnya
+      let nextNumberTax = 1;
+      let nextNumberNonTax = 1;
+
+      //type tax
+      if (lastdataPajak) {
+        const lastNo = lastdataPajak.no_do; // contoh: "SD00001/CBL/1225"
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        nextNumberTax = lastSeq + 1;
+      }
+
+      //type non tax
+      if (lastdataNonPajak) {
+        const lastNo = lastdataNonPajak.no_do; // contoh: "SD50001-1225"
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("-")), 10);
+
+        nextNumberNonTax = lastSeq + 1;
+      }
+
+      // 3. Buat nomor urut padded 4 digit
+      //untuk tax
+      const paddedNumberTax = String(nextNumberTax).padStart(4, "0");
+      //untuk non tax
+      const paddedNumberNonTax = String(nextNumberNonTax).padStart(4, "0");
+
+      // 4. Susun format akhir
+      //type tax
+      const newDoTaxNumberTax = `SD0${paddedNumberTax}/CBL/${currentMonth}${shortYear}`;
+      // type non tax
+      const newDoTaxNumberNonTax = `SD5${paddedNumberTax}-${currentMonth}${shortYear}`;
+
+      return {
+        status: 200,
+        success: true,
+        no_do_tax: lastdataPajak.no_do,
+        no_do_tax_new: newDoTaxNumberTax,
+        no_do_non_tax: lastdataNonPajak.no_do,
+        no_do_non_tax_new: newDoTaxNumberNonTax,
+      };
     } catch (error) {
       return {
         status: 500,

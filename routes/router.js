@@ -330,6 +330,9 @@ router.use("/", require("./masterdata/kendaraan/masterKendaraanRoute"));
 router.use("/", require("./deliveryOrder/deliveryOrderRoute"));
 router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
 
+//deposit
+router.use("/", require("./akunting/deposit/depositRoute"));
+
 router.use("/", require("./uploadRoutes"));
 
 module.exports = router;
