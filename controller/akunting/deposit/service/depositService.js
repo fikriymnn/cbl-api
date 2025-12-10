@@ -48,6 +48,10 @@ const DepositService = {
               model: MasterCustomer,
               as: "customer",
             },
+            {
+              model: Users,
+              as: "user_reject",
+            },
           ],
         });
         return {
@@ -317,7 +321,12 @@ const DepositService = {
     }
   },
 
-  rejectDepositService: async ({ id, id_reject, transaction = null }) => {
+  rejectDepositService: async ({
+    id,
+    id_reject,
+    note_reject,
+    transaction = null,
+  }) => {
     const t = transaction || (await db.transaction());
 
     try {
@@ -326,6 +335,7 @@ const DepositService = {
           status: "draft",
           status_proses: "requested",
           id_reject: id_reject,
+          note_reject: note_reject,
         },
         { where: { id: id }, transaction: t }
       );

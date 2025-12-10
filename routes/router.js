@@ -333,6 +333,7 @@ router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
 //akunting
 router.use("/", require("./akunting/deposit/depositRoute"));
 router.use("/", require("./akunting/invoice/invoiceRoute"));
+router.use("/", require("./akunting/retur/returRoute"));
 
 router.use("/", require("./uploadRoutes"));
 

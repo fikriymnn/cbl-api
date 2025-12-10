@@ -126,11 +126,12 @@ const DepositController = {
   },
   rejectDeposit: async (req, res) => {
     const _id = req.params.id;
-
+    const { note_reject } = req.body;
     try {
       const getData = await Deposit.rejectDepositService({
         id: _id,
         id_reject: req.user.id,
+        note_reject: note_reject,
       });
       return res.status(200).json(getData);
     } catch (error) {

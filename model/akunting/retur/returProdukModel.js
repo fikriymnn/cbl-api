@@ -1,19 +1,19 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const MasterProduk = require("../../masterData/marketing/masterProdukModel");
-const InvoiceModel = require("./invoiceModel");
+const ReturModel = require("./returModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const InvoiceProdukModel = db.define(
-  "invoice_produk",
+const ReturProdukModel = db.define(
+  "retur_produk",
   {
-    id_invoice: {
+    id_retur: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: InvoiceModel,
+        model: ReturModel,
         key: "id",
       },
     },
@@ -25,7 +25,6 @@ const InvoiceProdukModel = db.define(
         key: "id",
       },
     },
-
     nama_produk: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -35,6 +34,10 @@ const InvoiceProdukModel = db.define(
       allowNull: true,
     },
     qty: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    qty_produk: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -69,22 +72,22 @@ const InvoiceProdukModel = db.define(
   }
 );
 
-InvoiceModel.hasMany(InvoiceProdukModel, {
-  foreignKey: "id_invoice",
-  as: "invoice_produk",
+ReturModel.hasMany(ReturProdukModel, {
+  foreignKey: "id_retur",
+  as: "retur_produk",
 });
-InvoiceProdukModel.belongsTo(InvoiceModel, {
-  foreignKey: "id_invoice",
-  as: "invoice",
+ReturProdukModel.belongsTo(ReturModel, {
+  foreignKey: "id_retur",
+  as: "retur",
 });
 
-MasterProduk.hasMany(InvoiceProdukModel, {
+MasterProduk.hasMany(ReturProdukModel, {
   foreignKey: "id_produk",
-  as: "invoice",
+  as: "retur",
 });
-InvoiceProdukModel.belongsTo(MasterProduk, {
+ReturProdukModel.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "produk",
 });
 
-module.exports = InvoiceProdukModel;
+module.exports = ReturProdukModel;

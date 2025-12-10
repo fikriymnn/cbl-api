@@ -362,6 +362,8 @@ const MasterKendaraan = require("./model/masterData/kendaraan/masterKendaraanMod
 const Deposit = require("./model/akunting/deposit/depositModel");
 const Invoice = require("./model/akunting/invoice/invoiceModel");
 const InvoiceProduk = require("./model/akunting/invoice/invoiceProdukModel");
+const Retur = require("./model/akunting/retur/returModel");
+const ReturProduk = require("./model/akunting/retur/returProdukModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -378,7 +380,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Deposit.sync({ alter: true, logging: console.log });
+//   await Retur.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

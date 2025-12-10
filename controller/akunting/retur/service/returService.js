@@ -1,14 +1,12 @@
 const db = require("../../../../config/database");
 const { Op, fn, col, literal } = require("sequelize");
-const InvoiceModel = require("../../../../model/akunting/invoice/invoiceModel");
-const InvoiceProdukModel = require("../../../../model/akunting/invoice/invoiceProdukModel");
 const ReturModel = require("../../../../model/akunting/retur/returModel");
 const ReturProdukModel = require("../../../../model/akunting/retur/returProdukModel");
 const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
 const Users = require("../../../../model/userModel");
 
-const InvoiceService = {
-  getInvoiceService: async ({
+const ReturService = {
+  getReturService: async ({
     id,
     page,
     limit,
@@ -27,6 +25,7 @@ const InvoiceService = {
           { nama_customer: { [Op.like]: `%${search}%` } },
           { no_po: { [Op.like]: `%${search}%` } },
           { no_invoice: { [Op.like]: `%${search}%` } },
+          { no_retur: { [Op.like]: `%${search}%` } },
           { no_do: { [Op.like]: `%${search}%` } },
         ],
       };
@@ -42,8 +41,8 @@ const InvoiceService = {
     }
     try {
       if (page && limit) {
-        const length = await InvoiceModel.count({ where: obj });
-        const data = await InvoiceModel.findAll({
+        const length = await ReturModel.count({ where: obj });
+        const data = await ReturModel.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -56,7 +55,7 @@ const InvoiceService = {
           total_page: Math.ceil(length / parseInt(limit)),
         };
       } else if (id) {
-        const data = await InvoiceModel.findByPk(id, {
+        const data = await ReturModel.findByPk(id, {
           include: [
             {
               model: Users,
@@ -71,18 +70,14 @@ const InvoiceService = {
               as: "user_reject",
             },
             {
-              model: InvoiceProdukModel,
-              as: "invoice_produk",
-            },
-            {
-              model: ReturModel,
-              as: "retur",
-              include: [
-                {
-                  model: ReturProdukModel,
-                  as: "retur_produk",
-                },
-              ],
+              model: ReturProdukModel,
+              as: "retur_produk",
+              //   include: [
+              //     {
+              //       model: MasterProduk,
+              //       as: "produk",
+              //     },
+              //   ],
             },
           ],
         });
@@ -92,7 +87,7 @@ const InvoiceService = {
           data: data,
         };
       } else {
-        const data = await InvoiceModel.findAll({
+        const data = await ReturModel.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
         });
@@ -111,14 +106,14 @@ const InvoiceService = {
     }
   },
 
-  getNoInvoiceService: async () => {
+  getNoReturService: async () => {
     try {
       //get data terakhir
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
 
-      const lastInvoice = await InvoiceModel.findOne({
+      const lastInvoice = await ReturModel.findOne({
         where: {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
@@ -128,7 +123,7 @@ const InvoiceService = {
           // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_retur, 5), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -144,7 +139,7 @@ const InvoiceService = {
       let nextNumber = 1;
 
       if (lastInvoice) {
-        const lastNo = lastInvoice.no_invoice; // contoh: SDP00005/12/25
+        const lastNo = lastInvoice.no_retur; // contoh: SR-00001/12/25
 
         // Ambil "00005" → ubah ke integer
         const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
@@ -156,11 +151,11 @@ const InvoiceService = {
       const paddedNumber = String(nextNumber).padStart(5, "0");
 
       // 4. Susun format akhir
-      const newInvoiceNumber = `SI${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
+      const newInvoiceNumber = `SR-${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
       return {
         status: 200,
         success: true,
-        no_invoice: lastInvoice.no_invoice,
+        no_retur: lastInvoice.no_retur,
         new_no_invoice: newInvoiceNumber,
       };
     } catch (error) {
@@ -172,12 +167,14 @@ const InvoiceService = {
     }
   },
 
-  creteInvoiceService: async ({
+  creteReturService: async ({
+    id_invoice,
     id_customer,
     id_create,
     nama_customer,
     no_po,
     no_invoice,
+    no_retur,
     tgl_po,
     no_do,
     tgl_kirim,
@@ -185,34 +182,29 @@ const InvoiceService = {
     tgl_faktur,
     tgl_jatuh_tempo,
     waktu_jatuh_tempo,
-    sub_total,
-    dpp,
-    diskon,
-    ppn,
     total,
-    dp,
-    balance_due,
     note,
-    is_show_dpp,
-    invoice_produk,
+    retur_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      if (invoice_produk.length == 0)
+      if (retur_produk.length == 0)
         throw {
           status_code: 404,
           success: false,
           message: "data produk tidak boleh kosong",
         };
-      const dataInvoice = await InvoiceModel.create(
+      const dataRetur = await ReturModel.create(
         {
+          id_invoice: id_invoice,
           id_customer: id_customer,
           id_create: id_create,
           nama_customer: nama_customer,
           no_po: no_po,
           no_invoice: no_invoice,
+          no_retur: no_retur,
           tgl_po: tgl_po,
           no_do: no_do,
           tgl_kirim: tgl_kirim,
@@ -220,28 +212,24 @@ const InvoiceService = {
           tgl_faktur: tgl_faktur,
           tgl_jatuh_tempo: tgl_jatuh_tempo,
           waktu_jatuh_tempo: waktu_jatuh_tempo,
-          sub_total: sub_total,
-          dpp: dpp,
-          diskon: diskon,
-          ppn: ppn,
           total: total,
-          dp: dp,
-          balance_due: balance_due,
           note: note,
-          is_show_dpp: is_show_dpp,
+          status: "done",
+          status_proses: "done",
         },
         { transaction: t }
       );
 
-      let dataProdukInvoice = [];
-      for (let i = 0; i < invoice_produk.length; i++) {
-        const e = invoice_produk[i];
-        dataProdukInvoice.push({
-          id_invoice: dataInvoice.id,
+      let dataProdukRetur = [];
+      for (let i = 0; i < retur_produk.length; i++) {
+        const e = retur_produk[i];
+        dataProdukRetur.push({
+          id_retur: dataRetur.id,
           id_produk: e.id_produk,
           nama_produk: e.nama_produk,
           kode_produk: e.kode_produk,
           qty: e.qty,
+          qty_produk: e.qty_produk,
           unit: e.unit,
           harga: e.harga,
           dpp: e.dpp,
@@ -250,7 +238,7 @@ const InvoiceService = {
         });
       }
 
-      await InvoiceProdukModel.bulkCreate(dataProdukInvoice, {
+      await ReturProdukModel.bulkCreate(dataProdukRetur, {
         transaction: t,
       });
       if (!transaction) await t.commit();
@@ -265,7 +253,7 @@ const InvoiceService = {
     }
   },
 
-  updateInvoiceService: async ({
+  updateReturService: async ({
     id,
     id_customer,
     nama_customer,
@@ -278,28 +266,21 @@ const InvoiceService = {
     tgl_faktur,
     tgl_jatuh_tempo,
     waktu_jatuh_tempo,
-    sub_total,
-    dpp,
-    diskon,
-    ppn,
     total,
-    dp,
-    balance_due,
     note,
-    is_show_dpp,
-    invoice_produk,
+    retur_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      if (invoice_produk.length == 0)
+      if (retur_produk.length == 0)
         throw {
           status_code: 404,
           success: false,
           message: "data produk tidak boleh kosong",
         };
-      const dataInvoice = await InvoiceModel.update(
+      const dataInvoice = await ReturModel.update(
         {
           id_customer: id_customer,
           nama_customer: nama_customer,
@@ -312,27 +293,21 @@ const InvoiceService = {
           tgl_faktur: tgl_faktur,
           tgl_jatuh_tempo: tgl_jatuh_tempo,
           waktu_jatuh_tempo: waktu_jatuh_tempo,
-          sub_total: sub_total,
-          dpp: dpp,
-          diskon: diskon,
-          ppn: ppn,
           total: total,
-          dp: dp,
-          balance_due: balance_due,
           note: note,
-          is_show_dpp: is_show_dpp,
         },
         { where: { id: id }, transaction: t }
       );
 
-      for (let i = 0; i < invoice_produk.length; i++) {
+      for (let i = 0; i < retur_produk.length; i++) {
         const e = array[i];
-        await InvoiceProdukModel.update(
+        await ReturProdukModel.update(
           {
             id_produk: e.id_produk,
             nama_produk: e.nama_produk,
             kode_produk: e.kode_produk,
             qty: e.qty,
+            qty_produksi: e.qty_produksi,
             unit: e.unit,
             harga: e.harga,
             dpp: e.dpp,
@@ -355,112 +330,112 @@ const InvoiceService = {
     }
   },
 
-  requestInvoiceService: async ({ id, transaction = null }) => {
+  //   requestReturService: async ({ id, transaction = null }) => {
+  //     const t = transaction || (await db.transaction());
+
+  //     try {
+  //       const getDataInvoice = await ReturModel.findByPk(id);
+  //       if (!getDataInvoice)
+  //         throw {
+  //           success: false,
+  //           status_code: 404,
+  //           message: "data invoice tidak di temukan",
+  //         };
+  //       await ReturModel.update(
+  //         {
+  //           status: "requested",
+  //           status_proses: "requested",
+  //         },
+  //         { where: { id: id }, transaction: t }
+  //       );
+  //       if (!transaction) await t.commit();
+  //       return {
+  //         status_code: 200,
+  //         success: true,
+  //         message: "request success",
+  //       };
+  //     } catch (error) {
+  //       if (!transaction) await t.rollback();
+  //       throw { success: false, message: error.message };
+  //     }
+  //   },
+
+  //   approveReturService: async ({ id, id_approve, transaction = null }) => {
+  //     const t = transaction || (await db.transaction());
+
+  //     try {
+  //       const getDataInvoice = await ReturModel.findByPk(id);
+  //       if (!getDataInvoice)
+  //         throw {
+  //           success: false,
+  //           status_code: 404,
+  //           message: "data invoice tidak di temukan",
+  //         };
+
+  //       await ReturModel.update(
+  //         {
+  //           status: "approved",
+  //           status_proses: "done",
+  //           id_approve: id_approve,
+  //         },
+  //         { where: { id: id }, transaction: t }
+  //       );
+
+  //       if (!transaction) await t.commit();
+  //       return {
+  //         status_code: 200,
+  //         success: true,
+  //         message: "approve success",
+  //       };
+  //     } catch (error) {
+  //       if (!transaction) await t.rollback();
+  //       throw { success: false, message: error.message };
+  //     }
+  //   },
+
+  //   rejectReturService: async ({ id, id_reject, transaction = null }) => {
+  //     const t = transaction || (await db.transaction());
+
+  //     try {
+  //       const getDataInvoice = await ReturModel.findByPk(id);
+  //       if (!getDataInvoice)
+  //         throw {
+  //           success: false,
+  //           status_code: 404,
+  //           message: "data invoice tidak di temukan",
+  //         };
+  //       await ReturModel.update(
+  //         {
+  //           status: "draft",
+  //           status_proses: "rejected",
+  //           id_reject: id_reject,
+  //         },
+  //         { where: { id: id }, transaction: t }
+  //       );
+  //       if (!transaction) await t.commit();
+  //       return {
+  //         status_code: 200,
+  //         success: true,
+  //         message: "reject success",
+  //       };
+  //     } catch (error) {
+  //       if (!transaction) await t.rollback();
+  //       throw { success: false, message: error.message };
+  //     }
+  //   },
+
+  deleteReturService: async ({ id, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
+      const getDataInvoice = await ReturModel.findByPk(id);
       if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
           message: "data invoice tidak di temukan",
         };
-      await InvoiceModel.update(
-        {
-          status: "requested",
-          status_proses: "requested",
-        },
-        { where: { id: id }, transaction: t }
-      );
-      if (!transaction) await t.commit();
-      return {
-        status_code: 200,
-        success: true,
-        message: "request success",
-      };
-    } catch (error) {
-      if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
-    }
-  },
-
-  approveInvoiceService: async ({ id, id_approve, transaction = null }) => {
-    const t = transaction || (await db.transaction());
-
-    try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
-      if (!getDataInvoice)
-        throw {
-          success: false,
-          status_code: 404,
-          message: "data invoice tidak di temukan",
-        };
-
-      await InvoiceModel.update(
-        {
-          status: "approved",
-          status_proses: "done",
-          id_approve: id_approve,
-        },
-        { where: { id: id }, transaction: t }
-      );
-
-      if (!transaction) await t.commit();
-      return {
-        status_code: 200,
-        success: true,
-        message: "approve success",
-      };
-    } catch (error) {
-      if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
-    }
-  },
-
-  rejectInvoiceService: async ({ id, id_reject, transaction = null }) => {
-    const t = transaction || (await db.transaction());
-
-    try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
-      if (!getDataInvoice)
-        throw {
-          success: false,
-          status_code: 404,
-          message: "data invoice tidak di temukan",
-        };
-      await InvoiceModel.update(
-        {
-          status: "draft",
-          status_proses: "rejected",
-          id_reject: id_reject,
-        },
-        { where: { id: id }, transaction: t }
-      );
-      if (!transaction) await t.commit();
-      return {
-        status_code: 200,
-        success: true,
-        message: "reject success",
-      };
-    } catch (error) {
-      if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
-    }
-  },
-
-  deleteInvoiceService: async ({ id, transaction = null }) => {
-    const t = transaction || (await db.transaction());
-
-    try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
-      if (!getDataInvoice)
-        throw {
-          success: false,
-          status_code: 404,
-          message: "data invoice tidak di temukan",
-        };
-      await InvoiceModel.update(
+      await ReturModel.update(
         {
           is_active: false,
         },
@@ -479,4 +454,4 @@ const InvoiceService = {
   },
 };
 
-module.exports = InvoiceService;
+module.exports = ReturService;
