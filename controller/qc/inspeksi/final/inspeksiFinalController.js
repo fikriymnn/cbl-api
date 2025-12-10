@@ -10,6 +10,8 @@ const db = require("../../../../config/database");
 
 const axios = require("axios");
 const dotenv = require("dotenv");
+const DeliveryOrderService = require("../../../deliveryOrder/service/deliveryOrderService");
+const ProduksiJoDoneService = require("../../../produksi/service/produksiJoDoneService");
 
 const inspeksiFinalController = {
   getInspeksiFinal: async (req, res) => {
@@ -256,6 +258,7 @@ const inspeksiFinalController = {
   },
 
   updateInspeksiFinal: async (req, res) => {
+    const t = await db.transaction();
     try {
       const { id } = req.params;
       const {
@@ -269,7 +272,6 @@ const inspeksiFinalController = {
         no_barcode,
         lama_pengerjaan,
       } = req.body;
-      console.log(req.body);
 
       if (!qty_packing)
         return res.status(400).json({
@@ -343,7 +345,7 @@ const inspeksiFinalController = {
           bagian_tiket: "history",
           no_doc: noDoc.kode,
         },
-        { where: { id } }
+        { where: { id }, transaction: t }
       );
 
       for (let i = 0; i < inspeksi_final_point.length; i++) {
@@ -353,7 +355,7 @@ const inspeksiFinalController = {
             hasil: inspeksi_final_point[i].hasil,
             qty: inspeksi_final_point[i].qty,
           },
-          { where: { id: inspeksi_final_point[i].id } }
+          { where: { id: inspeksi_final_point[i].id }, transaction: t }
         );
       }
 
@@ -363,22 +365,108 @@ const inspeksiFinalController = {
             id_inspeksi_final: id,
             reject: totalQtyReject,
           },
-          { where: { id: inspeksi_final_sub[i].id } }
+          { where: { id: inspeksi_final_sub[i].id }, transaction: t }
         );
       }
-      // console.log(req.body);
 
-      // const inspeksi = await InspeksiFinal.findByPk(id);
-      // if (status == "bisa kirim") {
-      //   const request = await axios.post(
-      //     `${process.env.LINK_P1}/api/approve-final-inspection?no_jo=${inspeksi.no_jo}`,
-      //     {}
-      //   );
-      //   console.log(request);
-      // }
+      const getInspeksiFinal = await InspeksiFinal.findByPk(id);
+
+      if (status == "bisa kirim" && getInspeksiFinal.id_jo != null) {
+        //create ke tabel delivery order
+        const dataListJoDone =
+          await ProduksiJoDoneService.getProduksiJoDoneService({
+            id_jo: getInspeksiFinal.id_jo,
+            status_proses: "check qc",
+          });
+
+        if (dataListJoDone.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: dataListJoDone.message,
+          });
+        }
+        console.log(1);
+        const createDeliveryOrder =
+          await DeliveryOrderService.creteDeliveryOrderService({
+            id_jo: dataListJoDone.data[0].id_jo,
+            id_io: dataListJoDone.data[0].id_io,
+            id_so: dataListJoDone.data[0].id_so,
+            id_customer: dataListJoDone.data[0].id_customer,
+            id_produk: dataListJoDone.data[0].id_produk,
+            transaction: t,
+          });
+
+        if (createDeliveryOrder.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: createDeliveryOrder.message,
+          });
+        }
+        console.log(2);
+
+        const doneDeliveryOrder =
+          await ProduksiJoDoneService.doneProduksiJoDoneService({
+            id: dataListJoDone.data[0].id,
+            transaction: t,
+          });
+
+        if (doneDeliveryOrder.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: doneDeliveryOrder.message,
+          });
+        }
+      } else if (
+        status == "tidak bisa di kirim" &&
+        getInspeksiFinal.id_jo != null
+      ) {
+        //create ke tabel delivery order
+        const dataListJoDone =
+          await ProduksiJoDoneService.getProduksiJoDoneService({
+            id_jo: getInspeksiFinal.id_jo,
+            status_proses: "check qc",
+          });
+
+        if (dataListJoDone.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: dataListJoDone.message,
+          });
+        }
+        const rejectProduksiJoDone =
+          await ProduksiJoDoneService.rejectQcProduksiJoDoneService({
+            id: dataListJoDone.data[0].id,
+            transaction: t,
+          });
+
+        if (rejectProduksiJoDone.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: rejectProduksiJoDone.message,
+          });
+        }
+      }
+
+      await t.commit();
 
       res.status(200).json({ msg: "Update Successful" });
     } catch (err) {
+      await t.rollback();
       console.log(err.message);
       res.status(404).json({ msg: err.message });
     }
