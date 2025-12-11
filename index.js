@@ -364,6 +364,8 @@ const Invoice = require("./model/akunting/invoice/invoiceModel");
 const InvoiceProduk = require("./model/akunting/invoice/invoiceProdukModel");
 const Retur = require("./model/akunting/retur/returModel");
 const ReturProduk = require("./model/akunting/retur/returProdukModel");
+const PerubahanInvoice = require("./model/akunting/perubahanInvoice/perubahanInvoiceModel");
+const PerubahanInvoiceProduk = require("./model/akunting/perubahanInvoice/perubahanInvoiceProdukModel");
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -380,7 +382,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Retur.sync({ alter: true, logging: console.log });
+//   await InvoiceProduk.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75

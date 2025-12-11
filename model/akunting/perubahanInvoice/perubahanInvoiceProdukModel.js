@@ -1,19 +1,28 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
+const PerubahanInvoiceModel = require("./perubahanInvoiceModel");
 const MasterProduk = require("../../masterData/marketing/masterProdukModel");
-const InvoiceModel = require("./invoiceModel");
+const InvoiceProdukModel = require("../invoice/invoiceProdukModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const InvoiceProdukModel = db.define(
-  "invoice_produk",
+const PerubahanInvoiceProdukModel = db.define(
+  "perubahan_invoice_produk",
   {
-    id_invoice: {
+    id_perubahan_invoice: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: InvoiceModel,
+        model: PerubahanInvoiceModel,
+        key: "id",
+      },
+    },
+    id_invoice_produk: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: InvoiceProdukModel,
         key: "id",
       },
     },
@@ -30,38 +39,21 @@ const InvoiceProdukModel = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    kode_produk: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     qty: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    unit: {
-      type: DataTypes.STRING,
       allowNull: true,
     },
     harga: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    dpp: {
-      type: DataTypes.FLOAT,
+    new_qty: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
-    total: {
+    new_harga: {
       type: DataTypes.FLOAT,
       allowNull: true,
-    },
-    pajak: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    diskon_produk: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-      defaultValue: 0,
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -74,22 +66,22 @@ const InvoiceProdukModel = db.define(
   }
 );
 
-InvoiceModel.hasMany(InvoiceProdukModel, {
-  foreignKey: "id_invoice",
-  as: "invoice_produk",
+PerubahanInvoiceModel.hasMany(PerubahanInvoiceProdukModel, {
+  foreignKey: "id_perubahan_invoice",
+  as: "perubahan_invoice_produk",
 });
-InvoiceProdukModel.belongsTo(InvoiceModel, {
-  foreignKey: "id_invoice",
-  as: "invoice",
+PerubahanInvoiceProdukModel.belongsTo(PerubahanInvoiceModel, {
+  foreignKey: "id_perubahan_invoice",
+  as: "perubahan_invoice",
 });
 
-MasterProduk.hasMany(InvoiceProdukModel, {
+MasterProduk.hasMany(PerubahanInvoiceProdukModel, {
   foreignKey: "id_produk",
-  as: "invoice",
+  as: "perubahan_invoice",
 });
-InvoiceProdukModel.belongsTo(MasterProduk, {
+PerubahanInvoiceProdukModel.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "produk",
 });
 
-module.exports = InvoiceProdukModel;
+module.exports = PerubahanInvoiceProdukModel;
