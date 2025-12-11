@@ -63,6 +63,20 @@ const DeliveryOrderGroupService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: DeliveryOrder,
+              as: "delivery_order",
+            },
+            {
+              model: MasterCustomer,
+              as: "detail_customer",
+            },
+            {
+              model: SoModel,
+              as: "so",
+            },
+          ],
         });
         return {
           status: 200,
@@ -76,6 +90,14 @@ const DeliveryOrderGroupService = {
             {
               model: DeliveryOrder,
               as: "delivery_order",
+            },
+            {
+              model: MasterCustomer,
+              as: "detail_customer",
+            },
+            {
+              model: SoModel,
+              as: "so",
             },
           ],
         });
