@@ -610,11 +610,11 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     keterangan_kerja: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     keterangan_harga: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     note_kabag: {

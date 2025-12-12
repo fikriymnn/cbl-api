@@ -1,20 +1,22 @@
 const db = require("../../../../config/database");
 const { Op, fn, col, literal } = require("sequelize");
+const PerubahanInvoiceModel = require("../../../../model/akunting/perubahanInvoice/perubahanInvoiceModel");
+const PerubahanInvoiceProdukModel = require("../../../../model/akunting/perubahanInvoice/perubahanInvoiceProdukModel");
 const InvoiceModel = require("../../../../model/akunting/invoice/invoiceModel");
 const InvoiceProdukModel = require("../../../../model/akunting/invoice/invoiceProdukModel");
-const ReturModel = require("../../../../model/akunting/retur/returModel");
-const ReturProdukModel = require("../../../../model/akunting/retur/returProdukModel");
 const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
 const Users = require("../../../../model/userModel");
+const { get } = require("../../../../routes/userRoutes");
 
-const InvoiceService = {
-  getInvoiceService: async ({
+const PerubahanInvoiceService = {
+  getPerubahanInvoiceService: async ({
     id,
     page,
     limit,
     start_date,
     end_date,
     search,
+    id_invoice,
     id_customer,
     status,
     status_proses,
@@ -25,9 +27,9 @@ const InvoiceService = {
       obj = {
         [Op.or]: [
           { nama_customer: { [Op.like]: `%${search}%` } },
-          { no_po: { [Op.like]: `%${search}%` } },
           { no_invoice: { [Op.like]: `%${search}%` } },
-          { no_do: { [Op.like]: `%${search}%` } },
+          { no_perubahan_invoice: { [Op.like]: `%${search}%` } },
+          { no_po: { [Op.like]: `%${search}%` } },
         ],
       };
     }
@@ -42,8 +44,8 @@ const InvoiceService = {
     }
     try {
       if (page && limit) {
-        const length = await InvoiceModel.count({ where: obj });
-        const data = await InvoiceModel.findAll({
+        const length = await PerubahanInvoiceModel.count({ where: obj });
+        const data = await PerubahanInvoiceModel.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
@@ -56,7 +58,7 @@ const InvoiceService = {
           total_page: Math.ceil(length / parseInt(limit)),
         };
       } else if (id) {
-        const data = await InvoiceModel.findByPk(id, {
+        const data = await PerubahanInvoiceModel.findByPk(id, {
           include: [
             {
               model: Users,
@@ -71,18 +73,8 @@ const InvoiceService = {
               as: "user_reject",
             },
             {
-              model: InvoiceProdukModel,
-              as: "invoice_produk",
-            },
-            {
-              model: ReturModel,
-              as: "retur",
-              include: [
-                {
-                  model: ReturProdukModel,
-                  as: "retur_produk",
-                },
-              ],
+              model: PerubahanInvoiceProdukModel,
+              as: "perubahan_invoice_produk",
             },
           ],
         });
@@ -92,7 +84,7 @@ const InvoiceService = {
           data: data,
         };
       } else {
-        const data = await InvoiceModel.findAll({
+        const data = await PerubahanInvoiceModel.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
         });
@@ -111,14 +103,14 @@ const InvoiceService = {
     }
   },
 
-  getNoInvoiceService: async () => {
+  getNoPerubahanInvoiceService: async () => {
     try {
       //get data terakhir
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
 
-      const lastInvoice = await InvoiceModel.findOne({
+      const lastPerubahanInvoice = await PerubahanInvoiceModel.findOne({
         where: {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
@@ -143,8 +135,8 @@ const InvoiceService = {
       // 2. Tentukan nomor urut berikutnya
       let nextNumber = 1;
 
-      if (lastInvoice) {
-        const lastNo = lastInvoice.no_invoice; // contoh: SDP00005/12/25
+      if (lastPerubahanInvoice) {
+        const lastNo = lastPerubahanInvoice.no_perubahan_invoice; // contoh: SDP00005/12/25
 
         // Ambil "00005" → ubah ke integer
         const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
@@ -156,12 +148,12 @@ const InvoiceService = {
       const paddedNumber = String(nextNumber).padStart(5, "0");
 
       // 4. Susun format akhir
-      const newInvoiceNumber = `SI${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
+      const newPerubahanInvoiceNumber = `SPR${paddedNumber}/${currentMonth}/${shortYear}`;
       return {
         status: 200,
         success: true,
-        no_invoice: lastInvoice.no_invoice,
-        new_no_invoice: newInvoiceNumber,
+        no_perubahan_invoice: lastPerubahanInvoice.no_perubahan_invoice,
+        new_no_perubahan_invoice: newPerubahanInvoiceNumber,
       };
     } catch (error) {
       return {
@@ -172,86 +164,69 @@ const InvoiceService = {
     }
   },
 
-  creteInvoiceService: async ({
+  cretePerubahanInvoiceService: async ({
+    id_invoice,
     id_customer,
     id_create,
     nama_customer,
+    no_perubahan_invoice,
     no_po,
     no_invoice,
-    tgl_po,
-    no_do,
-    tgl_kirim,
+    tgl_invoice,
     alamat,
     tgl_faktur,
-    tgl_jatuh_tempo,
-    waktu_jatuh_tempo,
-    sub_total,
-    dpp,
-    diskon,
-    ppn,
-    total,
-    dp,
-    balance_due,
+    new_alamat,
+    new_tgl_faktur,
     note,
-    is_show_dpp,
-    invoice_produk,
+    file,
+    perubahan_invoice_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      if (invoice_produk.length == 0)
+      if (perubahan_invoice_produk.length == 0)
         throw {
           status_code: 404,
           success: false,
           message: "data produk tidak boleh kosong",
         };
-      const dataInvoice = await InvoiceModel.create(
+      const dataPerubahanInvoice = await PerubahanInvoiceModel.create(
         {
+          id_invoice: id_invoice,
           id_customer: id_customer,
           id_create: id_create,
           nama_customer: nama_customer,
+          no_perubahan_invoice: no_perubahan_invoice,
           no_po: no_po,
           no_invoice: no_invoice,
-          tgl_po: tgl_po,
-          no_do: no_do,
-          tgl_kirim: tgl_kirim,
+          tgl_invoice: tgl_invoice,
           alamat: alamat,
           tgl_faktur: tgl_faktur,
-          tgl_jatuh_tempo: tgl_jatuh_tempo,
-          waktu_jatuh_tempo: waktu_jatuh_tempo,
-          sub_total: sub_total,
-          dpp: dpp,
-          diskon: diskon,
-          ppn: ppn,
-          total: total,
-          dp: dp,
-          balance_due: balance_due,
+          new_alamat: new_alamat,
+          new_tgl_faktur: new_tgl_faktur,
           note: note,
-          is_show_dpp: is_show_dpp,
+          file: file,
         },
         { transaction: t }
       );
 
-      let dataProdukInvoice = [];
-      for (let i = 0; i < invoice_produk.length; i++) {
-        const e = invoice_produk[i];
-        dataProdukInvoice.push({
-          id_invoice: dataInvoice.id,
+      let dataPerubahanProdukInvoice = [];
+      for (let i = 0; i < perubahan_invoice_produk.length; i++) {
+        const e = perubahan_invoice_produk[i];
+        dataPerubahanProdukInvoice.push({
+          id_perubahan_invoice: dataPerubahanInvoice.id,
+          id_invoice_produk: e.id_invoice_produk,
           id_produk: e.id_produk,
           nama_produk: e.nama_produk,
-          kode_produk: e.kode_produk,
           qty: e.qty,
-          unit: e.unit,
           harga: e.harga,
-          dpp: e.dpp,
-          total: e.total,
-          pajak: e.pajak,
-          diskon_produk: e.diskon_produk,
+          new_qty: e.new_qty,
+          new_harga: e.new_harga,
         });
       }
 
-      await InvoiceProdukModel.bulkCreate(dataProdukInvoice, {
+      await PerubahanInvoiceProdukModel.bulkCreate(dataPerubahanProdukInvoice, {
         transaction: t,
       });
       if (!transaction) await t.commit();
@@ -266,80 +241,62 @@ const InvoiceService = {
     }
   },
 
-  updateInvoiceService: async ({
+  updatePerubahanInvoiceService: async ({
     id,
+    id_invoice,
     id_customer,
+    id_create,
     nama_customer,
+    no_perubahan_invoice,
     no_po,
     no_invoice,
-    tgl_po,
-    no_do,
-    tgl_kirim,
+    tgl_invoice,
     alamat,
     tgl_faktur,
-    tgl_jatuh_tempo,
-    waktu_jatuh_tempo,
-    sub_total,
-    dpp,
-    diskon,
-    ppn,
-    total,
-    dp,
-    balance_due,
+    new_alamat,
+    new_tgl_faktur,
     note,
-    is_show_dpp,
-    invoice_produk,
+    file,
+    perubahan_invoice_produk,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      if (invoice_produk.length == 0)
+      if (perubahan_invoice_produk.length == 0)
         throw {
           status_code: 404,
           success: false,
           message: "data produk tidak boleh kosong",
         };
-      const dataInvoice = await InvoiceModel.update(
+      const dataInvoice = await PerubahanInvoiceModel.update(
         {
+          id_invoice: id_invoice,
           id_customer: id_customer,
+          id_create: id_create,
           nama_customer: nama_customer,
+          no_perubahan_invoice: no_perubahan_invoice,
           no_po: no_po,
           no_invoice: no_invoice,
-          tgl_po: tgl_po,
-          no_do: no_do,
-          tgl_kirim: tgl_kirim,
+          tgl_invoice: tgl_invoice,
           alamat: alamat,
           tgl_faktur: tgl_faktur,
-          tgl_jatuh_tempo: tgl_jatuh_tempo,
-          waktu_jatuh_tempo: waktu_jatuh_tempo,
-          sub_total: sub_total,
-          dpp: dpp,
-          diskon: diskon,
-          ppn: ppn,
-          total: total,
-          dp: dp,
-          balance_due: balance_due,
+          new_alamat: new_alamat,
+          new_tgl_faktur: new_tgl_faktur,
           note: note,
-          is_show_dpp: is_show_dpp,
+          file: file,
         },
         { where: { id: id }, transaction: t }
       );
 
-      for (let i = 0; i < invoice_produk.length; i++) {
-        const e = invoice_produk[i];
-        await InvoiceProdukModel.update(
+      for (let i = 0; i < perubahan_invoice_produk.length; i++) {
+        const e = perubahan_invoice_produk[i];
+        await PerubahanInvoiceProdukModel.update(
           {
-            id_produk: e.id_produk,
-            nama_produk: e.nama_produk,
-            kode_produk: e.kode_produk,
             qty: e.qty,
-            unit: e.unit,
             harga: e.harga,
-            dpp: e.dpp,
-            total: e.total,
-            pajak: e.pajak,
-            diskon_produk: e.diskon_produk,
+            new_qty: e.new_qty,
+            new_harga: e.new_harga,
           },
           { where: { id: e.id }, transaction: t }
         );
@@ -357,18 +314,18 @@ const InvoiceService = {
     }
   },
 
-  requestInvoiceService: async ({ id, transaction = null }) => {
+  requestPerubahanInvoiceService: async ({ id, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
+      const getDataInvoice = await PerubahanInvoiceModel.findByPk(id);
       if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
           message: "data invoice tidak di temukan",
         };
-      await InvoiceModel.update(
+      await PerubahanInvoiceModel.update(
         {
           status: "requested",
           status_proses: "requested",
@@ -387,25 +344,99 @@ const InvoiceService = {
     }
   },
 
-  approveInvoiceService: async ({ id, id_approve, transaction = null }) => {
+  approvePerubahanInvoiceService: async ({
+    id,
+    id_approve,
+    transaction = null,
+  }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
+      const getDataPerubahanInvoice = await PerubahanInvoiceModel.findByPk(id, {
+        include: [
+          {
+            model: PerubahanInvoiceProdukModel,
+            as: "perubahan_invoice_produk",
+          },
+        ],
+      });
+      if (!getDataPerubahanInvoice)
+        throw {
+          success: false,
+          status_code: 404,
+          message: "data perubahan invoice tidak di temukan",
+        };
+
+      const getDataInvoice = await InvoiceModel.findByPk(
+        getDataPerubahanInvoice.id_invoice
+      );
       if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
-          message: "data invoice tidak di temukan",
+          message: "data  invoice tidak di temukan",
         };
 
-      await InvoiceModel.update(
+      await PerubahanInvoiceModel.update(
         {
           status: "approved",
           status_proses: "done",
           id_approve: id_approve,
         },
         { where: { id: id }, transaction: t }
+      );
+
+      //rubah data di invoice produk
+      let newSubTotal = 0;
+      let newDpp = 0;
+      let newPpn = 0;
+      let newTotal = 0;
+
+      for (
+        let i = 0;
+        i < getDataPerubahanInvoice.perubahan_invoice_produk.length;
+        i++
+      ) {
+        const e = getDataPerubahanInvoice.perubahan_invoice_produk[i];
+        const dataInvoiceProduk = await InvoiceProdukModel.findByPk(
+          e.id_invoice_produk
+        );
+        const valueDpp = (11 / 12) * 100;
+        const qtyNew = e.new_qty;
+        const hargaNew = e.new_harga;
+        const newTotalProduk =
+          qtyNew * hargaNew - dataInvoiceProduk.diskon_produk;
+        const newPajakProduk = newTotalProduk * 0.11;
+        const newDppProduk = (valueDpp / 100) * newTotalProduk;
+        const newTotalAll = newTotalProduk + newPajakProduk;
+        newSubTotal += newTotalProduk;
+        newDpp += newDppProduk;
+        newPpn += newPajakProduk;
+        newTotal += newTotalAll;
+        await InvoiceProdukModel.update(
+          {
+            qty: qtyNew,
+            harga: hargaNew,
+            dpp: newDppProduk,
+            total: newTotalProduk,
+            pajak: newPajakProduk,
+          },
+          { where: { id: e.id_invoice_produk }, transaction: t }
+        );
+      }
+
+      //rubah data di invoice
+      await InvoiceModel.update(
+        {
+          alamat: getDataPerubahanInvoice.new_alamat,
+          tgl_faktur: getDataPerubahanInvoice.new_tgl_faktur,
+          sub_total: newSubTotal,
+          dpp: newDpp,
+          ppn: newPpn,
+          total: newTotal - getDataInvoice.dp || 0,
+          balance_due: newTotal - getDataInvoice.dp || 0,
+        },
+        { where: { id: getDataPerubahanInvoice.id_invoice }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -420,18 +451,22 @@ const InvoiceService = {
     }
   },
 
-  rejectInvoiceService: async ({ id, id_reject, transaction = null }) => {
+  rejectPerubahanInvoiceService: async ({
+    id,
+    id_reject,
+    transaction = null,
+  }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
-      if (!getDataInvoice)
+      const getDataPerubahanInvoice = await PerubahanInvoiceModel.findByPk(id);
+      if (!getDataPerubahanInvoice)
         throw {
           success: false,
           status_code: 404,
-          message: "data invoice tidak di temukan",
+          message: "data perubahan invoice tidak di temukan",
         };
-      await InvoiceModel.update(
+      await PerubahanInvoiceModel.update(
         {
           status: "draft",
           status_proses: "rejected",
@@ -451,18 +486,18 @@ const InvoiceService = {
     }
   },
 
-  deleteInvoiceService: async ({ id, transaction = null }) => {
+  deletePerubahanInvoiceService: async ({ id, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
+      const getDataInvoice = await PerubahanInvoiceModel.findByPk(id);
       if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
-          message: "data invoice tidak di temukan",
+          message: "data perubahan invoice tidak di temukan",
         };
-      await InvoiceModel.update(
+      await PerubahanInvoiceModel.update(
         {
           is_active: false,
         },
@@ -481,4 +516,4 @@ const InvoiceService = {
   },
 };
 
-module.exports = InvoiceService;
+module.exports = PerubahanInvoiceService;

@@ -55,6 +55,12 @@ const DeliveryOrderService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: MasterCustomer,
+              as: "detail_customer",
+            },
+          ],
         });
         return {
           status: 200,
@@ -68,6 +74,12 @@ const DeliveryOrderService = {
           status: 200,
           success: true,
           data: data,
+          include: [
+            {
+              model: MasterCustomer,
+              as: "detail_customer",
+            },
+          ],
         };
       } else {
         const data = await DeliveryOrder.findAll({

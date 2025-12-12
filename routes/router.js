@@ -334,6 +334,7 @@ router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
 router.use("/", require("./akunting/deposit/depositRoute"));
 router.use("/", require("./akunting/invoice/invoiceRoute"));
 router.use("/", require("./akunting/retur/returRoute"));
+router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
