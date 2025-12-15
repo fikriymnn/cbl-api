@@ -65,6 +65,7 @@ const DeliveryOrderGroupController = {
       id_kendaraan,
       id_supir,
       id_kenek,
+      id_kenek_2,
     } = req.body;
 
     try {
@@ -86,6 +87,7 @@ const DeliveryOrderGroupController = {
           id_kendaraan: id_kendaraan,
           id_supir: id_supir,
           id_kenek: id_kenek,
+          id_kenek_2: id_kenek_2,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -113,6 +115,7 @@ const DeliveryOrderGroupController = {
       id_kendaraan,
       id_supir,
       id_kenek,
+      id_kenek_2,
     } = req.body;
 
     try {
@@ -135,6 +138,7 @@ const DeliveryOrderGroupController = {
           id_kendaraan: id_kendaraan,
           id_supir: id_supir,
           id_kenek: id_kenek,
+          id_kenek_2: id_kenek_2,
         });
       return res.status(200).json(getData);
     } catch (error) {
