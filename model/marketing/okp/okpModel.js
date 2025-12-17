@@ -77,7 +77,7 @@ const okp = db.define(
     status_okp: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "baru",
+      // defaultValue: "baru",
     },
     tgl_target_marketing: {
       type: DataTypes.DATE,

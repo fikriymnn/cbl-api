@@ -60,6 +60,7 @@ const KalkulasiController = {
           where: obj,
           offset: parseInt(offset),
           limit: parseInt(limit),
+          order: [["tgl_kalkulasi", "DESC"]],
         });
         return res.status(200).json({
           succes: true,
@@ -103,6 +104,7 @@ const KalkulasiController = {
           .json({ succes: true, status_code: 200, data: response });
       } else {
         const response = await Kalkulasi.findAll({
+          order: [["tgl_kalkulasi", "DESC"]],
           where: obj,
           include: [
             {
@@ -489,6 +491,11 @@ const KalkulasiController = {
             status_code: 404,
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
+
+        let idOkp = previousKalkulasi.id_okp;
+        let noOkp = previousKalkulasi.no_okp;
+        let idIo = previousKalkulasi.id_io;
+        let no_io = previousKalkulasi.no_io;
 
         objCreate = {
           id_user_create: req.user.id,

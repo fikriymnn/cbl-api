@@ -78,7 +78,7 @@ const io = db.define(
     status_io: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "baru",
+      //defaultValue: "baru",
     },
 
     status: {

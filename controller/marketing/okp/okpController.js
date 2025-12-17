@@ -44,6 +44,7 @@ const OkpController = {
         const length = await Okp.count({ where: obj });
         const data = await Okp.findAll({
           where: obj,
+          order: [["tgl_pembuatan_okp", "DESC"]],
           include: [
             {
               model: OkpProses,
