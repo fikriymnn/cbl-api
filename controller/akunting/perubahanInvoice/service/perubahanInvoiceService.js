@@ -406,8 +406,8 @@ const PerubahanInvoiceService = {
         const hargaNew = e.new_harga;
         const newTotalProduk =
           qtyNew * hargaNew - dataInvoiceProduk.diskon_produk;
-        const newPajakProduk = newTotalProduk * 0.11;
-        const newDppProduk = (valueDpp / 100) * newTotalProduk;
+        const newDppProduk = (11 / 12) * newTotalProduk;
+        const newPajakProduk = newDppProduk * 0.12;
         const newTotalAll = newTotalProduk + newPajakProduk;
         newSubTotal += newTotalProduk;
         newDpp += newDppProduk;
