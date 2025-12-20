@@ -6,6 +6,7 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
+const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
 
 const DeliveryOrderService = {
   getDeliveryOrderService: async ({
@@ -59,6 +60,12 @@ const DeliveryOrderService = {
             {
               model: MasterCustomer,
               as: "detail_customer",
+              include: [
+                {
+                  model: MasterHargaPengiriman,
+                  as: "harga_pengiriman",
+                },
+              ],
             },
           ],
         });
@@ -78,6 +85,12 @@ const DeliveryOrderService = {
             {
               model: MasterCustomer,
               as: "detail_customer",
+              include: [
+                {
+                  model: MasterHargaPengiriman,
+                  as: "harga_pengiriman",
+                },
+              ],
             },
           ],
         };

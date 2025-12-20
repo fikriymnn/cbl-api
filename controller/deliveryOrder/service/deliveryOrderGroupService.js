@@ -7,6 +7,9 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
+const MasterKendaraan = require("../../../model/masterData/kendaraan/masterKendaraanModel");
+const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
+const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const e = require("express");
 
 const DeliveryOrderGroupService = {
@@ -71,6 +74,12 @@ const DeliveryOrderGroupService = {
             {
               model: MasterCustomer,
               as: "detail_customer",
+              include: [
+                {
+                  model: MasterHargaPengiriman,
+                  as: "harga_pengiriman",
+                },
+              ],
             },
             {
               model: SoModel,
@@ -94,6 +103,20 @@ const DeliveryOrderGroupService = {
             {
               model: MasterCustomer,
               as: "detail_customer",
+              include: [
+                {
+                  model: MasterHargaPengiriman,
+                  as: "harga_pengiriman",
+                },
+              ],
+            },
+            {
+              model: MasterKaryawan,
+              as: "supir",
+            },
+            {
+              model: MasterKendaraan,
+              as: "kendaraan",
             },
             {
               model: SoModel,
@@ -247,6 +270,7 @@ const DeliveryOrderGroupService = {
     id_kendaraan,
     id_supir,
     id_kenek,
+    id_kenek_2,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -320,6 +344,7 @@ const DeliveryOrderGroupService = {
           id_kendaraan: id_kendaraan || null,
           id_supir: id_supir || null,
           id_kenek: id_kenek || null,
+          id_kenek_2: id_kenek_2 || null,
         },
         { transaction: t }
       );
@@ -371,6 +396,7 @@ const DeliveryOrderGroupService = {
     id_kendaraan,
     id_supir,
     id_kenek,
+    id_kenek_2,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -445,6 +471,7 @@ const DeliveryOrderGroupService = {
           id_kendaraan: id_kendaraan,
           id_supir: id_supir,
           id_kenek: id_kenek,
+          id_kenek_2: id_kenek_2,
         },
         { where: { id: id }, transaction: t }
       );

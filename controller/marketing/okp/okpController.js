@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const Okp = require("../../../model/marketing/okp/okpModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const OkpProses = require("../../../model/marketing/okp/okpProsesModel");
@@ -44,6 +44,7 @@ const OkpController = {
         const length = await Okp.count({ where: obj });
         const data = await Okp.findAll({
           where: obj,
+          order: [["tgl_pembuatan_okp", "DESC"]],
           include: [
             {
               model: OkpProses,
@@ -177,18 +178,45 @@ const OkpController = {
 
   getOkpJumlahData: async (req, res) => {
     try {
-      const length = await Okp.count({
+      const length = await Okp.findOne({
         where: {
-          is_new_okp: true,
+          // Filter hanya format baru yang mengandung '/' (OK-00435/12/25)
+          // dan bukan format lama (OKP 676)
+          no_okp: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
         },
+        order: [
+          // extract nomor urut pada format OK00001/CBL/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_okp, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
       });
+
+      let number = 0;
+      console.log(length);
+
+      if (length) {
+        const lastNo = length.no_okp; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        number = lastSeq;
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        total_data: length,
+        total_data: number,
       });
     } catch (error) {
+      console.log(error.message);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });

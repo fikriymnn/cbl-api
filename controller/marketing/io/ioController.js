@@ -57,6 +57,7 @@ const IoController = {
           status_code: 200,
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
+          order: [["tgl_pembuatan_io", "DESC"]],
         });
       } else if (_id) {
         const response = await Io.findByPk(_id, {
@@ -118,6 +119,7 @@ const IoController = {
               ],
             },
           ],
+          order: [["tgl_pembuatan_io", "DESC"]],
         });
         res
           .status(200)

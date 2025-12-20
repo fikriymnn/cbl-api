@@ -86,6 +86,14 @@ const DeliveryOrderGroup = db.define(
         key: "userid",
       },
     },
+    id_kenek_2: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterKaryawan,
+        key: "userid",
+      },
+    },
     no_do: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -228,5 +236,13 @@ MasterKaryawan.hasMany(DeliveryOrderGroup, {
 DeliveryOrderGroup.belongsTo(MasterKaryawan, {
   foreignKey: "id_kenek",
   as: "kenek",
+});
+MasterKaryawan.hasMany(DeliveryOrderGroup, {
+  foreignKey: "id_kenek_2",
+  as: "do_group_kenek_2",
+});
+DeliveryOrderGroup.belongsTo(MasterKaryawan, {
+  foreignKey: "id_kenek_2",
+  as: "kenek_2",
 });
 module.exports = DeliveryOrderGroup;

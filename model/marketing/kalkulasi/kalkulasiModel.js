@@ -357,7 +357,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterBarang,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -369,7 +369,7 @@ const Kalkulasi = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: MasterBarang,
+        model: MasterMesinTahapan,
         key: "id",
       },
     },
@@ -778,20 +778,20 @@ Kalkulasi.belongsTo(MasterBarang, {
 //~~end~~//
 
 //~~start~~//
-MasterBarang.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_coating_depan",
 });
-Kalkulasi.belongsTo(MasterBarang, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_coating_depan",
   as: "mesin_coating_depan",
 });
 //~~end~~//
 
 //~~start~~//
-MasterBarang.hasMany(Kalkulasi, {
+MasterMesinTahapan.hasMany(Kalkulasi, {
   foreignKey: "id_mesin_coating_belakang",
 });
-Kalkulasi.belongsTo(MasterBarang, {
+Kalkulasi.belongsTo(MasterMesinTahapan, {
   foreignKey: "id_mesin_coating_belakang",
   as: "mesin_coating_belakang",
 });
