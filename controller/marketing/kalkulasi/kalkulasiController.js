@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const IoModel = require("../../../model/marketing/io/ioModel");
 const KalkulasiQty = require("../../../model/marketing/kalkulasi/kalkulasiQtyModel");
@@ -17,6 +17,7 @@ const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesi
 const MasterCustomerGudang = require("../../../model/masterData/marketing/masterCustomerGudangModel");
 const db = require("../../../config/database");
 const Users = require("../../../model/userModel");
+const okp = require("../../../model/marketing/okp/okpModel");
 
 const KalkulasiController = {
   getKalkulasi: async (req, res) => {
@@ -130,20 +131,42 @@ const KalkulasiController = {
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
-      const length = await Kalkulasi.count({
+      const length = await Kalkulasi.findOne({
         where: {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
         },
+        order: [
+          // extract nomor urut pada format SI00001/CBL/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(kode_kalkulasi, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
       });
+
+      let number = 0;
+
+      if (length) {
+        const lastNo = length.kode_kalkulasi; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        number = lastSeq;
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        total_data: length,
+        total_data: number,
       });
     } catch (error) {
+      console.log(error.message);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });
@@ -485,6 +508,36 @@ const KalkulasiController = {
         const previousKalkulasi = await Kalkulasi.findByPk(
           id_kalkulasi_previous
         );
+
+        let idOkp = previousKalkulasi.id_okp;
+        let noOkp = previousKalkulasi.no_okp;
+        let idIo = previousKalkulasi.id_io;
+        let noIo = previousKalkulasi.no_io;
+
+        if (previousKalkulasi.id_okp == null) {
+          const dataOkpPrev = await okp.findOne({
+            where: { id_kalkulasi: previousKalkulasi.id },
+          });
+
+          if (dataOkpPrev) {
+            idOkp = dataOkpPrev.id;
+            noOkp = dataOkpPrev.no_okp;
+            const dataIoPrev = await IoModel.findOne({
+              where: { id_okp: idOkp },
+            });
+            idIo = dataIoPrev?.id;
+            noIo = dataIoPrev?.no_io;
+          }
+        }
+
+        if (previousKalkulasi.id_io == null) {
+          const dataIoPrev = await IoModel.findOne({
+            where: { id_okp: idOkp },
+          });
+          idIo = dataIoPrev?.id;
+          noIo = dataIoPrev?.no_io;
+        }
+
         if (!previousKalkulasi)
           return res.status(404).json({
             succes: false,
@@ -492,18 +545,13 @@ const KalkulasiController = {
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
 
-        let idOkp = previousKalkulasi.id_okp;
-        let noOkp = previousKalkulasi.no_okp;
-        let idIo = previousKalkulasi.id_io;
-        let no_io = previousKalkulasi.no_io;
-
         objCreate = {
           id_user_create: req.user.id,
           id_kalkulasi_previous: id_kalkulasi_previous,
-          id_okp: previousKalkulasi.id_okp,
-          no_okp: previousKalkulasi.no_okp,
-          id_io: previousKalkulasi.id_io,
-          no_io: previousKalkulasi.no_io,
+          id_okp: idOkp,
+          no_okp: noOkp,
+          id_io: idIo,
+          no_io: noIo,
           id_customer: id_customer,
           nama_customer: checkCustomer.nama_customer,
           id_marketing: id_marketing,
