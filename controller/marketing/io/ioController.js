@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const Io = require("../../../model/marketing/io/ioModel");
 const IoMounting = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
@@ -134,14 +134,42 @@ const IoController = {
 
   getIoJumlahData: async (req, res) => {
     try {
-      const length = await Io.count({
-        where: { status_io: "baru" },
+      const length = await Io.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (OK-00435/12/25)
+          // dan bukan format lama (OKP 676)
+          no_io: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+        },
+        order: [
+          // extract nomor urut pada format OK00001/CBL/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_io, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
       });
+
+      let number = 0;
+      console.log(length);
+
+      if (length) {
+        const lastNo = length.no_io; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        number = lastSeq;
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        total_data: length,
+        total_data: number,
       });
     } catch (error) {
       res
@@ -239,8 +267,8 @@ const IoController = {
           { is_active: false },
           { where: { id_okp: checkOkp.id_okp_previous }, transaction: t }
         );
-        revisiKe = checkIoPrevious.revisi_ke + 1;
-        basenoIo = checkIoPrevious.base_no_io;
+        revisiKe = checkIoPrevious?.revisi_ke + 1;
+        basenoIo = checkIoPrevious?.base_no_io;
       } else {
         basenoIo = base_no_io;
       }

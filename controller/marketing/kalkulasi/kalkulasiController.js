@@ -545,6 +545,13 @@ const KalkulasiController = {
             msg: "Data kalkulasi sebelumnya tidak ditemukan",
           });
 
+        if (idIo == null)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data kalkulasi tidak memiliki io",
+          });
+
         objCreate = {
           id_user_create: req.user.id,
           id_kalkulasi_previous: id_kalkulasi_previous,
