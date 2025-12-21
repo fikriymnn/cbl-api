@@ -279,7 +279,7 @@ const OkpController = {
         const response = await Okp.create(
           {
             id_kalkulasi: id_kalkulasi,
-            id_okp_previous: checkOkpPrevious.id,
+            id_okp_previous: checkOkpPrevious?.id,
             id_create_okp: req.user.id,
             id_produk: checkKalkulasi.id_produk,
             id_customer: checkKalkulasi.id_customer,
@@ -662,17 +662,20 @@ const OkpController = {
         checkKalkulasi.id_kalkulasi_previous
       );
 
-      if (previousKalkulasi) {
+      if (previousKalkulasi && previousKalkulasi.id_okp) {
+        console.log("masuk sini", previousKalkulasi.id_okp);
         const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
-        await Okp.update(
-          {
-            is_active: false,
-          },
-          {
-            where: { id: checkOkpPrevious.id, is_active: true },
-            transaction: t,
-          }
-        );
+        if (checkOkpPrevious) {
+          await Okp.update(
+            {
+              is_active: false,
+            },
+            {
+              where: { id: checkOkpPrevious.id, is_active: true },
+              transaction: t,
+            }
+          );
+        }
       }
 
       await Okp.update(
