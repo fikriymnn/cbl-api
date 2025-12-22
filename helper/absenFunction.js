@@ -362,6 +362,8 @@ const absenFunction = {
       }),
     ]);
 
+    // console.log(dataLembur.find((item) => item.id_karyawan === 41));
+
     //console.log(absensiMasuk);
 
     // dataLembur = await DataLembur.findAll({
@@ -508,7 +510,7 @@ const absenFunction = {
       ];
     });
 
-    //console.log(4);
+    // console.log(lemburEntries.find((item) => item.userid == 41));
 
     // Ambil shift untuk semua hari
     const shifts = await masterShift.findAll({
@@ -590,6 +592,7 @@ const absenFunction = {
         jenisHariMasuk = "Libur";
         dayName = "Libur";
       }
+
       const dayName2 = new Date(
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
@@ -801,10 +804,16 @@ const absenFunction = {
             entry.userid === masuk.userid &&
             (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
             parseTanggalIndo(entry.jam_mulai_lembur) >=
-              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 60) &&
+              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 90) &&
             parseTanggalIndo(entry.jam_mulai_lembur) <=
-              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 60)
+              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 90)
         );
+
+        // if (lemburFind.name == "MUHAMMAD IRFAN FIRDAUS") {
+        //   console.log(lemburFind);
+        // }
+
+        //console.log(lemburFind);
 
         // console.log(
         //   parseTanggalIndo(lemburFind?.jam_mulai_lembur) >=
@@ -820,6 +829,7 @@ const absenFunction = {
         // console.log(lemburEntries, tglMasuk);
 
         if (lemburFind) {
+          // console.log(lemburFind.name);
           if (lemburFind.status_ketidaksesuaian === "approved") {
             jamLembur = lemburFind.jam_lembur;
           }
@@ -875,6 +885,15 @@ const absenFunction = {
           statusLembur = "Tidak Lembur";
           jamLembur = 0;
         }
+
+        // if (lemburFind.name == "MUHAMMAD IRFAN FIRDAUS") {
+        //   console.log(
+        //     statusLemburSPL,
+        //     jamLemburSPL,
+        //     id_pengajuan_lembur,
+        //     statusKetidaksesuaian
+        //   );
+        // }
 
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
         // diambil dari master absensi untuk minimal jam lembur
@@ -942,6 +961,14 @@ const absenFunction = {
 
         // Hitung lembur hari biasa (kode 30 * 60 * 1000 berarti tabahan setengah jam)
         if (keluar && jenisHariMasuk == "Libur" && lemburFind) {
+          if (lemburFind.name == "MUHAMMAD IRFAN FIRDAUS") {
+            console.log(
+              statusLemburSPL,
+              jamLemburSPL,
+              id_pengajuan_lembur,
+              statusKetidaksesuaian
+            );
+          }
           if (shift === "Shift 1") {
             const jamLemburMentah =
               (waktuKeluarUTC - waktuMasukUTC.getTime()) / 3600000;
