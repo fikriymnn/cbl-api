@@ -118,13 +118,13 @@ const TiketJadwalProduksi = db.define(
   }
 );
 
-JobOrderModel.hasMany(TiketJadwalProduksi, {
-  foreignKey: "id_jo",
-  as: "tiket_jadwal_produksi",
-});
-TiketJadwalProduksi.belongsTo(JobOrderModel, {
-  foreignKey: "id_jo",
-  as: "jo",
-});
+// JobOrderModel.hasMany(TiketJadwalProduksi, {
+//   foreignKey: "id_jo",
+//   as: "tiket_jadwal_produksi",
+// });
+// TiketJadwalProduksi.belongsTo(JobOrderModel, {
+//   foreignKey: "id_jo",
+//   as: "jo",
+// });
 
 module.exports = TiketJadwalProduksi;
