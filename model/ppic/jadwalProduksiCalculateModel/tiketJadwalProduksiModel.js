@@ -12,14 +12,14 @@ const TiketJadwalProduksi = db.define(
       allowNull: false,
     },
     //di matikan untuk production
-    id_jo: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: JobOrderModel,
-        key: "id",
-      },
-    },
+    // id_jo: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: true,
+    //   references: {
+    //     model: JobOrderModel,
+    //     key: "id",
+    //   },
+    // },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
