@@ -369,98 +369,98 @@ const inspeksiFinalController = {
         );
       }
 
-      const getInspeksiFinal = await InspeksiFinal.findByPk(id);
+      //const getInspeksiFinal = await InspeksiFinal.findByPk(id);
 
-      if (status == "bisa kirim" && getInspeksiFinal.id_jo != null) {
-        //create ke tabel delivery order
-        const dataListJoDone =
-          await ProduksiJoDoneService.getProduksiJoDoneService({
-            id_jo: getInspeksiFinal.id_jo,
-            status_proses: "check qc",
-          });
+      // if (status == "bisa kirim" && getInspeksiFinal.id_jo != null) {
+      //   //create ke tabel delivery order
+      //   const dataListJoDone =
+      //     await ProduksiJoDoneService.getProduksiJoDoneService({
+      //       id_jo: getInspeksiFinal.id_jo,
+      //       status_proses: "check qc",
+      //     });
 
-        if (dataListJoDone.success === false) {
-          await t.rollback();
+      //   if (dataListJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: dataListJoDone.message,
-          });
-        }
-        console.log(1);
-        const createDeliveryOrder =
-          await DeliveryOrderService.creteDeliveryOrderService({
-            id_jo: dataListJoDone.data[0].id_jo,
-            id_io: dataListJoDone.data[0].id_io,
-            id_so: dataListJoDone.data[0].id_so,
-            id_customer: dataListJoDone.data[0].id_customer,
-            id_produk: dataListJoDone.data[0].id_produk,
-            transaction: t,
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: dataListJoDone.message,
+      //     });
+      //   }
+      //   console.log(1);
+      //   const createDeliveryOrder =
+      //     await DeliveryOrderService.creteDeliveryOrderService({
+      //       id_jo: dataListJoDone.data[0].id_jo,
+      //       id_io: dataListJoDone.data[0].id_io,
+      //       id_so: dataListJoDone.data[0].id_so,
+      //       id_customer: dataListJoDone.data[0].id_customer,
+      //       id_produk: dataListJoDone.data[0].id_produk,
+      //       transaction: t,
+      //     });
 
-        if (createDeliveryOrder.success === false) {
-          await t.rollback();
+      //   if (createDeliveryOrder.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: createDeliveryOrder.message,
-          });
-        }
-        console.log(2);
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: createDeliveryOrder.message,
+      //     });
+      //   }
+      //   console.log(2);
 
-        const doneDeliveryOrder =
-          await ProduksiJoDoneService.doneProduksiJoDoneService({
-            id: dataListJoDone.data[0].id,
-            transaction: t,
-          });
+      //   const doneDeliveryOrder =
+      //     await ProduksiJoDoneService.doneProduksiJoDoneService({
+      //       id: dataListJoDone.data[0].id,
+      //       transaction: t,
+      //     });
 
-        if (doneDeliveryOrder.success === false) {
-          await t.rollback();
+      //   if (doneDeliveryOrder.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: doneDeliveryOrder.message,
-          });
-        }
-      } else if (
-        status == "tidak bisa di kirim" &&
-        getInspeksiFinal.id_jo != null
-      ) {
-        //create ke tabel delivery order
-        const dataListJoDone =
-          await ProduksiJoDoneService.getProduksiJoDoneService({
-            id_jo: getInspeksiFinal.id_jo,
-            status_proses: "check qc",
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: doneDeliveryOrder.message,
+      //     });
+      //   }
+      // } else if (
+      //   status == "tidak bisa di kirim" &&
+      //   getInspeksiFinal.id_jo != null
+      // ) {
+      //   //create ke tabel delivery order
+      //   const dataListJoDone =
+      //     await ProduksiJoDoneService.getProduksiJoDoneService({
+      //       id_jo: getInspeksiFinal.id_jo,
+      //       status_proses: "check qc",
+      //     });
 
-        if (dataListJoDone.success === false) {
-          await t.rollback();
+      //   if (dataListJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: dataListJoDone.message,
-          });
-        }
-        const rejectProduksiJoDone =
-          await ProduksiJoDoneService.rejectQcProduksiJoDoneService({
-            id: dataListJoDone.data[0].id,
-            transaction: t,
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: dataListJoDone.message,
+      //     });
+      //   }
+      //   const rejectProduksiJoDone =
+      //     await ProduksiJoDoneService.rejectQcProduksiJoDoneService({
+      //       id: dataListJoDone.data[0].id,
+      //       transaction: t,
+      //     });
 
-        if (rejectProduksiJoDone.success === false) {
-          await t.rollback();
+      //   if (rejectProduksiJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: rejectProduksiJoDone.message,
-          });
-        }
-      }
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: rejectProduksiJoDone.message,
+      //     });
+      //   }
+      // }
 
       await t.commit();
 
