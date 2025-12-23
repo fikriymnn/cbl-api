@@ -12,14 +12,14 @@ const TiketJadwalProduksi = db.define(
       allowNull: false,
     },
     //di matikan untuk production
-    // id_jo: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: true,
-    //   references: {
-    //     model: JobOrderModel,
-    //     key: "id",
-    //   },
-    // },
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JobOrderModel,
+        key: "id",
+      },
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -118,13 +118,13 @@ const TiketJadwalProduksi = db.define(
   }
 );
 
-// JobOrderModel.hasMany(TiketJadwalProduksi, {
-//   foreignKey: "id_jo",
-//   as: "tiket_jadwal_produksi",
-// });
-// TiketJadwalProduksi.belongsTo(JobOrderModel, {
-//   foreignKey: "id_jo",
-//   as: "jo",
-// });
+JobOrderModel.hasMany(TiketJadwalProduksi, {
+  foreignKey: "id_jo",
+  as: "tiket_jadwal_produksi",
+});
+TiketJadwalProduksi.belongsTo(JobOrderModel, {
+  foreignKey: "id_jo",
+  as: "jo",
+});
 
 module.exports = TiketJadwalProduksi;
