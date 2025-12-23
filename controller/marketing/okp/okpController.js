@@ -268,13 +268,16 @@ const OkpController = {
         const previousKalkulasi = await Kalkulasi.findByPk(
           checkKalkulasi.id_kalkulasi_previous
         );
-        if (!previousKalkulasi)
-          return res.status(404).json({
-            succes: false,
-            status_code: 404,
-            msg: "Data kalkulasi sebelumnya tidak ditemukan",
-          });
-        const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
+        // if (!previousKalkulasi)
+        //   return res.status(404).json({
+        //     succes: false,
+        //     status_code: 404,
+        //     msg: "Data kalkulasi sebelumnya tidak ditemukan",
+        //   });
+        let checkOkpPrevious = {};
+        if (previousKalkulasi) {
+          checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
+        }
 
         const response = await Okp.create(
           {
