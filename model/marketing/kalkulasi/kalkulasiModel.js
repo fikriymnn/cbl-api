@@ -655,6 +655,16 @@ const Kalkulasi = db.define(
       allowNull: true,
       defaultValue: true,
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
+    },
   },
   {
     freezeTableName: true,

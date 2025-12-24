@@ -60,7 +60,10 @@ const ioMounting = db.define(
       allowNull: true,
       defaultValue: 0,
     },
-
+    untuk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     warna_depan: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -292,6 +295,16 @@ const ioMounting = db.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
     },
   },
   {

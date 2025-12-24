@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./config/database");
+const { Sequelize, DataTypes, Op } = require("sequelize");
 const tc = require("./model/maintenaceTicketModel");
 const tcDepartment = require("./model/maintenanceTicketDepartmentModel");
 const tcos3 = require("./model/maintenanceTicketOs3Model");
@@ -382,7 +383,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiFinal.sync({ alter: true, logging: console.log });
+//   await Okp.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75
