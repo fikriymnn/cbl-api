@@ -161,7 +161,7 @@ const DepositService = {
       return {
         status: 200,
         success: true,
-        no_deposit: lastDeposit.no_deposit,
+        no_deposit: lastDeposit?.no_deposit,
         new_no_deposit: newDepositNumber,
       };
     } catch (error) {

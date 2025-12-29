@@ -155,7 +155,7 @@ const ReturService = {
       return {
         status: 200,
         success: true,
-        no_retur: lastInvoice.no_retur,
+        no_retur: lastInvoice?.no_retur,
         new_no_invoice: newInvoiceNumber,
       };
     } catch (error) {

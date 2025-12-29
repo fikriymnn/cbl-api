@@ -152,7 +152,7 @@ const PerubahanInvoiceService = {
       return {
         status: 200,
         success: true,
-        no_perubahan_invoice: lastPerubahanInvoice.no_perubahan_invoice,
+        no_perubahan_invoice: lastPerubahanInvoice?.no_perubahan_invoice,
         new_no_perubahan_invoice: newPerubahanInvoiceNumber,
       };
     } catch (error) {
