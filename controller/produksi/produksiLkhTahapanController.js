@@ -188,6 +188,7 @@ const ProduksiLkhTahapanController = {
           .status(200)
           .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
+      await t.rollback();
       res
         .status(400)
         .json({ succes: true, status_code: 400, msg: error.message });
