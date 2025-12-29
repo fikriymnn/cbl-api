@@ -160,7 +160,7 @@ const InvoiceService = {
       return {
         status: 200,
         success: true,
-        no_invoice: lastInvoice.no_invoice,
+        no_invoice: lastInvoice?.no_invoice,
         new_no_invoice: newInvoiceNumber,
       };
     } catch (error) {

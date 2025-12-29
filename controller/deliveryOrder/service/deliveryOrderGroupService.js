@@ -234,14 +234,14 @@ const DeliveryOrderGroupService = {
       //type tax
       const newDoTaxNumberTax = `SD0${paddedNumberTax}/CBL/${currentMonth}${shortYear}`;
       // type non tax
-      const newDoTaxNumberNonTax = `SD5${paddedNumberTax}-${currentMonth}${shortYear}`;
+      const newDoTaxNumberNonTax = `SD5${paddedNumberNonTax}-${currentMonth}${shortYear}`;
 
       return {
         status: 200,
         success: true,
-        no_do_tax: lastdataPajak.no_do,
+        no_do_tax: lastdataPajak?.no_do,
         no_do_tax_new: newDoTaxNumberTax,
-        no_do_non_tax: lastdataNonPajak.no_do,
+        no_do_non_tax: lastdataNonPajak?.no_do,
         no_do_non_tax_new: newDoTaxNumberNonTax,
       };
     } catch (error) {

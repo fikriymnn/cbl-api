@@ -383,7 +383,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Okp.sync({ alter: true, logging: console.log });
+//   await IoMounting.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75
