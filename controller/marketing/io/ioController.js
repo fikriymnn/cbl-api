@@ -710,7 +710,7 @@ const IoController = {
       await Io.update(
         {
           status: "requested",
-          status_proses: "request to kabag",
+          status_proses: "request to npd",
         },
         {
           where: { id: _id },

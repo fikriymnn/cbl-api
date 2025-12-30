@@ -85,7 +85,20 @@ const ProduksiLkhTahapanController = {
           total_page: Math.ceil(length / parseInt(limit)),
         });
       } else if (_id) {
-        const data = await ProduksiLkhTahapan.findByPk(_id, {});
+        const data = await ProduksiLkhTahapan.findByPk(_id, {
+          include: [
+            {
+              model: ProduksiLkh,
+              as: "produksi_kh",
+              include: [
+                {
+                  model: ProduksiLkhProses,
+                  as: "produksi_lkh_proses",
+                },
+              ],
+            },
+          ],
+        });
         return res.status(200).json({
           data: data,
         });
@@ -125,6 +138,7 @@ const ProduksiLkhTahapanController = {
 
   approveProduksiLkhTahapan: async (req, res) => {
     const _id = req.params.id;
+    const { produksi_lkh_proses } = req.body;
     const t = await db.transaction();
     try {
       const checkData = await ProduksiLkhTahapan.findByPk(_id);
@@ -134,6 +148,22 @@ const ProduksiLkhTahapanController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      for (let i = 0; i < produksi_lkh_proses.length; i++) {
+        const e = produksi_lkh_proses[i];
+        await ProduksiLkhProses.update(
+          {
+            baik: e.baik,
+            rusak_sebagian: e.rusak_sebagian,
+            rusak_total: e.rusak_total,
+            pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          }
+        );
+      }
 
       //buat tahapan yg di approve jadi done
       await ProduksiLkhTahapan.update(

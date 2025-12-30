@@ -4,6 +4,9 @@ const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
 const Io = require("../../../model/marketing/io/ioModel");
 const BomModel = require("../../../model/ppic/bom/bomModel");
+const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
+const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
+const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
@@ -65,6 +68,23 @@ const SoController = {
       } else if (_id) {
         const response = await SoModel.findByPk(_id, {
           include: [
+            {
+              model: MasterCustomer,
+              as: "data_customer",
+              attributes: ["id_marketing"],
+              include: [
+                {
+                  model: MasterMarketing,
+                  as: "marketing",
+                  attributes: ["id_karyawan"],
+                  include: {
+                    model: MasterKaryawan,
+                    as: "data_karyawan",
+                    attributes: ["name"],
+                  },
+                },
+              ],
+            },
             { model: BomModel, as: "bom" },
             {
               model: Users,
@@ -87,10 +107,19 @@ const SoController = {
         if (response.id_kalkulasi) {
           dataKalkulasi = await Kalkulasi.findByPk(response.id_kalkulasi);
         }
+        const dataSOMentah = response.toJSON();
+
+        // hapus relasi yang tidak mau dikirim ke FE
+        delete dataSOMentah.data_customer;
+        let dataSO = {
+          ...dataSOMentah,
+          nama_marketing:
+            response?.data_customer?.marketing?.data_karyawan?.name ?? null,
+        };
         res.status(200).json({
           succes: true,
           status_code: 200,
-          data: response,
+          data: dataSO,
           data_kalkulasi: dataKalkulasi,
         });
       } else {

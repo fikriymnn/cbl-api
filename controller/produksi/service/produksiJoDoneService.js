@@ -214,6 +214,7 @@ const ProduksiJoDoneService = {
           id_user: id_user,
           status: "progress",
           status_proses: "check qc",
+          qty_kirim: checkData.qty_kirim + qty_kirim,
         },
         { where: { id: checkData.id }, transaction: t }
       );

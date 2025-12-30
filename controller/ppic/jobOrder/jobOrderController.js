@@ -47,6 +47,11 @@ const BomController = {
           limit: parseInt(limit),
           include: [
             {
+              model: soModel,
+              as: "so",
+              attributes: ["status_produk"],
+            },
+            {
               model: JobOrderMounting,
               as: "jo_mounting",
             },
@@ -63,6 +68,11 @@ const BomController = {
       } else if (_id) {
         const data = await JobOrder.findByPk(_id, {
           include: [
+            {
+              model: soModel,
+              as: "so",
+              attributes: ["status_produk"],
+            },
             {
               model: JobOrderMounting,
               as: "jo_mounting",
