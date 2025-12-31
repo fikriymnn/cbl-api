@@ -58,6 +58,7 @@ const SoController = {
           include: [{ model: BomModel, as: "bom" }],
           offset: parseInt(offset),
           limit: parseInt(limit),
+          order: [["tgl_pembuatan_so", "DESC"]],
         });
         return res.status(200).json({
           succes: true,

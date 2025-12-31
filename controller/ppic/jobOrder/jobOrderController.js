@@ -76,6 +76,29 @@ const BomController = {
             {
               model: JobOrderMounting,
               as: "jo_mounting",
+              include: [
+                {
+                  model: ioMountingModel,
+                  as: "io_mounting",
+                  attributes: [
+                    "ukuran_jadi_panjang",
+                    "ukuran_jadi_lebar",
+                    "ukuran_jadi_tinggi",
+                    "ukuran_jadi_terb_panjang",
+                    "ukuran_jadi_terb_lebar",
+                    "warna_depan",
+                    "warna_belakang",
+                    "jumlah_warna",
+                  ],
+                  include: {
+                    model: IoTahapan,
+                    as: "tahapan",
+                    include: [
+                      { model: MasterTahapanMesin, as: "tahapan_mesin" },
+                    ],
+                  },
+                },
+              ],
             },
             {
               model: Users,
