@@ -224,6 +224,35 @@ const ProduksiLkhTahapanController = {
         .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
+
+  activedProduksiLkhTahapan: async (req, res) => {
+    const { produksi_lkh_tahapan } = req.body;
+    const t = await db.transaction();
+    try {
+      for (let i = 0; i < produksi_lkh_tahapan.length; i++) {
+        const e = produksi_lkh_tahapan[i];
+        await ProduksiLkhTahapan.update(
+          {
+            status: e.status,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          }
+        );
+      }
+
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Actived Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
 };
 
 module.exports = ProduksiLkhTahapanController;
