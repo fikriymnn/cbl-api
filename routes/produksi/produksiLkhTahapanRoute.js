@@ -20,4 +20,10 @@ router.put(
   ProduksiLkhTahapanController.approveProduksiLkhTahapan
 );
 
+router.put(
+  "/produksi/activedLkhTahapan",
+  auth,
+  ProduksiLkhTahapanController.activedProduksiLkhTahapan
+);
+
 module.exports = router;

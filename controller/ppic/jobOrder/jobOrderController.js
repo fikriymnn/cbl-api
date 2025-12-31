@@ -47,6 +47,11 @@ const BomController = {
           limit: parseInt(limit),
           include: [
             {
+              model: soModel,
+              as: "so",
+              attributes: ["status_produk"],
+            },
+            {
               model: JobOrderMounting,
               as: "jo_mounting",
             },
@@ -64,8 +69,36 @@ const BomController = {
         const data = await JobOrder.findByPk(_id, {
           include: [
             {
+              model: soModel,
+              as: "so",
+              attributes: ["status_produk"],
+            },
+            {
               model: JobOrderMounting,
               as: "jo_mounting",
+              include: [
+                {
+                  model: ioMountingModel,
+                  as: "io_mounting",
+                  attributes: [
+                    "ukuran_jadi_panjang",
+                    "ukuran_jadi_lebar",
+                    "ukuran_jadi_tinggi",
+                    "ukuran_jadi_terb_panjang",
+                    "ukuran_jadi_terb_lebar",
+                    "warna_depan",
+                    "warna_belakang",
+                    "jumlah_warna",
+                  ],
+                  include: {
+                    model: IoTahapan,
+                    as: "tahapan",
+                    include: [
+                      { model: MasterTahapanMesin, as: "tahapan_mesin" },
+                    ],
+                  },
+                },
+              ],
             },
             {
               model: Users,

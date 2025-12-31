@@ -606,7 +606,7 @@ const Kalkulasi = db.define(
       allowNull: true,
     },
     total_harga_satuan_customer: {
-      type: DataTypes.DECIMAL(30, 6),
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     keterangan_kerja: {

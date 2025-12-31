@@ -494,7 +494,7 @@ const ProduksiLkhProsesController = {
 
   approveSpvProduksiLkhProses: async (req, res) => {
     const _id = req.params.id;
-    const { baik, rusak_sebagian, rusak_total, pallet, note } = req.body;
+    const { produksi_lkh_proses } = req.body;
     const t = await db.transaction();
     try {
       const checkData = await ProduksiLkhProses.findByPk(_id);
@@ -517,6 +517,22 @@ const ProduksiLkhProsesController = {
           status_code: 404,
           msg: "Data lkh tidak ditemukan",
         });
+
+      for (let i = 0; i < produksi_lkh_proses.length; i++) {
+        const e = produksi_lkh_proses[i];
+        await ProduksiLkhProses.update(
+          {
+            baik: e.baik,
+            rusak_sebagian: e.rusak_sebagian,
+            rusak_total: e.rusak_total,
+            pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          }
+        );
+      }
 
       //doone untuk tahapan yg di action
       await ProduksiLkhTahapan.update(
@@ -549,7 +565,7 @@ const ProduksiLkhProsesController = {
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Stop Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       await t.rollback();
       res
