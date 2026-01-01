@@ -1,4 +1,4 @@
-const { Op, fn, col } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
 const MasterBrand = require("../../../model/masterData/barang/masterBrandModel");
 const MasterUnit = require("../../../model/masterData/barang/masterUnitModel");
@@ -156,12 +156,33 @@ const MasterBarangController = {
             msg: "Inventory Unit tidak ditemukan",
           });
       }
+
+      const lastBarang = await MasterBarang.findOne({
+        attributes: ["kode_barang"],
+        order: [
+          [literal("CAST(SUBSTRING(kode_barang, 9) AS UNSIGNED)"), "DESC"],
+        ],
+      });
+
+      let nextKodeBarang;
+      const nextId = parseInt(lastBarang.kode_barang.substring(8), 10) + 1;
+
+      if (!lastBarang) {
+        nextKodeBarang = "CBL-ITEM00001";
+      } else {
+        const lastNumber = parseInt(lastBarang.kode_barang.substring(8), 10);
+        const nextNumber = lastNumber + 1;
+
+        nextKodeBarang = `CBL-ITEM${String(nextNumber).padStart(5, "0")}`;
+      }
+
       const response = await MasterBarang.create(
         {
+          id: nextId,
           id_brand: id_brand || null,
           id_purchase_unit: id_purchase_unit || null,
           id_inventory_unit: id_inventory_unit || null,
-          kode_barang: kode_barang || null,
+          kode_barang: nextKodeBarang || null,
           nama_barang: nama_barang || null,
           kategori: kategori || null,
           sub_kategori: sub_kategori || null,

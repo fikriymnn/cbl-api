@@ -59,6 +59,13 @@ const ProduksiJoDoneService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: SoModel,
+              as: "so",
+              attributes: ["po_qty"],
+            },
+          ],
         });
         return {
           status: 200,

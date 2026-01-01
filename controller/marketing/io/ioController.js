@@ -155,7 +155,6 @@ const IoController = {
       });
 
       let number = 0;
-      console.log(length);
 
       if (length) {
         const lastNo = length.no_io; // contoh: SDP00005/12/25
@@ -222,12 +221,12 @@ const IoController = {
         status_code: 404,
         msg: "okp wajib di isi!!",
       });
-    if (!no_io)
-      return res.status(404).json({
-        succes: false,
-        status_code: 404,
-        msg: "no Io wajib di isi!!",
-      });
+    // if (!no_io)
+    //   return res.status(404).json({
+    //     succes: false,
+    //     status_code: 404,
+    //     msg: "no Io wajib di isi!!",
+    //   });
 
     try {
       const checkOkp = await Okp.findByPk(id_okp);
@@ -237,6 +236,7 @@ const IoController = {
           status_code: 404,
           msg: "Data Okp tidak ditemukan",
         });
+
       const checkKalkulasi = await Kalkulasi.findByPk(checkOkp.id_kalkulasi);
       if (!checkKalkulasi)
         return res.status(404).json({
@@ -255,6 +255,7 @@ const IoController = {
           status_code: 404,
           msg: "Data Kertas tidak ditemukan",
         });
+      let nextNoIoFix = null;
       let revisiKe = 0;
       let basenoIo = "";
 
@@ -263,6 +264,15 @@ const IoController = {
           where: { id_okp: checkOkp.id_okp_previous },
           transaction: t,
         });
+        const nextNoIO = incrementRevisiIO(checkIoPrevious.no_io);
+
+        nextNoIoFix = nextNoIO.no_io_baru;
+        revisiKe = nextNoIO.revisi_berikutnya;
+        basenoIo = nextNoIO.original_no_io;
+        //console.log("io sebelum", checkIoPrevious);
+        console.log(nextNoIO, nextNoIoFix, revisiKe, basenoIo);
+        // Test
+
         await Io.update(
           { is_active: false },
           { where: { id_okp: checkOkp.id_okp_previous }, transaction: t }
@@ -270,7 +280,9 @@ const IoController = {
         revisiKe = checkIoPrevious?.revisi_ke + 1;
         basenoIo = checkIoPrevious?.base_no_io;
       } else {
-        basenoIo = base_no_io;
+        nextNoIoFix = no_io;
+        basenoIo = no_io;
+        revisiKe = 0;
       }
 
       const response = await Io.create(
@@ -280,7 +292,7 @@ const IoController = {
           id_create_io: req.user.id,
           id_customer: checkOkp.id_customer,
           id_produk: checkOkp.id_produk,
-          no_io: no_io,
+          no_io: nextNoIoFix,
           customer: checkOkp.customer,
           produk: checkOkp.produk,
           status_io: status_io,
@@ -342,7 +354,7 @@ const IoController = {
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
-        { id_io: response.id, no_io: no_io },
+        { id_io: response.id, no_io: response.no_io },
         { where: { id: checkKalkulasi.id }, transaction: t }
       );
 
@@ -1270,5 +1282,123 @@ function nextAlphabet(title) {
   // Ambil huruf berikutnya
   return String.fromCharCode(charCode + 1);
 }
+
+function incrementRevisiIO(no_io) {
+  let result;
+
+  // Cek apakah ada tanda /
+  if (no_io.includes("/")) {
+    // Pisahkan berdasarkan / pertama
+    const slashIndex = no_io.indexOf("/");
+    const basePart = no_io.substring(0, slashIndex); // Sebelum /
+    const datePart = no_io.substring(slashIndex); // Dari / sampai akhir
+
+    // Cek apakah basePart diakhiri dengan -ANGKA (BUKAN leading zero)
+    const revisionMatch = basePart.match(/-([1-9]\d*)$/);
+
+    if (revisionMatch) {
+      // Sudah ada revisi
+      const revisiAngka = parseInt(revisionMatch[1]);
+      const baseNoOnly = basePart.substring(0, basePart.lastIndexOf("-"));
+      const revisiBerikutnya = revisiAngka + 1;
+      const no_io_baru = `${baseNoOnly}-${revisiBerikutnya}${datePart}`;
+      const original_no_io = `${baseNoOnly}${datePart}`;
+
+      result = {
+        no_io_baru: no_io_baru,
+        original_no_io: original_no_io,
+        revisi_sekarang: revisiAngka,
+        revisi_berikutnya: revisiBerikutnya,
+        base_no: baseNoOnly,
+      };
+    } else {
+      // Belum ada revisi
+      const no_io_baru = `${basePart}-1${datePart}`;
+      const original_no_io = `${basePart}${datePart}`;
+
+      result = {
+        no_io_baru: no_io_baru,
+        original_no_io: original_no_io,
+        revisi_sekarang: 0,
+        revisi_berikutnya: 1,
+        base_no: basePart,
+      };
+    }
+  }
+  // Tidak ada tanggal
+  else {
+    // Cek apakah ada -ANGKA[HURUF] di akhir
+    const revisionMatch = no_io.match(/^(.+?)-(\d+)([A-Z]*)$/);
+
+    if (revisionMatch) {
+      const baseNo = revisionMatch[1];
+      const revisiAngka = parseInt(revisionMatch[2]);
+      const suffix = revisionMatch[3] || "";
+      const revisiBerikutnya = revisiAngka + 1;
+      const no_io_baru = `${baseNo}-${revisiBerikutnya}${suffix}`;
+      const original_no_io = `${baseNo}${suffix}`;
+
+      result = {
+        no_io_baru: no_io_baru,
+        original_no_io: original_no_io,
+        revisi_sekarang: revisiAngka,
+        revisi_berikutnya: revisiBerikutnya,
+        base_no: baseNo,
+      };
+    }
+    // Cek apakah diakhiri huruf (tanpa revisi)
+    else if (/[A-Z]$/.test(no_io)) {
+      const match = no_io.match(/^(.+?)([A-Z]+)$/);
+      const baseNo = match[1];
+      const suffix = match[2];
+      const no_io_baru = `${baseNo}-1${suffix}`;
+      const original_no_io = `${baseNo}${suffix}`;
+
+      result = {
+        no_io_baru: no_io_baru,
+        original_no_io: original_no_io,
+        revisi_sekarang: 0,
+        revisi_berikutnya: 1,
+        base_no: baseNo,
+      };
+    }
+    // Format biasa
+    else {
+      const no_io_baru = `${no_io}-1`;
+      const original_no_io = no_io;
+
+      result = {
+        no_io_baru: no_io_baru,
+        original_no_io: original_no_io,
+        revisi_sekarang: 0,
+        revisi_berikutnya: 1,
+        base_no: no_io,
+      };
+    }
+  }
+
+  return result;
+}
+
+// const testCases = [
+//   "4429-3A",
+//   "4430A",
+//   "4422",
+//   "4422-1",
+//   "IO-00333/12/25",
+//   "IO-00052-1/05/24",
+// ];
+
+// console.log("=== TEST HASIL ===\n");
+// testCases.forEach((io) => {
+//   console.log(`Testing: ${io}`);
+//   const result = incrementRevisiIO(io);
+//   console.log(`Original IO : ${result.original_no_io}`);
+//   console.log(`Baru        : ${result.no_io_baru}`);
+//   console.log(
+//     `Revisi      : ${result.revisi_sekarang} → ${result.revisi_berikutnya}`
+//   );
+//   console.log("---");
+// });
 
 module.exports = IoController;

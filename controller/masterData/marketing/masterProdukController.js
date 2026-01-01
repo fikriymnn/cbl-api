@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const db = require("../../../config/database");
@@ -29,6 +29,7 @@ const MasterProdukController = {
           where: obj,
           offset: parseInt(offset),
           limit: parseInt(limit),
+          order: [["createdAt", "DESC"]],
         });
         return res.status(200).json({
           succes: true,
@@ -61,12 +62,12 @@ const MasterProdukController = {
     const t = await db.transaction();
 
     try {
-      if (!kode)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "kode wajib di isi!!",
-        });
+      // if (!kode)
+      //   return res.status(404).json({
+      //     succes: false,
+      //     status_code: 404,
+      //     msg: "kode wajib di isi!!",
+      //   });
       if (!nama_produk)
         return res.status(404).json({
           succes: false,
@@ -83,9 +84,32 @@ const MasterProdukController = {
             msg: "Customer tidak ditemukan",
           });
       }
+
+      const lastProduk = await MasterProduk.findOne({
+        attributes: ["kode"],
+        order: [
+          // ambil angka di belakang P- lalu urutkan DESC
+          [literal("CAST(SUBSTRING(kode, 3) AS UNSIGNED)"), "DESC"],
+        ],
+      });
+
+      let nextKode;
+      const nextId = parseInt(lastProduk.kode.substring(2), 10) + 1;
+
+      if (!lastProduk) {
+        // jika belum ada data
+        nextKode = "P-00001";
+      } else {
+        const lastNumber = parseInt(lastProduk.kode.substring(2), 10);
+        const nextNumber = lastNumber + 1;
+
+        nextKode = `P-${String(nextNumber).padStart(5, "0")}`;
+      }
+
       const response = await MasterProduk.create(
         {
-          kode: kode,
+          id: nextId,
+          kode: nextKode,
           nama_produk: nama_produk,
           id_customer: id_customer || null,
           keterangan: keterangan,
