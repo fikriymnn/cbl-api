@@ -78,6 +78,11 @@ const ProduksiLkhTahapanController = {
                 },
               ],
             },
+            {
+              model: SoModel,
+              as: "so",
+              attributes: ["po_qty"],
+            },
           ],
         });
         return res.status(200).json({
@@ -119,6 +124,10 @@ const ProduksiLkhTahapanController = {
                   as: "operator",
                 },
               ],
+            },
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
             },
             {
               model: MasterTahapan,
