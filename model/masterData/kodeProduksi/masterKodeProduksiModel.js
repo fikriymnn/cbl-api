@@ -10,7 +10,7 @@ const MasterKodeProduksi = db.define(
   {
     id_tahapan_produksi: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: MasterTahapan,
         key: "id",
@@ -118,6 +118,16 @@ const MasterKodeProduksi = db.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: new Date(),
     },
   },
   {

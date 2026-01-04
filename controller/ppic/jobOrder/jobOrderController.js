@@ -1,4 +1,4 @@
-const { Op, Sequelize, where } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const ProduksiLkhTahapan = require("../../../model/produksi/produksiLkhTahapanModel");
 const ioMountingModel = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
@@ -71,7 +71,11 @@ const BomController = {
             {
               model: soModel,
               as: "so",
-              attributes: ["status_produk"],
+              attributes: [
+                "status_produk",
+                "no_po_customer",
+                "tgl_po_customer",
+              ],
             },
             {
               model: JobOrderMounting,
@@ -89,6 +93,8 @@ const BomController = {
                     "warna_depan",
                     "warna_belakang",
                     "jumlah_warna",
+                    "keterangan_warna_depan",
+                    "keterangan_warna_belakang",
                   ],
                   include: {
                     model: IoTahapan,
@@ -144,18 +150,44 @@ const BomController = {
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
-      const length = await JobOrder.count({
+
+      const length = await JobOrder.findOne({
         where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
         },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
       });
+
+      let number = 0;
+
+      if (length) {
+        const lastNo = length.no_jo; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        number = lastSeq;
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        total_data: length,
+        total_data: number,
       });
     } catch (error) {
       res

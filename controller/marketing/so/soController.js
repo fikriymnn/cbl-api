@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const SoModel = require("../../../model/marketing/so/soModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
@@ -141,12 +141,41 @@ const SoController = {
 
   getSoJumlahData: async (req, res) => {
     try {
-      const length = await SoModel.count();
+      const length = await SoModel.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
+
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+        },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      let number = 0;
+
+      if (length) {
+        const lastNo = length.no_so; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        number = lastSeq;
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        total_data: length,
+        total_data: number,
       });
     } catch (error) {
       res

@@ -10,6 +10,8 @@ const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTaha
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const MasterBarang = require("../../../model/masterData/barang/masterBarangModel");
+const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
+const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
@@ -62,17 +64,31 @@ const IoController = {
       } else if (_id) {
         const response = await Io.findByPk(_id, {
           include: [
-            // {
-            //   model: Okp,
-            //   as: "okp",
-            //   attributes:["id","id_kalkulasi"],
-            //   include:[
-            //     {
-            //         model:Kalkulasi,
-            //         as:"kalkulasi"
-            //     }
-            //   ]
-            // },
+            {
+              model: Okp,
+              as: "okp",
+              attributes: ["id"],
+              include: [
+                {
+                  model: Kalkulasi,
+                  as: "kalkulasi",
+                  attributes: ["id"],
+                  include: [
+                    {
+                      model: MasterMarketing,
+                      as: "marketing",
+                      attributes: ["id_karyawan"],
+                      include: {
+                        model: MasterKaryawan,
+                        as: "data_karyawan",
+                        attributes: ["name"],
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+
             {
               model: Users,
               as: "user_create",
