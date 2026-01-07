@@ -144,6 +144,7 @@ const userController = {
       role,
       bagian,
       divisi_bawahan,
+      id_role,
     } = req.body;
 
     if (
@@ -189,6 +190,7 @@ const userController = {
         no: no,
         bagian: bagian,
         divisi_bawahan: divisi_bawahan,
+        id_role: id_role,
       }),
         res.status(201).json({
           succes: true,

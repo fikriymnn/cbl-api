@@ -77,6 +77,7 @@ const authController = {
           "status",
           "bagian",
           "divisi_bawahan",
+          "id_role",
         ],
         where: {
           uuid: uuid,

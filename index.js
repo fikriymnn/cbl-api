@@ -167,7 +167,7 @@ const CapaTiket = require("./model/qc/capa/capaTiketmodel");
 const CapaKetidaksesuaian = require("./model/qc/capa/capaKetidakSesuaianModel");
 
 const masterBagian = require("./model/masterData/masterBagian");
-const masterRole = require("./model/masterData/masterRoleModel");
+// const masterRole = require("./model/masterData/masterRoleModel");
 const masterAkses = require("./model/masterData/masterAkses/masterAksesModel");
 
 //master hr
@@ -253,7 +253,7 @@ const TiketPerubahanJadwalKirim = require("./model/ppic/jadwalProduksiCalculateM
 const BookingJadwal = require("./model/ppic/bookingJadwal/bookingJadwalModel");
 
 //hak akses
-const MasterRole = require("./model/masterData/masterRoleModel");
+// const MasterRole = require("./model/masterData/masterRoleModel");
 const MasterAksesMain = require("./model/masterData/masterAkses/masterAksesModel");
 const MasterAksesParent1 = require("./model/masterData/masterAkses/masterAksesParent1Model");
 const MasterAksesParent2 = require("./model/masterData/masterAkses/masterAksesParent2Model");
@@ -368,6 +368,12 @@ const ReturProduk = require("./model/akunting/retur/returProdukModel");
 const PerubahanInvoice = require("./model/akunting/perubahanInvoice/perubahanInvoiceModel");
 const PerubahanInvoiceProduk = require("./model/akunting/perubahanInvoice/perubahanInvoiceProdukModel");
 
+//menu
+const MasterMenu = require("./model/masterData/menu/masterMenuModel");
+const MasterRole = require("./model/masterData/menu/masterRoleModel");
+const MasterRoleMenu = require("./model/masterData/menu/masterRoleMenuModel");
+const seedMenus = require("./seeder/menuSeeder");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
@@ -383,7 +389,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MasterKodeProduksi.sync({ alter: true, logging: console.log });
+//   await user.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75
@@ -465,6 +471,7 @@ app.get("/", (req, res) => {
       res.json({ msg: error });
     });
 });
+// seedMenus();
 
 app.use("/", require("./routes/router"));
 

@@ -23,7 +23,7 @@ router.use("/", require("./mtc/preventive/inspentionPm3Routes"));
 
 //master data
 router.use("/", require("./masterdata/masterBagianRoutes"));
-router.use("/", require("./masterdata/masterRoleRoutes"));
+// router.use("/", require("./masterdata/masterRoleRoutes"));
 
 //master data maintenance
 router.use("/", require("./masterdata/mtc/masterMesinRoute"));
@@ -335,6 +335,11 @@ router.use("/", require("./akunting/deposit/depositRoute"));
 router.use("/", require("./akunting/invoice/invoiceRoute"));
 router.use("/", require("./akunting/retur/returRoute"));
 router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
+
+//menu
+router.use("/", require("./masterdata/menu/masterMenuRoute"));
+router.use("/", require("./masterdata/menu/masterRoleMenuRoute"));
+router.use("/", require("./masterdata/menu/masterRoleRoute"));
 
 router.use("/", require("./uploadRoutes"));
 
