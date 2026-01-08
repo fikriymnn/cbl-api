@@ -110,6 +110,10 @@ const Kalkulasi = db.define(
       allowNull: false,
       defaultValue: new Date(),
     },
+    tgl_approve_kalkulasi: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     kode_kalkulasi: {
       type: DataTypes.STRING,
       allowNull: true,
