@@ -983,6 +983,7 @@ const KalkulasiController = {
           status_proses: "approve kabag",
           note_kabag: note_kabag,
           id_user_approve: req.user.id,
+          tgl_approve_kalkulasi: new Date(),
           is_io_active: isIoActive,
           is_okp_done: isOkpDone,
         },
