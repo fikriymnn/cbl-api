@@ -119,6 +119,8 @@ const AbsensiController = {
       idDepartment,
       divisi_bawahan,
       id_karyawan,
+      tipe_penggajian,
+      id_divisi,
       is_active,
       startDate,
       endDate,
@@ -128,6 +130,8 @@ const AbsensiController = {
     if (idDepartment) obj.id_department = idDepartment;
     if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
     if (id_karyawan) obj.id_karyawan = id_karyawan;
+    if (tipe_penggajian) obj.tipe_penggajian = tipe_penggajian;
+    if (id_divisi) obj.id_divisi = id_divisi;
     if (is_active && is_active == "true") {
       obj.is_active = true;
     } else if (is_active && is_active == "false") {
