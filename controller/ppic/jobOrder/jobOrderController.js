@@ -75,6 +75,7 @@ const BomController = {
                 "status_produk",
                 "no_po_customer",
                 "tgl_po_customer",
+                "tgl_pengiriman",
               ],
             },
             {
