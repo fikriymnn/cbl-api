@@ -19,6 +19,11 @@ const KalkulasiQty = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    harga_satuan_customer: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     is_selected: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
