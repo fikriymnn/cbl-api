@@ -1,5 +1,6 @@
 const { Op, fn, col, literal } = require("sequelize");
 const SoModel = require("../../../model/marketing/so/soModel");
+const soPerubahanTanggalKirimModel = require("../../../model/marketing/so/soPerubahanTanggalKirimModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
 const Io = require("../../../model/marketing/io/ioModel");
@@ -55,7 +56,13 @@ const SoController = {
         const length = await SoModel.count({ where: obj });
         const data = await SoModel.findAll({
           where: obj,
-          include: [{ model: BomModel, as: "bom" }],
+          include: [
+            { model: BomModel, as: "bom" },
+            {
+              model: soPerubahanTanggalKirimModel,
+              as: "so_perubahan_tgl_kirim",
+            },
+          ],
           offset: parseInt(offset),
           limit: parseInt(limit),
           order: [["tgl_pembuatan_so", "DESC"]],
@@ -85,6 +92,10 @@ const SoController = {
                   },
                 },
               ],
+            },
+            {
+              model: soPerubahanTanggalKirimModel,
+              as: "so_perubahan_tgl_kirim",
             },
             { model: BomModel, as: "bom" },
             {
@@ -549,6 +560,7 @@ const SoController = {
         });
       await SoModel.update(
         {
+          status: "cancel",
           status_proses: "cancel",
           note_cancel: note_cancel,
         },

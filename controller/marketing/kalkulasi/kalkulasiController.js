@@ -41,6 +41,7 @@ const KalkulasiController = {
         obj = {
           [Op.or]: [
             { kode_kalkulasi: { [Op.like]: `%${search}%` } },
+            { no_io: { [Op.like]: `%${search}%` } },
             { status_kalkulasi: { [Op.like]: `%${search}%` } },
             { nama_customer: { [Op.like]: `%${search}%` } },
             { nama_produk: { [Op.like]: `%${search}%` } },
@@ -848,6 +849,7 @@ const KalkulasiController = {
           dataQtyList.push({
             id_kalkulasi: response.id,
             qty: e.qty,
+            harga_satuan_customer: e.harga_satuan_customer,
             is_selected: e.is_selected,
           });
         }

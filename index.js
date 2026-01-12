@@ -309,6 +309,7 @@ const IoUserAction = require("./model/marketing/io/ioActionActionModel");
 //so
 const So = require("./model/marketing/so/soModel");
 const SoUserAction = require("./model/marketing/so/soUserActionModel");
+const soPerubahanTglKirim = require("./model/marketing/so/soPerubahanTanggalKirimModel");
 
 //bom
 const BomModel = require("./model/ppic/bom/bomModel");
@@ -383,7 +384,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Kalkulasi.sync({ alter: true, logging: console.log });
+//   await soPerubahanTglKirim.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75
