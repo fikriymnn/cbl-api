@@ -13,10 +13,12 @@ exports.getAllMenus = async (req, res) => {
         {
           model: MasterMenu,
           as: "children",
+          where: { is_active: true },
           include: [
             {
               model: MasterMenu,
               as: "children",
+              where: { is_active: true },
             },
           ],
         },
