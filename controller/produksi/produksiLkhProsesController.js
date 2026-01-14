@@ -138,6 +138,7 @@ const ProduksiLkhProsesController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
       const checkJo = await JobOrder.findByPk(id_jo, {
         include: [
           {
@@ -187,30 +188,31 @@ const ProduksiLkhProsesController = {
         });
 
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        handleTahapan({
-          tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
-          shift: shiftInfo.shift,
-          periode_tiket: shiftInfo.periodDate,
-          no_jo: checkJo.no_jo,
-          operator: req.user.name,
-          mesin: checkMasterMesin.nama_mesin,
-          customer: dataProduksiLkhTahapan.customer,
-          jam: shiftInfo.currentTime,
-          no_io: dataProduksiLkhTahapan.no_io,
-          produk: dataProduksiLkhTahapan.produk,
-          qty_jo: checkJo.QTY,
-          status_jo: checkJo.status_jo,
-          tanggal_pembuatan: shiftInfo.periodDateFormatted,
-          jenis_gramatur: checkIoMounting.gramature_kertas,
-          jenis_kertas: checkIoMounting.nama_kertas,
-          warna_depan: checkIoMounting.keterangan_warna_depan,
-          warna_belakang: checkIoMounting.keterangan_warna_belakang,
-          qty_druk: checkJo.qty_druk,
-          mata: null,
-          merk: null,
-          transaction: t,
-        });
+        // handleTahapan({
+        //   tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
+        //   shift: shiftInfo.shift,
+        //   periode_tiket: shiftInfo.periodDate,
+        //   no_jo: checkJo.no_jo,
+        //   operator: req.user.name,
+        //   mesin: checkMasterMesin.nama_mesin,
+        //   customer: dataProduksiLkhTahapan.customer,
+        //   jam: shiftInfo.currentTime,
+        //   no_io: dataProduksiLkhTahapan.no_io,
+        //   produk: dataProduksiLkhTahapan.produk,
+        //   qty_jo: checkJo.QTY,
+        //   status_jo: checkJo.status_jo,
+        //   tanggal_pembuatan: shiftInfo.periodDateFormatted,
+        //   jenis_gramatur: checkIoMounting.gramature_kertas,
+        //   jenis_kertas: checkIoMounting.nama_kertas,
+        //   warna_depan: checkIoMounting.keterangan_warna_depan,
+        //   warna_belakang: checkIoMounting.keterangan_warna_belakang,
+        //   qty_druk: checkJo.qty_druk,
+        //   mata: null,
+        //   merk: null,
+        //   transaction: t,
+        // });
 
+        console.log(dataProduksiLkhTahapan.id_io);
         const dataProduksiLkh = await ProduksiLkh.create(
           {
             id_produksi_lkh_tahapan: dataProduksiLkhTahapan.id,
@@ -348,29 +350,29 @@ const ProduksiLkhProsesController = {
 
         console.log(checkProduksiLkh.tahapan.nama_tahapan);
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        handleTahapan({
-          tahapan: checkProduksiLkh.tahapan.nama_tahapan,
-          shift: shiftInfo.shift,
-          periode_tiket: shiftInfo.periodDate,
-          no_jo: checkJo.no_jo,
-          operator: req.user.name,
-          mesin: checkMasterMesin.nama_mesin,
-          customer: checkProduksiLkh.customer,
-          jam: shiftInfo.currentTime,
-          no_io: checkProduksiLkh.no_io,
-          produk: checkProduksiLkh.produk,
-          qty_jo: checkJo.qty,
-          status_jo: checkJo.status_jo,
-          tanggal_pembuatan: shiftInfo.periodDateFormatted,
-          jenis_gramatur: checkIoMounting.gramature_kertas,
-          jenis_kertas: checkIoMounting.nama_kertas,
-          warna_depan: checkIoMounting.keterangan_warna_depan,
-          warna_belakang: checkIoMounting.keterangan_warna_belakang,
-          qty_druk: checkJo.qty_druk,
-          mata: null,
-          merk: null,
-          transaction: t,
-        });
+        // handleTahapan({
+        //   tahapan: checkProduksiLkh.tahapan.nama_tahapan,
+        //   shift: shiftInfo.shift,
+        //   periode_tiket: shiftInfo.periodDate,
+        //   no_jo: checkJo.no_jo,
+        //   operator: req.user.name,
+        //   mesin: checkMasterMesin.nama_mesin,
+        //   customer: checkProduksiLkh.customer,
+        //   jam: shiftInfo.currentTime,
+        //   no_io: checkProduksiLkh.no_io,
+        //   produk: checkProduksiLkh.produk,
+        //   qty_jo: checkJo.qty,
+        //   status_jo: checkJo.status_jo,
+        //   tanggal_pembuatan: shiftInfo.periodDateFormatted,
+        //   jenis_gramatur: checkIoMounting.gramature_kertas,
+        //   jenis_kertas: checkIoMounting.nama_kertas,
+        //   warna_depan: checkIoMounting.keterangan_warna_depan,
+        //   warna_belakang: checkIoMounting.keterangan_warna_belakang,
+        //   qty_druk: checkJo.qty_druk,
+        //   mata: null,
+        //   merk: null,
+        //   transaction: t,
+        // });
 
         await ProduksiLkhProses.create(
           {

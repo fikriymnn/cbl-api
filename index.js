@@ -384,7 +384,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await soPerubahanTglKirim.sync({ alter: true, logging: console.log });
+//   await ProduksiLkh.sync({ alter: true, logging: console.log });
 // })();
 
 // const ip100 = 75
