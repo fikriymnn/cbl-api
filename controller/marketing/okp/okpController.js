@@ -689,6 +689,7 @@ const OkpController = {
           status_proses: "done",
           id_approve_okp: req.user.id,
           tgl_approve_okp: new Date(),
+          is_io_done: false,
         },
         {
           where: { id: _id },
