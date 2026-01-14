@@ -1,5 +1,6 @@
 const { Op, fn, col, literal } = require("sequelize");
 const SoModel = require("../../../model/marketing/so/soModel");
+const JoModel = require("../../../model/ppic/jobOrder/jobOrderModel");
 const soPerubahanTanggalKirimModel = require("../../../model/marketing/so/soPerubahanTanggalKirimModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const SoUserAction = require("../../../model/marketing/so/soUserActionModel");
@@ -24,10 +25,12 @@ const SoController = {
       search,
       status,
       status_proses,
+      status_bom,
     } = req.query;
 
     try {
       let obj = {};
+      let objBom = {};
       const offset = (page - 1) * limit;
 
       if (search) {
@@ -52,12 +55,34 @@ const SoController = {
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
       }
+      if (status_bom) objBom.status = status_bom;
+      // Buat include untuk BomModel secara dinamis
+      const bomInclude = {
+        model: BomModel,
+        as: "bom",
+      };
+
+      // Jika status_bom ada, tambahkan where dan required: true
+      if (status_bom) {
+        bomInclude.where = objBom;
+        bomInclude.required = true;
+      } else {
+        bomInclude.required = false; // Tetap tampilkan data tanpa bom
+      }
       if (page && limit) {
-        const length = await SoModel.count({ where: obj });
+        const length = await SoModel.count({
+          where: obj,
+          include: [bomInclude],
+        });
         const data = await SoModel.findAll({
           where: obj,
           include: [
-            { model: BomModel, as: "bom" },
+            bomInclude,
+            {
+              model: JoModel,
+              as: "job_order",
+              attributes: ["no_jo"],
+            },
             {
               model: soPerubahanTanggalKirimModel,
               as: "so_perubahan_tgl_kirim",
