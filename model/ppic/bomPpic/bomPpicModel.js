@@ -3,6 +3,7 @@ const db = require("../../../config/database");
 const IoModel = require("../../marketing/io/ioModel");
 const BomModel = require("../bom/bomModel");
 const SoModel = require("../../marketing//so/soModel");
+const JobOrder = require("../jobOrder/jobOrderModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -10,6 +11,14 @@ const { DataTypes } = Sequelize;
 const BomPpic = db.define(
   "bom_ppic",
   {
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JobOrder,
+        key: "id",
+      },
+    },
     id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -124,6 +133,14 @@ const BomPpic = db.define(
   }
 );
 
+JobOrder.hasMany(BomPpic, {
+  foreignKey: "id_jo",
+  as: "bom_ppic",
+});
+BomPpic.belongsTo(JobOrder, {
+  foreignKey: "id_jo",
+  as: "job_order",
+});
 IoModel.hasMany(BomPpic, {
   foreignKey: "id_io",
   as: "bom_ppic",

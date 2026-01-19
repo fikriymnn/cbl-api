@@ -2,7 +2,6 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const IoModel = require("../../marketing/io/ioModel");
 const SoModel = require("../../marketing//so/soModel");
-const BomModel = require("../bom/bomModel");
 const MasterCustomer = require("../../masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../masterData/marketing/masterProdukModel");
 const Users = require("../../userModel");

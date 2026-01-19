@@ -7,7 +7,10 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const JobOrderMounting = require("../../../model/ppic/jobOrder/joMountingModel");
 const JobOrderUserAction = require("../../../model/ppic/jobOrder/joUserActionModel");
+const BomPpicUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
 const MasterSettingKapasitas = require("../../../model/masterData/ppic/masterKategoriSettingKapasitasModel");
+const BomModel = require("../../../model/ppic/bom/bomModel");
+const BomPpicModel = require("../../../model/ppic/bomPpic/bomPpicModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const soModel = require("../../../model/marketing/so/soModel");
@@ -228,13 +231,17 @@ const BomController = {
 
     try {
       const checkSo = await SoModel.findByPk(id_so);
-
       if (!checkSo)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data SO tidak ditemukan",
         });
+
+      const checkBom = await BomModel.findOne({ where: { id_so: checkSo.id } });
+      const checkBomPpic = await BomPpicModel.findOne({
+        where: { id_so: checkSo.id },
+      });
 
       const dataJobOrder = await JobOrder.create(
         {
@@ -311,6 +318,25 @@ const BomController = {
         { is_jo_done: true },
         { where: { id: id_so }, transaction: t }
       );
+
+      if (checkBom) {
+        await BomModel.update(
+          {
+            id_jo: dataJobOrder.id,
+            no_jo: dataJobOrder.no_jo,
+          },
+          { where: { id: checkBom.id }, transaction: t }
+        );
+      }
+      if (checkBomPpic) {
+        await BomPpicModel.update(
+          {
+            id_jo: dataJobOrder.id,
+            no_jo: dataJobOrder.no_jo,
+          },
+          { where: { id: checkBomPpic.id }, transaction: t }
+        );
+      }
 
       //fungsi create tiket jadwal produksi
       const dataSo = await soModel.findByPk(id_so);
@@ -588,6 +614,15 @@ const BomController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+      const checkDataBomPpic = await BomPpicModel.findOne({
+        where: { id_jo: checkData.id },
+      });
+      // if (!checkDataBomPpic)
+      //   return res.status(404).json({
+      //     succes: false,
+      //     status_code: 404,
+      //     msg: "Data BOM PPIC tidak ditemukan",
+      //   });
 
       const ioMounting = await ioMountingModel.findByPk(
         checkData.jo_mounting[0].id_io_mounting,
@@ -612,11 +647,26 @@ const BomController = {
           where: { id: _id },
           transaction: t,
         }
-      ),
-        await JobOrderUserAction.create(
-          { id_jo: checkData.id, id_user: req.user.id, status: "approve" },
-          { transaction: t }
+      );
+
+      if (checkDataBomPpic) {
+        await BomPpicModel.update(
+          {
+            status: "history",
+            status_proses: "done",
+            id_approve_bom_ppic: req.user.id,
+            tgl_approve_bom_ppic: new Date(),
+          },
+          {
+            where: { id: checkDataBomPpic.id },
+            transaction: t,
+          }
         );
+      }
+      await JobOrderUserAction.create(
+        { id_jo: checkData.id, id_user: req.user.id, status: "approve" },
+        { transaction: t }
+      );
       for (let i = 0; i < ioMounting.tahapan.length; i++) {
         const e = ioMounting.tahapan[i];
         await ProduksiLkhTahapan.create(
@@ -665,6 +715,15 @@ const BomController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+      const checkDataBomPpic = await BomPpicModel.findOne({
+        where: { id_jo: checkData.id },
+      });
+      // if (!checkDataBomPpic)
+      //   return res.status(404).json({
+      //     succes: false,
+      //     status_code: 404,
+      //     msg: "Data BOM PPIC tidak ditemukan",
+      //   });
       await JobOrder.update(
         {
           status_proses: "reject kabag",
@@ -675,15 +734,37 @@ const BomController = {
           where: { id: _id },
           transaction: t,
         }
-      ),
-        await JobOrderUserAction.create(
+      );
+      if (checkDataBomPpic) {
+        await BomPpicModel.update(
           {
-            id_jo: checkData.id,
+            status_proses: "reject kabag",
+            status: "draft",
+            note_reject: note_reject,
+          },
+          {
+            where: { id: checkDataBomPpic.id },
+            transaction: t,
+          }
+        );
+
+        await BomPpicUserAction.create(
+          {
+            id_bom: checkDataBomPpic.id,
             id_user: req.user.id,
             status: "kabag reject",
           },
           { transaction: t }
         );
+      }
+      await JobOrderUserAction.create(
+        {
+          id_jo: checkData.id,
+          id_user: req.user.id,
+          status: "kabag reject",
+        },
+        { transaction: t }
+      );
       await t.commit(),
         res
           .status(200)

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const SoController = require("../../controller/marketing/so/soController");
 const SoPerubahanTanggalKirimController = require("../../controller/marketing/so/soPerubahanTanggalKirimController");
+const SoPerubahanHargaController = require("../../controller/marketing/so/soPerubahanHargaController");
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/so/:id?", auth, SoController.getSo);
@@ -49,6 +50,38 @@ router.delete(
   "/marketing/soPerubahanTanggalKirim/:id",
   auth,
   SoPerubahanTanggalKirimController.deleteSoPerubahanTanggalKirim
+);
+
+// request perubahan harga
+router.get(
+  "/marketing/soPerubahanHarga/:id?",
+  auth,
+  SoPerubahanHargaController.getSoPerubahanHarga
+);
+router.post(
+  "/marketing/soPerubahanHarga",
+  auth,
+  SoPerubahanHargaController.createSoPerubahanHarga
+);
+router.put(
+  "/marketing/soPerubahanHarga/:id",
+  auth,
+  SoPerubahanHargaController.updateSoPerubahanHarga
+);
+router.put(
+  "/marketing/soPerubahanHarga/approve/:id",
+  auth,
+  SoPerubahanHargaController.approveSoPerubahanHarga
+);
+router.put(
+  "/marketing/soPerubahanHarga/reject/:id",
+  auth,
+  SoPerubahanHargaController.rejectSoPerubahanHarga
+);
+router.delete(
+  "/marketing/soPerubahanHarga/:id",
+  auth,
+  SoPerubahanHargaController.deleteSoPerubahanHarga
 );
 
 module.exports = router;

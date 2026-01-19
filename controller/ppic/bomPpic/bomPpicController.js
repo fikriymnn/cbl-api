@@ -1,4 +1,4 @@
-const { Op, Sequelize, where } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const BomModel = require("../../../model/ppic/bom/bomModel");
 const BomPpicModel = require("../../../model/ppic/bomPpic/bomPpicModel");
 const BomPpicKertasModel = require("../../../model/ppic/bomPpic/bomPpicKertasModel");
@@ -10,6 +10,7 @@ const BomPpicCoatingModel = require("../../../model/ppic/bomPpic/bomPpicCoatingM
 const BomPpicLemModel = require("../../../model/ppic/bomPpic/bomPpicLemModel");
 const BomPpicUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
 const BomPpicLainLain = require("../../../model/ppic/bomPpic/bomPpicLainLainModel");
+const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const soModel = require("../../../model/marketing/so/soModel");
@@ -169,13 +170,68 @@ const BomPpicController = {
     const t = await db.transaction();
 
     try {
+      //get data terakhir
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+
+      //get data untuk no bom
+      const lastdataBomPpic = await BomPpicModel.findOne({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+        },
+        order: [
+          // extract nomor urut pada format SDP00001/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom_ppic, 4), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      //tentukan no_do type tax dan non tax selanjutnya
+      const currentYear = new Date().getFullYear();
+      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+      const shortYear = String(currentYear).slice(2); // 2025 => "25"
+      // 2. Tentukan nomor urut berikutnya
+      let nextNumberBom = 1;
+      if (lastdataBomPpic) {
+        const lastNo = lastdataBomPpic.no_bom_ppic; // contoh: "BP-00001/09/25"
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        nextNumberBom = lastSeq + 1;
+      }
+      const paddedNumberBomPpic = String(nextNumberBom).padStart(4, "0");
+      const newBomPpicNumber = `BP-${paddedNumberBomPpic}/${currentMonth}/${shortYear}`;
+
+      //cek apakah sudah punya jo
+      let idJo = null;
+      let noJo = null;
+      const checkJo = await JobOrder.findOne({
+        where: { id_so: id_so, is_active: true },
+      });
+
+      if (checkJo) {
+        idJo = checkJo.id;
+        noJo = checkJo.no_jo;
+      }
+
       const dataBomPpicModel = await BomPpicModel.create(
         {
+          id_jo: idJo,
           id_io,
           id_so,
           id_bom,
           id_create_bom_ppic: req.user.id,
-          no_bom_ppic,
+          no_jo: noJo,
+          no_bom_ppic: newBomPpicNumber,
           no_io,
           no_so,
           no_bom,
@@ -603,7 +659,7 @@ const BomPpicController = {
           transaction: t,
         }
       ),
-        await BomUserAction.create(
+        await BomPpicUserAction.create(
           { id_bom: checkData.id, id_user: req.user.id, status: "requested" },
           { transaction: t }
         );
@@ -693,6 +749,50 @@ const BomPpicController = {
             id_bom: checkData.id,
             id_user: req.user.id,
             status: "kabag reject",
+          },
+          { transaction: t }
+        );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  backToProcessBom: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await BomPpicModel.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await BomPpicModel.update(
+        {
+          status_proses: "kembali ke BOM",
+          status: "draft",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await BomModel.update(
+          { status_proses: "kembali dari BOM PPIC", status: "draft" },
+          { where: { id: checkData.id_bom }, transaction: t }
+        ),
+        await BomPpicUserAction.create(
+          {
+            id_bom: checkData.id,
+            id_user: req.user.id,
+            status: "kembali ke BOM",
           },
           { transaction: t }
         );
