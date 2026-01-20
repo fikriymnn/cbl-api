@@ -94,6 +94,11 @@ const io = db.define(
     status_send_proof: {
       type: DataTypes.STRING,
       allowNull: true,
+      defaultValue: null,
+    },
+    status_send_proof: {
+      type: DataTypes.STRING,
+      allowNull: true,
       defaultValue: "",
     },
     note_reject: {
@@ -114,6 +119,11 @@ const io = db.define(
       allowNull: true,
     },
     is_updated: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
+    is_send_proof: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: false,
