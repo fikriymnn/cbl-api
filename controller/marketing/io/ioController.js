@@ -162,7 +162,7 @@ const IoController = {
           // extract nomor urut pada format OK00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_io, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_io, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -262,7 +262,7 @@ const IoController = {
         });
 
       const checkDataKertas = await MasterBarang.findByPk(
-        checkKalkulasi.id_kertas
+        checkKalkulasi.id_kertas,
       );
 
       if (!checkDataKertas)
@@ -291,7 +291,7 @@ const IoController = {
 
         await Io.update(
           { is_active: false },
-          { where: { id_okp: checkOkp.id_okp_previous }, transaction: t }
+          { where: { id_okp: checkOkp.id_okp_previous }, transaction: t },
         );
         revisiKe = checkIoPrevious?.revisi_ke + 1;
         basenoIo = checkIoPrevious?.base_no_io;
@@ -318,7 +318,7 @@ const IoController = {
           keterangan: keterangan,
           label: checkKalkulasi.label,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       let merkSeratKertas = "Serat Panjang";
@@ -365,19 +365,19 @@ const IoController = {
           id_layout: checkOkp.id_pisau,
           merk_serat_kertas: `${checkKalkulasi.brand_kertas} / ${merkSeratKertas}`,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
         { id_io: response.id, no_io: response.no_io },
-        { where: { id: checkKalkulasi.id }, transaction: t }
+        { where: { id: checkKalkulasi.id }, transaction: t },
       );
 
       //proses update okp untuk done io
       await Okp.update(
         { is_io_done: true },
-        { where: { id: checkOkp.id }, transaction: t }
+        { where: { id: checkOkp.id }, transaction: t },
       );
 
       //proses default tahapan
@@ -393,7 +393,7 @@ const IoController = {
               },
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
 
         if (!tahapanMesin)
@@ -411,7 +411,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 1,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -427,7 +427,7 @@ const IoController = {
               },
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
         if (!tahapanMesin)
           return res.status(404).json({
@@ -444,7 +444,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 2,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -460,7 +460,7 @@ const IoController = {
               },
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
         if (!tahapanMesin)
           return res.status(404).json({
@@ -477,7 +477,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 3,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -493,7 +493,7 @@ const IoController = {
               },
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
         if (!tahapanMesin)
           return res.status(404).json({
@@ -510,7 +510,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 4,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -526,7 +526,7 @@ const IoController = {
               },
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
         if (!tahapanMesin)
           return res.status(404).json({
@@ -543,7 +543,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 5,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -560,7 +560,7 @@ const IoController = {
 
               { model: MasterTahapan, as: "tahapan" },
             ],
-          }
+          },
         );
         if (!tahapanMesin)
           return res.status(404).json({
@@ -577,7 +577,7 @@ const IoController = {
             nama_mesin: tahapanMesin.mesin.nama_mesin,
             index: 5,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -685,12 +685,12 @@ const IoController = {
       });
       await IoUserAction.create(
         { id_io: checkData.id, id_user: req.user.id, status: "update" },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -703,19 +703,19 @@ const IoController = {
     const _id = req.params.id;
     const t = await db.transaction();
     try {
-      await Kalkulasi.update(
+      (await Kalkulasi.update(
         {
           is_io_active: false,
         },
         {
           where: { id_io: _id, is_io_active: true },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Done Successful" });
+          .json({ succes: true, status_code: 200, msg: "Done Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -735,7 +735,7 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await Io.update(
+      (await Io.update(
         {
           status: "requested",
           status_proses: "request to npd",
@@ -743,16 +743,16 @@ const IoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await IoUserAction.create(
           { id_io: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" });
+          .json({ succes: true, status_code: 200, msg: "Request Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -772,7 +772,7 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await Io.update(
+      (await Io.update(
         {
           status: "history",
           status_proses: "done",
@@ -782,22 +782,22 @@ const IoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await IoUserAction.create(
           { id_io: checkData.id, id_user: req.user.id, status: "approve" },
-          { transaction: t }
-        );
+          { transaction: t },
+        ));
 
       //proses update no io dan id io di kalkulasi
       await Kalkulasi.update(
         { is_io_active: true },
-        { where: { id_io: checkData.id }, transaction: t }
+        { where: { id_io: checkData.id }, transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -818,7 +818,7 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await Io.update(
+      (await Io.update(
         {
           status_proses: "reject npd",
           status: "draft",
@@ -827,16 +827,16 @@ const IoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await IoUserAction.create(
           { id_io: checkData.id, id_user: req.user.id, status: "npd reject" },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -877,14 +877,14 @@ const IoController = {
         });
 
       const dataLastMounting = checkData.reduce((prev, current) =>
-        prev.nama_mounting > current.nama_mounting ? prev : current
+        prev.nama_mounting > current.nama_mounting ? prev : current,
       );
 
       const namaMounting = nextAlphabet(dataLastMounting.nama_mounting);
 
       await Io.update(
         { is_updated: true },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       const newMounting = await IoMounting.create(
@@ -949,7 +949,7 @@ const IoController = {
           tambahan_insheet_druk: checkDataMountingA.tambahan_insheet_druk,
           file: checkDataMountingA.file,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       for (let i = 0; i < checkDataMountingA.tahapan.length; i++) {
@@ -969,7 +969,7 @@ const IoController = {
             value_drying_time: e.value_drying_time,
             index: e.index,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -979,12 +979,12 @@ const IoController = {
           id_user: req.user.id,
           status: "create mounting",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -998,13 +998,81 @@ const IoController = {
     const { data_mounting } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await IoMounting.findAll({ where: { id: _id } });
+      const checkData = await IoMounting.findByPk({ where: { id: _id } });
       if (!checkData)
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      let namaCoatingDepan = null;
+      if (data_mounting.id_coating_depan) {
+        const checkCoatingDepan = await MasterBarang.findByPk(
+          data_mounting.id_coating_depan,
+        );
+        if (!checkCoatingDepan)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data coating depan tidak ditemukan",
+          });
+        namaCoatingDepan = checkCoatingDepan.nama_barang;
+      }
+
+      let namaCoatingBelakang = null;
+      if (data_mounting.id_coating_belakang) {
+        const checkCoatingBelakang = await MasterBarang.findByPk(
+          data_mounting.id_coating_belakang,
+        );
+        if (!checkCoatingBelakang)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data coating belakang tidak ditemukan",
+          });
+        namaCoatingBelakang = checkCoatingBelakang.nama_barang;
+      }
+
+      let namaKertas = null;
+      if (data_mounting.id_kertas) {
+        const checkKertas = await MasterBarang.findByPk(
+          data_mounting.id_kertas,
+        );
+        if (!checkKertas)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data kertas tidak ditemukan",
+          });
+        namaKertas = checkKertas.nama_barang;
+      }
+
+      let namaJenisPons = null;
+      if (data_mounting.id_jenis_pons) {
+        const checkPons = await MasterBarang.findByPk(
+          data_mounting.id_jenis_pons,
+        );
+        if (!checkPons)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data jenis pons tidak ditemukan",
+          });
+        namaJenisPons = checkPons.nama_barang;
+      }
+
+      let namaLem = null;
+      if (data_mounting.id_lem) {
+        const checkLem = await MasterBarang.findByPk(data_mounting.id_lem);
+        if (!checkLem)
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: "Data lem tidak ditemukan",
+          });
+        namaLem = checkLem.nama_barang;
+      }
 
       await IoMounting.update(
         {
@@ -1021,15 +1089,15 @@ const IoController = {
           keterangan_warna_depan: data_mounting.keterangan_warna_depan,
           keterangan_warna_belakang: data_mounting.keterangan_warna_belakang,
           id_coating_depan: data_mounting.id_coating_depan,
-          nama_coating_depan: data_mounting.nama_coating_depan,
+          nama_coating_depan: namaCoatingDepan,
           merk_coating_depan: data_mounting.merk_coating_depan,
           id_coating_belakang: data_mounting.id_coating_belakang,
-          nama_coating_belakang: data_mounting.nama_coating_belakang,
+          nama_coating_belakang: namaCoatingBelakang,
           merk_coating_belakang: data_mounting.merk_coating_belakang,
           merk_serat_kertas: data_mounting.merk_serat_kertas,
           jenis_kertas: data_mounting.jenis_kertas,
           id_kertas: data_mounting.id_kertas,
-          nama_kertas: data_mounting.nama_kertas,
+          nama_kertas: namaKertas,
           gramature_kertas: data_mounting.gramature_kertas,
           panjang_plano: data_mounting.panjang_plano,
           lebar_plano: data_mounting.lebar_plano,
@@ -1045,10 +1113,10 @@ const IoController = {
           ukuran_cetak_isi_2: data_mounting.ukuran_cetak_isi_2,
           id_layout: data_mounting.id_layout,
           id_jenis_pons: data_mounting.id_jenis_pons,
-          nama_jenis_pons: data_mounting.nama_jenis_pons,
+          nama_jenis_pons: namaJenisPons,
           keterangan_jenis_pons: data_mounting.keterangan_jenis_pons,
           id_lem: data_mounting.id_lem,
-          nama_lem: data_mounting.nama_lem,
+          nama_lem: namaLem,
           merk_komp_lem: data_mounting.merk_komp_lem,
           keterangan_lem: data_mounting.keterangan_lem,
           isi_dalam_1_pack: data_mounting.isi_dalam_1_pack,
@@ -1063,7 +1131,7 @@ const IoController = {
           tambahan_insheet_druk: data_mounting.tambahan_insheet_druk,
           file: data_mounting.file,
         },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       // === Fungsi util untuk update child ===
@@ -1072,7 +1140,7 @@ const IoController = {
         tableName,
         foreignKey,
         newData,
-        idField = "id"
+        idField = "id",
       ) {
         const existing = await model.findAll({
           where: { [foreignKey]: _id },
@@ -1085,7 +1153,7 @@ const IoController = {
 
         // 🔸 Hapus data yang tidak ada lagi di frontend
         const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid)
+          (eid) => !incomingIds.includes(eid),
         );
         if (deletedIds.length > 0) {
           await model.destroy({
@@ -1114,7 +1182,7 @@ const IoController = {
           IoMountingLainLain,
           "lain_lain",
           "id_io_mounting",
-          data_mounting.lain_lain
+          data_mounting.lain_lain,
         );
       }
 
@@ -1161,7 +1229,7 @@ const IoController = {
               value_drying_time: e.value_drying_time,
               index: e.index,
             },
-            { transaction: t }
+            { transaction: t },
           );
         } else {
           await IoTahapan.update(
@@ -1180,7 +1248,7 @@ const IoController = {
             {
               where: { id: e.id },
               transaction: t,
-            }
+            },
           );
         }
       }
@@ -1191,17 +1259,17 @@ const IoController = {
           id_user: req.user.id,
           status: "update mounting",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
-      await t.rollback(),
+      (await t.rollback(),
         res
           .status(400)
-          .json({ succes: true, status_code: 400, msg: error.message });
+          .json({ succes: true, status_code: 400, msg: error.message }));
     }
   },
 
@@ -1216,12 +1284,12 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await IoMounting.update(
+      (await IoMounting.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await IoUserAction.create(
           {
@@ -1229,17 +1297,17 @@ const IoController = {
             id_user: req.user.id,
             status: `delete Mounting`,
           },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
-      await t.rollback(),
+      (await t.rollback(),
         res
           .status(400)
-          .json({ succes: true, status_code: 400, msg: error.message });
+          .json({ succes: true, status_code: 400, msg: error.message }));
     }
   },
 
@@ -1254,12 +1322,12 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await Io.update(
+      (await Io.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await IoUserAction.create(
           {
@@ -1267,17 +1335,17 @@ const IoController = {
             id_user: req.user.id,
             status: "delete io",
           },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
-      await t.rollback(),
+      (await t.rollback(),
         res
           .status(400)
-          .json({ succes: true, status_code: 400, msg: error.message });
+          .json({ succes: true, status_code: 400, msg: error.message }));
     }
   },
 };

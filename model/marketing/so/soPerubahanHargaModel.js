@@ -45,11 +45,11 @@ const soPerubahanHarga = db.define(
       allowNull: true,
     },
     harga_awal: {
-      type: DataTypes.DATE,
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     harga_perubahan: {
-      type: DataTypes.DATE,
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     note: {
@@ -73,7 +73,7 @@ const soPerubahanHarga = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 So.hasMany(soPerubahanHarga, {
