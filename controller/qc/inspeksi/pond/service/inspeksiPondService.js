@@ -1,15 +1,14 @@
 const db = require("../../../../../config/database");
 const { Op, Sequelize, where } = require("sequelize");
-const InspeksiCetak = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakModel");
-const InspeksiCetakAwal = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalModel");
-const InspeksiCetakAwalPoint = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakAwalPointModel");
-const InspeksiCetakPeriode = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeModel");
-const InspeksiCetakPeriodePoint = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodePointModel");
-const InspeksiCetakPeriodeDefect = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectModel");
-const InspeksiCetakPeriodeDefectDepartment = require("../../../../../model/qc/inspeksi/cetak/inspeksiCetakPeriodeDefectDeparmentMOdel");
+const InspeksiPond = require("../../../../../model/qc/inspeksi/pond/inspeksiPondModel");
+const InspeksiPondAwal = require("../../../../../model/qc/inspeksi/pond/inspeksiPondAwalModel");
+const InspeksiPondAwalPoint = require("../../../../../model/qc/inspeksi/pond/inspeksiPondAwalPointModel");
+const InspeksiPondPeriode = require("../../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeModel");
+const InspeksiPondPeriodePoint = require("../../../../../model/qc/inspeksi/pond/inspeksiPondPeriodePointModel");
+const InspeksiPondPeriodeDefect = require("../../../../../model/qc/inspeksi/pond/inspeksiPondPeriodeDefectModel");
 const User = require("../../../../../model/userModel");
-const InspeksiCetakService = {
-  getInspeksiCetakService: async ({
+const InspeksiPondService = {
+  getInspeksiPondService: async ({
     id,
     status,
     tahapan,
@@ -60,21 +59,21 @@ const InspeksiCetakService = {
         };
       }
       if (page && limit) {
-        const length = await InspeksiCetak.count({ where: obj });
-        const data = await InspeksiCetak.findAll({
+        const length = await InspeksiPond.count({ where: obj });
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
           where: obj,
           include: [
             {
-              model: InspeksiCetakAwal,
-              as: "inspeksi_cetak_awal",
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
               attributes: ["id"],
               include: [
                 {
-                  model: InspeksiCetakAwalPoint,
-                  as: "inspeksi_cetak_awal_point",
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
                   attributes: ["id"],
                   include: {
                     model: User,
@@ -84,63 +83,18 @@ const InspeksiCetakService = {
               ],
             },
             {
-              model: InspeksiCetakPeriode,
-              as: "inspeksi_cetak_periode",
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
               attributes: ["id"],
               include: [
                 {
-                  model: InspeksiCetakPeriodePoint,
-                  as: "inspeksi_cetak_periode_point",
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
                   attributes: ["id"],
                   include: [
                     {
                       model: User,
                       as: "inspektor",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        });
-        return {
-          status_code: 200,
-          success: true,
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        };
-      } else if (id) {
-        const data = await InspeksiCetak.findByPk(id, {
-          include: [
-            {
-              model: InspeksiCetakAwal,
-              as: "inspeksi_cetak_awal",
-              include: [
-                {
-                  model: InspeksiCetakAwalPoint,
-                  as: "inspeksi_cetak_awal_point",
-                  include: {
-                    model: User,
-                    as: "inspektor",
-                  },
-                },
-              ],
-            },
-            {
-              model: InspeksiCetakPeriode,
-              as: "inspeksi_cetak_periode",
-              include: [
-                {
-                  model: InspeksiCetakPeriodePoint,
-                  as: "inspeksi_cetak_periode_point",
-                  include: [
-                    {
-                      model: User,
-                      as: "inspektor",
-                    },
-                    {
-                      model: InspeksiCetakPeriodeDefect,
-                      as: "inspeksi_cetak_periode_defect",
                     },
                   ],
                 },
@@ -149,15 +103,22 @@ const InspeksiCetakService = {
           ],
         });
 
-        const checkInspeksiCetak = await InspeksiCetak.findOne({
+        return {
+          status_code: 200,
+          success: true,
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        };
+      } else if (id) {
+        const data = await InspeksiPond.findByPk(id, {
           include: [
             {
-              model: InspeksiCetakAwal,
-              as: "inspeksi_cetak_awal",
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
               include: [
                 {
-                  model: InspeksiCetakAwalPoint,
-                  as: "inspeksi_cetak_awal_point",
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
                   include: {
                     model: User,
                     as: "inspektor",
@@ -166,20 +127,59 @@ const InspeksiCetakService = {
               ],
             },
             {
-              model: InspeksiCetakPeriode,
-              as: "inspeksi_cetak_periode",
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
               include: [
                 {
-                  model: InspeksiCetakPeriodePoint,
-                  as: "inspeksi_cetak_periode_point",
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
                   include: [
                     {
                       model: User,
                       as: "inspektor",
                     },
                     {
-                      model: InspeksiCetakPeriodeDefect,
-                      as: "inspeksi_cetak_periode_defect",
+                      model: InspeksiPondPeriodeDefect,
+                      as: "inspeksi_pond_periode_defect",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+
+        const checkInspeksiPond = await InspeksiPond.findOne({
+          include: [
+            {
+              model: InspeksiPondAwal,
+              as: "inspeksi_pond_awal",
+              include: [
+                {
+                  model: InspeksiPondAwalPoint,
+                  as: "inspeksi_pond_awal_point",
+                  include: {
+                    model: User,
+                    as: "inspektor",
+                  },
+                },
+              ],
+            },
+            {
+              model: InspeksiPondPeriode,
+              as: "inspeksi_pond_periode",
+              include: [
+                {
+                  model: InspeksiPondPeriodePoint,
+                  as: "inspeksi_pond_periode_point",
+                  include: [
+                    {
+                      model: User,
+                      as: "inspektor",
+                    },
+                    {
+                      model: InspeksiPondPeriodeDefect,
+                      as: "inspeksi_pond_periode_defect",
                     },
                   ],
                 },
@@ -194,7 +194,7 @@ const InspeksiCetakService = {
           },
         });
 
-        const pointDefect = await InspeksiCetakPeriodeDefect.findAll({
+        const pointDefect = await InspeksiPondPeriodeDefect.findAll({
           attributes: [
             "kode",
             "sumber_masalah",
@@ -207,24 +207,17 @@ const InspeksiCetakService = {
             ],
           ],
           group: ["kode"],
-          where: { id_inspeksi_cetak: id, hasil: "not ok" },
-          include: [
-            {
-              model: InspeksiCetakPeriodeDefectDepartment,
-              as: "inspeksi_cetak_periode_defect_department",
-            },
-          ],
+          where: { id_inspeksi_pond: id, hasil: "not ok" },
         });
-
         return {
           status_code: 200,
           success: true,
           data: data,
-          history: checkInspeksiCetak,
+          history: checkInspeksiPond,
           defect: pointDefect,
         };
       } else {
-        const data = await InspeksiCetak.findAll({
+        const data = await InspeksiPond.findAll({
           order: [["createdAt", "DESC"]],
           where: obj,
         });
@@ -243,7 +236,7 @@ const InspeksiCetakService = {
     }
   },
 
-  creteInspeksiCetakService: async ({
+  creteInspeksiPondService: async ({
     tahapan,
     periode_tiket,
     tanggal,
@@ -257,8 +250,7 @@ const InspeksiCetakService = {
     mata,
     jenis_kertas,
     jenis_gramatur,
-    warna_depan,
-    warna_belakang,
+    ukuran_jadi,
     nama_produk,
     customer,
     status_jo,
@@ -268,26 +260,26 @@ const InspeksiCetakService = {
     const t = transaction || (await db.transaction());
 
     try {
-      const checkInspeksiCetak = await InspeksiCetak.findOne({
+      const checkInspeksipond = await InspeksiPond.findOne({
         where: {
           no_jo: no_jo,
           status: "pending",
         },
       });
-      if (checkInspeksiCetak) {
-        await InspeksiCetak.update(
+      if (checkInspeksipond) {
+        await InspeksiPond.update(
           {
             status: "history",
           },
           {
             where: {
-              id: checkInspeksiCetak.id,
+              id: checkInspeksipond.id,
             },
             transaction: t,
           },
         );
       }
-      const inspeksicetak = await InspeksiCetak.create(
+      const inspeksiPond = await InspeksiPond.create(
         {
           tahapan,
           periode_tiket,
@@ -302,8 +294,7 @@ const InspeksiCetakService = {
           mata,
           jenis_kertas,
           jenis_gramatur,
-          warna_depan,
-          warna_belakang,
+          ukuran_jadi,
           nama_produk,
           customer,
           status_jo,
@@ -312,15 +303,15 @@ const InspeksiCetakService = {
         { transaction: t },
       );
 
-      const inspeksiCetakAwal = await InspeksiCetakAwal.create(
+      const inspeksiPondAwal = await InspeksiPondAwal.create(
         {
-          id_inspeksi_cetak: inspeksicetak.id,
+          id_inspeksi_pond: inspeksiPond.id,
         },
         { transaction: t },
       );
-      const inspeksiCetakAwalPoint = await InspeksiCetakAwalPoint.create(
+      const inspeksiPondAwalPoint = await InspeksiPondAwalPoint.create(
         {
-          id_inspeksi_cetak_awal: inspeksiCetakAwal.id,
+          id_inspeksi_pond_awal: inspeksiPondAwal.id,
         },
         { transaction: t },
       );
@@ -333,9 +324,9 @@ const InspeksiCetakService = {
     } catch (error) {
       if (!transaction) await t.rollback();
       // Ubah dari throw object ke throw Error
-      throw new Error(error.message || "Failed to create inspeksi cetak");
+      throw new Error(error.message || "Failed to create inspeksi pond");
     }
   },
 };
 
-module.exports = InspeksiCetakService;
+module.exports = InspeksiPondService;

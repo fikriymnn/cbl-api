@@ -9,6 +9,14 @@ const InspeksiLem = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tahapan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    periode_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -77,7 +85,7 @@ const InspeksiLem = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 module.exports = InspeksiLem;

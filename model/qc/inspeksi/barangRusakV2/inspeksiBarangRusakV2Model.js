@@ -13,6 +13,22 @@ const InspeksiBarangRusakV2 = db.define(
         key: "id",
       },
     },
+    tahapan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    periode_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mesin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    shift: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     tanggal: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -92,7 +108,7 @@ const InspeksiBarangRusakV2 = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 User.hasMany(InspeksiBarangRusakV2, {

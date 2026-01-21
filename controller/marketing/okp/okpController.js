@@ -598,9 +598,10 @@ const OkpController = {
         objProses.bagian_reject = bagian;
         objProses.note_reject = note_reject;
         objProses.status = "non active";
+        objProses.tgl_okp_desain = checkData.tgl_okp_desain;
 
         obj.status_proses = "reject marketing";
-        obj.posisi_proses = "desain";
+        obj.posisi_proses = "qa";
         obj.note_reject = note_reject;
       } else if (bagian == "customer") {
         objProses.id_user_reject = req.user.id;

@@ -3,6 +3,7 @@ const db = require("../../../config/database");
 const IoModel = require("../../marketing/io/ioModel");
 const IoMountingModel = require("../../marketing/io/ioMountingModel");
 const SoModel = require("../../marketing//so/soModel");
+const JobOrder = require("../jobOrder/jobOrderModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -10,6 +11,14 @@ const { DataTypes } = Sequelize;
 const Bom = db.define(
   "bom",
   {
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JobOrder,
+        key: "id",
+      },
+    },
     id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -60,6 +69,10 @@ const Bom = db.define(
       allowNull: true,
     },
     no_bom: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -118,6 +131,15 @@ const Bom = db.define(
     freezeTableName: true,
   }
 );
+
+JobOrder.hasMany(Bom, {
+  foreignKey: "id_jo",
+  as: "bom",
+});
+Bom.belongsTo(JobOrder, {
+  foreignKey: "id_jo",
+  as: "job_order",
+});
 
 IoModel.hasMany(Bom, {
   foreignKey: "id_io",

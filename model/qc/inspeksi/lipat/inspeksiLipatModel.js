@@ -14,6 +14,14 @@ const InspeksiLipat = db.define(
         key: "id",
       },
     },
+    tahapan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    periode_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     tanggal: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -97,7 +105,7 @@ const InspeksiLipat = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Users.hasMany(InspeksiLipat, {

@@ -5,8 +5,8 @@ const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const soPerubahanTglKirim = db.define(
-  "so_perubahan_tgl_kirim",
+const soPerubahanHarga = db.define(
+  "so_perubahan_harga",
   {
     id_so: {
       type: DataTypes.INTEGER,
@@ -40,10 +40,6 @@ const soPerubahanTglKirim = db.define(
         key: "id",
       },
     },
-    no_so: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     tgl_approve: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -52,12 +48,16 @@ const soPerubahanTglKirim = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    tgl_awal: {
-      type: DataTypes.DATE,
+    no_so: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_perubahan: {
-      type: DataTypes.DATE,
+    harga_awal: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    harga_perubahan: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
     note: {
@@ -84,37 +84,37 @@ const soPerubahanTglKirim = db.define(
   },
 );
 
-So.hasMany(soPerubahanTglKirim, {
+So.hasMany(soPerubahanHarga, {
   foreignKey: "id_so",
-  as: "so_perubahan_tgl_kirim",
+  as: "so_perubahan_harga",
 });
-soPerubahanTglKirim.belongsTo(So, {
+soPerubahanHarga.belongsTo(So, {
   foreignKey: "id_so",
   as: "so",
 });
 
-Users.hasMany(soPerubahanTglKirim, {
+Users.hasMany(soPerubahanHarga, {
   foreignKey: "id_user_create",
 });
-soPerubahanTglKirim.belongsTo(Users, {
+soPerubahanHarga.belongsTo(Users, {
   foreignKey: "id_user_create",
   as: "user_create",
 });
 
-Users.hasMany(soPerubahanTglKirim, {
+Users.hasMany(soPerubahanHarga, {
   foreignKey: "id_user_reject",
 });
-soPerubahanTglKirim.belongsTo(Users, {
+soPerubahanHarga.belongsTo(Users, {
   foreignKey: "id_user_reject",
   as: "user_reject",
 });
 
-Users.hasMany(soPerubahanTglKirim, {
+Users.hasMany(soPerubahanHarga, {
   foreignKey: "id_user_approve",
 });
-soPerubahanTglKirim.belongsTo(Users, {
+soPerubahanHarga.belongsTo(Users, {
   foreignKey: "id_user_approve",
   as: "user_approve",
 });
 
-module.exports = soPerubahanTglKirim;
+module.exports = soPerubahanHarga;

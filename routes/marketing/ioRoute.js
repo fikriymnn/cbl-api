@@ -14,6 +14,7 @@ router.put("/marketing/io/:id", auth, IoController.updateIo);
 router.put("/marketing/io/request/:id", auth, IoController.submitRequestIo);
 router.put("/marketing/io/approve/:id", auth, IoController.approveIo);
 router.put("/marketing/io/reject/:id", auth, IoController.rejectIo);
+router.put("/marketing/io/sendProof/:id", auth, IoController.sendProofIo);
 router.post("/marketing/io/mounting/:id", auth, IoController.createMountingIo);
 router.put("/marketing/io/mounting/:id", auth, IoController.updateMountingIo);
 router.delete(

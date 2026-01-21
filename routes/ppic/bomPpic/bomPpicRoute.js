@@ -17,5 +17,9 @@ router.put(
 );
 router.put("/ppic/bomPpic/approve/:id", auth, BomPpicController.approveBomPpic);
 router.put("/ppic/bomPpic/reject/:id", auth, BomPpicController.rejectBomPpic);
-
+router.put(
+  "/ppic/bomPpic/backToBom/:id",
+  auth,
+  BomPpicController.backToProcessBom
+);
 module.exports = router;
