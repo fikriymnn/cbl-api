@@ -99,7 +99,7 @@ const SoPerubahanHargaController = {
           note: note,
           id_user_create: req.user.id,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       await t.commit();
@@ -139,13 +139,13 @@ const SoPerubahanHargaController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -173,7 +173,7 @@ const SoPerubahanHargaController = {
           status_code: 404,
           msg: "Data SO tidak ditemukan",
         });
-      await soPerubahanHargaModel.update(
+      (await soPerubahanHargaModel.update(
         {
           status: "approved",
           id_user_approve: req.user.id,
@@ -181,15 +181,16 @@ const SoPerubahanHargaController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await SoModel.update(
           {
             harga_jual: checkData.harga_perubahan,
             total_harga: checkSo.po_qty * checkData.harga_perubahan,
+            tgl_approve: new Date(),
           },
-          { where: { id: checkData.id_so }, transaction: t }
-        );
+          { where: { id: checkData.id_so }, transaction: t },
+        ));
       await t.commit();
       res
         .status(200)
@@ -214,21 +215,22 @@ const SoPerubahanHargaController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await soPerubahanHargaModel.update(
+      (await soPerubahanHargaModel.update(
         {
           status: "rejected",
           note_reject: note_reject,
           id_user_reject: req.user.id,
+          tgl_reject: new Date(),
         },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -248,17 +250,17 @@ const SoPerubahanHargaController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await soPerubahanHargaModel.update(
+      (await soPerubahanHargaModel.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       await t.rollback();
       res

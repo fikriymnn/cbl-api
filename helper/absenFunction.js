@@ -2,6 +2,7 @@ const { Op, fn, col, literal, Sequelize } = require("sequelize");
 const absensi = require("../model/hr/absenModel");
 const Karyawan = require("../model/hr/karyawanModel");
 const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
+const KaryawanBiagianMesin = require("../model/hr/karyawan/karyawanBagianMesinModel");
 const masterShift = require("../model/masterData/hr/masterShift/masterShiftModel");
 const MasterDepartment = require("../model/masterData/hr/masterDeprtmentModel");
 const MasterDivisi = require("../model/masterData/hr/masterDivisiModel");
@@ -30,7 +31,10 @@ const absenFunction = {
       MasterAbsensi.findByPk(1),
       MasterDepartment.findAll(),
       MasterDivisi.findAll(),
-      KaryawanBiodata.findAll({ where: obj }),
+      KaryawanBiodata.findAll({
+        where: obj,
+        include: [{ model: KaryawanBiagianMesin, as: "bagian_mesin_karyawan" }],
+      }),
       JadwalKaryawan.findAll({
         order: [["createdAt", "DESC"]],
         where: {
@@ -390,7 +394,7 @@ const absenFunction = {
           masterDivisi,
           resultJadwalKaryawan,
           startDate,
-          endDate
+          endDate,
         ),
       ];
     });
@@ -408,7 +412,7 @@ const absenFunction = {
           masterDivisi,
           resultJadwalKaryawan,
           startDate,
-          endDate
+          endDate,
         ),
       ];
     });
@@ -424,7 +428,7 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
         ),
       ];
     });
@@ -442,7 +446,7 @@ const absenFunction = {
           masterDivisi,
           resultJadwalKaryawan,
           startDate,
-          endDate
+          endDate,
         ),
       ];
     });
@@ -458,7 +462,7 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
         ),
       ];
     });
@@ -474,7 +478,7 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
         ),
       ];
     });
@@ -490,7 +494,7 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
         ),
       ];
     });
@@ -505,7 +509,7 @@ const absenFunction = {
           karyawanBiodata,
           masterDepartment,
           masterDivisi,
-          resultJadwalKaryawan
+          resultJadwalKaryawan,
         ),
       ];
     });
@@ -555,8 +559,8 @@ const absenFunction = {
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       );
       const hariIni = tglMasukUtc.getDate();
       const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -569,24 +573,24 @@ const absenFunction = {
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
 
       // Cari data biodata berdasarkan id_karyawan
       const resultFindBiodata = karyawanBiodata.find(
-        (data) => data.id_karyawan === masuk.userid
+        (data) => data.id_karyawan === masuk.userid,
       );
 
       const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-        (data) => data.jenis_karyawan == resultFindBiodata?.tipe_karyawan
+        (data) => data.jenis_karyawan == resultFindBiodata?.tipe_karyawan,
       );
 
       // Cek apakah tanggal hari ini ada di data lembur
       const isTodayOvertime = filterJadwalKaryawan.some(
-        (data) => data.tanggal_libur == tglHariini
+        (data) => data.tanggal_libur == tglHariini,
       );
       if (isTodayOvertime == true) {
         jenisHariMasuk = "Libur";
@@ -597,8 +601,8 @@ const absenFunction = {
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
@@ -607,24 +611,25 @@ const absenFunction = {
 
       //get data karyawan
       const dataKaryawan = karyawan.find(
-        (data) => data.userid === masuk.userid
+        (data) => data.userid === masuk.userid,
       );
       //get data karyawan biodata
       const dataKaryawanBiodata = karyawanBiodata.find(
-        (data) => data.id_karyawan === masuk.userid
+        (data) => data.id_karyawan === masuk.userid,
       );
       //get data master department
       const dataMasterDepartment = masterDepartment.find(
-        (data) => data.id === dataKaryawanBiodata?.id_department
+        (data) => data.id === dataKaryawanBiodata?.id_department,
       );
 
       //get data master divisi
       const dataMasterDivisi = masterDivisi.find(
-        (data) => data.id === dataKaryawanBiodata?.id_divisi
+        (data) => data.id === dataKaryawanBiodata?.id_divisi,
       );
 
       const namaKaryawan = dataKaryawan?.name;
       const typeKaryawan = dataKaryawanBiodata?.tipe_karyawan;
+      const bagianMesin = dataKaryawanBiodata?.bagian_mesin_karyawan;
       const tipePenggajian = dataKaryawanBiodata?.tipe_penggajian;
       const idDepartmentKaryawan = dataKaryawanBiodata?.id_department;
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
@@ -657,8 +662,8 @@ const absenFunction = {
             waktuMasuk.getUTCDate(),
             waktuMasuk.getUTCHours(),
             waktuMasuk.getUTCMinutes(),
-            waktuMasuk.getUTCSeconds()
-          )
+            waktuMasuk.getUTCSeconds(),
+          ),
         );
 
         //waktu keluar absen
@@ -669,8 +674,8 @@ const absenFunction = {
             waktuKeluar.getUTCDate(),
             waktuKeluar.getUTCHours(),
             waktuKeluar.getUTCMinutes(),
-            waktuKeluar.getUTCSeconds()
-          )
+            waktuKeluar.getUTCSeconds(),
+          ),
         );
 
         //waktu masuk shift 1
@@ -680,8 +685,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftMasuk1.split(":")[0],
-            shiftMasuk1.split(":")[1]
-          )
+            shiftMasuk1.split(":")[1],
+          ),
         ).getTime();
 
         //waktu keluar shift 1
@@ -691,8 +696,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftKeluar1.split(":")[0],
-            shiftKeluar1.split(":")[1]
-          )
+            shiftKeluar1.split(":")[1],
+          ),
         ).getTime();
 
         //waktu masuk shift 2
@@ -702,8 +707,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftMasuk2.split(":")[0],
-            shiftMasuk2.split(":")[1]
-          )
+            shiftMasuk2.split(":")[1],
+          ),
         ).getTime();
 
         //waktu keluar shift 2
@@ -713,8 +718,8 @@ const absenFunction = {
             waktuKeluarUTC.getUTCMonth(),
             waktuKeluarUTC.getUTCDate(),
             shiftKeluar2.split(":")[0],
-            shiftKeluar2.split(":")[1]
-          )
+            shiftKeluar2.split(":")[1],
+          ),
         ).getTime();
 
         // Tentukan shift berdasarkan waktu absensi masuk
@@ -750,7 +755,7 @@ const absenFunction = {
           jenisHariMasuk == "Biasa"
         ) {
           const Terlambat = Math.floor(
-            (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
+            (waktuMasukUTC.getTime() - shiftMasukTime) / 60000,
           ); // Hitung selisih dalam menit
 
           //ubah ke bentuk jam
@@ -769,7 +774,7 @@ const absenFunction = {
           jenisHariMasuk == "Biasa"
         ) {
           const Pulang = Math.floor(
-            (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000
+            (shiftKeluarTime - waktuKeluarUTC.getTime()) / 60000,
           ); // Hitung selisih dalam menit
 
           //ubah ke bentuk jam
@@ -806,7 +811,7 @@ const absenFunction = {
             parseTanggalIndo(entry.jam_mulai_lembur) >=
               parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 90) &&
             parseTanggalIndo(entry.jam_mulai_lembur) <=
-              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 90)
+              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 90),
         );
 
         // if (lemburFind.name == "MUHAMMAD IRFAN FIRDAUS") {
@@ -842,12 +847,12 @@ const absenFunction = {
             const cekwaktuLemburSebelumShift = sebelumJamMasukShift(
               jamMasukShift,
               lemburFind.dari,
-              lemburFind.sampai
+              lemburFind.sampai,
             );
             const cekwaktuLemburSetelahShift = setelahJamKeluarShift(
               jamKeluarShift,
               lemburFind.dari,
-              lemburFind.sampai
+              lemburFind.sampai,
             );
 
             isLemburSebelumMasuk =
@@ -864,12 +869,12 @@ const absenFunction = {
             const cekwaktuLemburSebelumShift2 = sebelumJamMasukShift(
               jamMasukShift,
               lemburFind.dari_2,
-              lemburFind.sampai_2
+              lemburFind.sampai_2,
             );
             const cekwaktuLemburSetelahShift2 = setelahJamKeluarShift(
               jamKeluarShift,
               lemburFind.dari_2,
-              lemburFind.sampai_2
+              lemburFind.sampai_2,
             );
 
             isLemburSebelumMasuk =
@@ -966,7 +971,7 @@ const absenFunction = {
               statusLemburSPL,
               jamLemburSPL,
               id_pengajuan_lembur,
-              statusKetidaksesuaian
+              statusKetidaksesuaian,
             );
           }
           if (shift === "Shift 1") {
@@ -1003,7 +1008,7 @@ const absenFunction = {
         let statusTerlambat = "";
         const terlambatFind = terlambatEntries.find(
           (entry) =>
-            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk,
         );
         if (terlambatFind) {
           statusTerlambat = terlambatFind.status_masuk;
@@ -1011,7 +1016,7 @@ const absenFunction = {
 
         const pulangCepatFind = pulangCepatEntries.find(
           (entry) =>
-            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk,
         );
         if (pulangCepatFind) {
           menitPulangCepat = 0;
@@ -1053,7 +1058,7 @@ const absenFunction = {
                 shiftStart,
                 shiftEnd,
                 breakStart,
-                breakEnd
+                breakEnd,
               );
             } else {
               // Shift lintas hari: pecah jadi dua bagian
@@ -1062,7 +1067,7 @@ const absenFunction = {
                 shiftStart,
                 SECONDS_IN_DAY,
                 breakStart,
-                breakEnd
+                breakEnd,
               );
               // 2. bagian kedua: 0 -> jam_keluar
               totalSeconds += getOverlap(0, shiftEnd, breakStart, breakEnd);
@@ -1149,6 +1154,7 @@ const absenFunction = {
           jenis_hari_masuk: jenisHariMasuk,
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
+          bagian_mesin: bagianMesin,
         };
       } else {
         // waktu masuk absen
@@ -1159,8 +1165,8 @@ const absenFunction = {
             waktuMasuk.getUTCDate(),
             waktuMasuk.getUTCHours(),
             waktuMasuk.getUTCMinutes(),
-            waktuMasuk.getUTCSeconds()
-          )
+            waktuMasuk.getUTCSeconds(),
+          ),
         );
 
         //waktu masuk shift 1
@@ -1170,8 +1176,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftMasuk1.split(":")[0],
-            shiftMasuk1.split(":")[1]
-          )
+            shiftMasuk1.split(":")[1],
+          ),
         ).getTime();
 
         //waktu keluar shift 1
@@ -1181,8 +1187,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftKeluar1.split(":")[0],
-            shiftKeluar1.split(":")[1]
-          )
+            shiftKeluar1.split(":")[1],
+          ),
         ).getTime();
 
         //waktu masuk shift 2
@@ -1192,8 +1198,8 @@ const absenFunction = {
             waktuMasukUTC.getUTCMonth(),
             waktuMasukUTC.getUTCDate(),
             shiftMasuk2.split(":")[0],
-            shiftMasuk2.split(":")[1]
-          )
+            shiftMasuk2.split(":")[1],
+          ),
         ).getTime();
 
         // Tentukan shift berdasarkan waktu absensi masuk
@@ -1220,7 +1226,7 @@ const absenFunction = {
         const toleransi = masterAbsensi.toleransi_kedatangan_menit * 60 * 1000; // Toleransi 5 menit dalam milidetik
         if (waktuMasukUTC.getTime() > shiftMasukTime + toleransi) {
           const Terlambat = Math.floor(
-            (waktuMasukUTC.getTime() - shiftMasukTime) / 60000
+            (waktuMasukUTC.getTime() - shiftMasukTime) / 60000,
           ); // Hitung selisih dalam menit
 
           //ubah ke bentuk jam
@@ -1241,7 +1247,7 @@ const absenFunction = {
         let statusTerlambat = "";
         const terlambatFind = terlambatEntries.find(
           (entry) =>
-            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk,
         );
         if (terlambatFind) {
           statusTerlambat = terlambatFind.status_masuk;
@@ -1254,7 +1260,7 @@ const absenFunction = {
         let statusKetidaksesuaian = null;
         const lemburFind = lemburEntries.find(
           (entry) =>
-            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
+            entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk,
         );
 
         if (lemburFind) {
@@ -1296,6 +1302,7 @@ const absenFunction = {
           jenis_hari_masuk: jenisHariMasuk,
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
+          bagian_mesin: bagianMesin,
         };
       }
     });
@@ -1324,19 +1331,19 @@ const absenFunction = {
         masterDepartment,
         masterDivisi,
         resultJadwalKaryawan,
-        startDate
+        startDate,
       );
 
       results.forEach((absen) => {
         const karyawanDitemukan = dataKaryawanGenerete.find(
-          (k) => k.userid === absen.userid
+          (k) => k.userid === absen.userid,
         );
         // if (absen.name == "RIFKI RIVALDI") {
         //   console.log(absen, karyawanDitemukan);
         // }
 
         if (karyawanDitemukan) {
-          (karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
+          ((karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
             (karyawanDitemukan.userid = absen.userid),
             (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
             (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
@@ -1359,11 +1366,11 @@ const absenFunction = {
             (karyawanDitemukan.shift = absen.shift), // Menampilkan shift
             (karyawanDitemukan.status_absen = absen.status_absen),
             (karyawanDitemukan.id_department = absen.id_department),
-            (karyawanDitemukan.nama_department = absen.nama_department);
-          (karyawanDitemukan.id_divisi = absen.id_divisi),
-            (karyawanDitemukan.nama_divisi = absen.nama_divisi);
-          (karyawanDitemukan.hari = absen.hari),
-            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk);
+            (karyawanDitemukan.nama_department = absen.nama_department));
+          ((karyawanDitemukan.id_divisi = absen.id_divisi),
+            (karyawanDitemukan.nama_divisi = absen.nama_divisi));
+          ((karyawanDitemukan.hari = absen.hari),
+            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk));
         } else {
           dataKaryawanGenerete.push({
             id_pengajuan_lembur: absen.id_pengajuan_lembur,
@@ -1397,13 +1404,13 @@ const absenFunction = {
         }
       });
       const resultAbsen = dataKaryawanGenerete.sort(
-        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
+        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk),
       );
 
       return resultAbsen;
     } else {
       const resultAbsen = results.sort(
-        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk)
+        (a, b) => new Date(b.waktu_masuk) - new Date(a.waktu_masuk),
       );
 
       return resultAbsen;
@@ -1420,26 +1427,26 @@ const generateDailyCuti = (
   masterDivisi,
   resultJadwalKaryawan,
   startDateCuti,
-  endDateCuti
+  endDateCuti,
 ) => {
   let dailycuti = [];
   let startDate = new Date(cuti.dari);
   let endDate = new Date(cuti.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === cuti.id_karyawan
+    (data) => data.userid === cuti.id_karyawan,
   );
 
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === cuti.id_karyawan
+    (data) => data.id_karyawan === cuti.id_karyawan,
   );
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -1469,8 +1476,8 @@ const generateDailyCuti = (
       Date.UTC(
         waktuMasuk.getUTCFullYear(),
         waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
+        waktuMasuk.getUTCDate(),
+      ),
     );
     const hariIni = tglMasukUtc.getDate();
     const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -1480,12 +1487,12 @@ const generateDailyCuti = (
     let jenisHariMasuk = "Biasa";
 
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
     );
 
     // Cek apakah tanggal hari ini ada di data lembur
     const isTodayOvertime = filterJadwalKaryawan.some(
-      (data) => data.tanggal_libur == tglHariini
+      (data) => data.tanggal_libur == tglHariini,
     );
 
     if (isTodayOvertime == true) {
@@ -1495,8 +1502,8 @@ const generateDailyCuti = (
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
@@ -1544,26 +1551,26 @@ const generateDailyIzin = (
   masterDivisi,
   resultJadwalKaryawan,
   startDateIzin,
-  endDateIzin
+  endDateIzin,
 ) => {
   let dailyIzin = [];
   let startDate = new Date(izin.dari);
   let endDate = new Date(izin.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === izin.id_karyawan
+    (data) => data.userid === izin.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === izin.id_karyawan
+    (data) => data.id_karyawan === izin.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -1593,8 +1600,8 @@ const generateDailyIzin = (
       Date.UTC(
         waktuMasuk.getUTCFullYear(),
         waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
+        waktuMasuk.getUTCDate(),
+      ),
     );
     const hariIni = tglMasukUtc.getDate();
     const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -1604,12 +1611,12 @@ const generateDailyIzin = (
     let jenisHariMasuk = "Biasa";
 
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
     );
 
     // Cek apakah tanggal hari ini ada di data lembur
     const isTodayOvertime = filterJadwalKaryawan.some(
-      (data) => data.tanggal_libur == tglHariini
+      (data) => data.tanggal_libur == tglHariini,
     );
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
@@ -1618,8 +1625,8 @@ const generateDailyIzin = (
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
@@ -1664,26 +1671,26 @@ const generateDailyDinas = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
 ) => {
   let dailyDinas = [];
   let startDate = new Date(dinas.dari);
   let endDate = new Date(dinas.sampai);
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === dinas.id_karyawan
+    (data) => data.userid === dinas.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === dinas.id_karyawan
+    (data) => data.id_karyawan === dinas.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -1703,8 +1710,8 @@ const generateDailyDinas = (
       Date.UTC(
         waktuMasuk.getUTCFullYear(),
         waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
+        waktuMasuk.getUTCDate(),
+      ),
     );
     const hariIni = tglMasukUtc.getDate();
     const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -1714,12 +1721,12 @@ const generateDailyDinas = (
     let jenisHariMasuk = "Biasa";
 
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
     );
 
     // Cek apakah tanggal hari ini ada di data lembur
     const isTodayOvertime = filterJadwalKaryawan.some(
-      (data) => data.tanggal_libur == tglHariini
+      (data) => data.tanggal_libur == tglHariini,
     );
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
@@ -1728,8 +1735,8 @@ const generateDailyDinas = (
       Date.UTC(
         waktuMasuk.getUTCFullYear(),
         waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
+        waktuMasuk.getUTCDate(),
+      ),
     ).toLocaleDateString("id-ID", {
       weekday: "long",
     });
@@ -1774,27 +1781,27 @@ const generateDailySakit = (
   masterDivisi,
   resultJadwalKaryawan,
   startDateSakit,
-  endDateSakit
+  endDateSakit,
 ) => {
   let dailySakit = [];
   let startDate = new Date(sakit.dari);
   let endDate = new Date(sakit.sampai);
 
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === sakit.id_karyawan
+    (data) => data.userid === sakit.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === sakit.id_karyawan
+    (data) => data.id_karyawan === sakit.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -1826,8 +1833,8 @@ const generateDailySakit = (
       Date.UTC(
         waktuMasuk.getUTCFullYear(),
         waktuMasuk.getUTCMonth(),
-        waktuMasuk.getUTCDate()
-      )
+        waktuMasuk.getUTCDate(),
+      ),
     );
     const hariIni = tglMasukUtc.getDate();
     const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -1836,12 +1843,12 @@ const generateDailySakit = (
     let jenisHariMasuk = "Biasa";
 
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
     );
 
     // Cek apakah tanggal hari ini ada di data lembur
     const isTodayOvertime = filterJadwalKaryawan.some(
-      (data) => data.tanggal_libur == tglHariini
+      (data) => data.tanggal_libur == tglHariini,
     );
     if (isTodayOvertime == true) {
       jenisHariMasuk = "Libur";
@@ -1850,8 +1857,8 @@ const generateDailySakit = (
         Date.UTC(
           waktuMasuk.getUTCFullYear(),
           waktuMasuk.getUTCMonth(),
-          waktuMasuk.getUTCDate()
-        )
+          waktuMasuk.getUTCDate(),
+        ),
       ).toLocaleDateString("id-ID", {
         weekday: "long",
       });
@@ -1896,26 +1903,26 @@ const generateDailyMangkir = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
 ) => {
   let dailyMangkir = [];
   let startDate = new Date(mangkir.tanggal);
 
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === mangkir.id_karyawan
+    (data) => data.userid === mangkir.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === mangkir.id_karyawan
+    (data) => data.id_karyawan === mangkir.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -1935,8 +1942,8 @@ const generateDailyMangkir = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   );
   const hariIni = tglMasukUtc.getDate();
   const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -1946,12 +1953,12 @@ const generateDailyMangkir = (
   let jenisHariMasuk = "Biasa";
 
   const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
   );
 
   // Cek apakah tanggal hari ini ada di data lembur
   const isTodayOvertime = filterJadwalKaryawan.some(
-    (data) => data.tanggal_libur == tglHariini
+    (data) => data.tanggal_libur == tglHariini,
   );
   if (isTodayOvertime == true) {
     jenisHariMasuk = "Libur";
@@ -1960,8 +1967,8 @@ const generateDailyMangkir = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   ).toLocaleDateString("id-ID", {
     weekday: "long",
   });
@@ -2002,26 +2009,26 @@ const generateDailyTerlambat = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
 ) => {
   let dailyTerlambat = [];
   let startDate = new Date(Terlambat.tanggal);
 
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === Terlambat.id_karyawan
+    (data) => data.userid === Terlambat.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === Terlambat.id_karyawan
+    (data) => data.id_karyawan === Terlambat.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -2041,8 +2048,8 @@ const generateDailyTerlambat = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   );
   const hariIni = tglMasukUtc.getDate();
   const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -2052,12 +2059,12 @@ const generateDailyTerlambat = (
   let jenisHariMasuk = "Biasa";
 
   const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
   );
 
   // Cek apakah tanggal hari ini ada di data lembur
   const isTodayOvertime = filterJadwalKaryawan.some(
-    (data) => data.tanggal_libur == tglHariini
+    (data) => data.tanggal_libur == tglHariini,
   );
   if (isTodayOvertime == true) {
     jenisHariMasuk = "Libur";
@@ -2066,8 +2073,8 @@ const generateDailyTerlambat = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   ).toLocaleDateString("id-ID", {
     weekday: "long",
   });
@@ -2108,26 +2115,26 @@ const generateDailyPulangCepat = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
 ) => {
   let dailyPulangCepat = [];
   let startDate = new Date(PulangCepat.tanggal);
 
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === PulangCepat.id_karyawan
+    (data) => data.userid === PulangCepat.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === PulangCepat.id_karyawan
+    (data) => data.id_karyawan === PulangCepat.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -2147,8 +2154,8 @@ const generateDailyPulangCepat = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   );
   const hariIni = tglMasukUtc.getDate();
   const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -2158,12 +2165,12 @@ const generateDailyPulangCepat = (
   let jenisHariMasuk = "Biasa";
 
   const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
   );
 
   // Cek apakah tanggal hari ini ada di data lembur
   const isTodayOvertime = filterJadwalKaryawan.some(
-    (data) => data.tanggal_libur == tglHariini
+    (data) => data.tanggal_libur == tglHariini,
   );
   if (isTodayOvertime == true) {
     jenisHariMasuk = "Libur";
@@ -2172,8 +2179,8 @@ const generateDailyPulangCepat = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   ).toLocaleDateString("id-ID", {
     weekday: "long",
   });
@@ -2214,26 +2221,26 @@ const generateDailyLembur = (
   karyawanBiodata,
   masterDepartment,
   masterDivisi,
-  resultJadwalKaryawan
+  resultJadwalKaryawan,
 ) => {
   let dailyLembur = [];
   let startDate = new Date(Lembur.dari);
 
   const dataKaryawan = karyawan.find(
-    (data) => data.userid === Lembur.id_karyawan
+    (data) => data.userid === Lembur.id_karyawan,
   );
   const dataKaryawanBiodata = karyawanBiodata.find(
-    (data) => data.id_karyawan === Lembur.id_karyawan
+    (data) => data.id_karyawan === Lembur.id_karyawan,
   );
 
   //get data master department
   const dataMasterDepartment = masterDepartment.find(
-    (data) => data.id === dataKaryawanBiodata?.id_department
+    (data) => data.id === dataKaryawanBiodata?.id_department,
   );
 
   //get data master divisi
   const dataMasterDivisi = masterDivisi.find(
-    (data) => data.id === dataKaryawanBiodata?.id_divisi
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
   );
 
   const namaKaryawan = dataKaryawan?.name;
@@ -2259,8 +2266,8 @@ const generateDailyLembur = (
     Date.UTC(
       waktuMasuk.getUTCFullYear(),
       waktuMasuk.getUTCMonth(),
-      waktuMasuk.getUTCDate()
-    )
+      waktuMasuk.getUTCDate(),
+    ),
   );
 
   const statusKetidaksesuaian = Lembur.status_ketidaksesuaian;
@@ -2296,7 +2303,7 @@ const generatekaryawanList = (
   masterDepartment,
   masterDivisi,
   resultJadwalKaryawan,
-  date
+  date,
 ) => {
   let dataKaryawan = [];
   // Dapatkan tanggal berdasarkan tanggal absensi masuk
@@ -2306,8 +2313,8 @@ const generatekaryawanList = (
     Date.UTC(
       waktuHariIni.getUTCFullYear(),
       waktuHariIni.getUTCMonth(),
-      waktuHariIni.getUTCDate()
-    )
+      waktuHariIni.getUTCDate(),
+    ),
   );
   const hariIni = tglMasukUtc.getDate();
   const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
@@ -2317,25 +2324,25 @@ const generatekaryawanList = (
   for (let i = 0; i < karyawan.length; i++) {
     //get biodataKaryawan
     const dataKaryawanBiodata = karyawanBiodata.find(
-      (data) => data.id_karyawan === karyawan[i].userid
+      (data) => data.id_karyawan === karyawan[i].userid,
     );
     //get data master department
     const dataMasterDepartment = masterDepartment.find(
-      (data) => data.id === dataKaryawanBiodata?.id_department
+      (data) => data.id === dataKaryawanBiodata?.id_department,
     );
 
     //get data master divisi
     const dataMasterDivisi = masterDivisi.find(
-      (data) => data.id === dataKaryawanBiodata?.id_divisi
+      (data) => data.id === dataKaryawanBiodata?.id_divisi,
     );
 
     const filterJadwalKaryawan = resultJadwalKaryawan.filter(
-      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan
+      (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
     );
 
     // Cek apakah tanggal hari ini ada di data lembur
     const isTodayOvertime = filterJadwalKaryawan.some(
-      (data) => data.tanggal_libur == tglHariini
+      (data) => data.tanggal_libur == tglHariini,
     );
 
     const idDepartment = dataKaryawanBiodata?.id_department;
@@ -2374,6 +2381,7 @@ const generatekaryawanList = (
         jenis_hari_masuk: null,
         tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
         tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
+        bagian_mesin: dataKaryawanBiodata.bagian_mesin_karyawan,
       });
     }
   }

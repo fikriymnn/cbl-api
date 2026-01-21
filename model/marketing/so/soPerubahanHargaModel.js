@@ -40,6 +40,14 @@ const soPerubahanHarga = db.define(
         key: "id",
       },
     },
+    tgl_approve: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_reject: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     no_so: {
       type: DataTypes.STRING,
       allowNull: true,

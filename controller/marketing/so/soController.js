@@ -87,10 +87,38 @@ const SoController = {
             {
               model: soPerubahanTanggalKirimModel,
               as: "so_perubahan_tgl_kirim",
+              include: [
+                {
+                  model: Users,
+                  as: "user_create",
+                },
+                {
+                  model: Users,
+                  as: "user_approve",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
             },
             {
               model: soPerubahanHargaModel,
               as: "so_perubahan_harga",
+              include: [
+                {
+                  model: Users,
+                  as: "user_create",
+                },
+                {
+                  model: Users,
+                  as: "user_approve",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
             },
           ],
           offset: parseInt(offset),
@@ -126,10 +154,38 @@ const SoController = {
             {
               model: soPerubahanTanggalKirimModel,
               as: "so_perubahan_tgl_kirim",
+              include: [
+                {
+                  model: Users,
+                  as: "user_create",
+                },
+                {
+                  model: Users,
+                  as: "user_approve",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
             },
             {
               model: soPerubahanHargaModel,
               as: "so_perubahan_harga",
+              include: [
+                {
+                  model: Users,
+                  as: "user_create",
+                },
+                {
+                  model: Users,
+                  as: "user_approve",
+                },
+                {
+                  model: Users,
+                  as: "user_reject",
+                },
+              ],
             },
             { model: BomModel, as: "bom" },
             {

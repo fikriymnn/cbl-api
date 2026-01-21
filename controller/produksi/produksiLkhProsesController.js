@@ -23,6 +23,13 @@ const {
 } = require("../mtc/ticketMaintenance/ticketMaintenanceService");
 const InspeksiPotongService = require("../qc/inspeksi/potong/service/inspeksiPotongService");
 const InspeksiCetakService = require("../qc/inspeksi/cetak/service/inspeksiCetakService");
+const InspeksiCoatingService = require("../qc/inspeksi/coating/service/inspeksiCoatingService");
+const InspeksiPondService = require("../qc/inspeksi/pond/service/inspeksiPondService");
+const InspeksiLemService = require("../qc/inspeksi/lem/service/inspeksiLemService");
+const InspeksiAmparLemService = require("../qc/inspeksi/amparLem/service/inspeksiAmparLemService");
+const InspeksiRabutService = require("../qc/inspeksi/rabut/service/inspeksiRabutService");
+const InspeksiBarangRusakV2Service = require("../qc/inspeksi/barangRusakV2/service/inspeksiBarangRusakV2Service");
+const InspeksiLipatService = require("../qc/inspeksi/lipat/service/inspeksiLipatService");
 
 const ProduksiLkhProsesController = {
   getProduksiLkhProses: async (req, res) => {
@@ -138,7 +145,6 @@ const ProduksiLkhProsesController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       const checkJo = await JobOrder.findByPk(id_jo, {
         include: [
           {
@@ -151,7 +157,7 @@ const ProduksiLkhProsesController = {
       });
 
       const checkIoMounting = await ioMountingModel.findByPk(
-        checkJo.jo_mounting[0].id_io_mounting
+        checkJo.jo_mounting[0].id_io_mounting,
       );
       const checkProduksiLkh = await ProduksiLkh.findOne({
         where: {
@@ -188,31 +194,31 @@ const ProduksiLkhProsesController = {
         });
 
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        // handleTahapan({
-        //   tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
-        //   shift: shiftInfo.shift,
-        //   periode_tiket: shiftInfo.periodDate,
-        //   no_jo: checkJo.no_jo,
-        //   operator: req.user.name,
-        //   mesin: checkMasterMesin.nama_mesin,
-        //   customer: dataProduksiLkhTahapan.customer,
-        //   jam: shiftInfo.currentTime,
-        //   no_io: dataProduksiLkhTahapan.no_io,
-        //   produk: dataProduksiLkhTahapan.produk,
-        //   qty_jo: checkJo.QTY,
-        //   status_jo: checkJo.status_jo,
-        //   tanggal_pembuatan: shiftInfo.periodDateFormatted,
-        //   jenis_gramatur: checkIoMounting.gramature_kertas,
-        //   jenis_kertas: checkIoMounting.nama_kertas,
-        //   warna_depan: checkIoMounting.keterangan_warna_depan,
-        //   warna_belakang: checkIoMounting.keterangan_warna_belakang,
-        //   qty_druk: checkJo.qty_druk,
-        //   mata: null,
-        //   merk: null,
-        //   transaction: t,
-        // });
+        await handleTahapan({
+          tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
+          shift: shiftInfo.shift,
+          periode_tiket: shiftInfo.periodDate,
+          no_jo: checkJo.no_jo,
+          operator: req.user.name,
+          mesin: checkMasterMesin.nama_mesin,
+          customer: dataProduksiLkhTahapan.customer,
+          jam: shiftInfo.currentTime,
+          no_io: dataProduksiLkhTahapan.no_io,
+          produk: dataProduksiLkhTahapan.produk,
+          qty_jo: checkJo.QTY,
+          status_jo: checkJo.status_jo,
+          tanggal_pembuatan: shiftInfo.periodDateFormatted,
+          jenis_gramatur: checkIoMounting.gramature_kertas,
+          jenis_kertas: checkIoMounting.nama_kertas,
+          warna_depan: checkIoMounting.keterangan_warna_depan,
+          warna_belakang: checkIoMounting.keterangan_warna_belakang,
+          qty_druk: checkJo.qty_druk,
+          mata: null,
+          merk: null,
+          ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+          transaction: t,
+        });
 
-        console.log(dataProduksiLkhTahapan.id_io);
         const dataProduksiLkh = await ProduksiLkh.create(
           {
             id_produksi_lkh_tahapan: dataProduksiLkhTahapan.id,
@@ -233,7 +239,7 @@ const ProduksiLkhProsesController = {
             qty_jo: dataProduksiLkhTahapan.qty_jo,
             spesifikasi: dataProduksiLkhTahapan.spesifikasi,
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         //crete lkh prosess
@@ -258,7 +264,7 @@ const ProduksiLkhProsesController = {
                 as: "kriteria_frekuensi_mtc",
               },
             ],
-          }
+          },
         );
 
         await ProduksiLkhProses.create(
@@ -275,7 +281,7 @@ const ProduksiLkhProsesController = {
             proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         if (
@@ -312,7 +318,7 @@ const ProduksiLkhProsesController = {
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
             dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
             dataKodeProduksi.target_department, //target department
-            t //transaction
+            t, //transaction
           );
         }
 
@@ -345,34 +351,34 @@ const ProduksiLkhProsesController = {
                 as: "kriteria_frekuensi_mtc",
               },
             ],
-          }
+          },
         );
 
-        console.log(checkProduksiLkh.tahapan.nama_tahapan);
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        // handleTahapan({
-        //   tahapan: checkProduksiLkh.tahapan.nama_tahapan,
-        //   shift: shiftInfo.shift,
-        //   periode_tiket: shiftInfo.periodDate,
-        //   no_jo: checkJo.no_jo,
-        //   operator: req.user.name,
-        //   mesin: checkMasterMesin.nama_mesin,
-        //   customer: checkProduksiLkh.customer,
-        //   jam: shiftInfo.currentTime,
-        //   no_io: checkProduksiLkh.no_io,
-        //   produk: checkProduksiLkh.produk,
-        //   qty_jo: checkJo.qty,
-        //   status_jo: checkJo.status_jo,
-        //   tanggal_pembuatan: shiftInfo.periodDateFormatted,
-        //   jenis_gramatur: checkIoMounting.gramature_kertas,
-        //   jenis_kertas: checkIoMounting.nama_kertas,
-        //   warna_depan: checkIoMounting.keterangan_warna_depan,
-        //   warna_belakang: checkIoMounting.keterangan_warna_belakang,
-        //   qty_druk: checkJo.qty_druk,
-        //   mata: null,
-        //   merk: null,
-        //   transaction: t,
-        // });
+        await handleTahapan({
+          tahapan: checkProduksiLkh.tahapan.nama_tahapan,
+          shift: shiftInfo.shift,
+          periode_tiket: shiftInfo.periodDate,
+          no_jo: checkJo.no_jo,
+          operator: req.user.name,
+          mesin: checkMasterMesin.nama_mesin,
+          customer: checkProduksiLkh.customer,
+          jam: shiftInfo.currentTime,
+          no_io: checkProduksiLkh.no_io,
+          produk: checkProduksiLkh.produk,
+          qty_jo: checkJo.qty,
+          status_jo: checkJo.status_jo,
+          tanggal_pembuatan: shiftInfo.periodDateFormatted,
+          jenis_gramatur: checkIoMounting.gramature_kertas,
+          jenis_kertas: checkIoMounting.nama_kertas,
+          warna_depan: checkIoMounting.keterangan_warna_depan,
+          warna_belakang: checkIoMounting.keterangan_warna_belakang,
+          qty_druk: checkJo.qty_druk,
+          mata: null,
+          merk: null,
+          ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+          transaction: t,
+        });
 
         await ProduksiLkhProses.create(
           {
@@ -388,7 +394,7 @@ const ProduksiLkhProsesController = {
             proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         if (
@@ -425,7 +431,7 @@ const ProduksiLkhProsesController = {
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
             dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
             dataKodeProduksi.target_department, //target department
-            t //transaction
+            t, //transaction
           );
           console.log("create mtc tiket");
         }
@@ -466,7 +472,7 @@ const ProduksiLkhProsesController = {
       const totalDetik = Math.floor((end - start) / 1000);
       let obj = {};
 
-      await ProduksiLkhProses.update(
+      (await ProduksiLkhProses.update(
         {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
@@ -480,12 +486,12 @@ const ProduksiLkhProsesController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Stop Successful" });
+          .json({ succes: true, status_code: 200, msg: "Stop Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -507,10 +513,10 @@ const ProduksiLkhProsesController = {
           msg: "Data tidak ditemukan",
         });
       const checkDataLkh = await ProduksiLkh.findByPk(
-        checkData.id_produksi_lkh
+        checkData.id_produksi_lkh,
       );
       const checkDataLkhtahapan = await ProduksiLkhTahapan.findByPk(
-        checkData.id_produksi_lkh_tahapan
+        checkData.id_produksi_lkh_tahapan,
       );
 
       if (!checkDataLkhtahapan)
@@ -532,14 +538,14 @@ const ProduksiLkhProsesController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
       //doone untuk tahapan yg di action
       await ProduksiLkhTahapan.update(
         { status: "done" },
-        { where: { id: checkDataLkhtahapan.id }, transaction: t }
+        { where: { id: checkDataLkhtahapan.id }, transaction: t },
       );
 
       //get data tahapan selnjutnya
@@ -554,20 +560,20 @@ const ProduksiLkhProsesController = {
       if (checkDataLkhtahapanNext) {
         await ProduksiLkhTahapan.update(
           { status: "active" },
-          { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+          { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
         );
       }
-      await ProduksiLkhProses.update(
+      (await ProduksiLkhProses.update(
         { status: "done" },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -638,7 +644,7 @@ function getCurrentShiftInfo(shiftData) {
     periodDate: periodDate.toISOString().split("T")[0], // Format YYYY-MM-DD
     periodDateFormatted: formatDate(periodDate),
     currentTime: `${String(currentHour).padStart(2, "0")}:${String(
-      currentMinute
+      currentMinute,
     ).padStart(2, "0")}`,
     dayName: dayName,
   };
@@ -679,34 +685,82 @@ async function handleTahapan({
   jenis_gramatur,
   warna_depan,
   warna_belakang,
+  ukuran_jadi,
   transaction,
 }) {
-  // Normalisasi input menjadi lowercase untuk pencocokan yang lebih fleksibel
-  const tahapanLower = tahapan.toLowerCase();
+  try {
+    // Normalisasi input menjadi lowercase untuk pencocokan yang lebih fleksibel
+    const tahapanLower = tahapan.toLowerCase();
 
-  // Cek setiap tahapan berdasarkan kata kunci
-  if (tahapanLower.includes("potong")) {
-    console.log("Menjalankan proses pemotongan...");
-    // Logika untuk tahap potong
-    let jenis_potong = null;
-    if (tahapanLower == "potong") {
-      jenis_potong = "potong bahan";
-    } else if (tahapanLower == "potong jadi") {
-      jenis_potong = "potong jadi";
-    }
-    if (jenis_potong != null) {
-      const checkDataPotong =
-        await InspeksiPotongService.getInspeksiPotongService({
-          jenis_potong: jenis_potong,
+    // Cek setiap tahapan berdasarkan kata kunci
+    if (tahapanLower.includes("potong")) {
+      console.log("Menjalankan proses pemotongan...");
+      let jenis_potong = null;
+      if (tahapanLower == "potong") {
+        jenis_potong = "potong bahan";
+      } else if (tahapanLower == "potong jadi") {
+        jenis_potong = "potong jadi";
+      }
+      if (jenis_potong != null) {
+        const checkDataPotong =
+          await InspeksiPotongService.getInspeksiPotongService({
+            jenis_potong: jenis_potong,
+            shift: shift,
+            periode_tiket: periode_tiket,
+            no_jo: no_jo,
+            operator: operator,
+            mesin: mesin,
+          });
+        if (checkDataPotong.data.length == 0) {
+          const createInspeksiPotong =
+            await InspeksiPotongService.creteInspeksiPotongService({
+              jenis_potong: jenis_potong,
+              tahapan: tahapan,
+              tanggal: tanggal_pembuatan,
+              periode_tiket: periode_tiket,
+              no_io: no_io,
+              no_jo: no_jo,
+              operator: operator,
+              shift: shift,
+              jam: jam,
+              item: produk,
+              mesin: mesin,
+              merk: merk,
+              customer: customer,
+              status_jo: status_jo,
+              qty_jo: qty_jo,
+              transaction: transaction,
+            });
+
+          if (createInspeksiPotong.success === false) {
+            throw new Error(
+              createInspeksiPotong.message ||
+                "Failed to create inspeksi potong",
+            );
+          }
+        }
+      }
+      return {
+        tahap: "potong",
+        action: "proses_potong",
+      };
+    } else if (tahapanLower.includes("cetak")) {
+      console.log("Menjalankan proses pencetakan...");
+
+      const checkDataCetak = await InspeksiCetakService.getInspeksiCetakService(
+        {
+          tahapan: tahapan,
           shift: shift,
           periode_tiket: periode_tiket,
           no_jo: no_jo,
           operator: operator,
           mesin: mesin,
-        });
-      if (checkDataPotong.data.length == 0) {
-        const createInspeksiPotong =
-          await InspeksiPotongService.creteInspeksiPotongService({
+        },
+      );
+
+      if (checkDataCetak.data.length == 0) {
+        const createInspeksiCetak =
+          await InspeksiCetakService.creteInspeksiCetakService({
             tahapan: tahapan,
             tanggal: tanggal_pembuatan,
             periode_tiket: periode_tiket,
@@ -715,147 +769,392 @@ async function handleTahapan({
             operator: operator,
             shift: shift,
             jam: jam,
-            item: produk,
+            nama_produk: produk,
             mesin: mesin,
             merk: merk,
             customer: customer,
             status_jo: status_jo,
             qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
             transaction: transaction,
           });
 
-        if (createInspeksiPotong.success === false) {
-          if (!transaction) await transaction.rollback();
-
-          return res.status(400).json(createInspeksiPotong);
+        if (createInspeksiCetak.success === false) {
+          throw new Error(
+            createInspeksiCetak.message || "Failed to create inspeksi cetak",
+          );
         }
       }
-    }
-    return {
-      tahap: "potong",
-      action: "proses_potong",
-    };
-  } else if (tahapanLower.includes("cetak")) {
-    console.log("Menjalankan proses pencetakan...");
-    // Logika untuk tahap cetak
 
-    console.log(
-      tahapan,
-      shift,
-      periode_tiket,
-      operator,
-      mesin,
-      tanggal_pembuatan,
-      no_io,
-      no_jo,
-      jam,
-      produk,
-      merk,
-      customer,
-      status_jo,
-      qty_jo,
-      qty_druk,
-      mata,
-      jenis_kertas,
-      jenis_gramatur,
-      warna_depan,
-      warna_belakang
-    );
-    const checkDataCetak = await InspeksiCetakService.getInspeksiCetakService({
-      tahapan: tahapan,
-      shift: shift,
-      periode_tiket: periode_tiket,
-      no_jo: no_jo,
-      operator: operator,
-      mesin: mesin,
-    });
-
-    if (checkDataCetak.data.length == 0) {
-      const createInspeksiCetak =
-        await InspeksiCetakService.creteInspeksiCetakService({
+      return {
+        tahap: "cetak",
+        action: "proses_cetak",
+      };
+    } else if (tahapanLower.includes("coating")) {
+      console.log("Menjalankan proses coating...");
+      // Logika untuk tahap coating
+      const checkDataCoating =
+        await InspeksiCoatingService.getInspeksiCoatingService({
           tahapan: tahapan,
-          tanggal: tanggal_pembuatan,
+          shift: shift,
           periode_tiket: periode_tiket,
-          no_io: no_io,
           no_jo: no_jo,
           operator: operator,
-          shift: shift,
-          jam: jam,
-          nama_produk: produk,
           mesin: mesin,
-          merk: merk,
-          customer: customer,
-          status_jo: status_jo,
-          qty_jo: qty_jo,
-          jumlah_pcs: qty_jo,
-          jumlah_druk: qty_druk,
-          mata: mata,
-          jenis_kertas: jenis_kertas,
-          jenis_gramatur: jenis_gramatur,
-          warna_depan: warna_depan,
-          warna_belakang: warna_belakang,
-          transaction: transaction,
         });
 
-      if (createInspeksiCetak.success === false) {
-        if (!transaction) await transaction.rollback();
+      if (checkDataCoating.data.length == 0) {
+        const createInspeksiCoating =
+          await InspeksiCoatingService.creteInspeksiCoatingService({
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            coating: null, //belum ngambil karena belum tau
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
 
-        return res.status(400).json(createInspeksiCetak);
+        if (createInspeksiCoating.success === false) {
+          throw new Error(
+            createInspeksiCoating.message || "Failed to create inspeksi cetak",
+          );
+        }
       }
-    }
+      return {
+        tahap: "coating",
+        action: "proses_coating",
+      };
+    } else if (tahapanLower.includes("pond")) {
+      console.log("Menjalankan proses pond...");
+      // Logika untuk tahap pond
+      const checkDataPond = await InspeksiPondService.getInspeksiPondService({
+        tahapan: tahapan,
+        shift: shift,
+        periode_tiket: periode_tiket,
+        no_jo: no_jo,
+        operator: operator,
+        mesin: mesin,
+      });
 
-    return {
-      tahap: "cetak",
-      action: "proses_cetak",
-    };
-  } else if (tahapanLower.includes("coating")) {
-    console.log("Menjalankan proses coating...");
-    // Logika untuk tahap coating
-    return {
-      tahap: "coating",
-      action: "proses_coating",
-    };
-  } else if (tahapanLower.includes("pond")) {
-    console.log("Menjalankan proses pond...");
-    // Logika untuk tahap pond
-    return {
-      tahap: "pond",
-      action: "proses_pond",
-    };
-  } else if (tahapanLower.includes("lem")) {
-    console.log("Menjalankan proses pelemanan...");
-    // Logika untuk tahap lem
-    return {
-      tahap: "lem",
-      action: "proses_lem",
-    };
-  } else if (tahapanLower.includes("rabut")) {
-    console.log("Menjalankan proses rabut...");
-    // Logika untuk tahap rabut
-    return {
-      tahap: "rabut",
-      action: "proses_rabut",
-    };
-  } else if (tahapanLower.includes("sortir")) {
-    console.log("Menjalankan proses sortir...");
-    // Logika untuk tahap sortir
-    return {
-      tahap: "sortir",
-      action: "proses_sortir",
-    };
-  } else if (tahapanLower.includes("lipat")) {
-    console.log("Menjalankan proses lipat...");
-    // Logika untuk tahap lipat
-    return {
-      tahap: "lipat",
-      action: "proses_lipat",
-    };
-  } else {
-    console.log("Tahapan tidak dikenali");
-    return {
-      tahap: "unknown",
-      action: "tidak_ada_aksi",
-    };
+      if (checkDataPond.data.length == 0) {
+        const createInspeksiPond =
+          await InspeksiPondService.creteInspeksiPondService({
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiPond.success === false) {
+          throw new Error(
+            createInspeksiPond.message || "Failed to create inspeksi cetak",
+          );
+        }
+      }
+      return {
+        tahap: "pond",
+        action: "proses_pond",
+      };
+    } else if (tahapanLower.includes("lem")) {
+      console.log("Menjalankan proses pelemanan...");
+      // Logika untuk tahap lem
+      const checkDataLem = await InspeksiLemService.getInspeksiLemService({
+        tahapan: tahapan,
+        shift: shift,
+        periode_tiket: periode_tiket,
+        no_jo: no_jo,
+        operator: operator,
+        mesin: mesin,
+      });
+
+      if (checkDataLem.data.length == 0) {
+        const createInspeksiLem =
+          await InspeksiLemService.creteInspeksiLemService({
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiLem.success === false) {
+          throw new Error(
+            createInspeksiLem.message || "Failed to create inspeksi cetak",
+          );
+        }
+      }
+
+      // Logika untuk tahap ampar lem
+      const checkDataAmparLem =
+        await InspeksiAmparLemService.getInspeksiAmparLemService({
+          tahapan: tahapan,
+          shift: shift,
+          periode_tiket: periode_tiket,
+          no_jo: no_jo,
+          operator: operator,
+          mesin: mesin,
+        });
+
+      if (checkDataAmparLem.data.length == 0) {
+        const createInspeksiAmparLem =
+          await InspeksiAmparLemService.creteInspeksiAmparLemService({
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiAmparLem.success === false) {
+          throw new Error(
+            createInspeksiAmparLem.message || "Failed to create inspeksi cetak",
+          );
+        }
+      }
+      return {
+        tahap: "lem",
+        action: "proses_lem",
+      };
+    } else if (tahapanLower.includes("rabut")) {
+      console.log("Menjalankan proses rabut...");
+      // Logika untuk tahap rabut
+      const checkDataRabut = await InspeksiRabutService.getInspeksiRabutService(
+        {
+          tahapan: tahapan,
+          shift: shift,
+          periode_tiket: periode_tiket,
+          no_jo: no_jo,
+          operator: operator,
+          mesin: mesin,
+        },
+      );
+
+      if (checkDataRabut.data.length == 0) {
+        const createInspeksiRabut =
+          await InspeksiRabutService.creteInspeksiRabutService({
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiRabut.success === false) {
+          throw new Error(
+            createInspeksiRabut.message || "Failed to create inspeksi cetak",
+          );
+        }
+      }
+
+      // Logika untuk tahap barang rusak v2
+      const checkDataBarangRusak =
+        await InspeksiBarangRusakV2Service.getInspeksiBarangRusakV2Service({
+          tahapan: tahapan,
+          shift: shift,
+          periode_tiket: periode_tiket,
+          no_jo: no_jo,
+          operator: operator,
+          mesin: mesin,
+        });
+
+      if (checkDataBarangRusak.data.length == 0) {
+        const createInspeksiBarangRusak =
+          await InspeksiBarangRusakV2Service.creteInspeksiBarangRusakV2Service({
+            qty_rusak: 0, //INI BELUM TAU DARI MANA
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiBarangRusak.success === false) {
+          throw new Error(
+            createInspeksiBarangRusak.message ||
+              "Failed to create inspeksi cetak",
+          );
+        }
+      }
+      return {
+        tahap: "rabut",
+        action: "proses_rabut",
+      };
+    } else if (tahapanLower.includes("lipat")) {
+      console.log("Menjalankan proses lipat...");
+      // Logika untuk tahap lipat
+      const checkDataLipat = await InspeksiLipatService.getInspeksiLipatService(
+        {
+          tahapan: tahapan,
+          shift: shift,
+          periode_tiket: periode_tiket,
+          no_jo: no_jo,
+          operator: operator,
+          mesin: mesin,
+        },
+      );
+
+      if (checkDataLipat.data.length == 0) {
+        const createInspeksiLipat =
+          await InspeksiLipatService.creteInspeksiLipatService({
+            ukuran_jadi: ukuran_jadi,
+            tahapan: tahapan,
+            tanggal: tanggal_pembuatan,
+            periode_tiket: periode_tiket,
+            no_io: no_io,
+            no_jo: no_jo,
+            operator: operator,
+            shift: shift,
+            jam: jam,
+            nama_produk: produk,
+            mesin: mesin,
+            merk: merk,
+            customer: customer,
+            status_jo: status_jo,
+            qty_jo: qty_jo,
+            jumlah_pcs: qty_jo,
+            jumlah_druk: qty_druk,
+            mata: mata,
+            jenis_kertas: jenis_kertas,
+            jenis_gramatur: jenis_gramatur,
+            warna_depan: warna_depan,
+            warna_belakang: warna_belakang,
+            transaction: transaction,
+          });
+
+        if (createInspeksiLipat.success === false) {
+          throw new Error(
+            createInspeksiLipat.message || "Failed to create inspeksi lipat",
+          );
+        }
+      }
+      return {
+        tahap: "lipat",
+        action: "proses_lipat",
+      };
+    } else {
+      console.log("Tahapan tidak dikenali");
+      return {
+        tahap: "unknown",
+        action: "tidak_ada_aksi",
+      };
+    }
+  } catch (error) {
+    console.error("Error in handleTahapan:", error);
+    throw error; // Re-throw agar bisa di-catch di level atas
   }
 }
 

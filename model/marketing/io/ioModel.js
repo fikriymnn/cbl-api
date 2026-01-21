@@ -80,7 +80,11 @@ const io = db.define(
       allowNull: true,
       //defaultValue: "baru",
     },
-
+    qty_send_proof: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -146,7 +150,7 @@ const io = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Okp.hasMany(io, {

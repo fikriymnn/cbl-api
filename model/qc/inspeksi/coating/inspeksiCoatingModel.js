@@ -9,6 +9,14 @@ const InspeksiCoating = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tahapan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    periode_tiket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     jumlah_druk: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
@@ -92,7 +100,7 @@ const InspeksiCoating = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 module.exports = InspeksiCoating;

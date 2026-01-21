@@ -44,6 +44,14 @@ const soPerubahanTglKirim = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tgl_approve: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_reject: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     tgl_awal: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -73,7 +81,7 @@ const soPerubahanTglKirim = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 So.hasMany(soPerubahanTglKirim, {

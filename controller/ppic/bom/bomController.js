@@ -206,7 +206,7 @@ const BomController = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom, 4), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom, 4), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -234,9 +234,12 @@ const BomController = {
       //cek apakah sudah punya jo
       let idJo = null;
       let noJo = null;
-      const checkJo = await JobOrder.findOne({
-        where: { id_so: id_so, is_active: true },
-      });
+      let checkJo = null;
+      if (id_so) {
+        checkJo = await JobOrder.findOne({
+          where: { id_so: id_so, is_active: true },
+        });
+      }
 
       if (checkJo) {
         idJo = checkJo.id;
@@ -258,7 +261,7 @@ const BomController = {
           customer,
           produk,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       if (bom_kertas && bom_kertas.length > 0) {
@@ -292,7 +295,7 @@ const BomController = {
               area_cetak: e.area_cetak,
               qty_tinta: e.qty_tinta,
             },
-            { transaction: t }
+            { transaction: t },
           );
 
           for (
@@ -309,7 +312,7 @@ const BomController = {
                 persentase_tinta: e.persentase_tinta,
                 qty_tinta_detail: e.qty_tinta_detail,
               },
-              { transaction: t }
+              { transaction: t },
             );
           }
         }
@@ -464,7 +467,7 @@ const BomController = {
           customer,
           produk,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       // === Fungsi util untuk update child ===
@@ -473,7 +476,7 @@ const BomController = {
         tableName,
         foreignKey,
         newData,
-        idField = "id"
+        idField = "id",
       ) {
         const existing = await model.findAll({
           where: { [foreignKey]: id },
@@ -486,7 +489,7 @@ const BomController = {
 
         // 🔸 Hapus data yang tidak ada lagi di frontend
         const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid)
+          (eid) => !incomingIds.includes(eid),
         );
         if (deletedIds.length > 0) {
           await model.destroy({
@@ -519,7 +522,7 @@ const BomController = {
           BomCorrugatedModel,
           "bom_corrugated",
           "id_bom",
-          bom_corrugated
+          bom_corrugated,
         );
       }
 
@@ -552,7 +555,7 @@ const BomController = {
 
         // Hapus tinta yang dihapus
         const deletedTintaIds = existingTintaIds.filter(
-          (eid) => !incomingTintaIds.includes(eid)
+          (eid) => !incomingTintaIds.includes(eid),
         );
         if (deletedTintaIds.length > 0) {
           await BomTintaDetailModel.destroy({
@@ -576,7 +579,7 @@ const BomController = {
           } else {
             tintaModel = await BomTintaModel.create(
               { ...tinta, id_bom: id },
-              { transaction: t }
+              { transaction: t },
             );
           }
 
@@ -590,7 +593,7 @@ const BomController = {
           const existingDetailIds = existingDetail.map((d) => d.id);
           const incomingDetailIds = detail.filter((d) => d.id).map((d) => d.id);
           const deletedDetailIds = existingDetailIds.filter(
-            (eid) => !incomingDetailIds.includes(eid)
+            (eid) => !incomingDetailIds.includes(eid),
           );
 
           if (deletedDetailIds.length > 0) {
@@ -609,7 +612,7 @@ const BomController = {
             } else {
               await BomTintaDetailModel.create(
                 { ...d, id_bom_tinta: tintaModel.id },
-                { transaction: t }
+                { transaction: t },
               );
             }
           }
@@ -635,7 +638,7 @@ const BomController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await BomModel.update(
+      (await BomModel.update(
         {
           status: "requested",
           status_proses: "request to kabag",
@@ -643,16 +646,16 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await BomUserAction.create(
           { id_bom: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" });
+          .json({ succes: true, status_code: 200, msg: "Request Successful" }));
     } catch (error) {
       res
         .status(400)
@@ -675,7 +678,7 @@ const BomController = {
         where: { id_bom: _id, is_active: true },
         transaction: t,
       });
-      await BomModel.update(
+      (await BomModel.update(
         {
           status: "history",
           status_proses: "done",
@@ -686,16 +689,16 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await soModel.update(
           { is_bom_done: true },
           { where: { id: checkData.id_so } },
-          { transaction: t }
-        );
+          { transaction: t },
+        ));
       await BomUserAction.create(
         { id_bom: checkData.id, id_user: req.user.id, status: "approve" },
-        { transaction: t }
+        { transaction: t },
       );
 
       if (checkBomPpic) {
@@ -706,14 +709,14 @@ const BomController = {
           {
             where: { id: checkBomPpic.id },
             transaction: t,
-          }
+          },
         );
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       res
         .status(400)
@@ -733,7 +736,7 @@ const BomController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await BomModel.update(
+      (await BomModel.update(
         {
           status_proses: "reject kabag",
           status: "draft",
@@ -742,7 +745,7 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await BomUserAction.create(
           {
@@ -750,12 +753,12 @@ const BomController = {
             id_user: req.user.id,
             status: "kabag reject",
           },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       res
         .status(400)
