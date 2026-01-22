@@ -186,7 +186,7 @@ const inspeksiFinalController = {
         },
         {
           transaction: t,
-        }
+        },
       );
 
       const masterSubFinal = await InspeksiMasterSubFinal.findOne(
@@ -200,7 +200,7 @@ const inspeksiFinalController = {
         },
         {
           transaction: t,
-        }
+        },
       );
       const masterPointFinal = await InspeksiMasterPointFinal.findAll({
         where: { status: "active" },
@@ -217,7 +217,7 @@ const inspeksiFinalController = {
           },
           {
             transaction: t,
-          }
+          },
         );
       }
 
@@ -231,7 +231,7 @@ const inspeksiFinalController = {
           },
           {
             transaction: t,
-          }
+          },
         );
       }
 
@@ -247,11 +247,11 @@ const inspeksiFinalController = {
     const id = req.params.id;
     const date = new Date();
     try {
-      await InspeksiFinal.update(
+      (await InspeksiFinal.update(
         { waktu_mulai: date, inspektor: req.user.id },
-        { where: { id: id } }
+        { where: { id: id } },
       ),
-        res.status(200).json({ msg: "start successfuly" });
+        res.status(200).json({ msg: "start successfuly" }));
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -345,7 +345,7 @@ const inspeksiFinalController = {
           bagian_tiket: "history",
           no_doc: noDoc.kode,
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       for (let i = 0; i < inspeksi_final_point.length; i++) {
@@ -355,7 +355,7 @@ const inspeksiFinalController = {
             hasil: inspeksi_final_point[i].hasil,
             qty: inspeksi_final_point[i].qty,
           },
-          { where: { id: inspeksi_final_point[i].id }, transaction: t }
+          { where: { id: inspeksi_final_point[i].id }, transaction: t },
         );
       }
 
@@ -365,103 +365,103 @@ const inspeksiFinalController = {
             id_inspeksi_final: id,
             reject: totalQtyReject,
           },
-          { where: { id: inspeksi_final_sub[i].id }, transaction: t }
+          { where: { id: inspeksi_final_sub[i].id }, transaction: t },
         );
       }
 
       //dimatikan untuk ke prod
-      const getInspeksiFinal = await InspeksiFinal.findByPk(id);
+      // const getInspeksiFinal = await InspeksiFinal.findByPk(id);
 
-      if (status == "bisa kirim" && getInspeksiFinal.id_jo != null) {
-        //create ke tabel delivery order
-        const dataListJoDone =
-          await ProduksiJoDoneService.getProduksiJoDoneService({
-            id_jo: getInspeksiFinal.id_jo,
-            status_proses: "check qc",
-          });
+      // if (status == "bisa kirim" && getInspeksiFinal.id_jo != null) {
+      //   //create ke tabel delivery order
+      //   const dataListJoDone =
+      //     await ProduksiJoDoneService.getProduksiJoDoneService({
+      //       id_jo: getInspeksiFinal.id_jo,
+      //       status_proses: "check qc",
+      //     });
 
-        if (dataListJoDone.success === false) {
-          await t.rollback();
+      //   if (dataListJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: dataListJoDone.message,
-          });
-        }
-        console.log(1);
-        const createDeliveryOrder =
-          await DeliveryOrderService.creteDeliveryOrderService({
-            id_jo: dataListJoDone.data[0].id_jo,
-            id_io: dataListJoDone.data[0].id_io,
-            id_so: dataListJoDone.data[0].id_so,
-            id_customer: dataListJoDone.data[0].id_customer,
-            id_produk: dataListJoDone.data[0].id_produk,
-            transaction: t,
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: dataListJoDone.message,
+      //     });
+      //   }
+      //   console.log(1);
+      //   const createDeliveryOrder =
+      //     await DeliveryOrderService.creteDeliveryOrderService({
+      //       id_jo: dataListJoDone.data[0].id_jo,
+      //       id_io: dataListJoDone.data[0].id_io,
+      //       id_so: dataListJoDone.data[0].id_so,
+      //       id_customer: dataListJoDone.data[0].id_customer,
+      //       id_produk: dataListJoDone.data[0].id_produk,
+      //       transaction: t,
+      //     });
 
-        if (createDeliveryOrder.success === false) {
-          await t.rollback();
+      //   if (createDeliveryOrder.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: createDeliveryOrder.message,
-          });
-        }
-        console.log(2);
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: createDeliveryOrder.message,
+      //     });
+      //   }
+      //   console.log(2);
 
-        const doneDeliveryOrder =
-          await ProduksiJoDoneService.doneProduksiJoDoneService({
-            id: dataListJoDone.data[0].id,
-            transaction: t,
-          });
+      //   const doneDeliveryOrder =
+      //     await ProduksiJoDoneService.doneProduksiJoDoneService({
+      //       id: dataListJoDone.data[0].id,
+      //       transaction: t,
+      //     });
 
-        if (doneDeliveryOrder.success === false) {
-          await t.rollback();
+      //   if (doneDeliveryOrder.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: doneDeliveryOrder.message,
-          });
-        }
-      } else if (
-        status == "tidak bisa di kirim" &&
-        getInspeksiFinal.id_jo != null
-      ) {
-        //create ke tabel delivery order
-        const dataListJoDone =
-          await ProduksiJoDoneService.getProduksiJoDoneService({
-            id_jo: getInspeksiFinal.id_jo,
-            status_proses: "check qc",
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: doneDeliveryOrder.message,
+      //     });
+      //   }
+      // } else if (
+      //   status == "tidak bisa di kirim" &&
+      //   getInspeksiFinal.id_jo != null
+      // ) {
+      //   //create ke tabel delivery order
+      //   const dataListJoDone =
+      //     await ProduksiJoDoneService.getProduksiJoDoneService({
+      //       id_jo: getInspeksiFinal.id_jo,
+      //       status_proses: "check qc",
+      //     });
 
-        if (dataListJoDone.success === false) {
-          await t.rollback();
+      //   if (dataListJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: dataListJoDone.message,
-          });
-        }
-        const rejectProduksiJoDone =
-          await ProduksiJoDoneService.rejectQcProduksiJoDoneService({
-            id: dataListJoDone.data[0].id,
-            transaction: t,
-          });
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: dataListJoDone.message,
+      //     });
+      //   }
+      //   const rejectProduksiJoDone =
+      //     await ProduksiJoDoneService.rejectQcProduksiJoDoneService({
+      //       id: dataListJoDone.data[0].id,
+      //       transaction: t,
+      //     });
 
-        if (rejectProduksiJoDone.success === false) {
-          await t.rollback();
+      //   if (rejectProduksiJoDone.success === false) {
+      //     await t.rollback();
 
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: rejectProduksiJoDone.message,
-          });
-        }
-      }
+      //     return res.status(400).json({
+      //       succes: false,
+      //       status_code: 400,
+      //       msg: rejectProduksiJoDone.message,
+      //     });
+      //   }
+      // }
 
       await t.commit();
 
