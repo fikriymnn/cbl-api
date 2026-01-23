@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
+const Kalkulasi = require("../kalkulasi/kalkulasiModel");
 const Io = require("../io/ioModel");
 const MasterCustomer = require("../../masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../masterData/marketing/masterProdukModel");
@@ -53,6 +54,10 @@ const so = db.define(
     id_kalkulasi: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: Kalkulasi,
+        key: "id",
+      },
     },
 
     tgl_approve_so: {
@@ -231,7 +236,7 @@ const so = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Io.hasMany(so, {
@@ -241,6 +246,15 @@ Io.hasMany(so, {
 so.belongsTo(Io, {
   foreignKey: "id_io",
   as: "io",
+});
+
+Kalkulasi.hasMany(so, {
+  foreignKey: "id_kalkulasi",
+  as: "so",
+});
+so.belongsTo(Kalkulasi, {
+  foreignKey: "id_kalkulasi",
+  as: "kalkulasi",
 });
 
 //~~start~~//

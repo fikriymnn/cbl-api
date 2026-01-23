@@ -4,6 +4,8 @@ const IoModel = require("../../../model/marketing/io/ioModel");
 const KalkulasiQty = require("../../../model/marketing/kalkulasi/kalkulasiQtyModel");
 const KalkulasiLainLain = require("../../../model/marketing/kalkulasi/kalkulasiLainLainModel");
 const KalkulasiUserAction = require("../../../model/marketing/kalkulasi/kalkulasiUserActionModel");
+const OkpModel = require("../../../model/marketing/okp/okpModel");
+const SoModel = require("../../../model/marketing/so/soModel");
 //master
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
@@ -74,6 +76,11 @@ const KalkulasiController = {
         const response = await Kalkulasi.findByPk(_id, {
           include: [
             {
+              model: SoModel,
+              as: "so",
+              attributes: ["id", "no_so"],
+            },
+            {
               model: KalkulasiLainLain,
               as: "lain_lain",
             },
@@ -142,7 +149,7 @@ const KalkulasiController = {
           // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(kode_kalkulasi, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(kode_kalkulasi, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -342,9 +349,8 @@ const KalkulasiController = {
           msg: "produk tidak ditemukan",
         });
       //check data harga pengiriman
-      const checkHargaPengiriman = await MasterHargaPengiriman.findByPk(
-        id_area_pengiriman
-      );
+      const checkHargaPengiriman =
+        await MasterHargaPengiriman.findByPk(id_area_pengiriman);
       if (!checkHargaPengiriman)
         return res.status(404).json({
           succes: false,
@@ -411,7 +417,7 @@ const KalkulasiController = {
       let checkMesinCoatingDepan = {};
       if (id_mesin_coating_depan) {
         checkMesinCoatingDepan = await MasterMesinTahapan.findByPk(
-          id_mesin_coating_depan
+          id_mesin_coating_depan,
         );
         if (!checkMesinCoatingDepan)
           return res.status(404).json({
@@ -423,7 +429,7 @@ const KalkulasiController = {
       let checkMesinCoatingBelakang = {};
       if (id_mesin_coating_belakang) {
         checkMesinCoatingBelakang = await MasterMesinTahapan.findByPk(
-          id_mesin_coating_belakang
+          id_mesin_coating_belakang,
         );
         if (!checkMesinCoatingBelakang)
           return res.status(404).json({
@@ -477,9 +483,8 @@ const KalkulasiController = {
 
       let checkMesinFinishing = {};
       if (id_mesin_finishing) {
-        checkMesinFinishing = await MasterMesinTahapan.findByPk(
-          id_mesin_finishing
-        );
+        checkMesinFinishing =
+          await MasterMesinTahapan.findByPk(id_mesin_finishing);
         if (!checkMesinFinishing)
           return res.status(404).json({
             succes: false,
@@ -507,7 +512,7 @@ const KalkulasiController = {
       if (status_kalkulasi == "repeat") {
         // cek kalkulasi sebelumnya
         const previousKalkulasi = await Kalkulasi.findByPk(
-          id_kalkulasi_previous
+          id_kalkulasi_previous,
         );
 
         let idOkp = previousKalkulasi.id_okp;
@@ -615,12 +620,12 @@ const KalkulasiController = {
           id_coating_depan: id_coating_depan || null,
           nama_coating_depan: checkCoatingDepan.nama_barang || null,
           jumlah_harga_coating_depan: parseFloat(
-            jumlah_harga_coating_depan || "0"
+            jumlah_harga_coating_depan || "0",
           ),
           id_coating_belakang: id_coating_belakang || null,
           nama_coating_belakang: checkCoatingBelakang.nama_barang || null,
           jumlah_harga_coating_belakang: parseFloat(
-            jumlah_harga_coating_belakang || "0"
+            jumlah_harga_coating_belakang || "0",
           ),
           total_harga_coating: parseFloat(total_harga_coating || "0"),
           id_mesin_coating_depan: id_mesin_coating_depan || null,
@@ -637,10 +642,10 @@ const KalkulasiController = {
           ongkos_pons: ongkos_pons,
           ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
           harga_satuan_ongkos_pons: parseStringSparator(
-            harga_satuan_ongkos_pons || "0"
+            harga_satuan_ongkos_pons || "0",
           ),
           total_harga_ongkos_pons: parseStringSparator(
-            total_harga_ongkos_pons || "0"
+            total_harga_ongkos_pons || "0",
           ),
           lipat: lipat,
           id_mesin_lipat: id_mesin_lipat || null,
@@ -749,12 +754,12 @@ const KalkulasiController = {
           id_coating_depan: id_coating_depan || null,
           nama_coating_depan: checkCoatingDepan.nama_barang || null,
           jumlah_harga_coating_depan: parseFloat(
-            jumlah_harga_coating_depan || "0"
+            jumlah_harga_coating_depan || "0",
           ),
           id_coating_belakang: id_coating_belakang || null,
           nama_coating_belakang: checkCoatingBelakang.nama_barang || null,
           jumlah_harga_coating_belakang: parseFloat(
-            jumlah_harga_coating_belakang || "0"
+            jumlah_harga_coating_belakang || "0",
           ),
           total_harga_coating: parseFloat(total_harga_coating || "0"),
           id_mesin_coating_depan: id_mesin_coating_depan || null,
@@ -771,10 +776,10 @@ const KalkulasiController = {
           ongkos_pons: ongkos_pons,
           ongkos_pons_qty: parseFloat(ongkos_pons_qty || "0"),
           harga_satuan_ongkos_pons: parseStringSparator(
-            harga_satuan_ongkos_pons || "0"
+            harga_satuan_ongkos_pons || "0",
           ),
           total_harga_ongkos_pons: parseStringSparator(
-            total_harga_ongkos_pons || "0"
+            total_harga_ongkos_pons || "0",
           ),
           lipat: lipat,
           id_mesin_lipat: id_mesin_lipat || null,
@@ -837,7 +842,7 @@ const KalkulasiController = {
               nama_item: e.nama_item,
               harga: e.harga,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }
@@ -889,7 +894,7 @@ const KalkulasiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
       await KalkulasiUserAction.create(
         {
@@ -897,12 +902,12 @@ const KalkulasiController = {
           id_user: req.user.id,
           status: "submited",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Submit Successful" });
+          .json({ succes: true, status_code: 200, msg: "Submit Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -933,7 +938,7 @@ const KalkulasiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await KalkulasiUserAction.create(
@@ -942,12 +947,12 @@ const KalkulasiController = {
           id_user: req.user.id,
           status: "rejected",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "Reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -976,7 +981,7 @@ const KalkulasiController = {
         isOkpDone = true;
         await IoModel.update(
           { status_io: "repeat" },
-          { where: { id: checkData.id_io }, transaction: t }
+          { where: { id: checkData.id_io }, transaction: t },
         );
       }
       await Kalkulasi.update(
@@ -992,12 +997,12 @@ const KalkulasiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -1156,9 +1161,8 @@ const KalkulasiController = {
 
       if (id_area_pengiriman) {
         //check data
-        const checkData = await MasterHargaPengiriman.findByPk(
-          id_area_pengiriman
-        );
+        const checkData =
+          await MasterHargaPengiriman.findByPk(id_area_pengiriman);
         if (!checkData)
           return res.status(404).json({
             succes: false,
@@ -1271,7 +1275,7 @@ const KalkulasiController = {
       }
       if (jumlah_harga_coating_depan)
         obj.jumlah_harga_coating_depan = parseFloat(
-          jumlah_harga_coating_depan || "0"
+          jumlah_harga_coating_depan || "0",
         );
 
       if (id_coating_belakang) {
@@ -1288,14 +1292,14 @@ const KalkulasiController = {
       }
       if (jumlah_harga_coating_belakang)
         obj.jumlah_harga_coating_belakang = parseFloat(
-          jumlah_harga_coating_belakang || "0"
+          jumlah_harga_coating_belakang || "0",
         );
       if (total_harga_coating)
         obj.total_harga_coating = parseFloat(total_harga_coating || "0");
       if (id_mesin_coating_depan) {
         //check data
         const checkData = await MasterMesinTahapan.findByPk(
-          id_mesin_coating_depan
+          id_mesin_coating_depan,
         );
         if (!checkData)
           return res.status(404).json({
@@ -1310,7 +1314,7 @@ const KalkulasiController = {
       if (id_mesin_coating_belakang) {
         //check data
         const checkData = await MasterMesinTahapan.findByPk(
-          id_mesin_coating_belakang
+          id_mesin_coating_belakang,
         );
         if (!checkData)
           return res.status(404).json({
@@ -1352,11 +1356,11 @@ const KalkulasiController = {
         obj.ongkos_pons_qty = parseFloat(ongkos_pons_qty || "0");
       if (harga_satuan_ongkos_pons)
         obj.harga_satuan_ongkos_pons = parseStringSparator(
-          harga_satuan_ongkos_pons || "0"
+          harga_satuan_ongkos_pons || "0",
         );
       if (total_harga_ongkos_pons)
         obj.total_harga_ongkos_pons = parseStringSparator(
-          total_harga_ongkos_pons || "0"
+          total_harga_ongkos_pons || "0",
         );
       if (lipat) obj.lipat = lipat;
 
@@ -1472,7 +1476,7 @@ const KalkulasiController = {
         tableName,
         foreignKey,
         newData,
-        idField = "id"
+        idField = "id",
       ) {
         const existing = await model.findAll({
           where: { [foreignKey]: _id },
@@ -1485,7 +1489,7 @@ const KalkulasiController = {
 
         // 🔸 Hapus data yang tidak ada lagi di frontend
         const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid)
+          (eid) => !incomingIds.includes(eid),
         );
         if (deletedIds.length > 0) {
           await model.destroy({
@@ -1514,7 +1518,7 @@ const KalkulasiController = {
           KalkulasiLainLain,
           "lain_lain",
           "id_kalkulasi",
-          lain_lain
+          lain_lain,
         );
       }
 
@@ -1528,12 +1532,12 @@ const KalkulasiController = {
           id_user: req.user.id,
           status: "edited",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -1553,17 +1557,17 @@ const KalkulasiController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await Kalkulasi.update(
+      (await Kalkulasi.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       await t.rollback();
       res

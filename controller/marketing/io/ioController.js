@@ -5,6 +5,7 @@ const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
 const IoMountingLainLain = require("../../../model/marketing/io/ioMountingLainLain");
 const IoUserAction = require("../../../model/marketing/io/ioActionActionModel");
 const Okp = require("../../../model/marketing/okp/okpModel");
+const So = require("../../../model/marketing/so/soModel");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
