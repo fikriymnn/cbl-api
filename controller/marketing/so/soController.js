@@ -135,6 +135,11 @@ const SoController = {
         const response = await SoModel.findByPk(_id, {
           include: [
             {
+              model: JoModel,
+              as: "job_order",
+              attributes: ["no_jo"],
+            },
+            {
               model: MasterCustomer,
               as: "data_customer",
               attributes: ["id_marketing"],
