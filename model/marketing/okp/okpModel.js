@@ -72,7 +72,7 @@ const okp = db.define(
     tgl_pembuatan_okp: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     status_okp: {
       type: DataTypes.STRING,
@@ -163,17 +163,17 @@ const okp = db.define(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Kalkulasi.hasMany(okp, {

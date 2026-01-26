@@ -108,7 +108,7 @@ const Kalkulasi = db.define(
     tgl_kalkulasi: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     tgl_approve_kalkulasi: {
       type: DataTypes.DATE,
@@ -662,17 +662,17 @@ const Kalkulasi = db.define(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 //~~start~~//

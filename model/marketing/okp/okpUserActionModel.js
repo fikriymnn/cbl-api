@@ -28,7 +28,7 @@ const okpUserAction = db.define(
     tgl: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
 
     status: {
@@ -44,7 +44,7 @@ const okpUserAction = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Okp.hasMany(okpUserAction, {

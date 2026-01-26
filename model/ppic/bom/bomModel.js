@@ -95,7 +95,7 @@ const Bom = db.define(
     tgl_pembuatan_bom: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     status_bom: {
       type: DataTypes.STRING,
@@ -129,7 +129,7 @@ const Bom = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 JobOrder.hasMany(Bom, {

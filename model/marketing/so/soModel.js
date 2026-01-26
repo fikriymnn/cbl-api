@@ -83,12 +83,12 @@ const so = db.define(
     tgl_pembuatan_so: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     tgl_input_po: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     id_so_cancel: {
       type: DataTypes.INTEGER,

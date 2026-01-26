@@ -73,7 +73,7 @@ const io = db.define(
     tgl_pembuatan_io: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     status_io: {
       type: DataTypes.STRING,
@@ -140,12 +140,12 @@ const io = db.define(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
   },
   {
