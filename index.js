@@ -385,7 +385,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Io.sync({
+//   await BomPpicModel.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

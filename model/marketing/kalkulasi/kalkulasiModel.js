@@ -108,7 +108,7 @@ const Kalkulasi = db.define(
     tgl_kalkulasi: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     tgl_approve_kalkulasi: {
       type: DataTypes.DATE,

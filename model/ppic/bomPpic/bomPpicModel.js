@@ -100,7 +100,7 @@ const BomPpic = db.define(
     tgl_pembuatan_bom_ppic: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
 
     status_bom_ppic: {
@@ -130,7 +130,7 @@ const BomPpic = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 JobOrder.hasMany(BomPpic, {
