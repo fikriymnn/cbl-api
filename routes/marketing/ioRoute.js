@@ -7,7 +7,7 @@ router.get("/marketing/ioJumlahData", auth, IoController.getIoJumlahData);
 router.get(
   "/marketing/ioPreviousByOkp/:id",
   auth,
-  IoController.getIoDataPrevious
+  IoController.getIoDataPrevious,
 );
 router.post("/marketing/io", auth, IoController.createIo);
 router.put("/marketing/io/:id", auth, IoController.updateIo);
@@ -20,9 +20,10 @@ router.put("/marketing/io/mounting/:id", auth, IoController.updateMountingIo);
 router.delete(
   "/marketing/io/mounting/:id",
   auth,
-  IoController.deleteMountingIo
+  IoController.deleteMountingIo,
 );
 router.put("/marketing/io/doneManual/:id", auth, IoController.doneManualIo);
 router.delete("/marketing/io/:id", auth, IoController.deleteIo);
+router.put("/marketing/io/actived/:id", auth, IoController.activedIo);
 
 module.exports = router;

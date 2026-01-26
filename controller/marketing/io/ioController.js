@@ -1386,30 +1386,68 @@ const IoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await Io.update(
-        { is_active: false },
+      await Io.update(
+        { is_active: false, status: "deleted", status_proses: "deleted" },
         {
           where: { id: _id },
           transaction: t,
         },
-      ),
-        await IoUserAction.create(
-          {
-            id_io: checkData.id,
-            id_user: req.user.id,
-            status: "delete io",
-          },
-          { transaction: t },
-        ));
-      (await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
+      );
+      await IoUserAction.create(
+        {
+          id_io: checkData.id,
+          id_user: req.user.id,
+          status: "delete io",
+        },
+        { transaction: t },
+      );
+      await t.commit();
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
-      (await t.rollback(),
-        res
-          .status(400)
-          .json({ succes: true, status_code: 400, msg: error.message }));
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  activedIo: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await Io.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await Io.update(
+        { is_active: true, status: "draft", status_proses: "draft" },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+      await IoUserAction.create(
+        {
+          id_io: checkData.id,
+          id_user: req.user.id,
+          status: "actived io",
+        },
+        { transaction: t },
+      );
+      await t.commit();
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
     }
   },
 };
