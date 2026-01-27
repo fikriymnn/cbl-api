@@ -2,6 +2,7 @@ const { Op, Sequelize, where } = require("sequelize");
 const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const ProduksiLkh = require("../../model/produksi/produksiLkhModel");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
+const ProduksiLkhWaste = require("../../model/produksi/produksiLkhWasteModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapanMesin = require("../../model/masterData/tahapan/masterTahapanMesinModel");
@@ -76,6 +77,10 @@ const ProduksiLkhTahapanController = {
                   model: ProduksiLkhProses,
                   as: "produksi_lkh_proses",
                 },
+                {
+                  model: ProduksiLkhWaste,
+                  as: "produksi_lkh_waste",
+                },
               ],
             },
             {
@@ -100,6 +105,10 @@ const ProduksiLkhTahapanController = {
                   model: ProduksiLkhProses,
                   as: "produksi_lkh_proses",
                 },
+                {
+                  model: ProduksiLkhWaste,
+                  as: "produksi_lkh_waste",
+                },
               ],
             },
           ],
@@ -120,6 +129,10 @@ const ProduksiLkhTahapanController = {
                   as: "produksi_lkh_proses",
                 },
                 {
+                  model: ProduksiLkhWaste,
+                  as: "produksi_lkh_waste",
+                },
+                {
                   model: Users,
                   as: "operator",
                 },
@@ -128,6 +141,10 @@ const ProduksiLkhTahapanController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
+            },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
             },
             {
               model: MasterTahapan,
@@ -170,7 +187,7 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
@@ -183,7 +200,7 @@ const ProduksiLkhTahapanController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       //buat tahapan selanjutnya jadi active & cek apakah tahapan ini adalah tahapan terakhir (untuk kirim tiket ke list jo selesai)
@@ -199,7 +216,7 @@ const ProduksiLkhTahapanController = {
         //buat tahapan selanjutnya active
         await ProduksiLkhTahapan.update(
           { status: "active" },
-          { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+          { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
         );
       } else {
         //jika tidak ada maka kirim tiket ke list produksi jo selesai
@@ -222,10 +239,10 @@ const ProduksiLkhTahapanController = {
         }
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -247,14 +264,14 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Actived Successful" });
+          .json({ succes: true, status_code: 200, msg: "Actived Successful" }));
     } catch (error) {
       await t.rollback();
       res

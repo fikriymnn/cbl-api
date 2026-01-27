@@ -2,6 +2,7 @@ const { Op, Sequelize, where } = require("sequelize");
 const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const ProduksiLkh = require("../../model/produksi/produksiLkhModel");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
+const ProduksiLkhWaste = require("../../model/produksi/produksiLkhWasteModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
@@ -77,6 +78,10 @@ const ProduksiLkhController = {
               where: { status: "progress" },
               required: false,
             },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
+            },
           ],
           offset,
           where: obj,
@@ -91,6 +96,10 @@ const ProduksiLkhController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
+            },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
             },
           ],
         });
@@ -107,6 +116,10 @@ const ProduksiLkhController = {
               as: "produksi_lkh_proses",
               where: { status: status_lkh_proses ?? "progress" },
               required: false,
+            },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
             },
           ],
         });
@@ -125,6 +138,7 @@ const ProduksiLkhController = {
       id_produksi_lkh_tahapan,
       send_request_to_spv,
       produksi_lkh_proses,
+      produksi_lkh_waste,
     } = req.body;
     const t = await db.transaction();
     try {
@@ -138,7 +152,7 @@ const ProduksiLkhController = {
 
       await ProduksiLkh.update(
         { status: "done" },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       const findFinishJo = produksi_lkh_proses.find((e) => e.kode == "5.2");
@@ -151,7 +165,7 @@ const ProduksiLkhController = {
           {
             where: { id: id_produksi_lkh_tahapan },
             transaction: t,
-          }
+          },
         );
       }
 
@@ -167,7 +181,26 @@ const ProduksiLkhController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
+        );
+      }
+
+      for (let i = 0; i < produksi_lkh_waste.length; i++) {
+        const e = produksi_lkh_waste[i];
+        await ProduksiLkhWaste.update(
+          {
+            total_qty: e.total_qty,
+            id_kendala: e.id_kendala,
+            kode_waste: e.kode_kendala,
+            deskripsi_kendala: e.deskripsi_kendala,
+            id_waste: e.id_waste,
+            kode_waste: e.kode_waste,
+            deskripsi_waste: e.deskripsi_waste,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          },
         );
       }
 
@@ -176,14 +209,14 @@ const ProduksiLkhController = {
       if (finalResult) {
         await ProduksiLkhProses.update(
           { is_final_result: true },
-          { where: { id: finalResult.id }, transaction: t }
+          { where: { id: finalResult.id }, transaction: t },
         );
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res

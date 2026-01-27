@@ -352,6 +352,7 @@ const MasterWasteKendala = require("./model/masterData/kodeProduksi/masterWasteK
 const ProduksiLkhTahapan = require("./model/produksi/produksiLkhTahapanModel");
 const ProduksiLkh = require("./model/produksi/produksiLkhModel");
 const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesModel");
+const ProduksiLkhWaste = require("./model/produksi/produksiLkhWasteModel");
 const ProduksiJoDone = require("./model/produksi/produksiJoDoneModel");
 
 //delivery Order
@@ -385,7 +386,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomPpicModel.sync({
+//   await ProduksiLkhWaste.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
