@@ -142,7 +142,7 @@ const ProduksiLkhController = {
     } = req.body;
     const t = await db.transaction();
     try {
-      const checkData = await ProduksiLkhTahapan.findByPk(_id);
+      const checkData = await ProduksiLkh.findByPk(_id);
       if (!checkData)
         return res.status(404).json({
           succes: false,
@@ -191,7 +191,7 @@ const ProduksiLkhController = {
           {
             total_qty: e.total_qty,
             id_kendala: e.id_kendala,
-            kode_waste: e.kode_kendala,
+            kode_kendala: e.kode_kendala,
             deskripsi_kendala: e.deskripsi_kendala,
             id_waste: e.id_waste,
             kode_waste: e.kode_waste,
@@ -216,7 +216,7 @@ const ProduksiLkhController = {
       (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Finish Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -280,6 +280,26 @@ const ProduksiLkhController = {
                 },
               ],
             },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
           ],
         });
         return res.status(200).json({
@@ -292,6 +312,26 @@ const ProduksiLkhController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
               where: { is_active: true },
               required: false,
               include: [
@@ -322,6 +362,26 @@ const ProduksiLkhController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
+                },
+                {
+                  model: MasterMesinTahapan,
+                  as: "mesin",
+                },
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
+            },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
               where: { is_active: true },
               required: false,
               include: [
