@@ -9,15 +9,21 @@ router.put("/marketing/okp/:id", auth, OkpController.updateOkp);
 router.put(
   "/marketing/okp/proses/action/:id",
   auth,
-  OkpController.actionProsesTanggalOkp
+  OkpController.actionProsesTanggalOkp,
 );
 router.put(
   "/marketing/okp/proses/reject/:id",
   auth,
-  OkpController.rejectProsesTanggalOkp
+  OkpController.rejectProsesTanggalOkp,
 );
 router.put("/marketing/okp/approve/:id", auth, OkpController.approveOkp);
 router.put("/marketing/okp/reject/:id", auth, OkpController.rejectOkp);
+router.put("/marketing/okp/cancel/:id", auth, OkpController.cancelOkp);
+router.put(
+  "/marketing/okp/updateKalkulasi/:id",
+  auth,
+  OkpController.updateKalkulasiOkp,
+);
 router.delete("/marketing/okp/:id", auth, OkpController.deleteOkp);
 
 module.exports = router;

@@ -369,6 +369,7 @@ const BomController = {
             id_coating: e.id_coating,
             nama_coating: e.nama_coating,
             tipe_coating: e.tipe_coating,
+            rumus_coating: e.rumus_coating,
             qty_coating: e.qty_coating,
             uv_wb: e.uv_wb,
             varnish_doff: e.varnish_doff,

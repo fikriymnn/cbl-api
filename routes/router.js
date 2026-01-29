@@ -51,40 +51,40 @@ router.use("/", require("./mtc/stokOpname/adjusmentRoute"));
 router.use("/", require("./masterdata/qc/inspeksi/masterKodeDocRoute"));
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterKodeMasalahCetakRoute")
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCetakRoute"),
 );
 router.use("/", require("./masterdata/qc/inspeksi/masterKodeMasalahPondRoute"));
 router.use("/", require("./masterdata/qc/inspeksi/masterKodeMasalahLemRoute"));
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterKodeMasalahRabutRoute")
+  require("./masterdata/qc/inspeksi/masterKodeMasalahRabutRoute"),
 );
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute"),
 );
 router.use("/", require("./masterdata/qc/inspeksi/masterPointFinalRoute"));
 router.use("/", require("./masterdata/qc/inspeksi/masterSubFinalRoute"));
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterPointOutsourcingBJRoute")
+  require("./masterdata/qc/inspeksi/masterPointOutsourcingBJRoute"),
 );
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute")
+  require("./masterdata/qc/inspeksi/masterKodeMasalahCoatingRoute"),
 );
 router.use(
   "/",
-  require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak")
+  require("./masterdata/qc/inspeksi/masterKodeMasalahBarangRusak"),
 );
 router.use("/", require("./masterdata/qc/department/masterDepartmentRoutes"));
 router.use(
   "/",
-  require("./masterdata/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurRoute")
+  require("./masterdata/qc/kalibrasiAlatUkur/masterStatusKalibrasiAlatUkurRoute"),
 );
 router.use(
   "/",
-  require("./masterdata/qc/kalibrasiAlatUkur/masterLokasiKalibrasiAlatUkurRoute")
+  require("./masterdata/qc/kalibrasiAlatUkur/masterLokasiKalibrasiAlatUkurRoute"),
 );
 
 //qc
@@ -100,7 +100,7 @@ router.use("/", require("./qc/inspeksi/plate/inspeksiKelengkapanPlateRoutes"));
 router.use("/", require("./qc/inspeksi/plate/inspeksiPrePressRoutes"));
 router.use(
   "/",
-  require("./qc/inspeksi/incomingOutsourcing/incomingOutsourcingRoutes")
+  require("./qc/inspeksi/incomingOutsourcing/incomingOutsourcingRoutes"),
 );
 router.use("/", require("./qc/ValidasiRoute"));
 
@@ -145,17 +145,17 @@ router.use("/", require("./qc/inspeksi/coating/inspeksiCoatingPeriodeRoutes"));
 router.use("/", require("./qc/inspeksi/barangRusak/inspeksiBarangRusakRoutes"));
 router.use(
   "/",
-  require("./qc/inspeksi/barangRusak/inspeksiBarangRusakDefectRoutes")
+  require("./qc/inspeksi/barangRusak/inspeksiBarangRusakDefectRoutes"),
 );
 
 // qc barang rusak v2
 router.use(
   "/",
-  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Routes")
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Routes"),
 );
 router.use(
   "/",
-  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Route")
+  require("./qc/inspeksi/barangRusakV2/inspeksiBarangRusakPointV2Route"),
 );
 
 // qc final
@@ -168,7 +168,7 @@ router.use("/", require("./qc/kalibrasiAlatUkur/kalibrasiAlatUkurTiketRoute"));
 // qc outsourcing barang jadi
 router.use(
   "/",
-  require("./qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJRoutes")
+  require("./qc/inspeksi/outsourcingBJ/inspeksiOutsourcingBJRoutes"),
 );
 
 //qc ncr
@@ -221,18 +221,18 @@ router.use("/", require("./hr/pengajuanTerlambat/pengajuanTerlambatRoute"));
 router.use("/", require("./hr/pengajuanPulangCepat/pengajuanPulangCepatRoute"));
 router.use(
   "/",
-  require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute")
+  require("./hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanRoute"),
 );
 router.use("/", require("./hr/pengajuanPromosi/pengajuanPromosiRoute"));
 router.use("/", require("./hr/jadwalKaryawan/jadwalKaryawanRoute"));
 router.use("/", require("./hr/incomingTaskRoute"));
 router.use(
   "/",
-  require("./hr/outstanding/outstandingAbsen/outstandingAbsenRoute")
+  require("./hr/outstanding/outstandingAbsen/outstandingAbsenRoute"),
 );
 router.use(
   "/",
-  require("./hr/outstanding/outstandingKaryawan/outstandingKaryawanRoute")
+  require("./hr/outstanding/outstandingKaryawan/outstandingKaryawanRoute"),
 );
 router.use("/", require("./hr/outstanding/outstandingIncomingRoute"));
 
@@ -248,7 +248,7 @@ router.use("/", require("./kendalaLkh/kendalaLkhTiketRoute"));
 //master ppic
 router.use(
   "/",
-  require("./masterdata/ppic/masterKategoriSettingKapasitasRoute")
+  require("./masterdata/ppic/masterKategoriSettingKapasitasRoute"),
 );
 router.use("/", require("./masterdata/ppic/masterDryingTimeRoute"));
 router.use("/", require("./masterdata/ppic/masterKapasitasMesinRoute"));
@@ -258,7 +258,7 @@ router.use("/", require("./masterdata/ppic/masterKapasitasJadwalKirimRoute"));
 router.use("/", require("./ppic/jadwalProduksiTiket/jadwalProduksiRoute"));
 router.use(
   "/",
-  require("./ppic/jadwalProduksiTiket/tiketPerubahanTanggalKirimRoute")
+  require("./ppic/jadwalProduksiTiket/tiketPerubahanTanggalKirimRoute"),
 );
 router.use("/", require("./ppic/jadwalProduksi/jadwalProduksiViewRoute"));
 router.use("/", require("./ppic/bookingJadwal/bookingJadwalRoute"));
@@ -308,11 +308,11 @@ router.use("/", require("./masterdata/masterJenisWarnaTintaRoute"));
 //master produksi
 router.use(
   "/",
-  require("./masterdata/kodeProduksi/masterKategoriKendalaRoute")
+  require("./masterdata/kodeProduksi/masterKategoriKendalaRoute"),
 );
 router.use(
   "/",
-  require("./masterdata/kodeProduksi/masterKriteriaKendalaRoute")
+  require("./masterdata/kodeProduksi/masterKriteriaKendalaRoute"),
 );
 router.use("/", require("./masterdata/kodeProduksi/masterWasteKendalaRoute"));
 router.use("/", require("./masterdata/kodeProduksi/masterKodeProduksiRoute"));
@@ -321,6 +321,7 @@ router.use("/", require("./masterdata/kodeProduksi/masterKodeProduksiRoute"));
 router.use("/", require("./produksi/produksiLkhRoute"));
 router.use("/", require("./produksi/produksiLkhTahapanRoute"));
 router.use("/", require("./produksi/produksiLkhProsesRoute"));
+router.use("/", require("./produksi/produksiLkhWasteRoute"));
 router.use("/", require("./produksi/produksiJoDoneRoute"));
 
 //master kendaraan

@@ -34,6 +34,10 @@ const BomCoating = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    rumus_coating: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     qty_coating: {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -65,7 +69,7 @@ const BomCoating = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 BomModel.hasMany(BomCoating, {

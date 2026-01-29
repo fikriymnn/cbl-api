@@ -1,6 +1,7 @@
 const { Op, Sequelize, where } = require("sequelize");
 const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
+const ProduksiLkhWaste = require("../../model/produksi/produksiLkhWasteModel");
 const MasterKodeProduksi = require("../../model/masterData/kodeProduksi/masterKodeProduksiModel");
 const MasterKategoriKendala = require("../../model/masterData/kodeProduksi/masterKategoriKendalaModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
@@ -502,7 +503,7 @@ const ProduksiLkhProsesController = {
 
   approveSpvProduksiLkhProses: async (req, res) => {
     const _id = req.params.id;
-    const { produksi_lkh_proses } = req.body;
+    const { produksi_lkh_proses, produksi_lkh_waste } = req.body;
     const t = await db.transaction();
     try {
       const checkData = await ProduksiLkhProses.findByPk(_id);
@@ -534,6 +535,25 @@ const ProduksiLkhProsesController = {
             rusak_sebagian: e.rusak_sebagian,
             rusak_total: e.rusak_total,
             pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          },
+        );
+      }
+
+      for (let i = 0; i < produksi_lkh_waste.length; i++) {
+        const e = produksi_lkh_waste[i];
+        await ProduksiLkhWaste.update(
+          {
+            total_qty: e.total_qty,
+            id_kendala: e.id_kendala,
+            kode_kendala: e.kode_kendala,
+            deskripsi_kendala: e.deskripsi_kendala,
+            id_waste: e.id_waste,
+            kode_waste: e.kode_waste,
+            deskripsi_waste: e.deskripsi_waste,
           },
           {
             where: { id: e.id },
