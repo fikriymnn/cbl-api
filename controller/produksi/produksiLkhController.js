@@ -169,20 +169,22 @@ const ProduksiLkhController = {
         );
       }
 
-      for (let i = 0; i < produksi_lkh_proses.length; i++) {
-        const e = produksi_lkh_proses[i];
-        await ProduksiLkhProses.update(
-          {
-            baik: e.baik,
-            rusak_sebagian: e.rusak_sebagian,
-            rusak_total: e.rusak_total,
-            pallet: e.pallet,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          }
-        );
+      if (produksi_lkh_proses) {
+        for (let i = 0; i < produksi_lkh_proses.length; i++) {
+          const e = produksi_lkh_proses[i];
+          await ProduksiLkhProses.update(
+            {
+              baik: e.baik,
+              rusak_sebagian: e.rusak_sebagian,
+              rusak_total: e.rusak_total,
+              pallet: e.pallet,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            }
+          );
+        }
       }
 
       if (produksi_lkh_waste) {
