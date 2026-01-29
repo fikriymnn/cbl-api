@@ -152,7 +152,7 @@ const ProduksiLkhController = {
 
       await ProduksiLkh.update(
         { status: "done" },
-        { where: { id: _id }, transaction: t },
+        { where: { id: _id }, transaction: t }
       );
 
       const findFinishJo = produksi_lkh_proses.find((e) => e.kode == "5.2");
@@ -165,43 +165,47 @@ const ProduksiLkhController = {
           {
             where: { id: id_produksi_lkh_tahapan },
             transaction: t,
-          },
+          }
         );
       }
 
-      for (let i = 0; i < produksi_lkh_proses.length; i++) {
-        const e = produksi_lkh_proses[i];
-        await ProduksiLkhProses.update(
-          {
-            baik: e.baik,
-            rusak_sebagian: e.rusak_sebagian,
-            rusak_total: e.rusak_total,
-            pallet: e.pallet,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          },
-        );
+      if (produksi_lkh_proses) {
+        for (let i = 0; i < produksi_lkh_proses.length; i++) {
+          const e = produksi_lkh_proses[i];
+          await ProduksiLkhProses.update(
+            {
+              baik: e.baik,
+              rusak_sebagian: e.rusak_sebagian,
+              rusak_total: e.rusak_total,
+              pallet: e.pallet,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            }
+          );
+        }
       }
 
-      for (let i = 0; i < produksi_lkh_waste.length; i++) {
-        const e = produksi_lkh_waste[i];
-        await ProduksiLkhWaste.update(
-          {
-            total_qty: e.total_qty,
-            id_kendala: e.id_kendala,
-            kode_kendala: e.kode_kendala,
-            deskripsi_kendala: e.deskripsi_kendala,
-            id_waste: e.id_waste,
-            kode_waste: e.kode_waste,
-            deskripsi_waste: e.deskripsi_waste,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          },
-        );
+      if (produksi_lkh_waste) {
+        for (let i = 0; i < produksi_lkh_waste.length; i++) {
+          const e = produksi_lkh_waste[i];
+          await ProduksiLkhWaste.update(
+            {
+              total_qty: e.total_qty,
+              id_kendala: e.id_kendala,
+              kode_kendala: e.kode_kendala,
+              deskripsi_kendala: e.deskripsi_kendala,
+              id_waste: e.id_waste,
+              kode_waste: e.kode_waste,
+              deskripsi_waste: e.deskripsi_waste,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            }
+          );
+        }
       }
 
       const finalResult = getValidLatestData(produksi_lkh_proses);
@@ -209,14 +213,14 @@ const ProduksiLkhController = {
       if (finalResult) {
         await ProduksiLkhProses.update(
           { is_final_result: true },
-          { where: { id: finalResult.id }, transaction: t },
+          { where: { id: finalResult.id }, transaction: t }
         );
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Finish Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Finish Successful" });
     } catch (error) {
       await t.rollback();
       res
