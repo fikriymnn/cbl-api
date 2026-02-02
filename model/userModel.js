@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../config/database");
 const maintenaceTicketModel = require("./maintenaceTicketModel");
 const KaryawanModel = require("../model/hr/karyawanModel");
-const RoleModel = require("../model/masterData/masterRoleModel");
+const RoleModel = require("../model/masterData/menu/masterRoleModel");
 
 const { DataTypes } = Sequelize;
 
