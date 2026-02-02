@@ -77,6 +77,7 @@ const authController = {
           "status",
           "bagian",
           "divisi_bawahan",
+          "id_role",
         ],
         where: {
           uuid: uuid,
@@ -103,7 +104,7 @@ const authController = {
         } catch (e) {
           console.warn(
             "divisi_bawahan bukan JSON valid:",
-            users.divisi_bawahan
+            users.divisi_bawahan,
           );
         }
       }

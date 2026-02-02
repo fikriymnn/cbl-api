@@ -48,7 +48,7 @@ const userController = {
             "no",
             "status",
           ],
-        }
+        },
       );
       res.status(200).json(response);
     } catch (error) {
@@ -144,6 +144,7 @@ const userController = {
       role,
       bagian,
       divisi_bawahan,
+      id_role,
     } = req.body;
 
     if (
@@ -180,7 +181,7 @@ const userController = {
           msg: "Email Alredy To Use",
         });
       const hasPassword = await bcrypt.hash(password, 10);
-      await Users.create({
+      (await Users.create({
         nama: nama,
         id_karyawan: id_karyawan,
         email: email,
@@ -189,12 +190,13 @@ const userController = {
         no: no,
         bagian: bagian,
         divisi_bawahan: divisi_bawahan,
+        id_role: id_role,
       }),
         res.status(201).json({
           succes: true,
           status_code: 200,
           msg: "Register Successfuly",
-        });
+        }));
     } catch (error) {
       res
         .status(400)
@@ -243,7 +245,7 @@ const userController = {
           msg: "Password And Confirm Password Doesn't Mact",
         });
 
-      await Users.update(
+      (await Users.update(
         {
           nama: nama,
           email: email,
@@ -260,13 +262,13 @@ const userController = {
           where: {
             id: users.id,
           },
-        }
+        },
       ),
         res.status(200).json({
           succes: true,
           status_code: 200,
           msg: "User Update Successfuly",
-        });
+        }));
     } catch (error) {
       console.log(error);
       res
@@ -286,19 +288,19 @@ const userController = {
         return res
           .status(404)
           .json({ succes: false, status_code: 404, msg: "User Not Found" });
-      await Users.update(
+      (await Users.update(
         { status: "in_aktif" },
         {
           where: {
             id: users.id,
           },
-        }
+        },
       ),
         res.status(200).json({
           succes: true,
           status_code: 200,
           msg: "User Delete Successfuly",
-        });
+        }));
     } catch (error) {
       res
         .status(400)
