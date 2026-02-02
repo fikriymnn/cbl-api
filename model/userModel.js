@@ -51,10 +51,7 @@ const Users = db.define(
     },
     no: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -65,17 +62,11 @@ const Users = db.define(
     },
     bagian: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     role: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
     },
     divisi_bawahan: {
       type: DataTypes.JSON,
@@ -92,7 +83,7 @@ const Users = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 //relasi karyawan
