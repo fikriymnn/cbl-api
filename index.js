@@ -386,7 +386,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomCoating.sync({
+//   await user.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

@@ -1,5 +1,7 @@
 const { Op, Sequelize, where } = require("sequelize");
+const bcrypt = require("bcryptjs");
 const Karyawan = require("../../../model/hr/karyawanModel");
+const Users = require("../../../model/userModel");
 const KaryawanBiodata = require("../../../model/hr/karyawan/karyawanBiodataModel");
 const KaryawanDetailInformasi = require("../../../model/hr/karyawan/karyawanDetailInformasiModel");
 const KaryawanDetailKeluarga = require("../../../model/hr/karyawan/karyawanDetailKeluargaModel");
@@ -535,7 +537,7 @@ const karyawanController = {
             id: department.id,
             nama: department.nama_department,
             jumlah: karyawanBiodata.filter(
-              (d) => d.id_department === department.id
+              (d) => d.id_department === department.id,
             ).length,
           };
         }),
@@ -554,7 +556,7 @@ const karyawanController = {
             id: status.id,
             nama: status.nama_status,
             jumlah: karyawanBiodata.filter(
-              (d) => d.id_status_karyawan === status.id
+              (d) => d.id_status_karyawan === status.id,
             ).length,
           };
         }),
@@ -577,7 +579,7 @@ const karyawanController = {
           {
             nama: "produksi",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_karyawan === "produksi"
+              (d) => d.tipe_karyawan === "produksi",
             ).length,
           },
         ],
@@ -586,13 +588,13 @@ const karyawanController = {
           {
             nama: "Bulanan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_penggajian === "bulanan"
+              (d) => d.tipe_penggajian === "bulanan",
             ).length,
           },
           {
             nama: "Mingguan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_penggajian === "mingguan"
+              (d) => d.tipe_penggajian === "mingguan",
             ).length,
           },
         ],
@@ -601,13 +603,13 @@ const karyawanController = {
           {
             nama: "Laki - Laki",
             jumlah: karyawanBiodata.filter(
-              (d) => d.jenis_kelamin === "Laki-Laki"
+              (d) => d.jenis_kelamin === "Laki-Laki",
             ).length,
           },
           {
             nama: "Perempuan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.jenis_kelamin === "Perempuan"
+              (d) => d.jenis_kelamin === "Perempuan",
             ).length,
           },
         ],
@@ -871,7 +873,7 @@ const karyawanController = {
       const absenResult = await getAbsensiFunction(start_date, end_date, obj);
 
       const dataTerlambat = absenResult.filter(
-        (absen) => absen.menit_terlambat > 0
+        (absen) => absen.menit_terlambat > 0,
       );
       const hariTerlambat = dataTerlambat?.length;
       const jamTerlambat = dataTerlambat.reduce((total, absen) => {
@@ -934,6 +936,11 @@ const karyawanController = {
     }
 
     try {
+      // Ambil nama pertama (kata pertama dari name)
+      const firstName = nama_karyawan.split(" ")[0].toLowerCase();
+
+      // Gabungkan menjadi email
+      const email = `${nik}${firstName}@gmail.com`;
       const dataJabatan = await MasterJabatan.findByPk(id_jabatan);
       if (!dataJabatan)
         return res.status(404).json({ msg: "data jabatan tidak di temukan" });
@@ -941,7 +948,7 @@ const karyawanController = {
         {
           name: nama_karyawan,
         },
-        { transaction: t }
+        { transaction: t },
       );
       // Setelah entitas dibuat, kita set badgenumber secara manual
       const formattedBadgeNumber = String(dataKaryawan.userid).padStart(9, "0");
@@ -952,7 +959,7 @@ const karyawanController = {
         {
           badgenumber: formattedBadgeNumber,
         },
-        { where: { userid: dataKaryawan.userid }, transaction: t }
+        { where: { userid: dataKaryawan.userid }, transaction: t },
       );
       const dataBiodata = await KaryawanBiodata.create(
         {
@@ -981,7 +988,7 @@ const karyawanController = {
         },
         {
           transaction: t,
-        }
+        },
       );
 
       for (let i = 0; i < bagian_mesin.length; i++) {
@@ -993,9 +1000,20 @@ const karyawanController = {
             id_bagian_mesin: data.id_bagian_mesin,
             nama_bagian_mesin: data.nama_bagian_mesin,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
+
+      const hasPassword = await bcrypt.hash("123456", 10);
+      await Users.create(
+        {
+          nama: nama_karyawan,
+          id_karyawan: dataKaryawan.userid,
+          email: email,
+          password: hasPassword,
+        },
+        { transaction: t },
+      );
 
       await t.commit();
       res.status(200).json({
@@ -1069,7 +1087,7 @@ const karyawanController = {
             userid: _id,
           },
           transaction: t,
-        }
+        },
       );
       await KaryawanBiodata.update(obj, {
         where: {
@@ -1086,7 +1104,7 @@ const karyawanController = {
               id_bagian_mesin: data.id_bagian_mesin,
               nama_bagian_mesin: data.nama_bagian_mesin,
             },
-            { where: { id: data.id }, transaction: t }
+            { where: { id: data.id }, transaction: t },
           );
         }
       }
@@ -1116,7 +1134,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1144,7 +1162,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1172,7 +1190,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1184,6 +1202,79 @@ const karyawanController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  bulkAkunKaryawan: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      const data = await Karyawan.findAll({
+        include: [
+          {
+            model: KaryawanBiodata,
+            as: "biodata_karyawan",
+            attributes: ["nik"],
+            where: { is_active: true },
+            required: true,
+          },
+        ],
+      });
+
+      // Gunakan async function dan Promise.all
+      const result = await Promise.all(
+        data.map(async (item) => ({
+          userid: item.userid,
+          name: item.name,
+          nik: item.biodata_karyawan[0].nik,
+          password: await bcrypt.hash("123456", 10),
+          email: generateEmail(item),
+        })),
+      );
+
+      for (let i = 0; i < result.length; i++) {
+        const e = result[i];
+
+        const checkAkun = await Users.findOne({ where: { email: e.email } });
+
+        console.log(e.email);
+
+        if (!checkAkun) {
+          await Users.create(
+            {
+              nama: e.name,
+              id_karyawan: e.userid,
+              email: e.email,
+              password: e.password,
+            },
+            { transaction: t },
+          );
+        }
+      }
+
+      await t.commit();
+      return res.status(200).json({
+        total_data: data.length,
+        data: result,
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
+
+// Fungsi untuk membuat email
+function generateEmail(item) {
+  // Ambil NIK dari biodata_karyawan
+  const nik = item.biodata_karyawan[0].nik;
+
+  // Ambil nama pertama (kata pertama dari name)
+  const firstName = item.name.split(" ")[0].toLowerCase();
+
+  // Gabungkan menjadi email
+  const email = `${nik}${firstName}@gmail.com`;
+
+  return email;
+}
 
 module.exports = karyawanController;

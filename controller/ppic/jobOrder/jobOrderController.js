@@ -535,10 +535,47 @@ const BomController = {
       if (jo_mounting) {
         for (let i = 0; i < jo_mounting.length; i++) {
           const e = jo_mounting[i];
-          await JobOrderMounting.update(jo_mounting[i], {
-            where: { id: e.id },
-            transaction: t,
-          });
+          if (e.id) {
+            await JobOrderMounting.update(jo_mounting[i], {
+              where: { id: e.id },
+              transaction: t,
+            });
+          } else {
+            await JobOrderMounting.create(
+              {
+                id_jo: _id,
+                id_io_mounting: e.id_io_mounting,
+                id_kertas: e.id_kertas,
+                nama_mounting: e.nama_mounting,
+                nama_kertas: e.nama_kertas,
+                gramature_kertas: e.gramature_kertas,
+                panjang_kertas: e.panjang_kertas,
+                lebar_kertas: e.lebar_kertas,
+                jumlah_kertas: e.jumlah_kertas,
+                ukuran_cetak_panjang_1: e.ukuran_cetak_panjang_1,
+                ukuran_cetak_lebar_1: e.ukuran_cetak_lebar_1,
+                ukuran_cetak_bagian_1: e.ukuran_cetak_bagian_1,
+                ukuran_cetak_isi_1: e.ukuran_cetak_isi_1,
+                jumlah_cetak_1: e.jumlah_cetak_1,
+                tambahan_insheet_1: e.tambahan_insheet_1,
+                ukuran_cetak_panjang_2: e.ukuran_cetak_panjang_2,
+                ukuran_cetak_lebar_2: e.ukuran_cetak_lebar_2,
+                ukuran_cetak_bagian_2: e.ukuran_cetak_bagian_2,
+                ukuran_cetak_isi_2: e.ukuran_cetak_isi_2,
+                jumlah_cetak_2: e.jumlah_cetak_2,
+                tambahan_insheet_2: e.tambahan_insheet_2,
+                jumlah_druk_cetak: e.jumlah_druk_cetak,
+                jumlah_insheet_cetak: e.jumlah_insheet_cetak,
+                jumlah_druk_pond: e.jumlah_druk_pond,
+                jumlah_insheet_pond: e.jumlah_insheet_pond,
+                jumlah_druk_finishing: e.jumlah_druk_finishing,
+                jumlah_insheet_finishing: e.jumlah_insheet_finishing,
+                total_insheet: e.total_insheet,
+                is_selected: e.is_selected,
+              },
+              { transaction: t },
+            );
+          }
         }
       }
 

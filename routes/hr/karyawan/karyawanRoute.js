@@ -10,8 +10,10 @@ router.put("/hr/karyawan/:id", karyawanController.updateKaryawan);
 router.put("/hr/karyawan/cutOff/:id", karyawanController.cutOffKaryawan);
 router.put(
   "/hr/karyawan/activeCutOff/:id",
-  karyawanController.activedCutOffKaryawan
+  karyawanController.activedCutOffKaryawan,
 );
 router.delete("/hr/karyawan/:id", karyawanController.deleteKaryawan);
+
+router.get("/hr/karyawanBulkAkun", karyawanController.bulkAkunKaryawan);
 
 module.exports = router;
