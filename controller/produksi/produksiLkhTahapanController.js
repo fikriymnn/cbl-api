@@ -196,6 +196,7 @@ const ProduksiLkhTahapanController = {
         {
           status: "done",
           id_approve: req.user.id,
+          tgl_approve: new Date(),
         },
         {
           where: { id: _id },
