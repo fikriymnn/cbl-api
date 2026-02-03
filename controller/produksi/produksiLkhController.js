@@ -152,7 +152,7 @@ const ProduksiLkhController = {
 
       await ProduksiLkh.update(
         { status: "done" },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       const findFinishJo = produksi_lkh_proses.find((e) => e.kode == "5.2");
@@ -165,7 +165,7 @@ const ProduksiLkhController = {
           {
             where: { id: id_produksi_lkh_tahapan },
             transaction: t,
-          }
+          },
         );
       }
 
@@ -182,7 +182,7 @@ const ProduksiLkhController = {
             {
               where: { id: e.id },
               transaction: t,
-            }
+            },
           );
         }
       }
@@ -203,7 +203,7 @@ const ProduksiLkhController = {
             {
               where: { id: e.id },
               transaction: t,
-            }
+            },
           );
         }
       }
@@ -213,14 +213,14 @@ const ProduksiLkhController = {
       if (finalResult) {
         await ProduksiLkhProses.update(
           { is_final_result: true },
-          { where: { id: finalResult.id }, transaction: t }
+          { where: { id: finalResult.id }, transaction: t },
         );
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Finish Successful" });
+          .json({ succes: true, status_code: 200, msg: "Finish Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -301,6 +301,22 @@ const ProduksiLkhController = {
                 {
                   model: Users,
                   as: "operator",
+                },
+              ],
+            },
+            {
+              model: ProduksiLkhTahapan,
+              as: "produksi_lkh_tahapan",
+              where: { status: "done" },
+              required: false,
+              include: [
+                {
+                  model: Users,
+                  as: "user_approve",
+                },
+                {
+                  model: MasterTahapan,
+                  as: "tahapan",
                 },
               ],
             },

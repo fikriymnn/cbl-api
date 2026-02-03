@@ -136,6 +136,10 @@ const ProduksiLkhTahapan = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    tgl_approve: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -149,7 +153,7 @@ const ProduksiLkhTahapan = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 JoModel.hasMany(ProduksiLkhTahapan, {

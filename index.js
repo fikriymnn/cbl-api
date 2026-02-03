@@ -392,7 +392,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await user.sync({
+//   await inspeksiAmparLem.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
