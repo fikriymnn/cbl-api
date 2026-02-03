@@ -267,6 +267,56 @@ const SoController = {
         ],
       });
 
+      const lengthPajak = await SoModel.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
+
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+          ppn: "yes",
+        },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      const lengthNonPajak = await SoModel.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
+
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+          ppn: "no",
+        },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      //tentukan no_do type tax dan non tax selanjutnya
+      const currentYear = new Date().getFullYear();
+      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+      const shortYear = String(currentYear).slice(2); // 2025 => "25"
+      // 2. Tentukan nomor urut berikutnya
+      let nextNumberTax = 1;
+      let nextNumberNonTax = 1;
+
       let number = 0;
 
       if (length) {
@@ -278,10 +328,46 @@ const SoController = {
         number = lastSeq;
       }
 
+      //type tax
+      if (lengthPajak) {
+        const lastNo = lengthPajak.no_so;
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        nextNumberTax = lastSeq + 1;
+      }
+
+      //type non tax
+      if (lengthNonPajak) {
+        const lastNo = lengthNonPajak.no_so;
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        nextNumberNonTax = lastSeq + 1;
+      }
+
+      // 3. Buat nomor urut padded 4 digit
+      //untuk tax
+      const paddedNumberTax = String(nextNumberTax).padStart(5, "0");
+      //untuk non tax
+      const paddedNumberNonTax = String(nextNumberNonTax).padStart(5, "0");
+
+      // 4. Susun format akhir
+      //type tax
+      const newSoTaxNumberTax = `SO-${paddedNumberTax}/CBL/${currentMonth}${shortYear}`;
+      // type non tax
+      const newSoTaxNumberNonTax = `SO-${paddedNumberNonTax}/${currentMonth}${shortYear}`;
+
       return res.status(200).json({
         succes: true,
         status_code: 200,
         total_data: number,
+        no_so_tax: lengthPajak?.no_so,
+        no_so_tax_new: newSoTaxNumberTax,
+        no_so_non_tax: lengthNonPajak?.no_so,
+        no_so_non_tax_new: newSoTaxNumberNonTax,
       });
     } catch (error) {
       res
