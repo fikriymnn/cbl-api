@@ -6,6 +6,9 @@ const bcrypt = require("bcryptjs");
 const Notification = require("../model/notificationModel");
 const Karyawan = require("../model/hr/karyawanModel");
 const KaryawanBiodata = require("../model/hr/karyawan/karyawanBiodataModel");
+const MasterRole = require("../model/masterData/menu/masterRoleModel");
+const RoleMenu = require("../model/masterData/menu/masterRoleMenuModel");
+const MasterMenu = require("../model/masterData/menu/masterMenuModel");
 
 const authController = {
   Login: async (req, res) => {
@@ -52,7 +55,77 @@ const authController = {
         path: "/",
       });
 
-      res.status(200).json({ uuid, name, email, role, no, bagian });
+      //get role menu hirarki
+      const roleMenu = await MasterRole.findByPk(users.id_role, {
+        include: [
+          {
+            model: RoleMenu,
+            as: "role_menus",
+            where: { is_active: true }, // Hanya ambil role_menus yang aktif
+            required: false,
+            include: [
+              {
+                model: MasterMenu,
+                as: "menu",
+                where: { is_active: true },
+                required: false,
+              },
+            ],
+          },
+        ],
+        order: [
+          [
+            { model: RoleMenu, as: "role_menus" },
+            { model: MasterMenu, as: "menu" },
+            "level",
+            "ASC",
+          ],
+          [
+            { model: RoleMenu, as: "role_menus" },
+            { model: MasterMenu, as: "menu" },
+            "order_index",
+            "ASC",
+          ],
+        ],
+      });
+      let hierarchicalMenus = null;
+
+      if (roleMenu) {
+        // Transform ke struktur yang lebih mudah dibaca
+        const roleData = roleMenu.toJSON();
+
+        // Map role_menus dengan menu details dan permissions (sudah pasti aktif karena filter di atas)
+        const menusWithPermissions = roleData.role_menus
+          .filter((rm) => rm.menu && rm.is_active) // Double check untuk is_active
+          .map((rm) => ({
+            ...rm.menu,
+            role_menu_id: rm.id,
+            permissions: {
+              can_view: rm.can_view,
+              can_create: rm.can_create,
+              can_edit: rm.can_edit,
+              can_delete: rm.can_delete,
+              is_active: rm.is_active,
+            },
+          }));
+
+        // Buat struktur hierarki
+        const buildHierarchy = (items, parentId = null) => {
+          return items
+            .filter((item) => item.parent_id === parentId)
+            .sort((a, b) => a.order_index - b.order_index)
+            .map((item) => ({
+              ...item,
+              children: buildHierarchy(items, item.id),
+            }));
+        };
+
+        hierarchicalMenus = buildHierarchy(menusWithPermissions);
+      }
+
+      res
+        .status(200)
+        .json({ uuid, name, email, role, no, bagian, menu: hierarchicalMenus });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -108,6 +181,7 @@ const authController = {
           );
         }
       }
+
       res.status(200).json(users);
     } catch (error) {
       res.status(500).json({ msg: error.message });

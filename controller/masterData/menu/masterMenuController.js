@@ -8,36 +8,57 @@ const sequelize = require("../../../config/database"); // Sesuaikan path
 exports.getAllMenus = async (req, res) => {
   try {
     const menus = await MasterMenu.findAll({
-      where: { parent_id: null, is_active: true },
-      include: [
-        {
-          model: MasterMenu,
-          as: "children",
-          where: { is_active: true },
-          include: [
-            {
-              model: MasterMenu,
-              as: "children",
-              where: { is_active: true },
-            },
-          ],
-        },
-      ],
-      order: [
-        ["order_index", "ASC"],
-        [{ model: MasterMenu, as: "children" }, "order_index", "ASC"],
-        [
-          { model: MasterMenu, as: "children" },
-          { model: MasterMenu, as: "children" },
-          "order_index",
-          "ASC",
-        ],
-      ],
+      where: { is_active: true },
+      // include: [
+      //   {
+      //     model: MasterMenu,
+      //     as: "children",
+      //     where: { is_active: true },
+      //     include: [
+      //       {
+      //         model: MasterMenu,
+      //         as: "children",
+      //         where: { is_active: true },
+      //       },
+      //     ],
+      //   },
+      // ],
+      // order: [
+      //   ["order_index", "ASC"],
+      //   [{ model: MasterMenu, as: "children" }, "order_index", "ASC"],
+      //   [
+      //     { model: MasterMenu, as: "children" },
+      //     { model: MasterMenu, as: "children" },
+      //     "order_index",
+      //     "ASC",
+      //   ],
+      // ],
     });
+
+    // Transform ke struktur hierarki
+    const menusWithPermissions = menus.map((rm) => {
+      const menuData = rm.toJSON();
+      return {
+        ...menuData,
+        role_menu_id: rm.id,
+      };
+    });
+
+    // Buat hierarki
+    const buildHierarchy = (items, parentId = null) => {
+      return items
+        .filter((item) => item.parent_id === parentId)
+        .map((item) => ({
+          ...item,
+          children: buildHierarchy(items, item.id),
+        }));
+    };
+
+    const hierarchicalMenus = buildHierarchy(menusWithPermissions);
 
     res.status(200).json({
       success: true,
-      data: menus,
+      data: hierarchicalMenus,
     });
   } catch (error) {
     res.status(500).json({
@@ -63,7 +84,7 @@ exports.createMenu = async (req, res) => {
         order_index,
         level,
       },
-      { transaction }
+      { transaction },
     );
 
     // Get all active roles
@@ -132,7 +153,7 @@ exports.updateMenu = async (req, res) => {
         level,
         is_active,
       },
-      { transaction }
+      { transaction },
     );
 
     await transaction.commit();
@@ -174,7 +195,7 @@ exports.deleteMenu = async (req, res) => {
     // Optional: soft delete role menus juga
     await RoleMenu.update(
       { is_active: false },
-      { where: { id_menu: id }, transaction }
+      { where: { id_menu: id }, transaction },
     );
 
     await transaction.commit();
@@ -237,7 +258,7 @@ exports.getMenusByRole = async (req, res) => {
     });
 
     const hierarchicalMenus = Array.from(menuMap.values()).filter(
-      (menu) => !menu.parent_id
+      (menu) => !menu.parent_id,
     );
 
     res.status(200).json({
