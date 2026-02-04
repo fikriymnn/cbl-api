@@ -797,6 +797,7 @@ const absenFunction = {
         const jamKeluarShift = shift == "Shift 1" ? shiftKeluar1 : shiftKeluar2;
 
         //pencocokan pengajuan lembur dengan absen
+        //pencocokan pengajuan lembur dengan absen
         let statusLemburSPL = "tidak dengan SPL";
         let jamLemburSPL = 0;
         let id_pengajuan_lembur = null;
@@ -804,45 +805,165 @@ const absenFunction = {
         let isLemburSebelumMasuk = false;
         let isLemburSetelahMasuk = false;
 
-        const lemburFind = lemburEntries.find(
-          (entry) =>
-            entry.userid === masuk.userid &&
-            (entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar) &&
-            parseTanggalIndo(entry.jam_mulai_lembur) >=
-              parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 90) &&
-            parseTanggalIndo(entry.jam_mulai_lembur) <=
-              parseTanggalIndo(`${tglKeluar} ${jamKeluar}`, 90),
-        );
+        // ========================================
+        // PERBAIKAN: Filter Lembur dengan Pengecekan Jam
+        // ========================================
+        const lemburFind = lemburEntries.find((entry) => {
+          if (entry.userid !== masuk.userid) return false;
 
-        // if (lemburFind.name == "MUHAMMAD IRFAN FIRDAUS") {
-        //   console.log(lemburFind);
-        // }
+          // Parse waktu
+          const waktuMulaiLembur = parseTanggalIndo(entry.jam_mulai_lembur);
+          const waktuAbsenMasuk = parseTanggalIndo(`${tglMasuk} ${jamMasuk}`);
+          const waktuAbsenKeluar = parseTanggalIndo(
+            `${tglKeluar} ${jamKeluar}`,
+          );
 
-        //console.log(lemburFind);
+          // PENTING: Untuk shift malam, waktu keluar bisa di hari berikutnya
+          // Jadi kita harus cek rentang waktu secara ABSOLUT, bukan hanya tanggal
 
-        // console.log(
-        //   parseTanggalIndo(lemburFind?.jam_mulai_lembur) >=
-        //     parseTanggalIndo(`${tglMasuk} ${jamMasuk}`, 60),
-        //   lemburFind?.jam_mulai_lembur
-        // );
+          // Toleransi waktu lembur
+          const toleransiSebelumMasuk = 2 * 60 * 60 * 1000; // 2 jam sebelum masuk
+          const toleransiSetelahKeluar = 8 * 60 * 60 * 1000; // 8 jam setelah keluar
 
-        // const lemburFind = lemburEntries.find(
-        //   (entry) =>
-        //     entry.userid === masuk.userid && entry.tgl_masuk === tglMasuk
-        // );
+          const batasMinimalLembur = new Date(
+            waktuAbsenMasuk.getTime() - toleransiSebelumMasuk,
+          );
+          const batsMaksimalLembur = new Date(
+            waktuAbsenKeluar.getTime() + toleransiSetelahKeluar,
+          );
 
-        // console.log(lemburEntries, tglMasuk);
+          // PERBAIKAN UTAMA:
+          // Lembur valid jika waktu mulai lembur berada dalam rentang:
+          // [2 jam sebelum masuk] sampai [8 jam setelah keluar]
+          // Ini akan otomatis handle shift malam yang melewati tengah malam
+
+          const isLemburDalamRentangWaktu =
+            waktuMulaiLembur >= batasMinimalLembur &&
+            waktuMulaiLembur <= batsMaksimalLembur;
+
+          // TAMBAHAN: Cek juga apakah tanggal lembur masuk akal
+          // Untuk shift 2 yang melewati hari:
+          // - entry.tgl_masuk bisa sama dengan tglMasuk (hari masuk kerja)
+          // - ATAU entry.tgl_masuk bisa sama dengan tglKeluar (hari pulang kerja)
+          const isTanggalValid =
+            entry.tgl_masuk === tglMasuk || entry.tgl_masuk === tglKeluar;
+
+          // Lembur valid jika kedua kondisi terpenuhi
+          return isLemburDalamRentangWaktu && isTanggalValid;
+        });
 
         if (lemburFind) {
-          // console.log(lemburFind.name);
-          if (lemburFind.status_ketidaksesuaian === "approved") {
-            jamLembur = lemburFind.jam_lembur;
+          // ========================================
+          // PERBAIKAN: Deteksi Ketidaksesuaian dengan Validasi Shift Malam
+          // ========================================
+
+          // Data lembur yang diajukan
+          const jamMulaiLemburDiajukan = new Date(lemburFind.dari);
+          const jamSelesaiLemburDiajukan = new Date(lemburFind.sampai);
+
+          // Waktu absen aktual
+          const waktuAbsenMasukDate = parseTanggalIndo(
+            `${tglMasuk} ${jamMasuk}`,
+          );
+          const waktuAbsenKeluarDate = parseTanggalIndo(
+            `${tglKeluar} ${jamKeluar}`,
+          );
+
+          // PERBAIKAN: Untuk shift malam, kita harus cek apakah lembur:
+          // 1. Sebelum masuk (lembur pagi sebelum shift malam)
+          // 2. Setelah keluar (lembur sore/malam setelah shift malam selesai)
+
+          let jenisLembur = "";
+          let selisihWaktu = 0;
+
+          // Cek apakah lembur dimulai SEBELUM jam masuk
+          if (jamMulaiLemburDiajukan < waktuAbsenMasukDate) {
+            jenisLembur = "sebelum_masuk";
+            selisihWaktu =
+              Math.abs(jamMulaiLemburDiajukan - waktuAbsenMasukDate) /
+              (1000 * 60);
           }
+          // Cek apakah lembur dimulai SETELAH jam keluar
+          else if (jamMulaiLemburDiajukan > waktuAbsenKeluarDate) {
+            jenisLembur = "setelah_keluar";
+            selisihWaktu =
+              Math.abs(jamMulaiLemburDiajukan - waktuAbsenKeluarDate) /
+              (1000 * 60);
+          }
+          // Lembur di tengah-tengah shift (tidak wajar)
+          else {
+            jenisLembur = "dalam_shift";
+            selisihWaktu = 0;
+          }
+
+          // Toleransi ketidaksesuaian (30 menit)
+          const toleransiKetidaksesuaian = 30;
+
+          // Cek apakah ada ketidaksesuaian
+          let adaKetidaksesuaian = false;
+          let pesanKetidaksesuaian = "";
+
+          // VALIDASI: Lembur seharusnya TIDAK di tengah shift
+          if (
+            jenisLembur === "dalam_shift" &&
+            lemburFind.status_ketidaksesuaian !== "approved"
+          ) {
+            adaKetidaksesuaian = true;
+            pesanKetidaksesuaian = `Waktu lembur tidak valid (di tengah shift kerja)`;
+          }
+
+          // VALIDASI: Cek selisih waktu untuk lembur sebelum/sesudah
+          if (
+            selisihWaktu > toleransiKetidaksesuaian &&
+            lemburFind.status_ketidaksesuaian !== "approved"
+          ) {
+            if (jenisLembur === "sebelum_masuk") {
+              adaKetidaksesuaian = true;
+              pesanKetidaksesuaian = `Lembur dimulai terlalu jauh sebelum masuk (selisih ${Math.round(selisihWaktu)} menit)`;
+            } else if (jenisLembur === "setelah_keluar") {
+              adaKetidaksesuaian = true;
+              pesanKetidaksesuaian = `Lembur dimulai terlalu jauh setelah keluar (selisih ${Math.round(selisihWaktu)} menit)`;
+            }
+          }
+
+          // Cek jika durasi lembur tidak sesuai
+          const durasiPengajuan =
+            (jamSelesaiLemburDiajukan - jamMulaiLemburDiajukan) /
+            (1000 * 60 * 60); // jam
+          const durasiAktual = lemburFind.jam_lembur || 0;
+
+          if (
+            Math.abs(durasiPengajuan - durasiAktual) > 0.5 &&
+            lemburFind.status_ketidaksesuaian !== "approved"
+          ) {
+            adaKetidaksesuaian = true;
+            if (pesanKetidaksesuaian) {
+              pesanKetidaksesuaian += ` | Durasi tidak sesuai (pengajuan: ${durasiPengajuan.toFixed(1)}j, aktual: ${durasiAktual}j)`;
+            } else {
+              pesanKetidaksesuaian = `Durasi lembur tidak sesuai (pengajuan: ${durasiPengajuan.toFixed(1)}j, aktual: ${durasiAktual}j)`;
+            }
+          }
+
+          // Set status ketidaksesuaian jika belum di-approve
+          if (adaKetidaksesuaian && !lemburFind.status_ketidaksesuaian) {
+            statusKetidaksesuaian = "pending_review";
+          } else if (lemburFind.status_ketidaksesuaian === "approved") {
+            statusKetidaksesuaian = lemburFind.penanganan;
+          } else {
+            statusKetidaksesuaian =
+              lemburFind.status_ketidaksesuaian || pesanKetidaksesuaian;
+          }
+
           statusLemburSPL = "dengan SPL";
           jamLemburSPL = lemburFind.jam_lembur;
           id_pengajuan_lembur = lemburFind.id_pengajuan_lembur;
-          statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
 
+          // Set nilai jam_lembur sesuai status
+          if (lemburFind.status_ketidaksesuaian === "approved") {
+            jamLembur = lemburFind.jam_lembur;
+          }
+
+          // Tetap cek waktu lembur sebelum/sesudah shift (kode lama)
           if (lemburFind.dari && lemburFind.sampai) {
             const cekwaktuLemburSebelumShift = sebelumJamMasukShift(
               jamMasukShift,
