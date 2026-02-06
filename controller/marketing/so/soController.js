@@ -274,7 +274,6 @@ const SoController = {
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
-          ppn: "yes",
         },
         order: [
           // extract nomor urut pada format SO-01319/CBL/1025
@@ -295,7 +294,6 @@ const SoController = {
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
-          ppn: "no",
         },
         order: [
           // extract nomor urut pada format SO-01319/CBL/1025
