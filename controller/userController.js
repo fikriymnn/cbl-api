@@ -147,15 +147,7 @@ const userController = {
       id_role,
     } = req.body;
 
-    if (
-      !nama ||
-      !email ||
-      !password ||
-      !no ||
-      !confPassword ||
-      !role ||
-      !bagian
-    )
+    if (!nama || !email || !password || !no || !confPassword)
       return res
         .status(400)
         .json({ succes: false, status_code: 404, msg: "incomplite data" });
