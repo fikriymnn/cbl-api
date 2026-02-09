@@ -352,7 +352,7 @@ const PengajuanLemburController = {
       });
       //set untuk karyawan biodata
       const idSet = new Set(
-        dataKaryawanBiodata.map((item) => item.id_karyawan)
+        dataKaryawanBiodata.map((item) => item.id_karyawan),
       );
       // Cari karyawan yang tidak ada di karyawanBiodata
       const tidakAda = karyawan.filter((id) => !idSet.has(id));
@@ -388,7 +388,7 @@ const PengajuanLemburController = {
                 ? null
                 : data.bagian_mesin_karyawan[0].nama_bagian_mesin,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -396,6 +396,132 @@ const PengajuanLemburController = {
       res.status(200).json({
         msg: "pengajuan successfully",
       });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  updatePengajuanLembur: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      jo_lembur,
+      dari,
+      sampai,
+      dari_2,
+      sampai_2,
+      lama_lembur,
+      alasan_lembur,
+      target_lembur,
+    } = req.body;
+
+    const t = await db.transaction();
+    //console.log(req.body);
+
+    try {
+      let obj = {};
+      if (jo_lembur) obj.jo_lembur = jo_lembur;
+      if (dari) obj.dari = dari;
+      if (sampai) obj.sampai = sampai;
+      if (dari_2) obj.dari_2 = dari_2;
+      if (sampai_2) obj.sampai_2 = sampai_2;
+      if (lama_lembur) obj.lama_lembur = lama_lembur;
+      if (alasan_lembur) obj.alasan_lembur = alasan_lembur;
+      if (target_lembur) obj.target_lembur = target_lembur;
+
+      await PengajuanLembur.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
+
+      await t.commit();
+      res.status(200).json({
+        msg: "pengajuan successfully",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  sendPengajuanLembur: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
+      if (!dataPengajuanLembur)
+        return res.status(404).json({ msg: "data tidak di temukan" });
+
+      await PengajuanLembur.update(
+        {
+          status: "request user",
+          status_tiket: "incoming",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+
+      await t.commit();
+      res.status(200).json({ msg: "Approve Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  approveUserPengajuanLembur: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
+      if (!dataPengajuanLembur)
+        return res.status(404).json({ msg: "data tidak di temukan" });
+
+      await PengajuanLembur.update(
+        {
+          status: "approve user",
+          status_tiket: "incoming",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+
+      await t.commit();
+      res.status(200).json({ msg: "Approve Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  rejectUserPengajuanLembur: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
+      if (!dataPengajuanLembur)
+        return res.status(404).json({ msg: "data tidak di temukan" });
+
+      await PengajuanLembur.update(
+        {
+          status: "rejected user",
+          status_tiket: "history",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+
+      await t.commit();
+      res.status(200).json({ msg: "Approve Successfully" });
     } catch (error) {
       await t.rollback();
       res.status(500).json({ msg: error.message });
@@ -422,7 +548,7 @@ const PengajuanLemburController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -453,7 +579,7 @@ const PengajuanLemburController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -505,7 +631,7 @@ const PengajuanLemburController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -548,7 +674,7 @@ const PengajuanLemburController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();

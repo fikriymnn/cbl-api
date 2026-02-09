@@ -27,10 +27,15 @@ const MasterAbsensi = db.define(
       allowNull: false,
       defaultValue: 3,
     },
+    maksimal_pengajuan_terlambat: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 module.exports = MasterAbsensi;
