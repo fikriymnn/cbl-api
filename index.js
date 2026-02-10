@@ -394,7 +394,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await masterAbsensi.sync({
+//   await user.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

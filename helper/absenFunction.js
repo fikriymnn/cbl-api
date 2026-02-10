@@ -667,6 +667,7 @@ const absenFunction = {
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
       const idDivisi = dataKaryawanBiodata?.id_divisi;
       const namaDivisi = dataMasterDivisi?.nama_divisi;
+      const fotoKaryawan = dataKaryawanBiodata?.foto_karyawan;
 
       // Ambil jam shift
       const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -1325,6 +1326,7 @@ const absenFunction = {
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
           bagian_mesin: bagianMesin,
+          foto_karyawan: fotoKaryawan,
         };
       } else {
         // waktu masuk absen
@@ -1490,6 +1492,7 @@ const absenFunction = {
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
           bagian_mesin: bagianMesin,
+          foto_karyawan: fotoKaryawan,
         };
       }
     });
@@ -1557,11 +1560,12 @@ const absenFunction = {
             (karyawanDitemukan.shift = absen.shift), // Menampilkan shift
             (karyawanDitemukan.status_absen = absen.status_absen),
             (karyawanDitemukan.id_department = absen.id_department),
-            (karyawanDitemukan.nama_department = absen.nama_department));
-          ((karyawanDitemukan.id_divisi = absen.id_divisi),
-            (karyawanDitemukan.nama_divisi = absen.nama_divisi));
-          ((karyawanDitemukan.hari = absen.hari),
-            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk));
+            (karyawanDitemukan.nama_department = absen.nama_department),
+            (karyawanDitemukan.id_divisi = absen.id_divisi),
+            (karyawanDitemukan.nama_divisi = absen.nama_divisi),
+            (karyawanDitemukan.hari = absen.hari),
+            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk),
+            (karyawanDitemukan.foto_karyawan = absen.foto_karyawan));
         } else {
           dataKaryawanGenerete.push({
             id_pengajuan_terlambat_user: absen.id_pengajuan_terlambat_user,
@@ -1593,6 +1597,7 @@ const absenFunction = {
             nama_divisi: absen.nama_divisi,
             hari: absen.hari,
             jenis_hari_masuk: absen.jenis_hari_masuk,
+            foto_karyawan: absen.foto_karyawan,
           });
         }
       });
@@ -1725,6 +1730,7 @@ const generateDailyCuti = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -1847,6 +1853,7 @@ const generateDailyIzin = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -1957,6 +1964,7 @@ const generateDailyDinas = (
       nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
+      foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -2079,6 +2087,7 @@ const generateDailySakit = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -2190,6 +2199,7 @@ const generateDailyMangkir = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyMangkir;
@@ -2296,6 +2306,7 @@ const generateDailyTerlambat = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyTerlambat;
@@ -2395,6 +2406,7 @@ const generateDailyTerlambatUser = (
     hari: dayName2,
     lama_terlambat: mangkir.lama_terlambat,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyMangkir;
@@ -2501,6 +2513,7 @@ const generateDailyPulangCepat = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyPulangCepat;
@@ -2676,6 +2689,7 @@ const generatekaryawanList = (
         tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
         tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
         bagian_mesin: dataKaryawanBiodata.bagian_mesin_karyawan,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
   }
