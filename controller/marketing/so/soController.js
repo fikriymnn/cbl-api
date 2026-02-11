@@ -394,6 +394,7 @@ const SoController = {
       profit,
       tgl_pengiriman,
       alamat_pengiriman,
+      alamat_penagihan,
       ada_standar_warna,
       is_io_selesai,
     } = req.body;
@@ -454,6 +455,7 @@ const SoController = {
           profit,
           tgl_pengiriman: tgl_pengiriman || null,
           alamat_pengiriman,
+          alamat_penagihan,
           ada_standar_warna,
           label: checkKalkulasi.label,
         },
@@ -527,6 +529,7 @@ const SoController = {
           profit: data_so.profit,
           tgl_pengiriman: data_so.tgl_pengiriman,
           alamat_pengiriman: data_so.alamat_pengiriman,
+          alamat_penagihan: data_so.alamat_penagihan,
           ada_standar_warna: data_so.ada_standar_warna,
         },
         {

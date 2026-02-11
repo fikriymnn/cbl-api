@@ -94,6 +94,7 @@ const MasterCustomerController = {
       no_legalitas,
       fax,
       alamat_kantor,
+      alamat_penagihan,
       gudang,
       telepon,
       toleransi_pengiriman,
@@ -127,9 +128,8 @@ const MasterCustomerController = {
       }
 
       if (id_harga_pengiriman) {
-        const checkDataPengiriman = await MasterHargaPengiriman.findByPk(
-          id_harga_pengiriman
-        );
+        const checkDataPengiriman =
+          await MasterHargaPengiriman.findByPk(id_harga_pengiriman);
         if (!checkDataPengiriman)
           return res.status(404).json({
             succes: false,
@@ -145,6 +145,7 @@ const MasterCustomerController = {
           nama_customer,
           email,
           alamat_kantor,
+          alamat_penagihan,
           kontak_person,
           npwp,
           no_legalitas,
@@ -155,7 +156,7 @@ const MasterCustomerController = {
           kode_marketing: dataMarketing ? dataMarketing.kode : null,
           is_customer_kanban: is_customer_kanban ? is_customer_kanban : false,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       for (let i = 0; i < gudang.length; i++) {
@@ -166,7 +167,7 @@ const MasterCustomerController = {
             alamat_gudang: e.alamat_gudang,
             telepon_gudang: e.telepon_gudang,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
       await t.commit();
@@ -196,6 +197,7 @@ const MasterCustomerController = {
       no_legalitas,
       fax,
       alamat_kantor,
+      alamat_penagihan,
       gudang,
       telepon,
       toleransi_pengiriman,
@@ -220,9 +222,8 @@ const MasterCustomerController = {
         obj.kode_marketing = checkMarketing.kode;
       }
       if (id_harga_pengiriman) {
-        const checkPengiriman = await MasterHargaPengiriman.findByPk(
-          id_harga_pengiriman
-        );
+        const checkPengiriman =
+          await MasterHargaPengiriman.findByPk(id_harga_pengiriman);
         if (!checkPengiriman)
           return res.status(404).json({
             succes: false,
@@ -236,6 +237,7 @@ const MasterCustomerController = {
       if (npwp) obj.npwp = npwp;
       if (kontak_person) obj.kontak_person = kontak_person;
       if (alamat_kantor) obj.alamat_kantor = alamat_kantor;
+      if (alamat_penagihan) obj.alamat_penagihan = alamat_penagihan;
       if (telepon) obj.telepon = telepon;
       if (no_legalitas) obj.no_legalitas = no_legalitas;
       if (toleransi_pengiriman) obj.toleransi_pengiriman = toleransi_pengiriman;
@@ -285,7 +287,7 @@ const MasterCustomerController = {
                 alamat_gudang: e.alamat_gudang,
                 telepon_gudang: e.telepon_gudang,
               },
-              { transaction: t }
+              { transaction: t },
             );
           } else {
             await MasterCustomerGudang.update(
@@ -297,7 +299,7 @@ const MasterCustomerController = {
               {
                 where: { id: e.id },
                 transaction: t,
-              }
+              },
             );
           }
         }
@@ -306,10 +308,10 @@ const MasterCustomerController = {
         where: { id: _id },
         transaction: t,
       });
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -329,14 +331,14 @@ const MasterCustomerController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterCustomer.destroy({
+      (await MasterCustomer.destroy({
         where: { id: _id },
         transaction: t,
       }),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       res
         .status(400)

@@ -394,7 +394,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await JobOrderUserAction.sync({
+//   await MasterCustomer.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
