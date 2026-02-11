@@ -89,7 +89,7 @@ const JobOrder = db.define(
     tgl_pembuatan_jo: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     status_kalkulasi: {
       type: DataTypes.STRING,
@@ -174,7 +174,7 @@ const JobOrder = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 IoModel.hasMany(JobOrder, {

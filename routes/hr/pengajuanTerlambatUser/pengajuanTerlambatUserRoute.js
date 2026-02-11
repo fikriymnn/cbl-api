@@ -23,4 +23,14 @@ router.put(
   pengajuanTerlambatUserController.rejectPengajuanTerlambatUser,
 );
 
+//cronjob
+router.get(
+  "/hr/checkShift1PengajuanTerlambatUser",
+  pengajuanTerlambatUserController.checkShift1PengajuanTerlambatUser,
+);
+
+router.get(
+  "/hr/checkShift2PengajuanTerlambatUser",
+  pengajuanTerlambatUserController.checkShift2PengajuanTerlambatUser,
+);
 module.exports = router;

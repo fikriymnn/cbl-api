@@ -95,7 +95,7 @@ const BomPpic = db.define(
     tgl_kirim_customer: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     tgl_pembuatan_bom_ppic: {
       type: DataTypes.DATE,

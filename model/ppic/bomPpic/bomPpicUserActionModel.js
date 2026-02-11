@@ -28,7 +28,7 @@ const BomPpicUserAction = db.define(
     tgl: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
 
     status: {
@@ -44,7 +44,7 @@ const BomPpicUserAction = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 BomPpicModel.hasMany(BomPpicUserAction, {

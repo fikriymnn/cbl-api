@@ -137,7 +137,7 @@ const DeliveryOrderGroup = db.define(
     tgl_do: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     is_tax: {
       type: DataTypes.BOOLEAN,
@@ -156,7 +156,7 @@ const DeliveryOrderGroup = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 IoModel.hasMany(DeliveryOrderGroup, {

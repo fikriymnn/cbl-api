@@ -304,6 +304,82 @@ const PengajuanTerlambatUserUserController = {
         .json({ success: false, status_code: 500, msg: error.message });
     }
   },
+
+  checkShift1PengajuanTerlambatUser: async (req, res) => {
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanTerlambatUser = await PengajuanTerlambatUser.findAll({
+        where: {
+          status_tiket: "incoming",
+          shift: "1",
+          tanggal: {
+            [Op.between]: [
+              new Date().setHours(0, 0, 0, 0),
+              new Date().setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
+
+      for (let i = 0; i < dataPengajuanTerlambatUser.length; i++) {
+        const e = dataPengajuanTerlambatUser[i];
+        await PengajuanTerlambatUser.update(
+          { status_tiket: "history", status: "reject by system" },
+          { where: { id: e.id }, transaction: t },
+        );
+      }
+
+      await t.commit();
+
+      res
+        .status(200)
+        .json({ success: true, status_code: 200, msg: "Reject Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
+    }
+  },
+
+  checkShift2PengajuanTerlambatUser: async (req, res) => {
+    const t = await db.transaction();
+
+    try {
+      const dataPengajuanTerlambatUser = await PengajuanTerlambatUser.findAll({
+        where: {
+          status_tiket: "incoming",
+          shift: "2",
+          tanggal: {
+            [Op.between]: [
+              new Date().setHours(0, 0, 0, 0),
+              new Date().setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      });
+
+      for (let i = 0; i < dataPengajuanTerlambatUser.length; i++) {
+        const e = dataPengajuanTerlambatUser[i];
+        await PengajuanTerlambatUser.update(
+          { status_tiket: "history", status: "reject by system" },
+          { where: { id: e.id }, transaction: t },
+        );
+      }
+
+      await t.commit();
+
+      res
+        .status(200)
+        .json({ success: true, status_code: 200, msg: "Reject Successfully" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
+    }
+  },
 };
 
 module.exports = PengajuanTerlambatUserUserController;

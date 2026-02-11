@@ -76,7 +76,7 @@ const PerubahanInvoiceModel = db.define(
     tgl_pengajuan: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     tgl_faktur: {
       type: DataTypes.DATE,
@@ -116,7 +116,7 @@ const PerubahanInvoiceModel = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 MasterCustomer.hasMany(PerubahanInvoiceModel, {

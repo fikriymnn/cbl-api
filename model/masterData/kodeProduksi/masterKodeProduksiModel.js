@@ -122,17 +122,17 @@ const MasterKodeProduksi = db.define(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: new Date(),
+      defaultValue: Sequelize.NOW,
     },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 MasterTahapan.hasMany(MasterKodeProduksi, {
