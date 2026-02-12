@@ -17,6 +17,7 @@ const masterShiftController = {
       terhitung_lembur_menit,
       outstanding_karyawan_hari,
       minimal_pengajuan_cuti_hari,
+      maksimal_pengajuan_terlambat,
     } = req.body;
 
     let obj = {};
@@ -30,10 +31,12 @@ const masterShiftController = {
       obj.outstanding_karyawan_hari = outstanding_karyawan_hari;
     if (minimal_pengajuan_cuti_hari)
       obj.minimal_pengajuan_cuti_hari = minimal_pengajuan_cuti_hari;
+    if (maksimal_pengajuan_terlambat)
+      obj.maksimal_pengajuan_terlambat = maksimal_pengajuan_terlambat;
 
     try {
-      await masterAbsensi.update(obj, { where: { id: 1 } }),
-        res.status(201).json({ msg: "Master update Successfuly" });
+      (await masterAbsensi.update(obj, { where: { id: 1 } }),
+        res.status(201).json({ msg: "Master update Successfuly" }));
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

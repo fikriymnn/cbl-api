@@ -178,6 +178,7 @@ const masterDepartment = require("./model/masterData/hr/masterDeprtmentModel");
 const masterBagianHr = require("./model/masterData/hr/masterBagianModel");
 const masterJabatan = require("./model/masterData/hr/masterJabatanModel");
 const masterCutiKhusus = require("./model/masterData/hr/masterCutiKhususModel");
+const masterTerlambat = require("./model/masterData/hr/masterTerlambatModel");
 const masterGradeHr = require("./model/masterData/hr/masterGradeModel");
 const masterAbsensi = require("./model/masterData/hr/masterAbsensiModel");
 const WaktuShift = require("./model/masterData/hr/masterShift/masterShiftModel");
@@ -212,6 +213,7 @@ const pengajuanPinjaman = require("./model/hr/pengajuanPinjaman/pengajuanPinjama
 const pengajuanLembur = require("./model/hr/pengajuanLembur/pengajuanLemburModel");
 const pengajuanMangkir = require("./model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const pengajuanTerlambat = require("./model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const pengajuanTerlambatUser = require("./model/hr/pengajuanTerlambatUser/pengajuanTerlambatuserModel");
 const pengajuanPulangCepat = require("./model/hr/pengajuanPulangCepat/pengajuanPulangCepatModel");
 const pengajuanPromosiStatusKaryawan = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanModel");
 const pengajuanPromosiStatusKaryawanPenilaian = require("./model/hr/pengajuanPromosiStatusKaryawan/pengajuanPromosiStatusKaryawanPenilaianModel");
@@ -392,7 +394,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MasterRoleMenu.sync({
+//   await MasterCustomer.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

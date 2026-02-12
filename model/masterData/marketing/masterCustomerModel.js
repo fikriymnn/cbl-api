@@ -45,7 +45,10 @@ const MasterCustomer = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    alamat_penagihan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     telepon: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -88,7 +91,7 @@ const MasterCustomer = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 MasterHargaPengiriman.hasMany(MasterCustomer, {

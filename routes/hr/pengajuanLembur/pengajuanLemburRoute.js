@@ -4,32 +4,52 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get(
   "/hr/pengajuanLembur/:id?",
-  pengajuanLemburController.getPengajuanLembur
+  pengajuanLemburController.getPengajuanLembur,
 );
 router.post(
   "/hr/pengajuanLembur",
-  pengajuanLemburController.createPengajuanLembur
+  pengajuanLemburController.createPengajuanLembur,
+);
+router.put(
+  "/hr/pengajuanLembur/:id",
+  auth,
+  pengajuanLemburController.updatePengajuanLembur,
+);
+router.put(
+  "/hr/pengajuanLembur/send/:id",
+  auth,
+  pengajuanLemburController.sendPengajuanLembur,
+);
+router.put(
+  "/hr/pengajuanLembur/approveUser/:id",
+  auth,
+  pengajuanLemburController.approveUserPengajuanLembur,
+);
+router.put(
+  "/hr/pengajuanLembur/rejectUser/:id",
+  auth,
+  pengajuanLemburController.rejectUserPengajuanLembur,
 );
 router.put(
   "/hr/pengajuanLembur/approve/:id",
   auth,
-  pengajuanLemburController.approvePengajuanLembur
+  pengajuanLemburController.approvePengajuanLembur,
 );
 router.put(
   "/hr/pengajuanLembur/reject/:id",
   auth,
-  pengajuanLemburController.rejectPengajuanLembur
+  pengajuanLemburController.rejectPengajuanLembur,
 );
 
 router.post(
   "/hr/pengajuanLembur/tidakSesuai/:id",
 
-  pengajuanLemburController.kirimPengajuanLemburTidakSesuai
+  pengajuanLemburController.kirimPengajuanLemburTidakSesuai,
 );
 router.put(
   "/hr/pengajuanLembur/tidakSesuai/respon/:id",
 
-  pengajuanLemburController.responPengajuanLemburTidakSesuai
+  pengajuanLemburController.responPengajuanLemburTidakSesuai,
 );
 
 module.exports = router;

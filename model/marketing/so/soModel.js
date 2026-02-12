@@ -151,6 +151,10 @@ const so = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    alamat_penagihan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     ada_standar_warna: {
       type: DataTypes.STRING,
       allowNull: true,

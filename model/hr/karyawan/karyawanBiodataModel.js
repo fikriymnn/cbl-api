@@ -137,6 +137,10 @@ const KaryawanBiodataModel = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    foto_karyawan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status_active: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -150,7 +154,7 @@ const KaryawanBiodataModel = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 //relasi karyawan

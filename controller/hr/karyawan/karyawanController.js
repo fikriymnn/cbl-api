@@ -925,6 +925,7 @@ const karyawanController = {
       kontrak_dari,
       kontrak_sampai,
       bagian_mesin,
+      foto_karyawan,
     } = req.body;
     const t = await db.transaction();
 
@@ -985,6 +986,7 @@ const karyawanController = {
           gaji,
           kontrak_dari,
           kontrak_sampai,
+          foto_karyawan,
         },
         {
           transaction: t,
@@ -1047,6 +1049,7 @@ const karyawanController = {
       sub_level,
       gaji,
       bagian_mesin,
+      foto_karyawan,
     } = req.body;
     const t = await db.transaction();
     //console.log(_id);
@@ -1069,6 +1072,7 @@ const karyawanController = {
       if (level) obj.level = level;
       if (sub_level) obj.sub_level = sub_level;
       if (gaji) obj.gaji = gaji;
+      if (foto_karyawan) obj.foto_karyawan = foto_karyawan;
       if (id_jabatan) {
         const dataJabatan = await MasterJabatan.findByPk(id_jabatan);
         if (!dataJabatan)

@@ -107,12 +107,12 @@ const PengajuanLembur = db.define(
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "incoming",
+      defaultValue: "draft",
     },
     status_tiket: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "incoming",
+      defaultValue: "draft",
     },
     status_ketidaksesuaian: {
       type: DataTypes.STRING,
@@ -142,7 +142,7 @@ const PengajuanLembur = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 //relasi karyawan

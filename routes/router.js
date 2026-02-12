@@ -187,6 +187,7 @@ router.use("/", require("./masterdata/hr/masterShift/masterShiftRoute"));
 router.use("/", require("./masterdata/hr/masterShift/masterIstirahatRoute"));
 router.use("/", require("./masterdata/hr/masterCutiRoute"));
 router.use("/", require("./masterdata/hr/masterCutiKhususRoute"));
+router.use("/", require("./masterdata/hr/masterTerlambatRoute"));
 router.use("/", require("./masterdata/hr/masterDivisiRoute"));
 router.use("/", require("./masterdata/hr/masterJabatanRoute"));
 router.use("/", require("./masterdata/hr/masterDepartmentRoute"));
@@ -218,6 +219,10 @@ router.use("/", require("./hr/pengajuanPinjaman/pengajuanPinjamanRoute"));
 router.use("/", require("./hr/pengajuanLembur/pengajuanLemburRoute"));
 router.use("/", require("./hr/pengajuanMangkir/pengajuanMangkirRoute"));
 router.use("/", require("./hr/pengajuanTerlambat/pengajuanTerlambatRoute"));
+router.use(
+  "/",
+  require("./hr/pengajuanTerlambatUser/pengajuanTerlambatUserRoute"),
+);
 router.use("/", require("./hr/pengajuanPulangCepat/pengajuanPulangCepatRoute"));
 router.use(
   "/",

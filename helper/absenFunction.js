@@ -13,6 +13,7 @@ const DataDinas = require("../model/hr/pengajuanDinas/pengajuanDinasModel");
 const DataSakit = require("../model/hr/pengajuanSakit/pengajuanSakitModel");
 const DataMangkir = require("../model/hr/pengajuanMangkir/pengajuanMangkirModel");
 const DataTerlambat = require("../model/hr/pengajuanTerlambat/pengajuanTerlambatModel");
+const DataTerlambatUser = require("../model/hr/pengajuanTerlambatUser/pengajuanTerlambatuserModel");
 const DataPulangCepat = require("../model/hr/pengajuanPulangCepat/pengajuanPulangCepatModel");
 const DataLembur = require("../model/hr/pengajuanLembur/pengajuanLemburModel");
 const JadwalKaryawan = require("../model/hr/jadwalKaryawan/jadwalKaryawanModel");
@@ -105,6 +106,7 @@ const absenFunction = {
       dataTerlambat,
       dataPulangCepat,
       dataLembur,
+      dataTerlambatUser,
     ] = await Promise.all([
       absensi.findAll({
         where: {
@@ -364,9 +366,23 @@ const absenFunction = {
           ],
         },
       }),
+      DataTerlambatUser.findAll({
+        where: {
+          status: "approved",
+          id_karyawan: {
+            [Op.in]: karyawanIds, // Gunakan array id_karyawan
+          },
+          tanggal: {
+            [Op.between]: [
+              new Date(startDate).setHours(0, 0, 0, 0),
+              new Date(endDate).setHours(23, 59, 59, 999),
+            ],
+          },
+        },
+      }),
     ]);
 
-    // console.log(dataLembur.find((item) => item.id_karyawan === 41));
+    // console.log(karyawanIds.find((item) => item === 247));
 
     //console.log(absensiMasuk);
 
@@ -514,6 +530,22 @@ const absenFunction = {
       ];
     });
 
+    // Memecah mangkir menjadi entri harian
+    let terlambatUserEntries = [];
+    dataTerlambatUser.forEach((terlambat) => {
+      terlambatUserEntries = [
+        ...terlambatUserEntries,
+        ...generateDailyTerlambatUser(
+          terlambat,
+          karyawan,
+          karyawanBiodata,
+          masterDepartment,
+          masterDivisi,
+          resultJadwalKaryawan,
+        ),
+      ];
+    });
+
     // console.log(lemburEntries.find((item) => item.userid == 41));
 
     // Ambil shift untuk semua hari
@@ -635,6 +667,7 @@ const absenFunction = {
       const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
       const idDivisi = dataKaryawanBiodata?.id_divisi;
       const namaDivisi = dataMasterDivisi?.nama_divisi;
+      const fotoKaryawan = dataKaryawanBiodata?.foto_karyawan;
 
       // Ambil jam shift
       const shiftMasuk1 = shiftHariIni.shift_1_masuk; // Jam masuk shift 1
@@ -1242,7 +1275,24 @@ const absenFunction = {
           // jamLembur = absen.jam_lembur - jamIstirahat;
         }
 
+        //pencocokan pengajuan terlambat user dengan absen
+        const terlambatUserFind = terlambatUserEntries.find(
+          (entry) =>
+            entry.userid === masuk.userid &&
+            entry.tgl_masuk === tglMasuk &&
+            shift === entry.shift,
+        );
+        if (terlambatUserFind) {
+          menitTerlambat -= terlambatUserFind.lama_terlambat;
+          if (menitTerlambat <= 0) {
+            menitTerlambat = 0;
+            statusMasuk = "Tepat Waktu ";
+          }
+        }
+
         return {
+          id_pengajuan_terlambat_user: terlambatUserFind?.id_terlambat_user,
+          lama_pengajuan_terlambat: terlambatUserFind?.lama_terlambat,
           id_pengajuan_lembur: id_pengajuan_lembur,
           tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
@@ -1276,6 +1326,7 @@ const absenFunction = {
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
           bagian_mesin: bagianMesin,
+          foto_karyawan: fotoKaryawan,
         };
       } else {
         // waktu masuk absen
@@ -1391,7 +1442,24 @@ const absenFunction = {
           statusKetidaksesuaian = lemburFind.status_ketidaksesuaian;
         }
 
+        //pencocokan pengajuan terlambat user dengan absen
+        const terlambatUserFind = terlambatUserEntries.find(
+          (entry) =>
+            entry.userid === masuk.userid &&
+            entry.tgl_masuk === tglMasuk &&
+            shift === entry.shift,
+        );
+        if (terlambatUserFind) {
+          menitTerlambat -= terlambatUserFind.lama_terlambat;
+          if (menitTerlambat <= 0) {
+            menitTerlambat = 0;
+            statusMasuk = "Tepat Waktu ";
+          }
+        }
+
         return {
+          id_pengajuan_terlambat_user: terlambatUserFind?.id_terlambat_user,
+          lama_pengajuan_terlambat: terlambatUserFind?.lama_terlambat,
           id_pengajuan_lembur: id_pengajuan_lembur,
           tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
           userid: masuk.userid,
@@ -1424,6 +1492,7 @@ const absenFunction = {
           tipe_karyawan: typeKaryawan,
           tipe_penggajian: tipePenggajian,
           bagian_mesin: bagianMesin,
+          foto_karyawan: fotoKaryawan,
         };
       }
     });
@@ -1464,7 +1533,11 @@ const absenFunction = {
         // }
 
         if (karyawanDitemukan) {
-          ((karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
+          ((karyawanDitemukan.id_pengajuan_terlambat_user =
+            absen.id_pengajuan_terlambat_user),
+            (karyawanDitemukan.lama_pengajuan_terlambat =
+              absen.lama_pengajuan_terlambat),
+            (karyawanDitemukan.id_pengajuan_lembur = absen.id_pengajuan_lembur),
             (karyawanDitemukan.userid = absen.userid),
             (karyawanDitemukan.waktu_masuk = absen.waktu_masuk),
             (karyawanDitemukan.waktu_keluar = absen.waktu_keluar),
@@ -1487,13 +1560,16 @@ const absenFunction = {
             (karyawanDitemukan.shift = absen.shift), // Menampilkan shift
             (karyawanDitemukan.status_absen = absen.status_absen),
             (karyawanDitemukan.id_department = absen.id_department),
-            (karyawanDitemukan.nama_department = absen.nama_department));
-          ((karyawanDitemukan.id_divisi = absen.id_divisi),
-            (karyawanDitemukan.nama_divisi = absen.nama_divisi));
-          ((karyawanDitemukan.hari = absen.hari),
-            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk));
+            (karyawanDitemukan.nama_department = absen.nama_department),
+            (karyawanDitemukan.id_divisi = absen.id_divisi),
+            (karyawanDitemukan.nama_divisi = absen.nama_divisi),
+            (karyawanDitemukan.hari = absen.hari),
+            (karyawanDitemukan.jenis_hari_masuk = absen.jenis_hari_masuk),
+            (karyawanDitemukan.foto_karyawan = absen.foto_karyawan));
         } else {
           dataKaryawanGenerete.push({
+            id_pengajuan_terlambat_user: absen.id_pengajuan_terlambat_user,
+            lama_pengajuan_terlambat: absen.lama_pengajuan_terlambat,
             id_pengajuan_lembur: absen.id_pengajuan_lembur,
             userid: absen.userid,
             waktu_masuk: absen.waktu_masuk,
@@ -1521,6 +1597,7 @@ const absenFunction = {
             nama_divisi: absen.nama_divisi,
             hari: absen.hari,
             jenis_hari_masuk: absen.jenis_hari_masuk,
+            foto_karyawan: absen.foto_karyawan,
           });
         }
       });
@@ -1653,6 +1730,7 @@ const generateDailyCuti = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -1775,6 +1853,7 @@ const generateDailyIzin = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -1885,6 +1964,7 @@ const generateDailyDinas = (
       nama_divisi: namaDivisi,
       hari: dayName2,
       jenis_hari_masuk: jenisHariMasuk,
+      foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
     });
     // Tambah 1 hari
     startDate.setDate(startDate.getDate() + 1);
@@ -2007,6 +2087,7 @@ const generateDailySakit = (
         nama_divisi: namaDivisi,
         hari: dayName2,
         jenis_hari_masuk: jenisHariMasuk,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
 
@@ -2118,6 +2199,7 @@ const generateDailyMangkir = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyMangkir;
@@ -2224,9 +2306,110 @@ const generateDailyTerlambat = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyTerlambat;
+};
+
+// Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
+const generateDailyTerlambatUser = (
+  mangkir,
+  karyawan,
+  karyawanBiodata,
+  masterDepartment,
+  masterDivisi,
+  resultJadwalKaryawan,
+) => {
+  let dailyMangkir = [];
+  let startDate = new Date(mangkir.tanggal);
+
+  const dataKaryawan = karyawan.find(
+    (data) => data.userid === mangkir.id_karyawan,
+  );
+  const dataKaryawanBiodata = karyawanBiodata.find(
+    (data) => data.id_karyawan === mangkir.id_karyawan,
+  );
+
+  //get data master department
+  const dataMasterDepartment = masterDepartment.find(
+    (data) => data.id === dataKaryawanBiodata?.id_department,
+  );
+
+  //get data master divisi
+  const dataMasterDivisi = masterDivisi.find(
+    (data) => data.id === dataKaryawanBiodata?.id_divisi,
+  );
+
+  const namaKaryawan = dataKaryawan?.name;
+  const namaKaryawanBiodata = dataKaryawanBiodata?.id_department;
+  const namaDepartmentKaryawan = dataMasterDepartment?.nama_department;
+  const idDivisi = dataKaryawanBiodata?.id_divisi;
+  const namaDivisi = dataMasterDivisi?.nama_divisi;
+
+  // Iterasi dari tanggal_dari hingga tanggal_sampai
+
+  const waktuMasuk = new Date(startDate);
+  const monthMasuk = getMonthName(waktuMasuk.getUTCMonth() + 1);
+  const tglMasuk = `${waktuMasuk.getUTCDate()}-${monthMasuk}-${waktuMasuk.getFullYear()}`;
+
+  // Dapatkan tanggal berdasarkan tanggal absensi masuk
+  const tglMasukUtc = new Date(
+    Date.UTC(
+      waktuMasuk.getUTCFullYear(),
+      waktuMasuk.getUTCMonth(),
+      waktuMasuk.getUTCDate(),
+    ),
+  );
+  const hariIni = tglMasukUtc.getDate();
+  const bulanIni = getMonthName((tglMasukUtc.getMonth() + 1).toString());
+  const tahunIni = tglMasukUtc.getFullYear();
+  const tglHariini = `${hariIni}-${bulanIni}-${tahunIni}`;
+
+  let jenisHariMasuk = "Biasa";
+
+  const filterJadwalKaryawan = resultJadwalKaryawan.filter(
+    (data) => data.jenis_karyawan == dataKaryawanBiodata.tipe_karyawan,
+  );
+
+  // Cek apakah tanggal hari ini ada di data lembur
+  const isTodayOvertime = filterJadwalKaryawan.some(
+    (data) => data.tanggal_libur == tglHariini,
+  );
+  if (isTodayOvertime == true) {
+    jenisHariMasuk = "Libur";
+  }
+  const dayName2 = new Date(
+    Date.UTC(
+      waktuMasuk.getUTCFullYear(),
+      waktuMasuk.getUTCMonth(),
+      waktuMasuk.getUTCDate(),
+    ),
+  ).toLocaleDateString("id-ID", {
+    weekday: "long",
+  });
+
+  dailyMangkir.push({
+    id_terlambat_user: mangkir.id,
+    userid: mangkir.id_karyawan,
+    waktu_masuk: new Date(startDate),
+    tgl_absen: convertTanggalIndonesiaToISO(tglMasuk),
+    tgl_masuk: tglMasuk,
+    name: namaKaryawan,
+    shift:
+      mangkir.shift == "1" ? "Shift 1" : mangkir.shift == "2" ? "Shift 2" : "", // Menampilkan shift
+    status_absen: "izin terlambat",
+    id_department: namaKaryawanBiodata,
+    nama_department: namaDepartmentKaryawan,
+    id_divisi: idDivisi,
+    nama_divisi: namaDivisi,
+    hari: dayName2,
+    lama_terlambat: mangkir.lama_terlambat,
+    jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
+  });
+
+  return dailyMangkir;
 };
 
 // Fungsi untuk memecah rentang tanggal Sakit menjadi array tanggal harian
@@ -2330,6 +2513,7 @@ const generateDailyPulangCepat = (
     nama_divisi: namaDivisi,
     hari: dayName2,
     jenis_hari_masuk: jenisHariMasuk,
+    foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
   });
 
   return dailyPulangCepat;
@@ -2473,6 +2657,8 @@ const generatekaryawanList = (
 
     if (!isTodayOvertime) {
       dataKaryawan.push({
+        id_pengajuan_terlambat_user: null,
+        lama_pengajuan_terlambat: null,
         id_pengajuan_lembur: null,
         tgl_absen: date,
         userid: karyawan[i].userid,
@@ -2503,6 +2689,7 @@ const generatekaryawanList = (
         tipe_karyawan: dataKaryawanBiodata.tipe_karyawan,
         tipe_penggajian: dataKaryawanBiodata.tipe_penggajian,
         bagian_mesin: dataKaryawanBiodata.bagian_mesin_karyawan,
+        foto_karyawan: dataKaryawanBiodata?.foto_karyawan,
       });
     }
   }
