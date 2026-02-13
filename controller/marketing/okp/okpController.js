@@ -463,6 +463,99 @@ const OkpController = {
     }
   },
 
+  updateKalkulasiOkp: async (req, res) => {
+    const _id = req.params.id;
+    const { id_kalkulasi } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const checkKalkulasi = await Kalkulasi.findByPk(id_kalkulasi);
+      if (!checkKalkulasi)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data kalkulasi tidak ditemukan",
+        });
+
+      const checkData = await Okp.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      let idOkpPrevious = null;
+
+      //penentuan untuk id_okp_previous jika kalkulasi yg baru statusnya repeat perubahan
+      if (checkKalkulasi.status_kalkulasi == "repeat perubahan") {
+        // cek kalkulasi sebelumnya
+        const previousKalkulasi = await Kalkulasi.findByPk(
+          checkKalkulasi.id_kalkulasi_previous,
+        );
+        if (previousKalkulasi) {
+          const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
+          idOkpPrevious = checkOkpPrevious?.id;
+        }
+      }
+
+      //cancel kalkulasi yang sebelumnya
+      await Kalkulasi.update(
+        {
+          id_okp: null,
+          no_okp: null,
+          status_proses: "cancel okp",
+        },
+        { transaction: t, where: { id: checkData.id_kalkulasi } },
+      );
+
+      // update okp menggunakan kalkulasi baru
+      await Okp.update(
+        {
+          id_okp_previous: idOkpPrevious,
+          id_kalkulasi: id_kalkulasi,
+          id_customer: checkKalkulasi.id_customer,
+          id_produk: checkKalkulasi.id_produk,
+          customer: checkKalkulasi.nama_customer,
+          produk: checkKalkulasi.nama_produk,
+          status_okp: checkKalkulasi.status_kalkulasi,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+
+      //update kalkulasi untuk id okp dan no okp yang baru
+      await Kalkulasi.update(
+        {
+          id_okp: checkData.id,
+          no_okp: checkData.no_okp,
+          is_io_active: false,
+          is_okp_done: true,
+        },
+        { where: { id: id_kalkulasi }, transaction: t },
+      );
+      await OkpActionUser.create(
+        {
+          id_okp: checkData.id,
+          id_user: req.user.id,
+          status: "update kalkulasi okp",
+        },
+        { transaction: t },
+      );
+      await t.commit();
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   actionProsesTanggalOkp: async (req, res) => {
     const _id = req.params.id;
     const {
@@ -775,73 +868,6 @@ const OkpController = {
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "reject Successful" }));
-    } catch (error) {
-      await t.rollback();
-      res
-        .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
-    }
-  },
-
-  updateKalkulasiOkp: async (req, res) => {
-    const _id = req.params.id;
-    const { id_kalkulasi } = req.body;
-    const t = await db.transaction();
-    try {
-      const checkData = await Okp.findByPk(_id, {
-        include: {
-          model: OkpProses,
-          as: "okp_proses",
-          where: { status: "active" },
-        },
-      });
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-
-      await Okp.update(
-        {
-          id_kalkulasi: id_kalkulasi,
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        },
-      );
-
-      //update new kalkulasi
-      await Kalkulasi.update(
-        {
-          id_okp: checkData.id,
-          no_okp: checkData.no_okp,
-          is_okp_done: true,
-        },
-        { where: { id: id_kalkulasi }, transaction: t },
-      );
-
-      await Kalkulasi.update(
-        {
-          status_proses: "cancel okp",
-          id_okp: null,
-          no_okp: null,
-        },
-        { where: { id: checkData.id_kalkulasi }, transaction: t },
-      );
-      await OkpActionUser.create(
-        {
-          id_okp: checkData.id,
-          id_user: req.user.id,
-          status: "update kalkulasi okp",
-        },
-        { transaction: t },
-      );
-      await t.commit();
-      res
-        .status(200)
-        .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       await t.rollback();
       res

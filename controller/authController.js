@@ -150,6 +150,7 @@ const authController = {
           "status",
           "bagian",
           "divisi_bawahan",
+          "tahapan_bawahan",
           "id_role",
         ],
         where: {
@@ -178,6 +179,17 @@ const authController = {
           console.warn(
             "divisi_bawahan bukan JSON valid:",
             users.divisi_bawahan,
+          );
+        }
+      }
+
+      if (users && typeof users.tahapan_bawahan === "string") {
+        try {
+          users.tahapan_bawahan = JSON.parse(users.tahapan_bawahan);
+        } catch (e) {
+          console.warn(
+            "tahapan_bawahan bukan JSON valid:",
+            users.tahapan_bawahan,
           );
         }
       }

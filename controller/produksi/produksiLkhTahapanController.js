@@ -33,6 +33,7 @@ const ProduksiLkhTahapanController = {
       id_so,
       id_customer,
       id_produk,
+      tahapan_bawahan,
     } = req.query;
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -54,6 +55,7 @@ const ProduksiLkhTahapanController = {
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
+    if (tahapan_bawahan) obj.id_tahapan = { [Op.in]: tahapan_bawahan };
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);

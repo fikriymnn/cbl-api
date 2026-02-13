@@ -72,6 +72,10 @@ const Users = db.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    tahapan_bawahan: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: false,
