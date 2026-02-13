@@ -144,6 +144,7 @@ const userController = {
       role,
       bagian,
       divisi_bawahan,
+      tahapan_bawahan,
       id_role,
     } = req.body;
 
@@ -182,6 +183,7 @@ const userController = {
         no: no,
         bagian: bagian,
         divisi_bawahan: divisi_bawahan,
+        tahapan_bawahan: tahapan_bawahan,
         id_role: id_role,
       }),
         res.status(201).json({
@@ -209,6 +211,7 @@ const userController = {
       status,
       bagian,
       divisi_bawahan,
+      tahapan_bawahan,
     } = req.body;
 
     try {
@@ -249,6 +252,7 @@ const userController = {
           status: status,
           bagian: bagian,
           divisi_bawahan: divisi_bawahan,
+          tahapan_bawahan: tahapan_bawahan,
         },
         {
           where: {

@@ -35,6 +35,10 @@ const ioMounting = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    spesifikasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     ukuran_jadi_panjang: {
       type: DataTypes.FLOAT,
       allowNull: true,

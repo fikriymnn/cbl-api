@@ -49,6 +49,8 @@ const KalkulasiController = {
             { nama_produk: { [Op.like]: `%${search}%` } },
             { qty_kalkulasi: { [Op.like]: `%${search}%` } },
             { total_harga_satuan_customer: { [Op.like]: `%${search}%` } },
+            { status: { [Op.like]: `%${search}%` } },
+            { status_proses: { [Op.like]: `%${search}%` } },
           ],
         };
       }

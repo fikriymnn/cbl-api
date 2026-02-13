@@ -19,6 +19,7 @@ const PengajuanTerlambatUserUserController = {
       status,
       status_tiket,
       id_department,
+      divisi_bawahan,
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -29,6 +30,7 @@ const PengajuanTerlambatUserUserController = {
     if (status_tiket) obj.status_tiket = status_tiket;
     if (status) obj.status = status;
     if (id_department) obj.id_department = id_department;
+    if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
     if (id_karyawan) obj.id_karyawan = id_karyawan;
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -69,6 +71,14 @@ const PengajuanTerlambatUserUserController = {
                   ],
                 },
               ],
+            },
+            {
+              model: MasterDivisi,
+              as: "divisi",
+            },
+            {
+              model: MasterDepartment,
+              as: "department",
             },
           ],
           offset,
@@ -111,6 +121,14 @@ const PengajuanTerlambatUserUserController = {
                 },
               ],
             },
+            {
+              model: MasterDivisi,
+              as: "divisi",
+            },
+            {
+              model: MasterDepartment,
+              as: "department",
+            },
           ],
         });
         return res.status(200).json({
@@ -150,6 +168,14 @@ const PengajuanTerlambatUserUserController = {
                   ],
                 },
               ],
+            },
+            {
+              model: MasterDivisi,
+              as: "divisi",
+            },
+            {
+              model: MasterDepartment,
+              as: "department",
             },
           ],
         });
@@ -201,6 +227,7 @@ const PengajuanTerlambatUserUserController = {
         {
           id_karyawan,
           id_department: dataKaryawanBiodata.id_department,
+          id_divisi: dataKaryawanBiodata.id_divisi,
           tanggal,
           alasan_terlambat,
           lama_terlambat,

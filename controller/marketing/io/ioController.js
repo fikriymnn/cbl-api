@@ -355,6 +355,7 @@ const IoController = {
           id_io: response.id,
           nama_mounting: "A",
           format_data: "CTP",
+          spesifikasi: checkKalkulasi.spesifikasi,
           ukuran_jadi_panjang: checkKalkulasi.ukuran_jadi_panjang,
           ukuran_jadi_lebar: checkKalkulasi.ukuran_jadi_lebar,
           ukuran_jadi_tinggi: checkKalkulasi.ukuran_jadi_tinggi,
@@ -957,6 +958,7 @@ const IoController = {
           nama_mounting: namaMounting,
           barcode: checkDataMountingA.barcode,
           format_data: checkDataMountingA.format_data,
+          spesifikasi: checkDataMountingA.spesifikasi,
           keterangan_revisi: checkDataMountingA.keterangan_revisi,
           ukuran_jadi_panjang: checkDataMountingA.ukuran_jadi_panjang,
           ukuran_jadi_lebar: checkDataMountingA.ukuran_jadi_lebar,
@@ -1140,6 +1142,7 @@ const IoController = {
 
       await IoMounting.update(
         {
+          spesifikasi: data_mounting.spesifikasi,
           keterangan_revisi: data_mounting.keterangan_revisi,
           ukuran_jadi_panjang: data_mounting.ukuran_jadi_panjang,
           ukuran_jadi_lebar: data_mounting.ukuran_jadi_lebar,

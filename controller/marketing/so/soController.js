@@ -511,8 +511,30 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      const checkKalkulasi = await Kalkulasi.findByPk(data_so.id_kalkulasi);
+      if (!checkKalkulasi)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Kalkulasi tidak ditemukan",
+        });
+      const checkIo = await Io.findByPk(checkKalkulasi.id_io);
+      if (!checkIo)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data io tidak ditemukan",
+        });
       await SoModel.update(
         {
+          id_kalkulasi: data_so.id_kalkulasi,
+          id_io: checkIo.id_io,
+          no_io: checkIo.no_io,
+          id_customer: checkIo.id_customer,
+          id_produk: checkIo.id_produk,
+          customer: checkIo.customer,
+          produk: checkIo.produk,
           tgl_input_po: data_so.tgl_input_po,
           id_so_cancel: data_so.id_so_cancel,
           so_cancel: data_so.so_cancel,
