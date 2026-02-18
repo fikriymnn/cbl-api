@@ -41,6 +41,7 @@ const SoController = {
             { status_jo: { [Op.like]: `%${search}%` } },
             { customer: { [Op.like]: `%${search}%` } },
             { produk: { [Op.like]: `%${search}%` } },
+            { status: { [Op.like]: `%${search}%` } },
           ],
         };
       }

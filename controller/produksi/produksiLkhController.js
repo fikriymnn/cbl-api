@@ -117,14 +117,36 @@ const ProduksiLkhController = {
               where: { status: status_lkh_proses ?? "progress" },
               required: false,
             },
-            {
-              model: ProduksiLkhWaste,
-              as: "produksi_lkh_waste",
-            },
+            // {
+            //   model: ProduksiLkhWaste,
+            //   as: "produksi_lkh_waste",
+            // },
           ],
         });
+
+        let lkhWaste = [];
+        if (id_jo) {
+          lkhWaste = await ProduksiLkhWaste.findAll({
+            where: { id_jo: id_jo },
+            include: [
+              {
+                model: Users,
+                as: "operator",
+              },
+              {
+                model: MasterTahapan,
+                as: "tahapan",
+              },
+              {
+                model: MasterMesinTahapan,
+                as: "mesin",
+              },
+            ],
+          });
+        }
         return res.status(200).json({
           data: data,
+          produksi_lkh_waste: lkhWaste,
         });
       }
     } catch (error) {

@@ -41,6 +41,7 @@ const ProduksiLkhProsesController = {
       start_date,
       end_date,
       status,
+      id_jo,
       id_produksi_lkh,
       id_produksi_lkh_tahapan,
       id_tahapan,
@@ -65,6 +66,7 @@ const ProduksiLkhProsesController = {
     }
     if (status) obj.status = status;
     if (id_produksi_lkh) obj.id_produksi_lkh = id_produksi_lkh;
+    if (id_jo) obj.id_jo = id_jo;
     if (id_produksi_lkh_tahapan)
       obj.id_produksi_lkh_tahapan = id_produksi_lkh_tahapan;
     if (id_tahapan) obj.id_tahapan = id_tahapan;
@@ -124,6 +126,14 @@ const ProduksiLkhProsesController = {
             {
               model: ProduksiLkh,
               as: "produksi_lkh",
+            },
+            {
+              model: MasterTahapan,
+              as: "tahapan",
+            },
+            {
+              model: MasterMesinTahapan,
+              as: "mesin",
             },
             {
               model: Users,

@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const SoController = require("../../controller/marketing/so/soController");
+const SoMonitoringController = require("../../controller/marketing/so/monitoringSoController");
 const SoPerubahanTanggalKirimController = require("../../controller/marketing/so/soPerubahanTanggalKirimController");
 const SoPerubahanHargaController = require("../../controller/marketing/so/soPerubahanHargaController");
 const { auth } = require("../../middlewares/authMiddlewares");
@@ -11,7 +12,7 @@ router.put("/marketing/so/:id", auth, SoController.updateSo);
 router.put(
   "/marketing/so/kelengkapanPo/:id",
   auth,
-  SoController.kelengkapanPoSo
+  SoController.kelengkapanPoSo,
 );
 router.put("/marketing/so/request/:id", auth, SoController.submitRequestSo);
 router.put("/marketing/so/approve/:id", auth, SoController.approveSo);
@@ -24,64 +25,71 @@ router.delete("/marketing/so/:id", auth, SoController.deleteSo);
 router.get(
   "/marketing/soPerubahanTanggalKirim/:id?",
   auth,
-  SoPerubahanTanggalKirimController.getSoPerubahanTglKirim
+  SoPerubahanTanggalKirimController.getSoPerubahanTglKirim,
 );
 router.post(
   "/marketing/soPerubahanTanggalKirim",
   auth,
-  SoPerubahanTanggalKirimController.createSoPerubahanTanggalKirim
+  SoPerubahanTanggalKirimController.createSoPerubahanTanggalKirim,
 );
 router.put(
   "/marketing/soPerubahanTanggalKirim/:id",
   auth,
-  SoPerubahanTanggalKirimController.updateSoPerubahanTanggalKirim
+  SoPerubahanTanggalKirimController.updateSoPerubahanTanggalKirim,
 );
 router.put(
   "/marketing/soPerubahanTanggalKirim/approve/:id",
   auth,
-  SoPerubahanTanggalKirimController.approveSoPerubahanTanggalKirim
+  SoPerubahanTanggalKirimController.approveSoPerubahanTanggalKirim,
 );
 router.put(
   "/marketing/soPerubahanTanggalKirim/reject/:id",
   auth,
-  SoPerubahanTanggalKirimController.rejectSoPerubahanTanggalKirim
+  SoPerubahanTanggalKirimController.rejectSoPerubahanTanggalKirim,
 );
 router.delete(
   "/marketing/soPerubahanTanggalKirim/:id",
   auth,
-  SoPerubahanTanggalKirimController.deleteSoPerubahanTanggalKirim
+  SoPerubahanTanggalKirimController.deleteSoPerubahanTanggalKirim,
 );
 
 // request perubahan harga
 router.get(
   "/marketing/soPerubahanHarga/:id?",
   auth,
-  SoPerubahanHargaController.getSoPerubahanHarga
+  SoPerubahanHargaController.getSoPerubahanHarga,
 );
 router.post(
   "/marketing/soPerubahanHarga",
   auth,
-  SoPerubahanHargaController.createSoPerubahanHarga
+  SoPerubahanHargaController.createSoPerubahanHarga,
 );
 router.put(
   "/marketing/soPerubahanHarga/:id",
   auth,
-  SoPerubahanHargaController.updateSoPerubahanHarga
+  SoPerubahanHargaController.updateSoPerubahanHarga,
 );
 router.put(
   "/marketing/soPerubahanHarga/approve/:id",
   auth,
-  SoPerubahanHargaController.approveSoPerubahanHarga
+  SoPerubahanHargaController.approveSoPerubahanHarga,
 );
 router.put(
   "/marketing/soPerubahanHarga/reject/:id",
   auth,
-  SoPerubahanHargaController.rejectSoPerubahanHarga
+  SoPerubahanHargaController.rejectSoPerubahanHarga,
 );
 router.delete(
   "/marketing/soPerubahanHarga/:id",
   auth,
-  SoPerubahanHargaController.deleteSoPerubahanHarga
+  SoPerubahanHargaController.deleteSoPerubahanHarga,
+);
+
+//monitoring so
+router.get(
+  "/marketing/soMonitoring",
+  auth,
+  SoMonitoringController.getSoMonitoring,
 );
 
 module.exports = router;

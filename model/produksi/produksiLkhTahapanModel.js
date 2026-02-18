@@ -174,7 +174,7 @@ ProduksiLkhTahapan.belongsTo(IoModel, {
   as: "io",
 });
 
-SoModel.hasOne(ProduksiLkhTahapan, {
+SoModel.hasMany(ProduksiLkhTahapan, {
   foreignKey: "id_so",
   as: "produksi_lkh_tahapan",
 });
