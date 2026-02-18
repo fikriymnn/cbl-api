@@ -117,10 +117,10 @@ const ProduksiLkhController = {
               where: { status: status_lkh_proses ?? "progress" },
               required: false,
             },
-            // {
-            //   model: ProduksiLkhWaste,
-            //   as: "produksi_lkh_waste",
-            // },
+            {
+              model: ProduksiLkhWaste,
+              as: "produksi_lkh_waste",
+            },
           ],
         });
 
