@@ -1013,6 +1013,62 @@ const KalkulasiController = {
     }
   },
 
+  updateProdukKalkulasi: async (req, res) => {
+    const _id = req.params.id;
+    const { nama_produk } = req.body;
+    const t = await db.transaction();
+
+    try {
+      const checkData = await Kalkulasi.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Kalkulasi tidak ditemukan",
+        });
+
+      //update nama produk di kalkulasi
+      await Kalkulasi.update(
+        { nama_produk: nama_produk },
+        { where: { id: _id }, transaction: t },
+      );
+
+      //update nama produk di okp
+      if (checkData.id_okp) {
+        await OkpModel.update(
+          { produk: nama_produk },
+          { where: { id: checkData.id_okp }, transaction: t },
+        );
+      }
+
+      //update nama produk di io
+      if (checkData.id_io) {
+        await IoModel.update(
+          { produk: nama_produk },
+          { where: { id: checkData.id_io }, transaction: t },
+        );
+      }
+
+      //update nama produk di so
+      await SoModel.update(
+        { produk: nama_produk },
+        { where: { id_kalkulasi: checkData.id }, transaction: t },
+      );
+
+      await t.commit();
+      res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "Update Nama Produk Successful",
+      });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   //update belum
   updateKalkulasi: async (req, res) => {
     const _id = req.params.id;
