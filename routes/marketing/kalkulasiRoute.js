@@ -6,33 +6,38 @@ router.get("/marketing/kalkulasi/:id?", auth, KalkulasiController.getKalkulasi);
 router.get(
   "/marketing/kalkulasiJumlahData",
   auth,
-  KalkulasiController.getKalkulasiJumlahData
+  KalkulasiController.getKalkulasiJumlahData,
 );
 router.post("/marketing/kalkulasi", auth, KalkulasiController.createKalkulasi);
 router.put(
   "/marketing/kalkulasi/:id",
   auth,
-  KalkulasiController.updateKalkulasi
+  KalkulasiController.updateKalkulasi,
 );
 router.put(
   "/marketing/kalkulasi/submit/:id",
   auth,
-  KalkulasiController.submitKalkulasi
+  KalkulasiController.submitKalkulasi,
 );
 router.put(
   "/marketing/kalkulasi/approve/:id",
   auth,
-  KalkulasiController.approveKalkulasi
+  KalkulasiController.approveKalkulasi,
 );
 router.put(
   "/marketing/kalkulasi/reject/:id",
   auth,
-  KalkulasiController.rejectKalkulasi
+  KalkulasiController.rejectKalkulasi,
+);
+router.put(
+  "/marketing/kalkulasi/updateProduk/:id",
+  auth,
+  KalkulasiController.updateProdukKalkulasi,
 );
 router.delete(
   "/marketing/kalkulasi/:id",
   auth,
-  KalkulasiController.deleteKalkulasi
+  KalkulasiController.deleteKalkulasi,
 );
 
 module.exports = router;
