@@ -224,7 +224,10 @@ const ProduksiLkhProsesController = {
           warna_depan: checkIoMounting.keterangan_warna_depan,
           warna_belakang: checkIoMounting.keterangan_warna_belakang,
           qty_druk: checkJo.qty_druk,
-          mata: null,
+          mata:
+            checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
+            0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
+            0,
           merk: null,
           ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
           transaction: t,
@@ -385,7 +388,10 @@ const ProduksiLkhProsesController = {
           warna_depan: checkIoMounting.keterangan_warna_depan,
           warna_belakang: checkIoMounting.keterangan_warna_belakang,
           qty_druk: checkJo.qty_druk,
-          mata: null,
+          mata:
+            checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
+            0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
+            0,
           merk: null,
           ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
           transaction: t,
