@@ -853,7 +853,7 @@ async function handleTahapan({
           await InspeksiCoatingService.creteInspeksiCoatingService({
             tahapan: tahapan,
             tanggal: tanggal_pembuatan,
-            coating: null, //belum ngambil karena belum tau
+            coating: tahapan,
             periode_tiket: periode_tiket,
             no_io: no_io,
             no_jo: no_jo,
