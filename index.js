@@ -393,12 +393,12 @@ const app = express();
 // })();
 
 // model sync to table (pancingan)
-(async () => {
-  await inspeksi_coating_result_awal.sync({
-    alter: true,
-    logging: console.log,
-  });
-})();
+// (async () => {
+//   await inspeksi_coating_result_awal.sync({
+//     alter: true,
+//     logging: console.log,
+//   });
+// })();
 
 // const ip100 = 75
 // const ip50from = 74
