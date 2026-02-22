@@ -216,7 +216,7 @@ const ProduksiLkhProsesController = {
           jam: shiftInfo.currentTime,
           no_io: dataProduksiLkhTahapan.no_io,
           produk: dataProduksiLkhTahapan.produk,
-          qty_jo: checkJo.QTY,
+          qty_jo: checkJo.qty,
           status_jo: checkJo.status_jo,
           tanggal_pembuatan: shiftInfo.periodDateFormatted,
           jenis_gramatur: checkIoMounting.gramature_kertas,
