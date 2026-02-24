@@ -22,6 +22,7 @@ const masterShift = require("../../model/masterData/hr/masterShift/masterShiftMo
 const {
   creteTicketMtcOs2Service,
 } = require("../mtc/ticketMaintenance/ticketMaintenanceService");
+const { createTiketLkh } = require("../kendalaLkh/service/kendalaLkhService");
 const InspeksiPotongService = require("../qc/inspeksi/potong/service/inspeksiPotongService");
 const InspeksiCetakService = require("../qc/inspeksi/cetak/service/inspeksiCetakService");
 const InspeksiCoatingService = require("../qc/inspeksi/coating/service/inspeksiCoatingService");
@@ -332,10 +333,36 @@ const ProduksiLkhProsesController = {
             "0", //bagian => belum tau dimana ngambilnya
             dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
-            dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
+            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
             dataKodeProduksi.target_department, //target department
             t, //transaction
           );
+        } else if (dataKodeProduksi.kategori_kendala != null) {
+          const dataMesin = await MasterMesinTahapan.findByPk(id_mesin);
+          const dataUser = await Users.findByPk(id_operator);
+          await createTiketLkh(
+            dataKodeProduksi.kode, //kode produksi
+            dataProduksiLkhTahapan.id_jo, //id jo
+            dataProduksiLkhTahapan.no_jo, // no jo
+            dataProduksiLkhTahapan.produk, // nama produk
+            dataProduksiLkhTahapan.no_io, // no io
+            dataProduksiLkhTahapan.no_so, // no so
+            dataProduksiLkhTahapan.customer, //  nama customer
+            dataMesin.nama_mesin, //nama mesin
+            dataUser.nama, //nama operator
+            dataKodeProduksi.kategori_kendala.kategori, //jenis kendala
+            dataKodeProduksi.id, //id kode produksi
+            dataKodeProduksi.kode, //kode produksi
+            dataKodeProduksi.deskripsi, // nama kendala
+            null, //waktu mulai (belum tau ngambil dari mana)
+            null, //waktu selesai (belum tau ngambil dari mana)
+            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            "Month", //maksimal periode kedatangan tiket (default month)
+            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
+            [], //department (belum ngambil)
+            t, //transaction
+          );
+          console.log("create all kendala tiket");
         }
 
         await t.commit();
@@ -453,6 +480,33 @@ const ProduksiLkhProsesController = {
             t, //transaction
           );
           console.log("create mtc tiket");
+        } else if (dataKodeProduksi.kategori_kendala != null) {
+          const dataMesin = await MasterMesinTahapan.findByPk(id_mesin);
+          const dataUser = await Users.findByPk(id_operator);
+
+          await createTiketLkh(
+            dataKodeProduksi.kode, //kode produksi
+            checkProduksiLkh.id_jo, //id jo
+            checkProduksiLkh.no_jo, // no jo
+            checkProduksiLkh.produk, // nama produk
+            checkProduksiLkh.no_io, // no io
+            checkProduksiLkh.no_so, // no so
+            checkProduksiLkh.customer, //  nama customer
+            dataMesin.nama_mesin, //nama mesin
+            dataUser.nama, //nama operator
+            dataKodeProduksi.kategori_kendala.kategori, //jenis kendala
+            dataKodeProduksi.id, //id kode produksi
+            dataKodeProduksi.kode, //kode produksi
+            dataKodeProduksi.deskripsi, // nama kendala
+            null, //waktu mulai (belum tau ngambil dari mana)
+            null, //waktu selesai (belum tau ngambil dari mana)
+            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            "Month", //maksimal periode kedatangan tiket (default month)
+            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
+            [], //department (belum ngambil)
+            t, //transaction
+          );
+          console.log("create all kendala tiket");
         }
 
         await t.commit();
