@@ -189,7 +189,7 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          },
+          }
         );
       }
 
@@ -203,7 +203,7 @@ const ProduksiLkhTahapanController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
 
       //buat tahapan selanjutnya jadi active & cek apakah tahapan ini adalah tahapan terakhir (untuk kirim tiket ke list jo selesai)
@@ -216,11 +216,15 @@ const ProduksiLkhTahapanController = {
       });
 
       if (checkDataLkhtahapanNext) {
-        //buat tahapan selanjutnya active
-        await ProduksiLkhTahapan.update(
-          { status: "active" },
-          { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
-        );
+        if (checkDataLkhtahapanNext.status == "nonactive") {
+          //buat tahapan selanjutnya active
+          await ProduksiLkhTahapan.update(
+            { status: "active" },
+            { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+          );
+        } else {
+          //tahapan selanjutnya sudah active atau done maka tidak perlu update status
+        }
       } else {
         //jika tidak ada maka kirim tiket ke list produksi jo selesai
         const createProduksiLkhProsesDone = await creteProduksiJoDoneService({
@@ -242,10 +246,10 @@ const ProduksiLkhTahapanController = {
         }
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -267,14 +271,14 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          },
+          }
         );
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Actived Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Actived Successful" });
     } catch (error) {
       await t.rollback();
       res
