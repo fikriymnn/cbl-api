@@ -43,23 +43,23 @@ const InvoiceProdukModel = db.define(
       allowNull: true,
     },
     harga: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     dpp: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     total: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     pajak: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     diskon_produk: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
       defaultValue: 0,
     },

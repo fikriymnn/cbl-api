@@ -81,31 +81,31 @@ const InvoiceModel = db.define(
       allowNull: true,
     },
     sub_total: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     dpp: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     diskon: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     ppn: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     total: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     dp: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     balance_due: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
     note: {

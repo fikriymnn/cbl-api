@@ -394,7 +394,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksi_coating_result_awal.sync({
+//   await InvoiceProduk.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
