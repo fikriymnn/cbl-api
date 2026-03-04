@@ -11,10 +11,18 @@ const ProduksiLkhProses = require("../../../model/produksi/produksiLkhProsesMode
 const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
+const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 
 const MonitoringSoController = {
   getSoMonitoring: async (req, res) => {
-    const { start_date, end_date, id_customer, sort_by, status_po } = req.query;
+    const {
+      start_date,
+      end_date,
+      id_customer,
+      id_marketing,
+      sort_by,
+      status_po,
+    } = req.query;
 
     try {
       let obj = { status: "history" };
@@ -51,6 +59,13 @@ const MonitoringSoController = {
             attributes: [],
           },
         ],
+        duplicating: false,
+      };
+
+      const KalkulasiInclude = {
+        model: Kalkulasi,
+        as: "kalkulasi",
+        attributes: ["id", "id_marketing", "nama_marketing"],
         duplicating: false,
       };
 
@@ -95,12 +110,18 @@ const MonitoringSoController = {
         });
       }
 
+      if (id_marketing) {
+        KalkulasiInclude.where = { id_marketing };
+        KalkulasiInclude.required = true;
+      }
+
       if (id_customer) obj.id_customer = id_customer;
 
       let data = await SoModel.findAll({
         where: obj,
         include: [
           DoInclude,
+          KalkulasiInclude,
           {
             model: JoModel,
             as: "job_order",
@@ -172,6 +193,7 @@ const MonitoringSoController = {
       }
 
       const dataRekap = await hitungRekapan(data);
+
       // ✅ Tambahan rekap per bulan
       const dataRekapPerBulan = hitungRekapanPerBulan(data, sort_by);
 
@@ -249,7 +271,10 @@ function hitungRekapanPerBulan(data, sort_by) {
 
     const date = new Date(tanggalAcuan);
     // Key format: "YYYY-MM" untuk sorting yang mudah
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
 
     if (!rekapMap[key]) {
       rekapMap[key] = {
