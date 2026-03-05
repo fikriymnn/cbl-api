@@ -12,7 +12,7 @@ const MasterCustomerController = {
     const { is_active, page, limit, search } = req.query;
 
     try {
-      let obj = {};
+      let obj = { is_active: true };
       const offset = (page - 1) * limit;
 
       if (search) {
