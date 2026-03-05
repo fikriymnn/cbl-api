@@ -207,34 +207,64 @@ const ProduksiLkhProsesController = {
           ],
         });
 
+        const dataKodeProduksi = await MasterKodeProduksi.findByPk(
+          id_kode_produksi,
+          {
+            include: [
+              {
+                model: MasterKategoriKendala,
+                as: "kategori_kendala",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_qty_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_waktu_mtc",
+              },
+              {
+                model: MasterKriteriaKendala,
+                as: "kriteria_frekuensi_mtc",
+              },
+            ],
+          },
+        );
+
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        await handleTahapan({
-          tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
-          shift: shiftInfo.shift,
-          periode_tiket: shiftInfo.periodDate,
-          no_jo: checkJo.no_jo,
-          operator: req.user.name,
-          mesin: checkMasterMesin.nama_mesin,
-          customer: dataProduksiLkhTahapan.customer,
-          jam: shiftInfo.currentTime,
-          no_io: dataProduksiLkhTahapan.no_io,
-          produk: dataProduksiLkhTahapan.produk,
-          qty_jo: checkJo.qty,
-          status_jo: checkJo.status_jo,
-          tanggal_pembuatan: shiftInfo.periodDateFormatted,
-          jenis_gramatur: checkIoMounting.gramature_kertas,
-          jenis_kertas: checkIoMounting.nama_kertas,
-          warna_depan: checkIoMounting.keterangan_warna_depan,
-          warna_belakang: checkIoMounting.keterangan_warna_belakang,
-          qty_druk: checkJo.qty_druk,
-          mata:
-            checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
-            0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
-            0,
-          merk: null,
-          ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
-          transaction: t,
-        });
+        if (
+          dataKodeProduksi.proses_produksi == "Kendala" ||
+          dataKodeProduksi.proses_produksi == "Produksi" ||
+          dataKodeProduksi.proses_produksi == "Setting"
+        ) {
+          await handleTahapan({
+            tahapan: dataProduksiLkhTahapan.tahapan.nama_tahapan,
+            shift: shiftInfo.shift,
+            periode_tiket: shiftInfo.periodDate,
+            no_jo: checkJo.no_jo,
+            operator: req.user.name,
+            mesin: checkMasterMesin.nama_mesin,
+            customer: dataProduksiLkhTahapan.customer,
+            jam: shiftInfo.currentTime,
+            no_io: dataProduksiLkhTahapan.no_io,
+            produk: dataProduksiLkhTahapan.produk,
+            qty_jo: checkJo.qty,
+            status_jo: checkJo.status_jo,
+            tanggal_pembuatan: shiftInfo.periodDateFormatted,
+            jenis_gramatur: checkIoMounting.gramature_kertas,
+            jenis_kertas: checkIoMounting.nama_kertas,
+            warna_depan: checkIoMounting.keterangan_warna_depan,
+            warna_belakang: checkIoMounting.keterangan_warna_belakang,
+            qty_druk: checkJo.qty_druk,
+            mata:
+              checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
+              0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
+              0,
+            merk: null,
+            ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+            transaction: t,
+          });
+        }
 
         const dataProduksiLkh = await ProduksiLkh.create(
           {
@@ -260,29 +290,6 @@ const ProduksiLkhProsesController = {
         );
 
         //crete lkh prosess
-        const dataKodeProduksi = await MasterKodeProduksi.findByPk(
-          id_kode_produksi,
-          {
-            include: [
-              {
-                model: MasterKategoriKendala,
-                as: "kategori_kendala",
-              },
-              {
-                model: MasterKriteriaKendala,
-                as: "kriteria_qty_mtc",
-              },
-              {
-                model: MasterKriteriaKendala,
-                as: "kriteria_waktu_mtc",
-              },
-              {
-                model: MasterKriteriaKendala,
-                as: "kriteria_frekuensi_mtc",
-              },
-            ],
-          },
-        );
 
         await ProduksiLkhProses.create(
           {
@@ -398,33 +405,39 @@ const ProduksiLkhProsesController = {
         );
 
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
-        await handleTahapan({
-          tahapan: checkProduksiLkh.tahapan.nama_tahapan,
-          shift: shiftInfo.shift,
-          periode_tiket: shiftInfo.periodDate,
-          no_jo: checkJo.no_jo,
-          operator: req.user.name,
-          mesin: checkMasterMesin.nama_mesin,
-          customer: checkProduksiLkh.customer,
-          jam: shiftInfo.currentTime,
-          no_io: checkProduksiLkh.no_io,
-          produk: checkProduksiLkh.produk,
-          qty_jo: checkJo.qty,
-          status_jo: checkJo.status_jo,
-          tanggal_pembuatan: shiftInfo.periodDateFormatted,
-          jenis_gramatur: checkIoMounting.gramature_kertas,
-          jenis_kertas: checkIoMounting.nama_kertas,
-          warna_depan: checkIoMounting.keterangan_warna_depan,
-          warna_belakang: checkIoMounting.keterangan_warna_belakang,
-          qty_druk: checkJo.qty_druk,
-          mata:
-            checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
-            0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
-            0,
-          merk: null,
-          ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
-          transaction: t,
-        });
+        if (
+          dataKodeProduksi.proses_produksi == "Kendala" ||
+          dataKodeProduksi.proses_produksi == "Produksi" ||
+          dataKodeProduksi.proses_produksi == "Setting"
+        ) {
+          await handleTahapan({
+            tahapan: checkProduksiLkh.tahapan.nama_tahapan,
+            shift: shiftInfo.shift,
+            periode_tiket: shiftInfo.periodDate,
+            no_jo: checkJo.no_jo,
+            operator: req.user.name,
+            mesin: checkMasterMesin.nama_mesin,
+            customer: checkProduksiLkh.customer,
+            jam: shiftInfo.currentTime,
+            no_io: checkProduksiLkh.no_io,
+            produk: checkProduksiLkh.produk,
+            qty_jo: checkJo.qty,
+            status_jo: checkJo.status_jo,
+            tanggal_pembuatan: shiftInfo.periodDateFormatted,
+            jenis_gramatur: checkIoMounting.gramature_kertas,
+            jenis_kertas: checkIoMounting.nama_kertas,
+            warna_depan: checkIoMounting.keterangan_warna_depan,
+            warna_belakang: checkIoMounting.keterangan_warna_belakang,
+            qty_druk: checkJo.qty_druk,
+            mata:
+              checkJo.jo_mounting[0]?.ukuran_cetak_isi_1 ||
+              0 + checkJo.jo_mounting[0]?.ukuran_cetak_isi_2 ||
+              0,
+            merk: null,
+            ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+            transaction: t,
+          });
+        }
 
         await ProduksiLkhProses.create(
           {
