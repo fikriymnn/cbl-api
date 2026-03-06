@@ -5,23 +5,29 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/deliveryOrderGroup/:id?",
   auth,
-  DeliveryOrderGroupController.getDeliveryOrderGroup
+  DeliveryOrderGroupController.getDeliveryOrderGroup,
 );
 
 router.get(
   "/deliveryOrderGroupNomor",
   auth,
-  DeliveryOrderGroupController.getNoDeliveryOrderGroup
+  DeliveryOrderGroupController.getNoDeliveryOrderGroup,
+);
+
+router.get(
+  "/reportDeliveryOrder",
+  auth,
+  DeliveryOrderGroupController.reportDeliveryOrder,
 );
 router.post(
   "/deliveryOrderGroup",
   auth,
-  DeliveryOrderGroupController.createDeliveryOrderGroup
+  DeliveryOrderGroupController.createDeliveryOrderGroup,
 );
 router.put(
   "/deliveryOrderGroup/konfirmasi/:id",
   auth,
-  DeliveryOrderGroupController.konfirmasiDeliveryOrderGroup
+  DeliveryOrderGroupController.konfirmasiDeliveryOrderGroup,
 );
 
 module.exports = router;
