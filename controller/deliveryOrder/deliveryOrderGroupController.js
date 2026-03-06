@@ -147,6 +147,22 @@ const DeliveryOrderGroupController = {
         .json({ status_code: 400, success: false, msg: error.message });
     }
   },
+
+  reportDeliveryOrder: async (req, res) => {
+    const { start_date, end_date, page, limit } = req.query;
+
+    try {
+      const getData = await DeliveryOrderGroupService.getReportDeliveryOrder({
+        start_date: start_date,
+        end_date: end_date,
+        page: page,
+        limit: limit,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = DeliveryOrderGroupController;

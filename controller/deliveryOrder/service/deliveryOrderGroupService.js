@@ -168,7 +168,7 @@ const DeliveryOrderGroupService = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -188,7 +188,7 @@ const DeliveryOrderGroupService = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '-', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '-', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -346,7 +346,7 @@ const DeliveryOrderGroupService = {
           id_kenek: id_kenek || null,
           id_kenek_2: id_kenek_2 || null,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       for (let i = 0; i < data_do.length; i++) {
@@ -363,7 +363,7 @@ const DeliveryOrderGroupService = {
             pack_3: e.pack_3,
             status: "done",
           },
-          { where: { id: e.id }, transaction: t }
+          { where: { id: e.id }, transaction: t },
         );
       }
       if (!transaction) await t.commit();
@@ -473,7 +473,7 @@ const DeliveryOrderGroupService = {
           id_kenek: id_kenek,
           id_kenek_2: id_kenek_2,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       for (let i = 0; i < data_do.length; i++) {
@@ -489,7 +489,7 @@ const DeliveryOrderGroupService = {
             pack_3: e.pack_3,
             status: "done",
           },
-          { where: { id: e.id }, transaction: t }
+          { where: { id: e.id }, transaction: t },
         );
       }
       if (!transaction) await t.commit();
@@ -501,6 +501,191 @@ const DeliveryOrderGroupService = {
     } catch (error) {
       if (!transaction) await t.rollback();
       throw { success: false, message: error.message };
+    }
+  },
+
+  getReportDeliveryOrder: async ({ start_date, end_date, page, limit }) => {
+    try {
+      let objDO = {};
+      let objDOG = { status: "done" };
+
+      if (start_date && end_date) {
+        const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+        const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+        objDOG.tgl_do = { [Op.between]: [startDate, endDate] };
+      }
+
+      const usePagination = page !== undefined && limit !== undefined;
+      const offset = usePagination ? (page - 1) * limit : undefined;
+
+      // Step 1: Ambil distinct id_so yang sudah difilter & dipaginasi (jika ada)
+      const distinctSoQuery = {
+        attributes: ["id_so", "no_so"],
+        include: [
+          {
+            model: DeliveryOrderGroup,
+            as: "delivery_order_group",
+            attributes: [],
+            where: objDOG,
+            required: true,
+          },
+        ],
+        group: ["id_so", "no_so"],
+        raw: true,
+      };
+
+      if (usePagination) {
+        distinctSoQuery.limit = Number(limit);
+        distinctSoQuery.offset = offset;
+      }
+
+      const distinctSo = await DeliveryOrder.findAll(distinctSoQuery);
+
+      // Hitung total group untuk metadata
+      const totalGroups = await DeliveryOrder.count({
+        distinct: true,
+        col: "id_so",
+        include: [
+          {
+            model: DeliveryOrderGroup,
+            as: "delivery_order_group",
+            where: objDOG,
+            required: true,
+          },
+        ],
+      });
+
+      if (distinctSo.length === 0) {
+        return {
+          status: 200,
+          success: true,
+          data: [],
+          ...(usePagination && {
+            total_page: 0,
+            total_data: 0,
+            current_page: Number(page),
+            limit: Number(limit),
+          }),
+        };
+      }
+
+      const idSoList = distinctSo.map((d) => d.id_so);
+
+      // Step 2: Ambil semua DO berdasarkan id_so
+      const data = await DeliveryOrder.findAll({
+        where: {
+          ...objDO,
+          id_so: { [Op.in]: idSoList },
+        },
+        include: [
+          {
+            model: DeliveryOrderGroup,
+            as: "delivery_order_group",
+            where: objDOG,
+            required: true,
+          },
+          {
+            model: SoModel,
+            as: "so",
+          },
+        ],
+      });
+
+      // Step 3: Grouping & kalkulasi di JS
+      const groupedMap = {};
+
+      for (const item of data) {
+        const raw = item.toJSON ? item.toJSON() : item;
+        const key = raw.id_so;
+
+        if (!groupedMap[key]) {
+          groupedMap[key] = {
+            id_so: raw.id_so,
+            no_so: raw.no_so,
+            no_po_customer: raw.no_po_customer,
+            customer: raw.customer,
+            produk: raw.produk,
+            id_produk: raw.id_produk,
+            id_customer: raw.id_customer,
+            po_qty: raw.po_qty,
+            toleransi_pengiriman: raw.toleransi_pengiriman,
+            tgl_pengiriman: raw.tgl_pengiriman,
+            so: raw.so,
+            total_jumlah_qty: 0,
+            delivery_orders: [],
+            delivery_order_groups: [],
+          };
+        }
+
+        const group = groupedMap[key];
+
+        group.total_jumlah_qty += raw.jumlah_qty || 0;
+
+        group.delivery_orders.push({
+          id: raw.id,
+          id_do_group: raw.id_do_group,
+          no_jo: raw.no_jo,
+          no_io: raw.no_io,
+          pack_1: raw.pack_1,
+          pack_2: raw.pack_2,
+          pack_3: raw.pack_3,
+          isi_1: raw.isi_1,
+          isi_2: raw.isi_2,
+          isi_3: raw.isi_3,
+          jumlah_qty: raw.jumlah_qty,
+          note: raw.note,
+          status: raw.status,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+        });
+
+        const dogId = raw.delivery_order_group?.id;
+        const alreadyExists = group.delivery_order_groups.some(
+          (d) => d.id === dogId,
+        );
+        if (dogId && !alreadyExists) {
+          group.delivery_order_groups.push(raw.delivery_order_group);
+        }
+      }
+
+      // Step 4: Hitung status qty
+      const result = Object.values(groupedMap).map((group) => {
+        const diff = group.total_jumlah_qty - group.po_qty;
+
+        let qty_status;
+        let qty_diff;
+
+        if (diff < 0) {
+          qty_status = "kurang";
+          qty_diff = Math.abs(diff);
+        } else if (diff > 0) {
+          qty_status = "over";
+          qty_diff = diff;
+        } else {
+          qty_status = "selesai";
+          qty_diff = 0;
+        }
+
+        return { ...group, qty_status, qty_diff };
+      });
+
+      return {
+        status: 200,
+        success: true,
+        data: result,
+        ...(usePagination && {
+          total_page: Math.ceil(totalGroups / limit),
+          total_data: totalGroups,
+          current_page: Number(page),
+          limit: Number(limit),
+        }),
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
     }
   },
 };
