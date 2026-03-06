@@ -587,6 +587,7 @@ const DeliveryOrderGroupService = {
           {
             model: SoModel,
             as: "so",
+            attributes: ["id", "no_so", "tgl_input_po"],
           },
         ],
       });
@@ -610,8 +611,8 @@ const DeliveryOrderGroupService = {
             po_qty: raw.po_qty,
             toleransi_pengiriman: raw.toleransi_pengiriman,
             tgl_pengiriman: raw.tgl_pengiriman,
-            so: raw.so,
             total_jumlah_qty: 0,
+            so: raw.so,
             delivery_orders: [],
             delivery_order_groups: [],
           };
