@@ -62,6 +62,7 @@ const DeliveryOrderGroupController = {
       is_tax,
       note,
       data_do,
+      tgl_do,
       id_kendaraan,
       id_supir,
       id_kenek,
@@ -88,6 +89,7 @@ const DeliveryOrderGroupController = {
           id_supir: id_supir,
           id_kenek: id_kenek,
           id_kenek_2: id_kenek_2,
+          tgl_do: tgl_do,
         });
       return res.status(200).json(getData);
     } catch (error) {

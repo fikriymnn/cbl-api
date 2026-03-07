@@ -271,6 +271,7 @@ const DeliveryOrderGroupService = {
     id_supir,
     id_kenek,
     id_kenek_2,
+    tgl_do,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -345,6 +346,7 @@ const DeliveryOrderGroupService = {
           id_supir: id_supir || null,
           id_kenek: id_kenek || null,
           id_kenek_2: id_kenek_2 || null,
+          tgl_do: tgl_do,
         },
         { transaction: t },
       );
