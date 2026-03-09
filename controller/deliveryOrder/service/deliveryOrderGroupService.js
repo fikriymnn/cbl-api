@@ -70,6 +70,12 @@ const DeliveryOrderGroupService = {
             {
               model: DeliveryOrder,
               as: "delivery_order",
+              include: [
+                {
+                  model: SoModel,
+                  as: "so",
+                },
+              ],
             },
             {
               model: MasterCustomer,
@@ -99,6 +105,12 @@ const DeliveryOrderGroupService = {
             {
               model: DeliveryOrder,
               as: "delivery_order",
+              include: [
+                {
+                  model: SoModel,
+                  as: "so",
+                },
+              ],
             },
             {
               model: MasterCustomer,
@@ -506,23 +518,51 @@ const DeliveryOrderGroupService = {
     }
   },
 
-  getReportDeliveryOrder: async ({ start_date, end_date, page, limit }) => {
+  getReportDeliveryOrder: async ({
+    start_date,
+    end_date,
+    id_customer,
+    search,
+    page,
+    limit,
+  }) => {
     try {
-      let objDO = {};
-      let objDOG = { status: "done" };
+      // ========================================
+      // FILTER BUILDER
+      // ========================================
+      const objDO = {
+        ...(id_customer && { id_customer }),
+        ...(search && {
+          [Op.or]: [
+            { no_so: { [Op.like]: `%${search}%` } },
+            { no_po_customer: { [Op.like]: `%${search}%` } },
+            { customer: { [Op.like]: `%${search}%` } },
+            { produk: { [Op.like]: `%${search}%` } },
+          ],
+        }),
+      };
 
-      if (start_date && end_date) {
-        const startDate = new Date(start_date).setHours(0, 0, 0, 0);
-        const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-        objDOG.tgl_do = { [Op.between]: [startDate, endDate] };
-      }
+      const objDOG = {
+        status: "done",
+        ...(start_date &&
+          end_date && {
+            tgl_do: {
+              [Op.between]: [
+                new Date(start_date).setHours(0, 0, 0, 0),
+                new Date(end_date).setHours(23, 59, 59, 999),
+              ],
+            },
+          }),
+      };
 
+      // ========================================
       const usePagination = page !== undefined && limit !== undefined;
       const offset = usePagination ? (page - 1) * limit : undefined;
 
-      // Step 1: Ambil distinct id_so yang sudah difilter & dipaginasi (jika ada)
+      // Step 1: Ambil distinct id_so
       const distinctSoQuery = {
         attributes: ["id_so", "no_so"],
+        where: objDO,
         include: [
           {
             model: DeliveryOrderGroup,
@@ -547,6 +587,7 @@ const DeliveryOrderGroupService = {
       const totalGroups = await DeliveryOrder.count({
         distinct: true,
         col: "id_so",
+        where: objDO,
         include: [
           {
             model: DeliveryOrderGroup,
@@ -621,7 +662,6 @@ const DeliveryOrderGroupService = {
         }
 
         const group = groupedMap[key];
-
         group.total_jumlah_qty += raw.jumlah_qty || 0;
 
         group.delivery_orders.push({
