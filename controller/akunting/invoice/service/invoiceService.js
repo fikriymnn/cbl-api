@@ -5,6 +5,7 @@ const InvoiceProdukModel = require("../../../../model/akunting/invoice/invoicePr
 const ReturModel = require("../../../../model/akunting/retur/returModel");
 const ReturProdukModel = require("../../../../model/akunting/retur/returProdukModel");
 const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
+const DeliveryOrderGroupModel = require("../../../../model/deliveryOrder/deliveryOrderGroupModel");
 const Users = require("../../../../model/userModel");
 
 const InvoiceService = {
@@ -128,7 +129,7 @@ const InvoiceService = {
           // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -195,6 +196,7 @@ const InvoiceService = {
     note,
     is_show_dpp,
     invoice_produk,
+    delivery_order_group,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -230,7 +232,7 @@ const InvoiceService = {
           note: note,
           is_show_dpp: is_show_dpp,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       let dataProdukInvoice = [];
@@ -254,6 +256,19 @@ const InvoiceService = {
       await InvoiceProdukModel.bulkCreate(dataProdukInvoice, {
         transaction: t,
       });
+
+      if (delivery_order_group) {
+        for (let i = 0; i < delivery_order_group.length; i++) {
+          const element = delivery_order_group[i];
+          await DeliveryOrderGroupModel.update(
+            {
+              is_created_invoice: true,
+            },
+            { where: { id: element.id }, transaction: t },
+          );
+        }
+      }
+
       if (!transaction) await t.commit();
       return {
         status_code: 200,
@@ -323,7 +338,7 @@ const InvoiceService = {
           note: note,
           is_show_dpp: is_show_dpp,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       for (let i = 0; i < invoice_produk.length; i++) {
@@ -341,7 +356,7 @@ const InvoiceService = {
             pajak: e.pajak,
             diskon_produk: e.diskon_produk,
           },
-          { where: { id: e.id }, transaction: t }
+          { where: { id: e.id }, transaction: t },
         );
       }
 
@@ -373,7 +388,7 @@ const InvoiceService = {
           status: "requested",
           status_proses: "requested",
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -405,7 +420,7 @@ const InvoiceService = {
           status_proses: "done",
           id_approve: id_approve,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -437,7 +452,7 @@ const InvoiceService = {
           status_proses: "rejected",
           id_reject: id_reject,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -466,7 +481,7 @@ const InvoiceService = {
         {
           is_active: false,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {

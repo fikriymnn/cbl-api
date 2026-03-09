@@ -64,6 +64,7 @@ const InvoiceController = {
       note,
       is_show_dpp,
       invoice_produk,
+      delivery_order_group,
     } = req.body;
 
     try {
@@ -91,6 +92,7 @@ const InvoiceController = {
         is_show_dpp: is_show_dpp,
         invoice_produk: invoice_produk,
         note: note,
+        delivery_order_group: delivery_order_group,
       });
       return res.status(200).json(getData);
     } catch (error) {
