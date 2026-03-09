@@ -131,6 +131,7 @@ const MonitoringSoController = {
                 model: JobOrderMounting,
                 as: "jo_mounting",
                 where: { is_selected: true },
+                required: false,
               },
             ],
           },
