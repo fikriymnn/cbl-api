@@ -151,12 +151,15 @@ const DeliveryOrderGroupController = {
   },
 
   reportDeliveryOrder: async (req, res) => {
-    const { start_date, end_date, page, limit } = req.query;
+    const { start_date, end_date, id_customer, search, page, limit } =
+      req.query;
 
     try {
       const getData = await DeliveryOrderGroupService.getReportDeliveryOrder({
         start_date: start_date,
         end_date: end_date,
+        id_customer: id_customer,
+        search: search,
         page: page,
         limit: limit,
       });
