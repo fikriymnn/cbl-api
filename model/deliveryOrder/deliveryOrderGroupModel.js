@@ -143,6 +143,11 @@ const DeliveryOrderGroup = db.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    is_created_invoice: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -248,10 +248,15 @@ const SoController = {
 
   getSoJumlahData: async (req, res) => {
     try {
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
       const length = await SoModel.findOne({
         where: {
           // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
-
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
@@ -271,7 +276,9 @@ const SoController = {
       const lengthPajak = await SoModel.findOne({
         where: {
           // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
-
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
@@ -291,7 +298,9 @@ const SoController = {
       const lengthNonPajak = await SoModel.findOne({
         where: {
           // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
-
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
