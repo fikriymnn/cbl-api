@@ -3,6 +3,7 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const soPerubahanTanggalKirimModel = require("../../../model/marketing/so/soPerubahanTanggalKirimModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
+const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 
 const SoPerubahanTanggalKirimController = {
   getSoPerubahanTglKirim: async (req, res) => {
@@ -180,6 +181,16 @@ const SoPerubahanTanggalKirimController = {
           { tgl_pengiriman: checkData.tgl_perubahan },
           { where: { id: checkData.id_so }, transaction: t },
         ));
+
+      await JobOrder.update(
+        {
+          tgl_kirim: checkData.tgl_perubahan,
+        },
+        {
+          where: { id_so: checkData.id_so },
+          transaction: t,
+        },
+      );
       await t.commit();
       res
         .status(200)
@@ -250,6 +261,44 @@ const SoPerubahanTanggalKirimController = {
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  syncPerubahanTanggalKirim: async (req, res) => {
+    const _id = req.params.id;
+    const { note_reject } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await soPerubahanTanggalKirimModel.findAll({
+        where: { status: "approved" },
+      });
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      for (let i = 0; i < checkData.length; i++) {
+        const e = checkData[i];
+        await JobOrder.update(
+          {
+            tgl_kirim: e.tgl_perubahan,
+          },
+          {
+            where: { id_so: e.id_so },
+            transaction: t,
+          },
+        );
+      }
+      await t.commit();
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       await t.rollback();
       res
