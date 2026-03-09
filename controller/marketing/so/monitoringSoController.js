@@ -273,7 +273,7 @@ function hitungRekapanPerBulan(data, sort_by) {
     // Key format: "YYYY-MM" untuk sorting yang mudah
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}`;
 
     if (!rekapMap[key]) {

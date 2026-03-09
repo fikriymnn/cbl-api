@@ -15,6 +15,7 @@ const DeliveryOrderGroupController = {
       id_io,
       id_so,
       id_produk,
+      is_created_invoice,
     } = req.query;
 
     try {
@@ -31,6 +32,7 @@ const DeliveryOrderGroupController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
+          is_created_invoice: is_created_invoice,
         });
       return res.status(200).json(getData);
     } catch (error) {
