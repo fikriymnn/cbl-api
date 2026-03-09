@@ -53,7 +53,9 @@ const DeliveryOrderGroupService = {
     if (id_kendaraan) obj.id_kendaraan = id_kendaraan;
     if (id_supir) obj.id_supir = id_supir;
     if (id_kenek) obj.id_kenek = id_kenek;
-    if (is_created_invoice) obj.is_created_invoice = is_created_invoice;
+    if (is_created_invoice) {
+      obj.is_created_invoice = is_created_invoice == "true" ? true : false;
+    }
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);

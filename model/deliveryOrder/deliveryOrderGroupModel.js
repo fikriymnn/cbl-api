@@ -173,7 +173,7 @@ DeliveryOrderGroup.belongsTo(IoModel, {
   as: "io",
 });
 
-SoModel.hasOne(DeliveryOrderGroup, {
+SoModel.hasMany(DeliveryOrderGroup, {
   foreignKey: "id_so",
   as: "delivery_order_group",
 });
