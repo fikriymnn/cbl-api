@@ -53,6 +53,12 @@ router.delete(
   SoPerubahanTanggalKirimController.deleteSoPerubahanTanggalKirim,
 );
 
+router.put(
+  "/marketing/soPerubahanTanggalKirimSync",
+  auth,
+  SoPerubahanTanggalKirimController.syncPerubahanTanggalKirim,
+);
+
 // request perubahan harga
 router.get(
   "/marketing/soPerubahanHarga/:id?",
