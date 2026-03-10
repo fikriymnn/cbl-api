@@ -45,6 +45,10 @@ const PengajuanTerlambatUser = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tanggal_masuk: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     alasan_terlambat: {
       type: DataTypes.STRING,
       allowNull: true,

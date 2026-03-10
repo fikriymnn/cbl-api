@@ -483,8 +483,8 @@ const PengajuanLemburController = {
 
       await PengajuanLembur.update(
         {
-          status: "approve user",
-          status_tiket: "incoming",
+          status: "approved",
+          status_tiket: "history",
         },
         {
           where: { id: _id },
