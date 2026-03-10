@@ -7,7 +7,12 @@ router.post("/master/hr/divisi", masterDivisiController.createMasterDivisi);
 router.put(
   "/master/hr/divisi/:id",
   auth,
-  masterDivisiController.updateMasterDivisi
+  masterDivisiController.updateMasterDivisi,
+);
+router.delete(
+  "/master/hr/divisi/:id",
+  auth,
+  masterDivisiController.nonactiveMasterDivisi,
 );
 
 module.exports = router;

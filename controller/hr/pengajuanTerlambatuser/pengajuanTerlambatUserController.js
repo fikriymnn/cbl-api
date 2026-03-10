@@ -196,6 +196,7 @@ const PengajuanTerlambatUserUserController = {
     const {
       id_karyawan,
       tanggal,
+      tanggal_masuk,
       alasan_terlambat,
       lama_terlambat,
       shift,
@@ -229,6 +230,7 @@ const PengajuanTerlambatUserUserController = {
           id_department: dataKaryawanBiodata.id_department,
           id_divisi: dataKaryawanBiodata.id_divisi,
           tanggal,
+          tanggal_masuk,
           alasan_terlambat,
           lama_terlambat,
           shift,

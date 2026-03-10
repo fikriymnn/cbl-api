@@ -10,10 +10,15 @@ const MasterDivisi = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 module.exports = MasterDivisi;
