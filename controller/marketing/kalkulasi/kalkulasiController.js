@@ -286,6 +286,7 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
+      console.log(panjang_packaging, lebar_packaging);
       if (!id_customer)
         return res.status(404).json({
           succes: false,
@@ -668,8 +669,8 @@ const KalkulasiController = {
           spot_foil: spot_foil,
           harga_spot_foil_manual: parseFloat(harga_spot_foil_manual || "0"),
           harga_polimer_manual: parseFloat(harga_polimer_manual || "0"),
-          panjang_packaging: panjang_packaging,
-          lebar_packaging: lebar_packaging,
+          panjang_packaging: panjang_packaging || null,
+          lebar_packaging: lebar_packaging || null,
           no_packaging: no_packaging,
           jumlah_kirim: jumlah_kirim,
           harga_packaging: harga_packaging,
@@ -802,8 +803,8 @@ const KalkulasiController = {
           spot_foil: spot_foil,
           harga_spot_foil_manual: parseFloat(harga_spot_foil_manual || "0"),
           harga_polimer_manual: parseFloat(harga_polimer_manual || "0"),
-          panjang_packaging: panjang_packaging,
-          lebar_packaging: lebar_packaging,
+          panjang_packaging: panjang_packaging || null,
+          lebar_packaging: lebar_packaging || null,
           no_packaging: no_packaging,
           jumlah_kirim: jumlah_kirim,
           harga_packaging: harga_packaging,
