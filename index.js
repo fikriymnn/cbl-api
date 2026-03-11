@@ -356,6 +356,7 @@ const ProduksiLkh = require("./model/produksi/produksiLkhModel");
 const ProduksiLkhProses = require("./model/produksi/produksiLkhProsesModel");
 const ProduksiLkhWaste = require("./model/produksi/produksiLkhWasteModel");
 const ProduksiJoDone = require("./model/produksi/produksiJoDoneModel");
+const PembuatanStandarWarna = require("./model/ppic/standarWarna/pembuatanStandarWarnaModel");
 
 //delivery Order
 const DeliveryOrderGroup = require("./model/deliveryOrder/deliveryOrderGroupModel");
@@ -394,7 +395,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await pengajuanTerlambatUser.sync({
+//   await PembuatanStandarWarna.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

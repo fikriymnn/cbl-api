@@ -18,6 +18,10 @@ const {
   creteProduksiJoDoneService,
 } = require("./service/produksiJoDoneService");
 
+const {
+  createPembuatanStandarWarnaService,
+} = require("../../controller/ppic/pembuatanStandarWarna/service/pembuatanSetandarWarnaService");
+
 const ProduksiLkhTahapanController = {
   getProduksiLkhTahapan: async (req, res) => {
     const _id = req.params.id;
@@ -177,6 +181,15 @@ const ProduksiLkhTahapanController = {
           msg: "Data tidak ditemukan",
         });
 
+      const checkDataJo = await JobOrder.findByPk(checkData.id_jo);
+
+      if (!checkDataJo)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: " jo tidak ditemukan",
+        });
+
       for (let i = 0; i < produksi_lkh_proses.length; i++) {
         const e = produksi_lkh_proses[i];
         await ProduksiLkhProses.update(
@@ -189,7 +202,7 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
@@ -203,7 +216,7 @@ const ProduksiLkhTahapanController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       //buat tahapan selanjutnya jadi active & cek apakah tahapan ini adalah tahapan terakhir (untuk kirim tiket ke list jo selesai)
@@ -220,36 +233,57 @@ const ProduksiLkhTahapanController = {
           //buat tahapan selanjutnya active
           await ProduksiLkhTahapan.update(
             { status: "active" },
-            { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+            { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
           );
         } else {
           //tahapan selanjutnya sudah active atau done maka tidak perlu update status
         }
       } else {
-        //jika tidak ada maka kirim tiket ke list produksi jo selesai
-        const createProduksiLkhProsesDone = await creteProduksiJoDoneService({
-          id_jo: checkData.id_jo,
-          id_io: checkData.id_io,
-          id_so: checkData.id_so,
-          id_customer: checkData.id_customer,
-          id_produk: checkData.id_produk,
-          transaction: t,
-        });
-        if (createProduksiLkhProsesDone.success === false) {
-          await t.rollback();
-
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: createProduksiLkhProsesDone.message,
+        if (checkDataJo.tipe_jo == "JO PROOF") {
+          //jika tidak ada maka kirim tiket ke list pembuatan standar warna
+          const createStandarWarna = await createPembuatanStandarWarnaService({
+            id_jo: checkData.id_jo,
+            id_io: checkData.id_io,
+            id_so: checkData.id_so,
+            id_customer: checkData.id_customer,
+            id_produk: checkData.id_produk,
+            transaction: t,
           });
+          if (createStandarWarna.success === false) {
+            await t.rollback();
+
+            return res.status(400).json({
+              succes: false,
+              status_code: 400,
+              msg: createStandarWarna.message,
+            });
+          }
+        } else {
+          //jika tidak ada maka kirim tiket ke list produksi jo selesai
+          const createProduksiLkhProsesDone = await creteProduksiJoDoneService({
+            id_jo: checkData.id_jo,
+            id_io: checkData.id_io,
+            id_so: checkData.id_so,
+            id_customer: checkData.id_customer,
+            id_produk: checkData.id_produk,
+            transaction: t,
+          });
+          if (createProduksiLkhProsesDone.success === false) {
+            await t.rollback();
+
+            return res.status(400).json({
+              succes: false,
+              status_code: 400,
+              msg: createProduksiLkhProsesDone.message,
+            });
+          }
         }
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -271,14 +305,14 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Actived Successful" });
+          .json({ succes: true, status_code: 200, msg: "Actived Successful" }));
     } catch (error) {
       await t.rollback();
       res

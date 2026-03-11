@@ -329,6 +329,9 @@ router.use("/", require("./produksi/produksiLkhProsesRoute"));
 router.use("/", require("./produksi/produksiLkhWasteRoute"));
 router.use("/", require("./produksi/produksiJoDoneRoute"));
 
+//standar warna
+router.use("/", require("./ppic/standarWarna/pembuatanStandarWarnaRoute"));
+
 //master kendaraan
 router.use("/", require("./masterdata/kendaraan/masterKendaraanRoute"));
 
