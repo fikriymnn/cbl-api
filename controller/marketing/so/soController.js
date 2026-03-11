@@ -27,6 +27,7 @@ const SoController = {
       status,
       status_proses,
       status_bom,
+      status_produk,
     } = req.query;
 
     try {
@@ -47,6 +48,7 @@ const SoController = {
       }
       if (status) obj.status = status;
       if (status_proses) obj.status_proses = status_proses;
+      if (status_produk) obj.status_produk = status_produk;
       if (id_io) obj.id_io = id_io;
       if (is_bom_done) {
         obj.is_bom_done = is_bom_done == "true" ? true : false;
@@ -58,6 +60,7 @@ const SoController = {
         obj.is_active = is_active == "true" ? true : false;
       }
       if (status_bom) objBom.status = status_bom;
+
       // Buat include untuk BomModel secara dinamis
       const bomInclude = {
         model: BomModel,
@@ -695,6 +698,11 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
+
+      let joDone = false;
+      if (checkData.is_jo_done == true) {
+        joDone = true;
+      }
       (await SoModel.update(
         {
           status: "history",
@@ -702,7 +710,7 @@ const SoController = {
           status_work: "progress",
           id_approve_so: req.user.id,
           tgl_approve_so: new Date(),
-          is_jo_done: false,
+          is_jo_done: joDone,
         },
         {
           where: { id: _id },
