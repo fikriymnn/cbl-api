@@ -5,22 +5,28 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 router.get(
   "/master/produksi/kodeProduksi/:id?",
   auth,
-  MasterKodeProduksiController.getMasterKodeProduksi
+  MasterKodeProduksiController.getMasterKodeProduksi,
+);
+
+router.get(
+  "/master/produksi/getAllKendala",
+  auth,
+  MasterKodeProduksiController.getAllKendala,
 );
 router.post(
   "/master/produksi/kodeProduksi",
   auth,
-  MasterKodeProduksiController.createMasterKodeProduksi
+  MasterKodeProduksiController.createMasterKodeProduksi,
 );
 router.put(
   "/master/produksi/kodeProduksi/:id",
   auth,
-  MasterKodeProduksiController.updateMasterKodeProduksi
+  MasterKodeProduksiController.updateMasterKodeProduksi,
 );
 router.delete(
   "/master/produksi/kodeProduksi/:id",
   auth,
-  MasterKodeProduksiController.deleteMasterKodeProduksi
+  MasterKodeProduksiController.deleteMasterKodeProduksi,
 );
 
 module.exports = router;

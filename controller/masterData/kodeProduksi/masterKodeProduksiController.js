@@ -164,6 +164,29 @@ const MasterKodeProduksiController = {
     }
   },
 
+  getAllKendala: async (req, res) => {
+    try {
+      const data = await MasterKodeProduksi.findAll({
+        where: { proses_produksi: "Kendala" },
+        attributes: [
+          "kode",
+          ["deskripsi", "kendala"], // rename deskripsi → kendala
+        ],
+        group: ["kode", "deskripsi"], // hilangkan duplikat kode
+        order: [["kode", "ASC"]],
+      });
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: data,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createMasterKodeProduksi: async (req, res) => {
     const {
       proses_produksi,
@@ -223,7 +246,7 @@ const MasterKodeProduksiController = {
           id_kategori_kendala,
           target_department,
         },
-        { transaction: t }
+        { transaction: t },
       );
       await t.commit();
       return res.status(200).json({
@@ -296,10 +319,10 @@ const MasterKodeProduksiController = {
         where: { id: _id },
         transaction: t,
       });
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -319,17 +342,17 @@ const MasterKodeProduksiController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterKodeProduksi.update(
+      (await MasterKodeProduksi.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       res
         .status(400)

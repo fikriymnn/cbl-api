@@ -699,10 +699,6 @@ const SoController = {
           msg: "Data tidak ditemukan",
         });
 
-      let joDone = false;
-      if (checkData.is_jo_done == true) {
-        joDone = true;
-      }
       (await SoModel.update(
         {
           status: "history",
@@ -710,7 +706,7 @@ const SoController = {
           status_work: "progress",
           id_approve_so: req.user.id,
           tgl_approve_so: new Date(),
-          is_jo_done: joDone,
+          is_jo_done: false,
         },
         {
           where: { id: _id },

@@ -36,7 +36,9 @@ const PembuatanStandarWarnaController = {
         });
       return res.status(200).json(getData);
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
     }
   },
 
@@ -51,7 +53,9 @@ const PembuatanStandarWarnaController = {
         });
       return res.status(200).json(kirimData);
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
     }
   },
 
@@ -67,7 +71,9 @@ const PembuatanStandarWarnaController = {
         });
       return res.status(200).json(kirimData);
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
     }
   },
 };

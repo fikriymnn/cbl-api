@@ -43,6 +43,7 @@ const ProduksiLkhProsesController = {
       end_date,
       status,
       id_jo,
+      no_jo,
       id_produksi_lkh,
       id_produksi_lkh_tahapan,
       id_tahapan,
@@ -53,11 +54,12 @@ const ProduksiLkhProsesController = {
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+    let optionJo = {};
     if (search) {
       obj = {
         [Op.or]: [
-          { kode_produksi: { [Op.like]: `%${search}%` } },
-          { deskripsi_kode: { [Op.like]: `%${search}%` } },
+          { kode: { [Op.like]: `%${search}%` } },
+          { deskripsi: { [Op.like]: `%${search}%` } },
           { baik: { [Op.like]: `%${search}%` } },
           { rusak_sebagian: { [Op.like]: `%${search}%` } },
           { rusak_total: { [Op.like]: `%${search}%` } },
@@ -74,12 +76,16 @@ const ProduksiLkhProsesController = {
     if (id_mesin) obj.id_mesin = id_mesin;
     if (id_operator) obj.id_operator = id_operator;
     if (is_approved_svp) obj.status = "request to spv";
+    if (no_jo) {
+      ((optionJo.where = { no_jo: no_jo }), (optionJo.required = true));
+    }
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_pembuatan_bom = { [Op.between]: [startDate, endDate] };
     }
+
     try {
       if (page && limit) {
         const length = await ProduksiLkhProses.count({ where: obj });
@@ -92,6 +98,7 @@ const ProduksiLkhProsesController = {
             {
               model: ProduksiLkh,
               as: "produksi_lkh",
+              ...optionJo,
             },
             {
               model: Users,
@@ -146,6 +153,43 @@ const ProduksiLkhProsesController = {
           data: data,
         });
       }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getKendalaByJO: async (req, res) => {
+    const { no_jo } = req.query;
+    try {
+      const getJo = await JobOrder.findOne({ where: { no_jo: no_jo } });
+      const data = await ProduksiLkhProses.findAll({
+        order: [["createdAt", "DESC"]],
+        where: { id_jo: getJo.id, proses: "Kendala" },
+        include: [
+          {
+            model: MasterMesinTahapan,
+            as: "mesin",
+            attributes: ["nama_mesin"],
+          },
+          {
+            model: Users,
+            as: "operator",
+            attributes: ["nama"],
+          },
+          {
+            model: JobOrder,
+            as: "jo",
+            attributes: ["no_jo"],
+          },
+        ],
+      });
+
+      const dataTeransform = await transformKendalaData(data);
+      return res.status(200).json({
+        status_code: 200,
+        success: true,
+        data: dataTeransform,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -1283,5 +1327,38 @@ async function handleTahapan({
     throw error; // Re-throw agar bisa di-catch di level atas
   }
 }
+
+const transformKendalaData = (data = []) => {
+  return data.map((item) => {
+    // Konversi total_waktu (detik) ke format HH:MM:SS
+    const totalDetik = parseInt(item.total_waktu || "0");
+    const jam = Math.floor(totalDetik / 3600)
+      .toString()
+      .padStart(2, "0");
+    const menit = Math.floor((totalDetik % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const detik = (totalDetik % 60).toString().padStart(2, "0");
+
+    // Konversi createdAt ke format DD-MM-YYYY
+    const tgl = new Date(item.createdAt);
+    const tglProduksi = [
+      tgl.getDate().toString().padStart(2, "0"),
+      (tgl.getMonth() + 1).toString().padStart(2, "0"),
+      tgl.getFullYear(),
+    ].join("-");
+
+    return {
+      id_jo: item.id_jo,
+      durasi: `${jam}:${menit}:${detik}`,
+      kode_kendala: item.kode,
+      mesin: item.mesin?.nama_mesin ?? "-",
+      nama_kendala: item.deskripsi,
+      nomor_jo: item.jo?.no_jo ?? "-",
+      operator: item.operator?.nama ?? "-",
+      tgl_produksi: tglProduksi,
+    };
+  });
+};
 
 module.exports = ProduksiLkhProsesController;
