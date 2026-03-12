@@ -152,11 +152,12 @@ const ProduksiLkhProsesController = {
   },
 
   getKendalaByJO: async (req, res) => {
-    const _id = req.params.idJo;
+    const { no_jo } = req.query;
     try {
+      const getJo = await JobOrder.findOne({ where: { no_jo: no_jo } });
       const data = await ProduksiLkhProses.findAll({
         order: [["createdAt", "DESC"]],
-        where: { id_jo: _id, proses: "Kendala" },
+        where: { id_jo: getJo.id, proses: "Kendala" },
         include: [
           {
             model: MasterMesinTahapan,

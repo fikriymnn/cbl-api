@@ -9,7 +9,7 @@ router.get(
 );
 
 router.get(
-  "/produksi/kendalaByJo/:idJo",
+  "/produksi/kendalaByJo",
   auth,
   ProduksiLkhProsesController.getKendalaByJO,
 );

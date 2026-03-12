@@ -5,7 +5,13 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/produksi/lkhTahapan",
   auth,
-  ProduksiLkhTahapanController.getProduksiLkhTahapan
+  ProduksiLkhTahapanController.getProduksiLkhTahapan,
+);
+
+router.get(
+  "/produksi/mesinByJo",
+  auth,
+  ProduksiLkhTahapanController.getMesinByJO,
 );
 
 // router.put(
@@ -17,13 +23,13 @@ router.get(
 router.put(
   "/produksi/lkhTahapan/approve/:id",
   auth,
-  ProduksiLkhTahapanController.approveProduksiLkhTahapan
+  ProduksiLkhTahapanController.approveProduksiLkhTahapan,
 );
 
 router.put(
   "/produksi/activedLkhTahapan",
   auth,
-  ProduksiLkhTahapanController.activedProduksiLkhTahapan
+  ProduksiLkhTahapanController.activedProduksiLkhTahapan,
 );
 
 module.exports = router;

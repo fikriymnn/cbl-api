@@ -6,6 +6,7 @@ const ProduksiLkhWaste = require("../../model/produksi/produksiLkhWasteModel");
 const ioMountingModel = require("../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapanMesin = require("../../model/masterData/tahapan/masterTahapanMesinModel");
+const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
 const SoModel = require("../../model/marketing/so/soModel");
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
@@ -168,6 +169,68 @@ const ProduksiLkhTahapanController = {
     }
   },
 
+  getMesinByJO: async (req, res) => {
+    const { no_jo } = req.query;
+    try {
+      const data = await ProduksiLkhTahapan.findAll({
+        order: [["createdAt", "DESC"]],
+        where: { no_jo: no_jo },
+        include: [
+          {
+            model: MasterTahapan,
+            as: "tahapan",
+            attributes: ["nama_tahapan"],
+          },
+          {
+            model: ProduksiLkhProses,
+            as: "produksi_lkh_proses",
+            attributes: ["id_mesin", "id_operator"],
+            include: [
+              {
+                model: Users,
+                as: "operator",
+                attributes: ["nama"],
+              },
+              {
+                model: MasterMesinTahapan,
+                as: "mesin",
+                attributes: ["nama_mesin"],
+              },
+            ],
+          },
+        ],
+      });
+
+      // Flatten semua tahapan + proses menjadi array flat
+      const result = [];
+
+      data.forEach((tahapan) => {
+        const seen = new Set();
+        const namaTahapan = tahapan.tahapan?.nama_tahapan ?? "-";
+
+        tahapan.produksi_lkh_proses.forEach((proses) => {
+          const key = `${proses.id_mesin}-${proses.id_operator}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+
+          result.push({
+            proses: namaTahapan,
+            mesin: proses.mesin?.nama_mesin ?? "-",
+            operator: proses.operator?.nama ?? "-",
+          });
+        });
+      });
+
+      return res.status(200).json({
+        status_code: 200,
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   approveProduksiLkhTahapan: async (req, res) => {
     const _id = req.params.id;
     const { produksi_lkh_proses } = req.body;
@@ -239,7 +302,10 @@ const ProduksiLkhTahapanController = {
           //tahapan selanjutnya sudah active atau done maka tidak perlu update status
         }
       } else {
-        if (checkDataJo.tipe_jo == "JO PROOF") {
+        if (
+          checkDataJo.tipe_jo == "JO PROOF" ||
+          checkDataJo.tipe_jo == "JO PROFF"
+        ) {
           //jika tidak ada maka kirim tiket ke list pembuatan standar warna
           const createStandarWarna = await createPembuatanStandarWarnaService({
             id_jo: checkData.id_jo,

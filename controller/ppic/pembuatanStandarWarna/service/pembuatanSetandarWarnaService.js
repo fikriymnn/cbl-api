@@ -66,7 +66,7 @@ const PembuatanStandarWarnaService = {
           ],
         });
         return {
-          status: 200,
+          status_code: 200,
           success: true,
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
@@ -74,7 +74,7 @@ const PembuatanStandarWarnaService = {
       } else if (id) {
         const data = await PembuatanStandarWarna.findByPk(id);
         return {
-          status: 200,
+          status_code: 200,
           success: true,
           data: data,
         };
@@ -84,14 +84,14 @@ const PembuatanStandarWarnaService = {
           where: obj,
         });
         return {
-          status: 200,
+          status_code: 200,
           success: true,
           data: data,
         };
       }
     } catch (error) {
       return {
-        status: 500,
+        status_code: 500,
         success: false,
         message: error.message,
       };
@@ -180,7 +180,7 @@ const PembuatanStandarWarnaService = {
       };
     } catch (error) {
       if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
+      throw { status_code: 500, success: false, message: error.message };
     }
   },
 
@@ -201,7 +201,7 @@ const PembuatanStandarWarnaService = {
         };
       }
       await PembuatanStandarWarna.update(
-        { status: "approve", status_proses: "done", id_user_approve: id_user },
+        { status: "approved", status_proses: "done", id_user_approve: id_user },
         { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
@@ -235,8 +235,8 @@ const PembuatanStandarWarnaService = {
       }
       await PembuatanStandarWarna.update(
         {
-          status: "reject",
-          status_proses: "reject",
+          status: "rejected",
+          status_proses: "done",
           id_user_reject: id_user,
           note: note,
         },
