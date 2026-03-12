@@ -151,6 +151,42 @@ const ProduksiLkhProsesController = {
     }
   },
 
+  getKendalaByJO: async (req, res) => {
+    const _id = req.params.idJo;
+    try {
+      const data = await ProduksiLkhProses.findAll({
+        order: [["createdAt", "DESC"]],
+        where: { id_jo: _id, proses: "Kendala" },
+        include: [
+          {
+            model: MasterMesinTahapan,
+            as: "mesin",
+            attributes: ["nama_mesin"],
+          },
+          {
+            model: Users,
+            as: "operator",
+            attributes: ["nama"],
+          },
+          {
+            model: JobOrder,
+            as: "jo",
+            attributes: ["no_jo"],
+          },
+        ],
+      });
+
+      const dataTeransform = await transformKendalaData(data);
+      return res.status(200).json({
+        status_code: 200,
+        success: true,
+        data: dataTeransform,
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   startProduksiLkhProses: async (req, res) => {
     const { id_jo, id_tahapan, id_mesin, id_operator, id_kode_produksi } =
       req.body;
@@ -1283,5 +1319,38 @@ async function handleTahapan({
     throw error; // Re-throw agar bisa di-catch di level atas
   }
 }
+
+const transformKendalaData = (data = []) => {
+  return data.map((item) => {
+    // Konversi total_waktu (detik) ke format HH:MM:SS
+    const totalDetik = parseInt(item.total_waktu || "0");
+    const jam = Math.floor(totalDetik / 3600)
+      .toString()
+      .padStart(2, "0");
+    const menit = Math.floor((totalDetik % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const detik = (totalDetik % 60).toString().padStart(2, "0");
+
+    // Konversi createdAt ke format DD-MM-YYYY
+    const tgl = new Date(item.createdAt);
+    const tglProduksi = [
+      tgl.getDate().toString().padStart(2, "0"),
+      (tgl.getMonth() + 1).toString().padStart(2, "0"),
+      tgl.getFullYear(),
+    ].join("-");
+
+    return {
+      id_jo: item.id_jo,
+      durasi: `${jam}:${menit}:${detik}`,
+      kode_kendala: item.kode,
+      mesin: item.mesin?.nama_mesin ?? "-",
+      nama_kendala: item.deskripsi,
+      nomor_jo: item.jo?.no_jo ?? "-",
+      operator: item.operator?.nama ?? "-",
+      tgl_produksi: tglProduksi,
+    };
+  });
+};
 
 module.exports = ProduksiLkhProsesController;
