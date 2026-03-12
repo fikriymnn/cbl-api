@@ -43,6 +43,7 @@ const ProduksiLkhProsesController = {
       end_date,
       status,
       id_jo,
+      no_jo,
       id_produksi_lkh,
       id_produksi_lkh_tahapan,
       id_tahapan,
@@ -53,6 +54,7 @@ const ProduksiLkhProsesController = {
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+    let optionJo = {};
     if (search) {
       obj = {
         [Op.or]: [
@@ -74,12 +76,16 @@ const ProduksiLkhProsesController = {
     if (id_mesin) obj.id_mesin = id_mesin;
     if (id_operator) obj.id_operator = id_operator;
     if (is_approved_svp) obj.status = "request to spv";
+    if (no_jo) {
+      ((optionJo.where = { no_jo: no_jo }), (optionJo.required = true));
+    }
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_pembuatan_bom = { [Op.between]: [startDate, endDate] };
     }
+
     try {
       if (page && limit) {
         const length = await ProduksiLkhProses.count({ where: obj });
@@ -92,6 +98,7 @@ const ProduksiLkhProsesController = {
             {
               model: ProduksiLkh,
               as: "produksi_lkh",
+              ...optionJo,
             },
             {
               model: Users,

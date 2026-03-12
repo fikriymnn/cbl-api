@@ -83,12 +83,6 @@ const ProduksiLkhTahapanController = {
                 {
                   model: ProduksiLkhProses,
                   as: "produksi_lkh_proses",
-                  include: [
-                    {
-                      model: Users,
-                      as: "operator",
-                    },
-                  ],
                 },
                 {
                   model: ProduksiLkhWaste,
@@ -159,6 +153,12 @@ const ProduksiLkhTahapanController = {
             {
               model: ProduksiLkhProses,
               as: "produksi_lkh_proses",
+              include: [
+                {
+                  model: Users,
+                  as: "operator",
+                },
+              ],
             },
             {
               model: ProduksiLkhWaste,
