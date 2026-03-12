@@ -56,8 +56,8 @@ const ProduksiLkhProsesController = {
     if (search) {
       obj = {
         [Op.or]: [
-          { kode_produksi: { [Op.like]: `%${search}%` } },
-          { deskripsi_kode: { [Op.like]: `%${search}%` } },
+          { kode: { [Op.like]: `%${search}%` } },
+          { deskripsi: { [Op.like]: `%${search}%` } },
           { baik: { [Op.like]: `%${search}%` } },
           { rusak_sebagian: { [Op.like]: `%${search}%` } },
           { rusak_total: { [Op.like]: `%${search}%` } },

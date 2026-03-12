@@ -83,6 +83,12 @@ const ProduksiLkhTahapanController = {
                 {
                   model: ProduksiLkhProses,
                   as: "produksi_lkh_proses",
+                  include: [
+                    {
+                      model: Users,
+                      as: "operator",
+                    },
+                  ],
                 },
                 {
                   model: ProduksiLkhWaste,
@@ -117,6 +123,11 @@ const ProduksiLkhTahapanController = {
                   as: "produksi_lkh_waste",
                 },
               ],
+            },
+            {
+              model: SoModel,
+              as: "so",
+              attributes: ["po_qty"],
             },
           ],
         });
@@ -255,18 +266,20 @@ const ProduksiLkhTahapanController = {
 
       for (let i = 0; i < produksi_lkh_proses.length; i++) {
         const e = produksi_lkh_proses[i];
-        await ProduksiLkhProses.update(
-          {
-            baik: e.baik,
-            rusak_sebagian: e.rusak_sebagian,
-            rusak_total: e.rusak_total,
-            pallet: e.pallet,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          },
-        );
+        if (e.status == "nonactive") {
+          await ProduksiLkhProses.update(
+            {
+              baik: e.baik,
+              rusak_sebagian: e.rusak_sebagian,
+              rusak_total: e.rusak_total,
+              pallet: e.pallet,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            },
+          );
+        }
       }
 
       //buat tahapan yg di approve jadi done

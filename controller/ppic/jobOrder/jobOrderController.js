@@ -177,7 +177,31 @@ const BomController = {
         ],
       });
 
+      const lengthProof = await JobOrder.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+          tipe_jo: "JO PROOF",
+        },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
       let number = 0;
+      let numberProof = 0;
 
       if (length) {
         const lastNo = length.no_jo; // contoh: SDP00005/12/25
@@ -188,10 +212,20 @@ const BomController = {
         number = lastSeq;
       }
 
+      if (lengthProof) {
+        const lastNo = lengthProof.no_jo; // contoh: SDP00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        numberProof = lastSeq;
+      }
+
       return res.status(200).json({
         succes: true,
         status_code: 200,
         total_data: number,
+        total_data_proof: numberProof,
       });
     } catch (error) {
       res

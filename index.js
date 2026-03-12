@@ -395,7 +395,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await PembuatanStandarWarna.sync({
+//   await masterDivisi.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

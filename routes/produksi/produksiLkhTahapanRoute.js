@@ -3,7 +3,7 @@ const ProduksiLkhTahapanController = require("../../controller/produksi/produksi
 const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get(
-  "/produksi/lkhTahapan",
+  "/produksi/lkhTahapan/:id?",
   auth,
   ProduksiLkhTahapanController.getProduksiLkhTahapan,
 );
