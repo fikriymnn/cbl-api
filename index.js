@@ -395,7 +395,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await masterDivisi.sync({
+//   await inspeksiRabut.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

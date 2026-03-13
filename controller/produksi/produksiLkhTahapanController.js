@@ -266,20 +266,19 @@ const ProduksiLkhTahapanController = {
 
       for (let i = 0; i < produksi_lkh_proses.length; i++) {
         const e = produksi_lkh_proses[i];
-        if (e.status == "nonactive") {
-          await ProduksiLkhProses.update(
-            {
-              baik: e.baik,
-              rusak_sebagian: e.rusak_sebagian,
-              rusak_total: e.rusak_total,
-              pallet: e.pallet,
-            },
-            {
-              where: { id: e.id },
-              transaction: t,
-            },
-          );
-        }
+
+        await ProduksiLkhProses.update(
+          {
+            baik: e.baik,
+            rusak_sebagian: e.rusak_sebagian,
+            rusak_total: e.rusak_total,
+            pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          },
+        );
       }
 
       //buat tahapan yg di approve jadi done
@@ -377,15 +376,18 @@ const ProduksiLkhTahapanController = {
     try {
       for (let i = 0; i < produksi_lkh_tahapan.length; i++) {
         const e = produksi_lkh_tahapan[i];
-        await ProduksiLkhTahapan.update(
-          {
-            status: e.status,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          },
-        );
+        const checkData = await ProduksiLkhTahapan.findByPk(e.id);
+        if (checkData.status == "nonactive") {
+          await ProduksiLkhTahapan.update(
+            {
+              status: e.status,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            },
+          );
+        }
       }
 
       (await t.commit(),

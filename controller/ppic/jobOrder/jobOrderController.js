@@ -161,9 +161,6 @@ const BomController = {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
-          no_so: {
-            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
-          },
         },
         order: [
           // extract nomor urut pada format SO-01319/CBL/1025
@@ -183,8 +180,8 @@ const BomController = {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
-          no_so: {
-            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          no_jo: {
+            [Op.like]: "%P%", // hanya ambil yang ada karakter 'P'
           },
           tipe_jo: "JO PROOF",
         },

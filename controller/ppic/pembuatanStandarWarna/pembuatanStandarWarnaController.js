@@ -61,13 +61,14 @@ const PembuatanStandarWarnaController = {
 
   rejectPembuatanStandarWarna: async (req, res) => {
     const _id = req.params.id;
-    const { note } = req.body;
+    const { note, is_create_again } = req.body;
     try {
       const kirimData =
         await PembuatanStandarWarnaService.rejectPembuatanStandarWarnaService({
           id: _id,
           note: note,
           id_user: req.user.id,
+          is_create_again: is_create_again,
         });
       return res.status(200).json(kirimData);
     } catch (error) {
