@@ -67,6 +67,7 @@ const ProduksiLkhTahapanController = {
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_pembuatan_bom = { [Op.between]: [startDate, endDate] };
     }
+
     try {
       if (page && limit) {
         const length = await ProduksiLkhTahapan.count({ where: obj });
