@@ -161,18 +161,39 @@ const ProduksiLkhTahapanController = {
               ],
             },
             {
-              model: ProduksiLkhWaste,
-              as: "produksi_lkh_waste",
-            },
-            {
               model: MasterTahapan,
               as: "tahapan",
             },
           ],
           where: obj,
         });
+
+        // Ambil semua id_jo yang unik dari data
+        const idJoList = [...new Set(data.map((item) => item.id_jo))];
+
+        // Fetch semua ProduksiLkhWaste berdasarkan id_jo sekaligus
+        const wasteData = await ProduksiLkhWaste.findAll({
+          where: {
+            id_jo: idJoList,
+          },
+        });
+
+        // Group waste data berdasarkan id_jo
+        const wasteGroupedByIdJo = wasteData.reduce((acc, waste) => {
+          const idJo = waste.id_jo;
+          if (!acc[idJo]) acc[idJo] = [];
+          acc[idJo].push(waste);
+          return acc;
+        }, {});
+
+        // Map data dan tambahkan field produksi_lkh_waste
+        const result = data.map((item) => ({
+          ...item.toJSON(),
+          produksi_lkh_waste: wasteGroupedByIdJo[item.id_jo] || [],
+        }));
+
         return res.status(200).json({
-          data: data,
+          data: result,
         });
       }
     } catch (error) {
