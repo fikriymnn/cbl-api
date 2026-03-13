@@ -5,17 +5,22 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 router.get(
   "/master/produksi/wasteKendala/:id?",
   auth,
-  MasterWasteKendala.getMasterWasteKendala
+  MasterWasteKendala.getMasterWasteKendala,
+);
+router.get(
+  "/master/produksi/wasteKendalaFormating",
+  auth,
+  MasterWasteKendala.getMasterWasteKendalaFormating,
 );
 router.post(
   "/master/produksi/wasteKendala",
   auth,
-  MasterWasteKendala.createMasterWasteKendala
+  MasterWasteKendala.createMasterWasteKendala,
 );
 router.put(
   "/master/produksi/wasteKendala",
   auth,
-  MasterWasteKendala.updateMasterWasteKendala
+  MasterWasteKendala.updateMasterWasteKendala,
 );
 // router.delete(
 //   "/master/produksi/kodeProduksi/:id",

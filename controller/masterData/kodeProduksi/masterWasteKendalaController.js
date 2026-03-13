@@ -161,6 +161,87 @@ const MasterWasteKendalaController = {
     }
   },
 
+  getMasterWasteKendalaFormating: async (req, res) => {
+    try {
+      let obj = {
+        //untuk awalan huruf
+        kode: {
+          [Op.regexp]: "^[A-Za-z]",
+        },
+
+        //untuk awalan angka
+        // kode: {
+        //   [Op.regexp]: "^\\d",
+        // },
+      };
+
+      const data = await MasterKodeProduksi.findAll({
+        where: obj,
+        attributes: [
+          "id",
+          "id_tahapan_produksi",
+          "proses_produksi",
+          "kode",
+          "deskripsi",
+        ],
+        include: [
+          {
+            model: MasterWasteKendala,
+            as: "waste",
+            include: [
+              {
+                model: MasterKodeProduksi,
+                as: "kode_kendala",
+                attributes: [
+                  "id",
+                  "id_tahapan_produksi",
+                  "proses_produksi",
+                  "kode",
+                  "deskripsi",
+                ],
+                include: [
+                  {
+                    model: MasterKategoriKendala,
+                    as: "kategori_kendala",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      // olah dengan destructuring:
+      const result = data
+        .filter((item) => item.waste && item.waste.length > 0)
+        .map((item) => {
+          const { id, kode, deskripsi, waste } = item.toJSON();
+          return {
+            i_waste: id,
+            kode_waste: kode,
+            waste_desc: deskripsi,
+            waste: waste.map((w) => ({
+              i_kendala: w.kode_kendala.id,
+              kode_kendala: w.kode_kendala.kode,
+              kendala_desc: w.kode_kendala.deskripsi,
+              kategori_kendala:
+                w.kode_kendala.kategori_kendala?.kategori ?? null,
+              bobot: 0,
+            })),
+          };
+        });
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        waste: result,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createMasterWasteKendala: async (req, res) => {
     const { data } = req.body;
     const t = await db.transaction();
@@ -233,7 +314,7 @@ const MasterWasteKendalaController = {
                     id_waste: e.id,
                     id_kendala: element.id,
                   },
-                  { transaction: t }
+                  { transaction: t },
                 );
               }
             }
@@ -266,17 +347,17 @@ const MasterWasteKendalaController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterKodeProduksi.update(
+      (await MasterKodeProduksi.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       res
         .status(400)
