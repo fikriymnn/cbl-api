@@ -57,6 +57,10 @@ const InspeksiRabut = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    bagian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     sample_1: {
       type: DataTypes.FLOAT,
       allowNull: true,

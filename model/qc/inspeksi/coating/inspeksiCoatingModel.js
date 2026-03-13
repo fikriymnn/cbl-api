@@ -29,6 +29,10 @@ const InspeksiCoating = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    bagian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     coating: {
       type: DataTypes.STRING,
       allowNull: true,

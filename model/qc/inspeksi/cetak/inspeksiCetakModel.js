@@ -49,6 +49,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    bagian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     jenis_kertas: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -100,7 +104,7 @@ const InspeksiPotong = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 module.exports = InspeksiPotong;

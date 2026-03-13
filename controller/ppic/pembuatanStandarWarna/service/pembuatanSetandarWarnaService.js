@@ -220,6 +220,7 @@ const PembuatanStandarWarnaService = {
     id,
     id_user,
     note,
+    is_create_again,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -242,6 +243,13 @@ const PembuatanStandarWarnaService = {
         },
         { where: { id: checkData.id }, transaction: t },
       );
+
+      if (is_create_again == "true" || is_create_again == true) {
+        await SoModel.update(
+          { is_jo_done: false },
+          { where: { id: checkData.id_so }, transaction: t },
+        );
+      }
       if (!transaction) await t.commit();
       return {
         status_code: 200,
