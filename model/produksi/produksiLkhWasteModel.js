@@ -61,6 +61,14 @@ const ProduksiWaste = db.define(
         key: "id",
       },
     },
+    id_inspektor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     id_kendala: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -169,6 +177,15 @@ Users.hasMany(ProduksiWaste, {
 ProduksiWaste.belongsTo(Users, {
   foreignKey: "id_operator",
   as: "operator",
+});
+
+Users.hasMany(ProduksiWaste, {
+  foreignKey: "id_inspektor",
+  as: "produksi_lkh_waste_inspektor",
+});
+ProduksiWaste.belongsTo(Users, {
+  foreignKey: "id_inspektor",
+  as: "inspektor",
 });
 
 MasterKodeProduksi.hasMany(ProduksiWaste, {
