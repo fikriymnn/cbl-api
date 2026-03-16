@@ -293,6 +293,7 @@ const ProduksiLkhWasteController = {
             id_tahapan: dataProduksiLkhTahapan.id_tahapan,
             id_mesin: id_mesin,
             id_operator: id_operator,
+            id_inspektor: req.user.id,
             id_kendala: id_kendala,
             kode_kendala: dataKodeKendala.kode,
             deskripsi_kendala: dataKodeKendala.deskripsi,
