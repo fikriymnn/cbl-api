@@ -12,6 +12,11 @@ router.get(
   auth,
   MasterWasteKendala.getMasterWasteKendalaFormating,
 );
+router.get(
+  "/master/produksi/wasteAllKendalaFormating",
+  auth,
+  MasterWasteKendala.getMasterWasteAllKendalaFormating,
+);
 router.post(
   "/master/produksi/wasteKendala",
   auth,

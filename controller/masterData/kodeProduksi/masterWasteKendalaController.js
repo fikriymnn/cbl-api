@@ -4,6 +4,7 @@ const MasterKategoriKendala = require("../../../model/masterData/kodeProduksi/ma
 const MasterKodeProduksi = require("../../../model/masterData/kodeProduksi/masterKodeProduksiModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const MasterWasteKendala = require("../../../model/masterData/kodeProduksi/masterWasteKendalaModel");
+const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const db = require("../../../config/database");
 
 const MasterWasteKendalaController = {
@@ -235,6 +236,115 @@ const MasterWasteKendalaController = {
         status_code: 200,
         waste: result,
       });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getMasterWasteAllKendalaFormating: async (req, res) => {
+    try {
+      let obj = {
+        kode: {
+          [Op.regexp]: "^[A-Za-z]",
+        },
+      };
+
+      const department = await MasterDepartment.findAll();
+
+      const departmentMap = {};
+      department.forEach((dept) => {
+        departmentMap[dept.id] = dept.nama_department;
+      });
+
+      const data = await MasterKodeProduksi.findAll({
+        where: obj,
+        attributes: [
+          "id",
+          "id_tahapan_produksi",
+          "proses_produksi",
+          "kode",
+          "deskripsi",
+          "target_department",
+        ],
+        include: [
+          {
+            model: MasterTahapan,
+            as: "tahapan",
+          },
+          {
+            model: MasterKategoriKendala,
+            as: "kategori_kendala",
+          },
+        ],
+      });
+
+      const formatted = data.map((item) => {
+        let deptIds = [];
+        try {
+          let raw = item.target_department;
+          if (typeof raw === "string") {
+            raw = raw.replace(/^"+|"+$/g, "");
+            deptIds = JSON.parse(raw);
+          } else if (Array.isArray(raw)) {
+            deptIds = raw;
+          }
+        } catch (e) {
+          deptIds = [];
+        }
+
+        const targetDepartment = deptIds.map((deptId) => ({
+          id_department: String(deptId),
+          nama_department: departmentMap[deptId] || null,
+        }));
+
+        return {
+          i_id: item.id,
+          e_kode_produksi: item.kode,
+          nama_kendala: item.deskripsi,
+          criteria: "Major",
+          criteria_percent: 1,
+          id_proses: item.id_tahapan_produksi,
+          nama_proses: item.tahapan?.nama_tahapan || null,
+          kategori_kendala: item.kategori_kendala?.kategori || null,
+          target_department: targetDepartment,
+        };
+      });
+
+      // Hitung "kelengkapan" data berdasarkan jumlah field yang tidak null/kosong
+      const getScore = (item) => {
+        let score = 0;
+        if (item.nama_kendala) score++;
+        if (item.id_proses) score++;
+        if (item.nama_proses) score++;
+        if (item.kategori_kendala) score++;
+        if (item.target_department && item.target_department.length > 0)
+          score++;
+        // Bonus score jika nama_department tidak null
+        item.target_department.forEach((d) => {
+          if (d.nama_department) score++;
+        });
+        return score;
+      };
+
+      // Deduplication: group by e_kode_produksi, ambil yang paling lengkap
+      const deduped = Object.values(
+        formatted.reduce((acc, item) => {
+          const key = item.e_kode_produksi;
+          if (!acc[key]) {
+            acc[key] = item;
+          } else {
+            // Bandingkan score, simpan yang lebih tinggi
+            if (getScore(item) > getScore(acc[key])) {
+              acc[key] = item;
+            }
+          }
+          return acc;
+        }, {}),
+      );
+
+      return res.status(200).json(deduped);
     } catch (error) {
       res
         .status(400)
