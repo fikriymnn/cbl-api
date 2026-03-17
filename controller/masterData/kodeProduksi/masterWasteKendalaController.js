@@ -244,12 +244,17 @@ const MasterWasteKendalaController = {
   },
 
   getMasterWasteAllKendalaFormating: async (req, res) => {
+    const { proses } = req.query;
     try {
       let obj = {
         kode: {
           [Op.regexp]: "^[A-Za-z]",
         },
       };
+
+      if (proses) {
+        obj.id_tahapan_produksi = proses;
+      }
 
       const department = await MasterDepartment.findAll();
 
