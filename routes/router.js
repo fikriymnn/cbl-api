@@ -345,6 +345,11 @@ router.use("/", require("./akunting/invoice/invoiceRoute"));
 router.use("/", require("./akunting/retur/returRoute"));
 router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
 
+//FG
+router.use("/", require("./finishGood/incomingBarangJadiRoute"));
+router.use("/", require("./finishGood/gudangFinishGoodRoute"));
+router.use("/", require("./finishGood/mutasiBarangFinishGoodRoute"));
+
 //menu
 router.use("/", require("./masterdata/menu/masterMenuRoute"));
 router.use("/", require("./masterdata/menu/masterRoleMenuRoute"));

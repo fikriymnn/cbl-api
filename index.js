@@ -374,6 +374,11 @@ const ReturProduk = require("./model/akunting/retur/returProdukModel");
 const PerubahanInvoice = require("./model/akunting/perubahanInvoice/perubahanInvoiceModel");
 const PerubahanInvoiceProduk = require("./model/akunting/perubahanInvoice/perubahanInvoiceProdukModel");
 
+//FG
+const IncomingBarangJadi = require("./model/finishGood/incomingBarangJadiModel");
+const GudangFinishGood = require("./model/finishGood/gudangFinishGoodModel");
+const MutasiBarangFinishGood = require("./model/finishGood/mutasiBarangFinishGoodModel");
+
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
 const MasterRole = require("./model/masterData/menu/masterRoleModel");
@@ -395,7 +400,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await ProduksiLkhWaste.sync({
+//   await MutasiBarangFinishGood.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
