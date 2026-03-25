@@ -12,6 +12,7 @@ const axios = require("axios");
 const dotenv = require("dotenv");
 const DeliveryOrderService = require("../../../deliveryOrder/service/deliveryOrderService");
 const ProduksiJoDoneService = require("../../../produksi/service/produksiJoDoneService");
+const IncomingBarangJadiService = require("../../../finishGood/incomingBarangJadi/service/incomingBarangJadiService");
 
 const inspeksiFinalController = {
   getInspeksiFinal: async (req, res) => {
@@ -389,27 +390,27 @@ const inspeksiFinalController = {
             msg: dataListJoDone.message,
           });
         }
-        console.log(1);
-        const createDeliveryOrder =
-          await DeliveryOrderService.creteDeliveryOrderService({
+        const createIncomingBarangJadi =
+          await IncomingBarangJadiService.creteIncomingBarangJadiService({
             id_jo: dataListJoDone.data[0].id_jo,
+            id_jo_done: dataListJoDone.data[0].id,
             id_io: dataListJoDone.data[0].id_io,
             id_so: dataListJoDone.data[0].id_so,
             id_customer: dataListJoDone.data[0].id_customer,
             id_produk: dataListJoDone.data[0].id_produk,
+            jumlah_qty: getInspeksiFinal.quantity,
             transaction: t,
           });
 
-        if (createDeliveryOrder.success === false) {
+        if (createIncomingBarangJadi.success === false) {
           await t.rollback();
 
           return res.status(400).json({
             succes: false,
             status_code: 400,
-            msg: createDeliveryOrder.message,
+            msg: createIncomingBarangJadi.message,
           });
         }
-        console.log(2);
 
         const doneDeliveryOrder =
           await ProduksiJoDoneService.doneProduksiJoDoneService({
