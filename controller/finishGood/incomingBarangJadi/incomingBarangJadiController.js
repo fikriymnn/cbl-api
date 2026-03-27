@@ -62,7 +62,7 @@ const IncomingBarangJadiController = {
 
     try {
       const getData =
-        await IncomingBarangJadiService.rejectnIcomingBarangJadiService({
+        await IncomingBarangJadiService.rejectIncomingBarangJadiService({
           id: _id,
           id_user: req.user.id,
           note_user: note_user,
