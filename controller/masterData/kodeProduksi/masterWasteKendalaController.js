@@ -169,6 +169,7 @@ const MasterWasteKendalaController = {
         kode: {
           [Op.regexp]: "^[A-Za-z]",
         },
+        is_active: true,
 
         //untuk awalan angka
         // kode: {
@@ -231,6 +232,13 @@ const MasterWasteKendalaController = {
             })),
           };
         });
+
+      result.sort((a, b) =>
+        a.kode_waste.localeCompare(b.kode_waste, undefined, {
+          numeric: true,
+        }),
+      );
+
       return res.status(200).json({
         succes: true,
         status_code: 200,
@@ -250,6 +258,7 @@ const MasterWasteKendalaController = {
         kode: {
           [Op.regexp]: "^[A-Za-z]",
         },
+        is_active: true,
       };
 
       if (proses) {
@@ -347,6 +356,12 @@ const MasterWasteKendalaController = {
           }
           return acc;
         }, {}),
+      );
+
+      deduped.sort((a, b) =>
+        a.e_kode_produksi.localeCompare(b.e_kode_produksi, undefined, {
+          numeric: true,
+        }),
       );
 
       return res.status(200).json(deduped);
