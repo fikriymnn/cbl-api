@@ -539,6 +539,7 @@ const DeliveryOrderGroupService = {
         ...(search && {
           [Op.or]: [
             { no_so: { [Op.like]: `%${search}%` } },
+            { no_jo: { [Op.like]: `%${search}%` } },
             { no_po_customer: { [Op.like]: `%${search}%` } },
             { customer: { [Op.like]: `%${search}%` } },
             { produk: { [Op.like]: `%${search}%` } },
