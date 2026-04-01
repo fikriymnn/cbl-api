@@ -8,6 +8,11 @@ router.get(
   PembuatanStandarWarnaController.getPembuatanStandarWarna,
 );
 router.put(
+  "/ppic/pembuatanStandarWarna/next/:id",
+  auth,
+  PembuatanStandarWarnaController.nextPembuatanStandarWarna,
+);
+router.put(
   "/ppic/pembuatanStandarWarna/approve/:id",
   auth,
   PembuatanStandarWarnaController.ApprovePembuatanStandarWarna,

@@ -8,6 +8,7 @@ const IoTahapan = require("../../model/marketing/io/ioTahapanModel");
 const MasterTahapanMesin = require("../../model/masterData/tahapan/masterTahapanMesinModel");
 const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
+const MasterKodeProduksi = require("../../model/masterData/kodeProduksi/masterKodeProduksiModel");
 const SoModel = require("../../model/marketing/so/soModel");
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
 const JobOrderMounting = require("../../model/ppic/jobOrder/joMountingModel");
@@ -266,7 +267,7 @@ const ProduksiLkhTahapanController = {
 
   approveProduksiLkhTahapan: async (req, res) => {
     const _id = req.params.id;
-    const { produksi_lkh_proses } = req.body;
+    const { produksi_lkh_proses, produksi_lkh_waste } = req.body;
     const t = await db.transaction();
     try {
       const checkData = await ProduksiLkhTahapan.findByPk(_id);
@@ -295,6 +296,27 @@ const ProduksiLkhTahapanController = {
             rusak_sebagian: e.rusak_sebagian,
             rusak_total: e.rusak_total,
             pallet: e.pallet,
+          },
+          {
+            where: { id: e.id },
+            transaction: t,
+          },
+        );
+      }
+
+      for (let i = 0; i < produksi_lkh_waste.length; i++) {
+        const e = produksi_lkh_waste[i];
+        const dataWaste = await MasterKodeProduksi.findByPk(e.id_waste);
+        const dataKendala = await MasterKodeProduksi.findByPk(e.id_kendala);
+        await ProduksiLkhWaste.update(
+          {
+            total_qty: e.total_qty,
+            id_kendala: e.id_kendala,
+            kode_kendala: dataKendala.kode,
+            deskripsi_kendala: dataKendala.deskripsi,
+            id_waste: e.id_waste,
+            kode_waste: dataWaste.kode,
+            deskripsi_waste: dataWaste.deskripsi,
           },
           {
             where: { id: e.id },
