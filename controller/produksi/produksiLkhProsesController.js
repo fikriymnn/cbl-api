@@ -1224,9 +1224,21 @@ async function handleTahapan({
         });
 
       if (checkDataBarangRusak.data.length == 0) {
+        const getJo = await JobOrder.findOne({ where: { no_jo: no_jo } });
+        const dataQtyRusak = await ProduksiLkhProses.findAll({
+          where: {
+            id_jo: getJo.id,
+            is_final_result: true,
+          },
+        });
+
+        const totalQtyRusak = dataQtyRusak.reduce(
+          (sum, item) => sum + (item.rusak_sebagian || 0),
+          0,
+        );
         const createInspeksiBarangRusak =
           await InspeksiBarangRusakV2Service.creteInspeksiBarangRusakV2Service({
-            qty_rusak: 0, //INI BELUM TAU DARI MANA
+            qty_rusak: totalQtyRusak,
             ukuran_jadi: ukuran_jadi,
             tahapan: tahapan,
             tanggal: tanggal_pembuatan,
