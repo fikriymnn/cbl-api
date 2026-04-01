@@ -304,25 +304,27 @@ const ProduksiLkhTahapanController = {
         );
       }
 
-      for (let i = 0; i < produksi_lkh_waste.length; i++) {
-        const e = produksi_lkh_waste[i];
-        const dataWaste = await MasterKodeProduksi.findByPk(e.id_waste);
-        const dataKendala = await MasterKodeProduksi.findByPk(e.id_kendala);
-        await ProduksiLkhWaste.update(
-          {
-            total_qty: e.total_qty,
-            id_kendala: e.id_kendala,
-            kode_kendala: dataKendala.kode,
-            deskripsi_kendala: dataKendala.deskripsi,
-            id_waste: e.id_waste,
-            kode_waste: dataWaste.kode,
-            deskripsi_waste: dataWaste.deskripsi,
-          },
-          {
-            where: { id: e.id },
-            transaction: t,
-          },
-        );
+      if (produksi_lkh_waste) {
+        for (let i = 0; i < produksi_lkh_waste.length; i++) {
+          const e = produksi_lkh_waste[i];
+          const dataWaste = await MasterKodeProduksi.findByPk(e.id_waste);
+          const dataKendala = await MasterKodeProduksi.findByPk(e.id_kendala);
+          await ProduksiLkhWaste.update(
+            {
+              total_qty: e.total_qty,
+              id_kendala: e.id_kendala,
+              kode_kendala: dataKendala.kode,
+              deskripsi_kendala: dataKendala.deskripsi,
+              id_waste: e.id_waste,
+              kode_waste: dataWaste.kode,
+              deskripsi_waste: dataWaste.deskripsi,
+            },
+            {
+              where: { id: e.id },
+              transaction: t,
+            },
+          );
+        }
       }
 
       //buat tahapan yg di approve jadi done
