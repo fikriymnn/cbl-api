@@ -400,7 +400,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MutasiBarangFinishGood.sync({
+//   await PembuatanStandarWarna.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

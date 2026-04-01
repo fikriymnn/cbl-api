@@ -184,6 +184,38 @@ const PembuatanStandarWarnaService = {
     }
   },
 
+  nextPembuatanStandarWarnaService: async ({
+    id,
+    id_user,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const checkData = await PembuatanStandarWarna.findByPk(id);
+      if (!checkData) {
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Pembuatan Standar Warna Tidak Ditemukan",
+        };
+      }
+      await PembuatanStandarWarna.update(
+        { status: "request marketing", id_user_qc: id_user },
+        { where: { id: checkData.id }, transaction: t },
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "next success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { status_code: 500, success: false, message: error.message };
+    }
+  },
+
   approvePembuatanStandarWarnaService: async ({
     id,
     id_user,

@@ -56,6 +56,14 @@ const StandarWarna = db.define(
         key: "id",
       },
     },
+    id_user_qc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     id_user_approve: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -163,6 +171,15 @@ MasterProduk.hasMany(StandarWarna, {
 StandarWarna.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "detail_produk",
+});
+
+Users.hasMany(StandarWarna, {
+  foreignKey: "id_user_qc",
+  as: "pembuatan_standar_warna_qc",
+});
+StandarWarna.belongsTo(Users, {
+  foreignKey: "id_user_qc",
+  as: "user_qc",
 });
 
 Users.hasMany(StandarWarna, {

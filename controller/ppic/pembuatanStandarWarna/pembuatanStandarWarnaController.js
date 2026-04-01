@@ -42,6 +42,23 @@ const PembuatanStandarWarnaController = {
     }
   },
 
+  nextPembuatanStandarWarna: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const kirimData =
+        await PembuatanStandarWarnaService.nextPembuatanStandarWarnaService({
+          id: _id,
+          id_user: req.user.id,
+        });
+      return res.status(200).json(kirimData);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, status_code: 500, msg: error.message });
+    }
+  },
+
   ApprovePembuatanStandarWarna: async (req, res) => {
     const _id = req.params.id;
 
