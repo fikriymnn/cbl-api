@@ -136,7 +136,7 @@ const inspeksiBarangRusakV2Controller = {
               id_inspeksi_barang_rusak_v2: id,
               nama_pengecekan: "setting awal",
             },
-          }
+          },
         );
 
         const pointDefectDrukAwal = await InspeksiBarangRusakPointV2.findAll({
@@ -153,6 +153,36 @@ const inspeksiBarangRusakV2Controller = {
           },
         });
 
+        const pointDefectCabutanOperator =
+          await InspeksiBarangRusakPointV2.findAll({
+            attributes: [
+              [
+                Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+                "jumlah_defect",
+              ],
+            ],
+
+            where: {
+              id_inspeksi_barang_rusak_v2: id,
+              nama_pengecekan: "cabutan operator",
+            },
+          });
+
+        const pointDefectPenandaanOperator =
+          await InspeksiBarangRusakPointV2.findAll({
+            attributes: [
+              [
+                Sequelize.fn("SUM", Sequelize.col("jumlah_defect")),
+                "jumlah_defect",
+              ],
+            ],
+
+            where: {
+              id_inspeksi_barang_rusak_v2: id,
+              nama_pengecekan: "penandaan operator",
+            },
+          });
+
         const jumlahSettingAwal =
           pointDefectSettingAwal[0].jumlah_defect == null
             ? 0
@@ -161,12 +191,26 @@ const inspeksiBarangRusakV2Controller = {
           pointDefectDrukAwal[0].jumlah_defect == null
             ? 0
             : parseInt(pointDefectDrukAwal[0].jumlah_defect);
-        const subTotal = jumlahSettingAwal + jumlahDrukAwal;
+        const jumlahCabutanOperator =
+          pointDefectCabutanOperator[0].jumlah_defect == null
+            ? 0
+            : parseInt(pointDefectCabutanOperator[0].jumlah_defect);
+        const jumlahPenandaanOperator =
+          pointDefectPenandaanOperator[0].jumlah_defect == null
+            ? 0
+            : parseInt(pointDefectPenandaanOperator[0].jumlah_defect);
+        const subTotal =
+          jumlahSettingAwal +
+          jumlahDrukAwal +
+          jumlahCabutanOperator +
+          jumlahPenandaanOperator;
         const barangBaik = data.qty_rusak - subTotal;
 
         return res.status(200).json({
           settingAwal: jumlahSettingAwal,
           drukAwal: jumlahDrukAwal,
+          cabutanOperator: jumlahCabutanOperator,
+          penandaanOperator: jumlahPenandaanOperator,
           subTotal: subTotal,
           barangBaik: barangBaik,
           data: data,
@@ -325,8 +369,8 @@ const inspeksiBarangRusakV2Controller = {
                   operator: item?.operator,
                   mesin: item?.mesin,
                 };
-              })
-        )
+              }),
+        ),
       );
 
       const dataTemuanCoating = dataCoating.flatMap((item) =>
@@ -343,8 +387,8 @@ const inspeksiBarangRusakV2Controller = {
                 operator: item?.operator,
                 mesin: item?.mesin,
               };
-            })
-        )
+            }),
+        ),
       );
 
       const dataTemuanPond = dataPond.flatMap((item) =>
@@ -362,8 +406,8 @@ const inspeksiBarangRusakV2Controller = {
                   operator: item?.operator,
                   mesin: item?.mesin,
                 };
-              })
-        )
+              }),
+        ),
       );
 
       const dataTemuanLem = dataLem.flatMap((item) =>
@@ -381,8 +425,8 @@ const inspeksiBarangRusakV2Controller = {
                   operator: item?.operator,
                   mesin: item?.mesin,
                 };
-              })
-        )
+              }),
+        ),
       );
 
       let dataTemuanRabut = [];
@@ -398,22 +442,22 @@ const inspeksiBarangRusakV2Controller = {
                 nama_inspektor: point.inspektor?.nama || null,
                 operator: item?.operator,
               };
-            })
-          )
+            }),
+          ),
         );
       }
 
       const sortedTemuanCetak = dataTemuanCetak.sort(
-        (a, b) => a.periode_ke - b.periode_ke
+        (a, b) => a.periode_ke - b.periode_ke,
       );
       const sortedTemuanCoating = dataTemuanCoating.sort(
-        (a, b) => a.periode_ke - b.periode_ke
+        (a, b) => a.periode_ke - b.periode_ke,
       );
       const sortedTemuanPond = dataTemuanPond.sort(
-        (a, b) => a.periode_ke - b.periode_ke
+        (a, b) => a.periode_ke - b.periode_ke,
       );
       const sortedTemuanLem = dataTemuanLem.sort(
-        (a, b) => a.periode_ke - b.periode_ke
+        (a, b) => a.periode_ke - b.periode_ke,
       );
 
       if (is_with_rabut == true || is_with_rabut == "true") {
@@ -532,7 +576,7 @@ const inspeksiBarangRusakV2Controller = {
         { id_inspektor: req.user.id, waktu_sortir: new Date() },
         {
           where: { id: _id },
-        }
+        },
       );
       res.status(200).json({ msg: "Start Successful" });
     } catch (error) {
@@ -564,7 +608,7 @@ const inspeksiBarangRusakV2Controller = {
         },
         {
           where: { id: _id },
-        }
+        },
       );
       res.status(200).json({ msg: "done Successful" });
     } catch (error) {
@@ -587,7 +631,7 @@ const inspeksiBarangRusakV2Controller = {
         { status: "pending", jumlah_pending: barangRusak.jumlah_pending + 1 },
         {
           where: { id: _id },
-        }
+        },
       );
       res.status(200).json({ msg: "Pending Successful" });
     } catch (error) {
@@ -605,7 +649,7 @@ const inspeksiBarangRusakV2Controller = {
         },
         {
           where: { id: _id },
-        }
+        },
       );
       res.status(200).json({ msg: "Istirahat Successful" });
     } catch (error) {
@@ -624,7 +668,7 @@ const inspeksiBarangRusakV2Controller = {
         },
         {
           where: { id: _id },
-        }
+        },
       );
       res.status(200).json({ msg: "Istirahat masuk Successful" });
     } catch (error) {
