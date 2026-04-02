@@ -239,6 +239,10 @@ const BomController = {
         checkJo = await JobOrder.findOne({
           where: { id_so: id_so, is_active: true },
         });
+      } else {
+        checkJo = await JobOrder.findOne({
+          where: { id_io: id_io, is_active: true },
+        });
       }
 
       if (checkJo) {

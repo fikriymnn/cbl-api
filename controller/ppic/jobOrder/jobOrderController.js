@@ -1,5 +1,6 @@
 const { Op, fn, col, literal } = require("sequelize");
 const ProduksiLkhTahapan = require("../../../model/produksi/produksiLkhTahapanModel");
+const IoModel = require("../../../model/marketing/io/ioModel");
 const ioMountingModel = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
 const MasterTahapanMesin = require("../../../model/masterData/tahapan/masterTahapanMesinModel");
@@ -235,8 +236,6 @@ const BomController = {
     const {
       id_io,
       id_so,
-      id_customer,
-      id_produk,
       no_jo,
       no_io,
       no_so,
@@ -261,25 +260,52 @@ const BomController = {
     const t = await db.transaction();
 
     try {
-      const checkSo = await SoModel.findByPk(id_so);
-      if (!checkSo)
+      let checkData = null;
+      if (id_so) {
+        checkData = await SoModel.findByPk(id_so);
+      } else {
+        checkData = await IoModel.findByPk(id_io);
+      }
+
+      if (!checkData && id_so) {
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data SO tidak ditemukan",
         });
+      } else if (!checkData && id_io) {
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data IO tidak ditemukan",
+        });
+      }
 
-      const checkBom = await BomModel.findOne({ where: { id_so: checkSo.id } });
-      const checkBomPpic = await BomPpicModel.findOne({
-        where: { id_so: checkSo.id },
-      });
+      let checkBom = null;
+      let checkBomPpic = null;
+
+      if (id_so) {
+        checkBom = await BomModel.findOne({
+          where: { id_so: checkData.id },
+        });
+        checkBomPpic = await BomPpicModel.findOne({
+          where: { id_so: checkData.id },
+        });
+      } else {
+        checkBom = await BomModel.findOne({
+          where: { id_io: checkData.id },
+        });
+        checkBomPpic = await BomPpicModel.findOne({
+          where: { id_io: checkData.id },
+        });
+      }
 
       const dataJobOrder = await JobOrder.create(
         {
           id_io,
           id_so,
-          id_customer: checkSo.id_customer,
-          id_produk: checkSo.id_produk,
+          id_customer: checkData.id_customer,
+          id_produk: checkData.id_produk,
           id_create_jo: req.user.id,
           no_jo,
           no_io,
@@ -300,7 +326,7 @@ const BomController = {
           tgl_kirim,
           standar_warna,
           tipe_jo,
-          label: checkSo.label,
+          label: checkData.label,
         },
         { transaction: t },
       );
@@ -345,10 +371,19 @@ const BomController = {
         await JobOrderMounting.bulkCreate(dataJoMounting, { transaction: t });
       }
 
-      await SoModel.update(
-        { is_jo_done: true },
-        { where: { id: id_so }, transaction: t },
-      );
+      if (id_so) {
+        await SoModel.update(
+          { is_jo_done: true },
+          { where: { id: id_so }, transaction: t },
+        );
+      } else {
+        await IoModel.update(
+          {
+            status_send_proof: "progress",
+          },
+          { where: { id: id_io }, transaction: t },
+        );
+      }
 
       if (checkBom) {
         await BomModel.update(
@@ -370,7 +405,14 @@ const BomController = {
       }
 
       //fungsi create tiket jadwal produksi
-      const dataSo = await soModel.findByPk(id_so);
+      let dataSo = null;
+      let dataIo = null;
+      if (id_so) {
+        dataSo = await soModel.findByPk(id_so);
+      } else {
+        dataIo = await IoModel.findByPk(id_io);
+      }
+
       const dataMountingSelected = jo_mounting.find(
         (e) => e.is_selected === true,
       );
