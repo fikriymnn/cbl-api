@@ -171,6 +171,74 @@ const IoController = {
     }
   },
 
+  getSendProofForJo: async (req, res) => {
+    try {
+      const response = await Io.findAll({
+        where: {
+          is_send_proof: true,
+          status_send_proof: { [Op.in]: ["requested", "reject marketing"] },
+        },
+        include: [
+          {
+            model: Okp,
+            as: "okp",
+            attributes: ["id"],
+            include: [
+              {
+                model: Kalkulasi,
+                as: "kalkulasi",
+                attributes: ["id"],
+                include: [
+                  {
+                    model: MasterMarketing,
+                    as: "marketing",
+                    attributes: ["id_karyawan"],
+                    include: {
+                      model: MasterKaryawan,
+                      as: "data_karyawan",
+                      attributes: ["name"],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+
+          {
+            model: Users,
+            as: "user_create",
+          },
+          {
+            model: Users,
+            as: "user_approve",
+          },
+          {
+            model: IoMounting,
+            as: "io_mounting",
+            where: { is_active: true },
+            include: [
+              {
+                model: IoTahapan,
+                as: "tahapan",
+              },
+            ],
+          },
+
+          {
+            model: IoUserAction,
+            as: "io_action_user",
+            include: { model: Users, as: "user" },
+          },
+        ],
+      });
+      res.status(200).json({ succes: true, status_code: 200, data: response });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   getIoJumlahData: async (req, res) => {
     try {
       const length = await Io.findOne({

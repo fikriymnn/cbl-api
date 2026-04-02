@@ -4,6 +4,7 @@ const { auth } = require("../../middlewares/authMiddlewares");
 
 router.get("/marketing/io/:id?", auth, IoController.getIo);
 router.get("/marketing/ioJumlahData", auth, IoController.getIoJumlahData);
+router.get("/marketing/ioSendProofJo", auth, IoController.getSendProofForJo);
 router.get(
   "/marketing/ioPreviousByOkp/:id",
   auth,

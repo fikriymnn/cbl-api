@@ -129,13 +129,13 @@ const PembuatanStandarWarnaService = {
       }
       //cek data so
       const dataSo = await SoModel.findByPk(id_so);
-      if (!dataSo) {
-        return {
-          status_code: 404,
-          success: false,
-          message: "Data SO Tidak Ditemukan",
-        };
-      }
+      // if (!dataSo) {
+      //   return {
+      //     status_code: 404,
+      //     success: false,
+      //     message: "Data SO Tidak Ditemukan",
+      //   };
+      // }
       //cek data customer
       const dataCustomer = await MasterCustomer.findByPk(id_customer);
       //sementara dimatikan karena contoh data tidak ada
@@ -236,6 +236,15 @@ const PembuatanStandarWarnaService = {
         { status: "approved", status_proses: "done", id_user_approve: id_user },
         { where: { id: checkData.id }, transaction: t },
       );
+
+      if (checkData.id_so) {
+        //untuk update so
+      } else {
+        await IoModel.update(
+          { status_send_proof: "done" },
+          { where: { id: checkData.id_io }, transaction: t },
+        );
+      }
       if (!transaction) await t.commit();
       return {
         status_code: 200,
@@ -277,9 +286,21 @@ const PembuatanStandarWarnaService = {
       );
 
       if (is_create_again == "true" || is_create_again == true) {
-        await SoModel.update(
-          { is_jo_done: false },
-          { where: { id: checkData.id_so }, transaction: t },
+        if (checkData.id_so) {
+          await SoModel.update(
+            { is_jo_done: false },
+            { where: { id: checkData.id_so }, transaction: t },
+          );
+        } else {
+          await IoModel.update(
+            { status_send_proof: "reject marketing" },
+            { where: { id: checkData.id_io }, transaction: t },
+          );
+        }
+      } else {
+        await IoModel.update(
+          { status_send_proof: "rejected" },
+          { where: { id: checkData.id_io }, transaction: t },
         );
       }
       if (!transaction) await t.commit();
