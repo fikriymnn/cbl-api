@@ -391,36 +391,13 @@ const inspeksiFinalController = {
           });
         }
 
-        const createIncomingBarangJadi =
-          await DeliveryOrderService.creteDeliveryOrderService({
-            id_jo: dataListJoDone.data[0].id_jo,
-            id_io: dataListJoDone.data[0].id_io,
-            id_so: dataListJoDone.data[0].id_so,
-            id_customer: dataListJoDone.data[0].id_customer,
-            id_produk: dataListJoDone.data[0].id_produk,
-            transaction: t,
-          });
-
-        if (createIncomingBarangJadi.success === false) {
-          await t.rollback();
-
-          return res.status(400).json({
-            succes: false,
-            status_code: 400,
-            msg: createIncomingBarangJadi.message,
-          });
-        }
-
-        //ini untuk ke prod jika sudah meeting
         // const createIncomingBarangJadi =
-        //   await IncomingBarangJadiService.creteIncomingBarangJadiService({
+        //   await DeliveryOrderService.creteDeliveryOrderService({
         //     id_jo: dataListJoDone.data[0].id_jo,
-        //     id_jo_done: dataListJoDone.data[0].id,
         //     id_io: dataListJoDone.data[0].id_io,
         //     id_so: dataListJoDone.data[0].id_so,
         //     id_customer: dataListJoDone.data[0].id_customer,
         //     id_produk: dataListJoDone.data[0].id_produk,
-        //     jumlah_qty: getInspeksiFinal.quantity,
         //     transaction: t,
         //   });
 
@@ -433,6 +410,29 @@ const inspeksiFinalController = {
         //     msg: createIncomingBarangJadi.message,
         //   });
         // }
+
+        //ini untuk ke prod jika sudah meeting
+        const createIncomingBarangJadi =
+          await IncomingBarangJadiService.creteIncomingBarangJadiService({
+            id_jo: dataListJoDone.data[0].id_jo,
+            id_jo_done: dataListJoDone.data[0].id,
+            id_io: dataListJoDone.data[0].id_io,
+            id_so: dataListJoDone.data[0].id_so,
+            id_customer: dataListJoDone.data[0].id_customer,
+            id_produk: dataListJoDone.data[0].id_produk,
+            jumlah_qty: getInspeksiFinal.quantity,
+            transaction: t,
+          });
+
+        if (createIncomingBarangJadi.success === false) {
+          await t.rollback();
+
+          return res.status(400).json({
+            succes: false,
+            status_code: 400,
+            msg: createIncomingBarangJadi.message,
+          });
+        }
 
         const doneDeliveryOrder =
           await ProduksiJoDoneService.doneProduksiJoDoneService({
