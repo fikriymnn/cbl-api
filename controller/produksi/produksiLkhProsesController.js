@@ -306,6 +306,8 @@ const ProduksiLkhProsesController = {
               0,
             merk: null,
             ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+            bagian_1: checkIoMounting.ukuran_cetak_bagian_1 || null,
+            bagian_2: checkIoMounting.ukuran_cetak_bagian_2 || null,
             transaction: t,
           });
         }
@@ -479,6 +481,8 @@ const ProduksiLkhProsesController = {
               0,
             merk: null,
             ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
+            bagian_1: checkIoMounting.ukuran_cetak_bagian_1 || null,
+            bagian_2: checkIoMounting.ukuran_cetak_bagian_2 || null,
             transaction: t,
           });
         }
@@ -852,6 +856,8 @@ async function handleTahapan({
   warna_depan,
   warna_belakang,
   ukuran_jadi,
+  bagian_1,
+  bagian_2,
   transaction,
 }) {
   try {
@@ -895,6 +901,7 @@ async function handleTahapan({
               customer: customer,
               status_jo: status_jo,
               qty_jo: qty_jo,
+              bagian: bagian_1,
               transaction: transaction,
             });
 
@@ -903,6 +910,36 @@ async function handleTahapan({
               createInspeksiPotong.message ||
                 "Failed to create inspeksi potong",
             );
+          }
+
+          if (bagian_2) {
+            const createInspeksiPotong2 =
+              await InspeksiPotongService.creteInspeksiPotongService({
+                jenis_potong: jenis_potong,
+                tahapan: tahapan,
+                tanggal: tanggal_pembuatan,
+                periode_tiket: periode_tiket,
+                no_io: no_io,
+                no_jo: no_jo,
+                operator: operator,
+                shift: shift,
+                jam: jam,
+                item: produk,
+                mesin: mesin,
+                merk: merk,
+                customer: customer,
+                status_jo: status_jo,
+                qty_jo: qty_jo,
+                bagian: bagian_2,
+                transaction: transaction,
+              });
+
+            if (createInspeksiPotong2.success === false) {
+              throw new Error(
+                createInspeksiPotong2.message ||
+                  "Failed to create inspeksi potong",
+              );
+            }
           }
         }
       }
@@ -948,6 +985,7 @@ async function handleTahapan({
             jenis_gramatur: jenis_gramatur,
             warna_depan: warna_depan,
             warna_belakang: warna_belakang,
+            bagian: bagian_1,
             transaction: transaction,
           });
 
@@ -955,6 +993,42 @@ async function handleTahapan({
           throw new Error(
             createInspeksiCetak.message || "Failed to create inspeksi cetak",
           );
+        }
+
+        if (bagian_2) {
+          const createInspeksiCetak2 =
+            await InspeksiCetakService.creteInspeksiCetakService({
+              tahapan: tahapan,
+              tanggal: tanggal_pembuatan,
+              periode_tiket: periode_tiket,
+              no_io: no_io,
+              no_jo: no_jo,
+              operator: operator,
+              shift: shift,
+              jam: jam,
+              nama_produk: produk,
+              mesin: mesin,
+              merk: merk,
+              customer: customer,
+              status_jo: status_jo,
+              qty_jo: qty_jo,
+              jumlah_pcs: qty_jo,
+              jumlah_druk: qty_druk,
+              mata: mata,
+              jenis_kertas: jenis_kertas,
+              jenis_gramatur: jenis_gramatur,
+              warna_depan: warna_depan,
+              warna_belakang: warna_belakang,
+              bagian: bagian_2,
+              transaction: transaction,
+            });
+
+          if (createInspeksiCetak2.success === false) {
+            throw new Error(
+              createInspeksiCetak2.message ||
+                "Failed to create inspeksi cetak bagian 2",
+            );
+          }
         }
       }
 
@@ -1004,13 +1078,52 @@ async function handleTahapan({
             jenis_gramatur: jenis_gramatur,
             warna_depan: warna_depan,
             warna_belakang: warna_belakang,
+            bagian: bagian_1,
             transaction: transaction,
           });
 
         if (createInspeksiCoating.success === false) {
           throw new Error(
-            createInspeksiCoating.message || "Failed to create inspeksi cetak",
+            createInspeksiCoating.message ||
+              "Failed to create inspeksi coating",
           );
+        }
+
+        if (bagian_2) {
+          const createInspeksiCoating2 =
+            await InspeksiCoatingService.creteInspeksiCoatingService({
+              tahapan: tahapan,
+              tanggal: tanggal_pembuatan,
+              coating: tahapan,
+              periode_tiket: periode_tiket,
+              no_io: no_io,
+              no_jo: no_jo,
+              operator: operator,
+              shift: shift,
+              jam: jam,
+              nama_produk: produk,
+              mesin: mesin,
+              merk: merk,
+              customer: customer,
+              status_jo: status_jo,
+              qty_jo: qty_jo,
+              jumlah_pcs: qty_jo,
+              jumlah_druk: qty_druk,
+              mata: mata,
+              jenis_kertas: jenis_kertas,
+              jenis_gramatur: jenis_gramatur,
+              warna_depan: warna_depan,
+              warna_belakang: warna_belakang,
+              bagian: bagian_2,
+              transaction: transaction,
+            });
+
+          if (createInspeksiCoating2.success === false) {
+            throw new Error(
+              createInspeksiCoating2.message ||
+                "Failed to create inspeksi coating bagian 2",
+            );
+          }
         }
       }
       return {
@@ -1054,13 +1167,51 @@ async function handleTahapan({
             jenis_gramatur: jenis_gramatur,
             warna_depan: warna_depan,
             warna_belakang: warna_belakang,
+            bagian: bagian_1,
             transaction: transaction,
           });
 
         if (createInspeksiPond.success === false) {
           throw new Error(
-            createInspeksiPond.message || "Failed to create inspeksi cetak",
+            createInspeksiPond.message || "Failed to create inspeksi pond",
           );
+        }
+
+        if (bagian_2) {
+          const createInspeksiPond2 =
+            await InspeksiPondService.creteInspeksiPondService({
+              ukuran_jadi: ukuran_jadi,
+              tahapan: tahapan,
+              tanggal: tanggal_pembuatan,
+              periode_tiket: periode_tiket,
+              no_io: no_io,
+              no_jo: no_jo,
+              operator: operator,
+              shift: shift,
+              jam: jam,
+              nama_produk: produk,
+              mesin: mesin,
+              merk: merk,
+              customer: customer,
+              status_jo: status_jo,
+              qty_jo: qty_jo,
+              jumlah_pcs: qty_jo,
+              jumlah_druk: qty_druk,
+              mata: mata,
+              jenis_kertas: jenis_kertas,
+              jenis_gramatur: jenis_gramatur,
+              warna_depan: warna_depan,
+              warna_belakang: warna_belakang,
+              bagian: bagian_2,
+              transaction: transaction,
+            });
+
+          if (createInspeksiPond2.success === false) {
+            throw new Error(
+              createInspeksiPond2.message ||
+                "Failed to create inspeksi pond bagian 2",
+            );
+          }
         }
       }
       return {
@@ -1109,7 +1260,7 @@ async function handleTahapan({
 
         if (createInspeksiLem.success === false) {
           throw new Error(
-            createInspeksiLem.message || "Failed to create inspeksi cetak",
+            createInspeksiLem.message || "Failed to create inspeksi lem",
           );
         }
       }
@@ -1155,7 +1306,8 @@ async function handleTahapan({
 
         if (createInspeksiAmparLem.success === false) {
           throw new Error(
-            createInspeksiAmparLem.message || "Failed to create inspeksi cetak",
+            createInspeksiAmparLem.message ||
+              "Failed to create inspeksi ampar lem",
           );
         }
       }
@@ -1202,13 +1354,51 @@ async function handleTahapan({
             jenis_gramatur: jenis_gramatur,
             warna_depan: warna_depan,
             warna_belakang: warna_belakang,
+            bagian: bagian_1,
             transaction: transaction,
           });
 
         if (createInspeksiRabut.success === false) {
           throw new Error(
-            createInspeksiRabut.message || "Failed to create inspeksi cetak",
+            createInspeksiRabut.message || "Failed to create inspeksi rabut",
           );
+        }
+
+        if (bagian_2) {
+          const createInspeksiRabut2 =
+            await InspeksiRabutService.creteInspeksiRabutService({
+              ukuran_jadi: ukuran_jadi,
+              tahapan: tahapan,
+              tanggal: tanggal_pembuatan,
+              periode_tiket: periode_tiket,
+              no_io: no_io,
+              no_jo: no_jo,
+              operator: operator,
+              shift: shift,
+              jam: jam,
+              nama_produk: produk,
+              mesin: mesin,
+              merk: merk,
+              customer: customer,
+              status_jo: status_jo,
+              qty_jo: qty_jo,
+              jumlah_pcs: qty_jo,
+              jumlah_druk: qty_druk,
+              mata: mata,
+              jenis_kertas: jenis_kertas,
+              jenis_gramatur: jenis_gramatur,
+              warna_depan: warna_depan,
+              warna_belakang: warna_belakang,
+              bagian: bagian_2,
+              transaction: transaction,
+            });
+
+          if (createInspeksiRabut2.success === false) {
+            throw new Error(
+              createInspeksiRabut2.message ||
+                "Failed to create inspeksi rabut bagian 2",
+            );
+          }
         }
       }
 

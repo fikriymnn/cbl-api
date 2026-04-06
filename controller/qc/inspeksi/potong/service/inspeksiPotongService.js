@@ -116,6 +116,7 @@ const IspeksiPotongService = {
     customer,
     status_jo,
     qty_jo,
+    bagian,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -136,8 +137,9 @@ const IspeksiPotongService = {
           customer,
           status_jo,
           qty_jo,
+          bagian,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       if (data) {

@@ -192,6 +192,7 @@ const InspeksiRabutService = {
     customer,
     status_jo,
     qty_jo,
+    bagian,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -212,6 +213,7 @@ const InspeksiRabutService = {
           customer,
           status_jo,
           qty_jo,
+          bagian,
         },
         { transaction: t },
       );

@@ -422,6 +422,7 @@ const InspeksiCoatingService = {
     operator,
     status_jo,
     qty_jo,
+    bagian,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -468,6 +469,7 @@ const InspeksiCoatingService = {
           status_jo,
           qty_jo,
           coating,
+          bagian,
         },
         { transaction: t },
       );
