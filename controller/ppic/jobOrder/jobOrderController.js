@@ -708,7 +708,7 @@ const BomController = {
       const checkData = await JobOrder.findByPk(_id, {
         include: [
           {
-            where: { is_active: true },
+            where: { is_active: true, is_selected: true },
             required: false,
             model: JobOrderMounting,
             as: "jo_mounting",
