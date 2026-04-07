@@ -7,6 +7,7 @@ const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../../model/masterData/marketing/masterHargaPengirimanModel");
+const MasterCustomerGudang = require("../../../model/masterData/marketing/masterCustomerGudangModel");
 
 const DeliveryOrderService = {
   getDeliveryOrderService: async ({
@@ -65,6 +66,10 @@ const DeliveryOrderService = {
                   model: MasterHargaPengiriman,
                   as: "harga_pengiriman",
                 },
+                {
+                  model: MasterCustomerGudang,
+                  as: "gudang",
+                },
               ],
             },
           ],
@@ -89,6 +94,10 @@ const DeliveryOrderService = {
                 {
                   model: MasterHargaPengiriman,
                   as: "harga_pengiriman",
+                },
+                {
+                  model: MasterCustomerGudang,
+                  as: "gudang",
                 },
               ],
             },
@@ -191,7 +200,7 @@ const DeliveryOrderService = {
           note: dataSo?.note || null,
           tgl_pengiriman: dataSo?.tgl_pengiriman || null,
         },
-        { transaction: t }
+        { transaction: t },
       );
       if (!transaction) await t.commit();
       return {
