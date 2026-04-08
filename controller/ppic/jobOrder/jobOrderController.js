@@ -261,19 +261,21 @@ const BomController = {
 
     try {
       let checkData = null;
-      if (id_so) {
+      let id_so_update = null;
+      if (id_so && id_so != "") {
         checkData = await SoModel.findByPk(id_so);
+        id_so_update = id_so;
       } else {
         checkData = await IoModel.findByPk(id_io);
       }
 
-      if (!checkData && id_so) {
+      if (!checkData && id_so && id_so != "") {
         return res.status(404).json({
           succes: false,
           status_code: 404,
           msg: "Data SO tidak ditemukan",
         });
-      } else if (!checkData && id_io) {
+      } else if (!checkData && id_io && id_io != "") {
         return res.status(404).json({
           succes: false,
           status_code: 404,
@@ -284,7 +286,7 @@ const BomController = {
       let checkBom = null;
       let checkBomPpic = null;
 
-      if (id_so) {
+      if (id_so && id_so != "") {
         checkBom = await BomModel.findOne({
           where: { id_so: checkData.id },
         });
@@ -303,7 +305,7 @@ const BomController = {
       const dataJobOrder = await JobOrder.create(
         {
           id_io,
-          id_so,
+          id_so: id_so_update,
           id_customer: checkData.id_customer,
           id_produk: checkData.id_produk,
           id_create_jo: req.user.id,
@@ -371,7 +373,7 @@ const BomController = {
         await JobOrderMounting.bulkCreate(dataJoMounting, { transaction: t });
       }
 
-      if (id_so) {
+      if (id_so && id_so != "") {
         await SoModel.update(
           { is_jo_done: true },
           { where: { id: id_so }, transaction: t },
@@ -407,7 +409,7 @@ const BomController = {
       //fungsi create tiket jadwal produksi
       let dataSo = null;
       let dataIo = null;
-      if (id_so) {
+      if (id_so && id_so != "") {
         dataSo = await soModel.findByPk(id_so);
       } else {
         dataIo = await IoModel.findByPk(id_io);
