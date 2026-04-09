@@ -100,6 +100,7 @@ const BomController = {
                     "jumlah_warna",
                     "keterangan_warna_depan",
                     "keterangan_warna_belakang",
+                    "file",
                   ],
                   include: {
                     model: IoTahapan,
