@@ -262,11 +262,14 @@ const BomController = {
     try {
       let checkData = null;
       let id_so_update = null;
+      let status_jo_update = null;
       if (id_so && id_so != "") {
         checkData = await SoModel.findByPk(id_so);
         id_so_update = id_so;
+        status_jo_update = checkData.status_jo;
       } else {
         checkData = await IoModel.findByPk(id_io);
+        status_jo_update = checkData.status_io;
       }
 
       if (!checkData && id_so && id_so != "") {
@@ -315,7 +318,7 @@ const BomController = {
           customer,
           produk,
           status_kalkulasi,
-          status_jo,
+          status_jo: status_jo_update,
           stok_fg,
           qty,
           qty_druk,
