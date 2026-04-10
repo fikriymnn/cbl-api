@@ -176,7 +176,7 @@ const KalkulasiController = {
         total_data: number,
       });
     } catch (error) {
-      console.log(error.message);
+      //console.log(error.message);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });
@@ -286,7 +286,7 @@ const KalkulasiController = {
     const t = await db.transaction();
 
     try {
-      console.log(panjang_packaging, lebar_packaging);
+      //console.log(panjang_packaging, lebar_packaging);
       if (!id_customer)
         return res.status(404).json({
           succes: false,

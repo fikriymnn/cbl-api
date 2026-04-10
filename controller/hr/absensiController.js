@@ -59,18 +59,18 @@ const AbsensiController = {
           yesterday,
           yesterday,
           obj,
-          true
+          true,
         );
 
         const absenResultYesterdayShift2 = absenResultYesterday.filter(
-          (data) => data.shift == "Shift 2"
+          (data) => data.shift == "Shift 2",
         );
 
         const absenResult = await getAbsensiFunction(
           startDate,
           endDate,
           obj,
-          true
+          true,
         );
         const aaa = absenResultYesterday.find((d) => d.userid == 44);
         const bbb = absenResult.find((d) => d.userid == 44);
@@ -78,7 +78,7 @@ const AbsensiController = {
         // Buat array userid yang shift 2 kemarin dan tidak hadir hari ini
         const excludeUserIds = absenResultYesterdayShift2
           .filter(
-            (y) => !absenResult.some((today) => today.userid === y.userid)
+            (y) => !absenResult.some((today) => today.userid === y.userid),
           )
           .map((y) => y.userid);
 
@@ -87,7 +87,7 @@ const AbsensiController = {
           const isBelumMasuk =
             entry.status_absen?.toLowerCase().trim() === "belum masuk";
           const wasInShift2Yesterday = absenResultYesterdayShift2.some(
-            (y) => String(y.userid) === String(entry.userid)
+            (y) => String(y.userid) === String(entry.userid),
           );
           // Jika belum masuk dan kemarin shift 2, hapus (return false)
           if (isBelumMasuk && wasInShift2Yesterday) {
@@ -105,7 +105,7 @@ const AbsensiController = {
           startDate,
           endDate,
           obj,
-          true
+          true,
         );
         res.status(200).json({ data: absenResult });
       }
@@ -167,14 +167,14 @@ const AbsensiController = {
           },
         ],
       });
-      console.log(req.query);
+      //console.log(req.query);
 
       const dataRekap = await getRekapAbsensi(
         startDate,
         endDate,
         dataKaryawan,
         obj,
-        true
+        true,
       );
 
       res.status(200).json({ data: dataRekap });
@@ -232,7 +232,7 @@ const AbsensiController = {
           e.endPeriode,
           dataKaryawan,
           obj,
-          false
+          false,
         );
         dataRekap.push({ ...e, rekapAbsen: rekap });
       }
@@ -321,34 +321,34 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj, absen) {
     obj.id_karyawan = data.id_karyawan;
 
     const absenResultFilter = absenResult.filter(
-      (absen) => absen.userid === data.id_karyawan
+      (absen) => absen.userid === data.id_karyawan,
     );
 
     //untuk total jam lembur biasa
     const lemburBiasaData = absenResultFilter.filter(
-      (absen) => absen.jenis_hari_masuk == "Biasa"
+      (absen) => absen.jenis_hari_masuk == "Biasa",
     );
     const lemburBiasaJam = lemburBiasaData.reduce(
       (sum, item) => sum + item.jam_lembur,
-      0
+      0,
     );
     const lemburBiasaIstirahatJam = lemburBiasaData.reduce(
       (sum, item) => sum + item.jam_istirahat_lembur,
-      0
+      0,
     );
     const totalLemburBiasaJam = lemburBiasaJam - (lemburBiasaIstirahatJam || 0);
 
     //untuk total jam lembur libur
     const lemburLiburData = absenResultFilter.filter(
-      (absen) => absen.jenis_hari_masuk == "Libur"
+      (absen) => absen.jenis_hari_masuk == "Libur",
     );
     const lemburLiburJam = lemburLiburData.reduce(
       (sum, item) => sum + item.jam_lembur,
-      0
+      0,
     );
     const lemburLiburIstirahatJam = lemburLiburData.reduce(
       (sum, item) => sum + item.jam_istirahat_lembur,
-      0
+      0,
     );
     const totalLemburLiburJam = lemburLiburJam - lemburLiburIstirahatJam;
 
@@ -356,50 +356,50 @@ async function getRekapAbsensi(startDate, endDate, dataKaryawan, obj, absen) {
     const dataTerlambat = absenResultFilter.filter(
       (absen) =>
         absen.status_masuk == "Terlambat " ||
-        absen.status_masuk == "Terlambat : Pribadi"
+        absen.status_masuk == "Terlambat : Pribadi",
     );
 
     //untuk cuti khusus
     const dataCutiKhusus = cutiKhusus.filter(
-      (cuti) => cuti.id_karyawan == data.id_karyawan
+      (cuti) => cuti.id_karyawan == data.id_karyawan,
     );
 
     const jumlahHariCutiKhusus = dataCutiKhusus.reduce(
       (sum, item) => sum + item.jumlah_hari,
-      0
+      0,
     );
 
     //untuk cuti tahunana
     const dataCutiTahunan = cutiTahunan.filter(
-      (cuti) => cuti.id_karyawan == data.id_karyawan
+      (cuti) => cuti.id_karyawan == data.id_karyawan,
     );
 
     const jumlahHariCutiTahunan = dataCutiTahunan.reduce(
       (sum, item) => sum + item.jumlah_hari,
-      0
+      0,
     );
 
     //untuk sakit
     const dataSakit = sakit.filter(
-      (sakit) => sakit.id_karyawan == data.id_karyawan
+      (sakit) => sakit.id_karyawan == data.id_karyawan,
     );
     const jumlahHariSakit = dataSakit.reduce(
       (sum, item) => sum + item.jumlah_hari,
-      0
+      0,
     );
 
     //untuk izin
     const dataIzin = izin.filter(
-      (izin) => izin.id_karyawan == data.id_karyawan
+      (izin) => izin.id_karyawan == data.id_karyawan,
     );
     const jumlahHariIzin = dataIzin.reduce(
       (sum, item) => sum + item.jumlah_hari,
-      0
+      0,
     );
 
     //untuk mangkir
     const dataMangkir = mangkir.filter(
-      (izin) => izin.id_karyawan == data.id_karyawan
+      (izin) => izin.id_karyawan == data.id_karyawan,
     );
 
     const jumlahHariMangkir = dataMangkir.length;

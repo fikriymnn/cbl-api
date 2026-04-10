@@ -219,7 +219,7 @@ const PengajuanPromosiController = {
     try {
       if (id_department_promosi) {
         const department = await MasterDepartment.findByPk(
-          id_department_promosi
+          id_department_promosi,
         );
         if (!department) {
           return res.status(404).json({
@@ -332,7 +332,7 @@ const PengajuanPromosiController = {
           tanggal_from,
           tanggal_to,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       await t.commit();
@@ -364,7 +364,7 @@ const PengajuanPromosiController = {
 
       if (dataPengajuanPromosi.id_department_promosi) {
         const department = await MasterDepartment.findByPk(
-          dataPengajuanPromosi.id_department_promosi
+          dataPengajuanPromosi.id_department_promosi,
         );
         if (!department) {
           return res.status(404).json({
@@ -376,7 +376,7 @@ const PengajuanPromosiController = {
 
       if (dataPengajuanPromosi.id_divisi_promosi) {
         const Divisi = await MasterDivisi.findByPk(
-          dataPengajuanPromosi.id_divisi_promosi
+          dataPengajuanPromosi.id_divisi_promosi,
         );
         if (!Divisi) {
           return res.status(404).json({
@@ -388,7 +388,7 @@ const PengajuanPromosiController = {
 
       if (dataPengajuanPromosi.id_jabatan_promosi) {
         const Jabatan = await MasterJabatan.findByPk(
-          dataPengajuanPromosi.id_jabatan_promosi
+          dataPengajuanPromosi.id_jabatan_promosi,
         );
         if (!Jabatan) {
           return res.status(404).json({
@@ -400,7 +400,7 @@ const PengajuanPromosiController = {
 
       if (dataPengajuanPromosi.id_grade_promosi) {
         const grade = await MasterGrade.findByPk(
-          dataPengajuanPromosi.id_grade_promosi
+          dataPengajuanPromosi.id_grade_promosi,
         );
         if (!grade) {
           return res.status(404).json({
@@ -428,7 +428,7 @@ const PengajuanPromosiController = {
         obj.id_grade = dataPengajuanPromosi.id_grade_promosi;
       if (dataPengajuanPromosi.gaji_promosi)
         obj.gaji = dataPengajuanPromosi.gaji_promosi;
-      console.log(obj);
+      //console.log(obj);
 
       await PengajuanPromosi.update(
         {
@@ -440,7 +440,7 @@ const PengajuanPromosiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await KaryawanBiodata.update(obj, {
@@ -464,7 +464,7 @@ const PengajuanPromosiController = {
           grade_promosi: gradePromosi,
           gaji_promosi: gajiPromosi,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       await t.commit();
@@ -495,7 +495,7 @@ const PengajuanPromosiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();

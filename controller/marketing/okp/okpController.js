@@ -199,7 +199,7 @@ const OkpController = {
       });
 
       let number = 0;
-      console.log(length);
+      //console.log(length);
 
       if (length) {
         const lastNo = length.no_okp; // contoh: SDP00005/12/25
@@ -216,7 +216,7 @@ const OkpController = {
         total_data: number,
       });
     } catch (error) {
-      console.log(error.message);
+      //console.log(error.message);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });
@@ -762,7 +762,7 @@ const OkpController = {
       );
 
       if (previousKalkulasi && previousKalkulasi.id_okp) {
-        console.log("masuk sini", previousKalkulasi.id_okp);
+        //console.log("masuk sini", previousKalkulasi.id_okp);
         const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
         if (checkOkpPrevious) {
           await Okp.update(

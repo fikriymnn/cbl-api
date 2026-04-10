@@ -39,7 +39,7 @@ const ReportMaintenance = {
         raw: true,
       });
 
-      console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
+      //console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
 
       // Fungsi untuk menentukan minggu (Minggu-Sabtu)
       function getWeekNumber(date) {
@@ -47,7 +47,7 @@ const ReportMaintenance = {
         const firstDayOfMonth = new Date(
           date.getFullYear(),
           date.getMonth(),
-          1
+          1,
         );
 
         // Tentukan tanggal Minggu pertama
@@ -91,7 +91,7 @@ const ReportMaintenance = {
         const monthEndDate = new Date(year, month, 0);
 
         const actualStartDate = new Date(
-          Math.max(weekStartDate, monthStartDate)
+          Math.max(weekStartDate, monthStartDate),
         );
         const actualEndDate = new Date(Math.min(weekEndDate, monthEndDate));
 
@@ -155,7 +155,7 @@ const ReportMaintenance = {
         const rataRataWaktuMenit = parseFloat(avgMinutes).toFixed(3);
         const jumlahWaktuJam = (parseFloat(jumlahWaktuMenit) / 60).toFixed(3);
         const rataRataWaktuJam = (parseFloat(rataRataWaktuMenit) / 60).toFixed(
-          3
+          3,
         );
 
         // Hitung total per minggu - selalu 5 minggu
@@ -182,7 +182,7 @@ const ReportMaintenance = {
         const mesinResult = {
           mesin: mesin,
           bulan: new Intl.DateTimeFormat("id-ID", { month: "long" }).format(
-            startDate
+            startDate,
           ),
           jumlah_waktu_menit: jumlahWaktuMenit,
           rata_rata_waktu_menit: rataRataWaktuMenit,
@@ -204,7 +204,7 @@ const ReportMaintenance = {
           const dateRange = getWeekDateRange(
             parseInt(tahun),
             parseInt(bulan),
-            i
+            i,
           );
           const tanggalMulai = formatDate(dateRange.startDate);
           const tanggalSelesai = formatDate(dateRange.endDate);
@@ -264,9 +264,9 @@ const ReportMaintenance = {
         raw: true,
       });
 
-      console.log(
-        `Total tickets for range ${fromDate} to ${toDate}: ${allTickets.length}`
-      );
+      // console.log(
+      //   `Total tickets for range ${fromDate} to ${toDate}: ${allTickets.length}`,
+      // );
 
       // Array nama bulan dalam bahasa Indonesia
       const monthNames = [
@@ -290,7 +290,7 @@ const ReportMaintenance = {
         const start = new Date(
           startDate.getFullYear(),
           startDate.getMonth(),
-          1
+          1,
         );
         const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
 
@@ -377,7 +377,7 @@ const ReportMaintenance = {
             month.rata_rata_waktu_menit = parseFloat(avgMinutes).toFixed(3);
             month.jumlah_waktu_jam = (parseFloat(totalMinutes) / 60).toFixed(3);
             month.rata_rata_waktu_jam = (parseFloat(avgMinutes) / 60).toFixed(
-              3
+              3,
             );
           }
         });
@@ -425,7 +425,7 @@ const ReportMaintenance = {
         raw: true,
       });
 
-      console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
+      //console.log(`Total tickets for ${bulan}-${tahun}: ${allTickets.length}`);
 
       // Fungsi untuk menentukan minggu (Minggu-Sabtu)
       function getWeekNumber(date) {
@@ -433,7 +433,7 @@ const ReportMaintenance = {
         const firstDayOfMonth = new Date(
           date.getFullYear(),
           date.getMonth(),
-          1
+          1,
         );
 
         // Tentukan tanggal Minggu pertama
@@ -479,7 +479,7 @@ const ReportMaintenance = {
         const monthEndDate = new Date(year, month, 0);
 
         const actualStartDate = new Date(
-          Math.max(weekStartDate, monthStartDate)
+          Math.max(weekStartDate, monthStartDate),
         );
         const actualEndDate = new Date(Math.min(weekEndDate, monthEndDate));
 
@@ -542,7 +542,7 @@ const ReportMaintenance = {
         const rataRataWaktuMenit = parseFloat(avgMinutes).toFixed(3);
         const jumlahWaktuJam = (parseFloat(jumlahWaktuMenit) / 60).toFixed(3);
         const rataRataWaktuJam = (parseFloat(rataRataWaktuMenit) / 60).toFixed(
-          3
+          3,
         );
 
         // Hitung total per minggu - selalu 5 minggu
@@ -569,7 +569,7 @@ const ReportMaintenance = {
         const mesinResult = {
           mesin: mesin,
           bulan: new Intl.DateTimeFormat("id-ID", { month: "long" }).format(
-            startDate
+            startDate,
           ),
           jumlah_waktu_menit: jumlahWaktuMenit,
           rata_rata_waktu_menit: rataRataWaktuMenit,
@@ -591,7 +591,7 @@ const ReportMaintenance = {
           const dateRange = getWeekDateRange(
             parseInt(tahun),
             parseInt(bulan),
-            i
+            i,
           );
           const tanggalMulai = formatDate(dateRange.startDate);
           const tanggalSelesai = formatDate(dateRange.endDate);
@@ -729,7 +729,7 @@ const ReportMaintenance = {
         raw: false,
       });
 
-      console.log(`Total tickets for range: ${allTickets.length}`);
+      //console.log(`Total tickets for range: ${allTickets.length}`);
 
       // Fungsi untuk mendapatkan key bulan dari tanggal
       function getMonthKey(date) {
@@ -822,29 +822,29 @@ const ReportMaintenance = {
         Object.keys(mesinMonths).forEach((monthKey) => {
           const monthData = mesinMonths[monthKey];
           const monthIndex = mesinData.data.findIndex(
-            (m) => m.month === monthData.month && m.year === monthData.year
+            (m) => m.month === monthData.month && m.year === monthData.year,
           );
 
           if (monthIndex !== -1) {
             // Total waktu
             const totalMinutes = parseFloat(
-              monthData.totalDurationMinutes
+              monthData.totalDurationMinutes,
             ).toFixed(3);
             const avgMinutes =
               monthData.ticketCount > 0
                 ? parseFloat(
-                    monthData.totalDurationMinutes / monthData.ticketCount
+                    monthData.totalDurationMinutes / monthData.ticketCount,
                   ).toFixed(3)
                 : "0.000";
 
             // Waktu MTC
             const mtcMinutes = parseFloat(monthData.mtcDurationMinutes).toFixed(
-              3
+              3,
             );
             const avgMtcMinutes =
               monthData.ticketCount > 0
                 ? parseFloat(
-                    monthData.mtcDurationMinutes / monthData.ticketCount
+                    monthData.mtcDurationMinutes / monthData.ticketCount,
                   ).toFixed(3)
                 : "0.000";
 
@@ -872,7 +872,7 @@ const ReportMaintenance = {
               rata_rata_waktu_mtc_menit: avgMtcMinutes,
               jumlah_waktu_mtc_jam: (parseFloat(mtcMinutes) / 60).toFixed(3),
               rata_rata_waktu_mtc_jam: (parseFloat(avgMtcMinutes) / 60).toFixed(
-                3
+                3,
               ),
 
               // QC
@@ -880,7 +880,7 @@ const ReportMaintenance = {
               rata_rata_waktu_menit_qc: avgQcMinutes,
               jumlah_waktu_jam_qc: (parseFloat(qcMinutes) / 60).toFixed(3),
               rata_rata_waktu_jam_qc: (parseFloat(avgQcMinutes) / 60).toFixed(
-                3
+                3,
               ),
             };
           }
@@ -921,13 +921,13 @@ const ReportMaintenance = {
             "mesin",
             [
               Sequelize.literal(
-                'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)'
+                'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)',
               ),
               "jenis_quality",
             ],
             [
               Sequelize.literal(
-                'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)'
+                'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)',
               ),
               "jenis_produksi",
             ],
@@ -951,20 +951,20 @@ const ReportMaintenance = {
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_produksi);
           },
-          0
+          0,
         );
         const totalQualityJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_quality);
           },
-          0
+          0,
         );
 
         const totalCountJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.count);
           },
-          0
+          0,
         );
 
         res.status(200).json({
@@ -981,13 +981,13 @@ const ReportMaintenance = {
             "mesin",
             [
               Sequelize.literal(
-                'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)'
+                'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)',
               ),
               "jenis_quality",
             ],
             [
               Sequelize.literal(
-                'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)'
+                'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)',
               ),
               "jenis_produksi",
             ],
@@ -1008,20 +1008,20 @@ const ReportMaintenance = {
           (accumulator, currentValue) => {
             return accumulator + currentValue.count;
           },
-          0
+          0,
         );
 
         const totalProduksiJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_produksi);
           },
-          0
+          0,
         );
         const totalQualityJenisMalasah = jenisMasalah.reduce(
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.jenis_quality);
           },
-          0
+          0,
         );
 
         const result = {};
@@ -1138,13 +1138,13 @@ const ReportMaintenance = {
           "mesin",
           [
             Sequelize.literal(
-              'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)'
+              'SUM(CASE WHEN jenis_analisis_mtc = "quality" THEN 1 ELSE 0 END)',
             ),
             "jenis_quality",
           ],
           [
             Sequelize.literal(
-              'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)'
+              'SUM(CASE WHEN jenis_analisis_mtc = "produksi" THEN 1 ELSE 0 END)',
             ),
             "jenis_produksi",
           ],
@@ -1178,7 +1178,7 @@ const ReportMaintenance = {
         }
 
         const foundMonth = acc[mesin].data.find(
-          (m) => m.month === row.month && m.year === row.year
+          (m) => m.month === row.month && m.year === row.year,
         );
 
         if (foundMonth) {
@@ -1198,20 +1198,20 @@ const ReportMaintenance = {
         (accumulator, currentValue) => {
           return accumulator + currentValue.count;
         },
-        0
+        0,
       );
 
       const totalProduksiJenisMalasah = jenisMasalah.reduce(
         (accumulator, currentValue) => {
           return accumulator + parseInt(currentValue.jenis_produksi);
         },
-        0
+        0,
       );
       const totalQualityJenisMalasah = jenisMasalah.reduce(
         (accumulator, currentValue) => {
           return accumulator + parseInt(currentValue.jenis_quality);
         },
-        0
+        0,
       );
 
       const produksiDefect = await TicketOs2.findAll({
@@ -1306,7 +1306,7 @@ const ReportMaintenance = {
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.count);
           },
-          0
+          0,
         );
 
         res.status(200).json({
@@ -1338,7 +1338,7 @@ const ReportMaintenance = {
           (accumulator, currentValue) => {
             return accumulator + parseInt(currentValue.count);
           },
-          0
+          0,
         );
 
         let resultAnalisisProdukasi = [];
@@ -1470,7 +1470,7 @@ function calculateBreakdownTime(ticketData) {
     const startOfMonth = new Date(
       createdAt.getFullYear(),
       createdAt.getMonth(),
-      1
+      1,
     );
     const dayOfMonth = createdAt.getDate();
     const dayOfWeek = startOfMonth.getDay(); // 0 = Minggu, 1 = Senin, dst.
