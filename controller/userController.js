@@ -266,7 +266,7 @@ const userController = {
           msg: "User Update Successfuly",
         }));
     } catch (error) {
-      console.log(error);
+      //console.log(error);
       res
         .status(400)
         .json({ succes: false, status_code: 400, msg: error.message });

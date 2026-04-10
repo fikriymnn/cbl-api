@@ -377,7 +377,7 @@ const inspeksiFinalController = {
         //create ke tabel delivery order
         const dataListJoDone =
           await ProduksiJoDoneService.getProduksiJoDoneService({
-            id_jo: getInspeksiFinal.id_jo,
+            no_jo: getInspeksiFinal.no_jo,
             status_proses: "check qc",
           });
 
@@ -390,7 +390,6 @@ const inspeksiFinalController = {
             msg: dataListJoDone.message,
           });
         }
-
         const createIncomingBarangJadi =
           await DeliveryOrderService.creteDeliveryOrderService({
             id_jo: dataListJoDone.data[0].id_jo,

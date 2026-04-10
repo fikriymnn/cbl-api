@@ -20,6 +20,7 @@ const ProduksiJoDoneService = {
     status_proses,
     search,
     id_jo,
+    no_jo,
     id_io,
     id_so,
     id_customer,
@@ -41,6 +42,7 @@ const ProduksiJoDoneService = {
     if (status) obj.status = status;
     if (status_proses) obj.status_proses = status_proses;
     if (id_jo) obj.id_jo = id_jo;
+    if (no_jo) obj.no_jo = no_jo;
     if (id_io) obj.id_io = id_io;
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
@@ -112,6 +114,7 @@ const ProduksiJoDoneService = {
     const t = transaction || (await db.transaction());
 
     try {
+      console.log(1);
       //cek data jo
       const dataJo = await JobOrder.findByPk(id_jo);
       if (!dataJo) {
@@ -174,7 +177,7 @@ const ProduksiJoDoneService = {
           customer: dataCustomer?.nama_customer || null,
           produk: dataProduk?.nama_produk || null,
         },
-        { transaction: t }
+        { transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -223,7 +226,7 @@ const ProduksiJoDoneService = {
           status_proses: "check qc",
           qty_kirim: checkData.qty_kirim + qty_kirim,
         },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
 
       const formatTanggalNow = FormatTanggalFunction.formatTanggal(new Date());
@@ -273,7 +276,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "done", status_proses: "done" },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -301,7 +304,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "reject", status_proses: "reject qc" },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {

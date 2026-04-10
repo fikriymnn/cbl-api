@@ -1240,7 +1240,7 @@ const karyawanController = {
 
         const checkAkun = await Users.findOne({ where: { email: e.email } });
 
-        console.log(e.email);
+        //console.log(e.email);
 
         if (!checkAkun) {
           await Users.create(

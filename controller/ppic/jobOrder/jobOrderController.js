@@ -456,10 +456,9 @@ const BomController = {
       function formatDate(dateStr, locale = "en-GB") {
         const date = new Date(dateStr);
         return date.toLocaleDateString(locale, {
-          day: "numeric",
-          month: "long",
+          day: "2-digit",
+          month: "short",
           year: "numeric",
-          timeZone: "Asia/Jakarta", // pastikan sesuai zona waktu lokal kamu
         });
       }
 
