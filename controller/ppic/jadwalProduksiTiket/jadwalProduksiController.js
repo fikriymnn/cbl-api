@@ -182,7 +182,7 @@ const jadwalProduksiController = {
         });
         await TiketJadwalProduksi.update(
           { status_tiket: "history", no_jo: no_jo },
-          { where: { no_booking: no_booking }, transaction: t }
+          { where: { no_booking: no_booking }, transaction: t },
         );
         await t.commit();
         res.status(200).json({
@@ -212,7 +212,7 @@ const jadwalProduksiController = {
             qty_druk,
             qty_lp,
           },
-          { transaction: t }
+          { transaction: t },
         );
         let dataTahapan = [];
         for (let i = 0; i < tahap.length; i++) {
@@ -319,7 +319,7 @@ const jadwalProduksiController = {
             qty_druk,
             qty_lp,
           },
-          { transaction: t }
+          { transaction: t },
         );
         let dataTahapan = [];
         for (let i = 0; i < tahap.length; i++) {
@@ -365,7 +365,7 @@ const jadwalProduksiController = {
 
         const findTahapFG = dataTahapan.find((data) => data.tahapan === "FG");
         const indexFinalInspection = dataTahapan.findIndex((data) =>
-          data.tahapan.toLowerCase().includes("final inspection")
+          data.tahapan.toLowerCase().includes("final inspection"),
         );
 
         if (!findTahapFG && indexFinalInspection !== -1) {
@@ -426,6 +426,7 @@ const jadwalProduksiController = {
     const { is_lembur } = req.query;
     const t = await db.transaction();
     try {
+      console.log(1);
       const dataTiket = await TiketJadwalProduksi.findByPk(id, {
         include: [
           {
@@ -536,7 +537,7 @@ const jadwalProduksiController = {
       }
 
       const jadwalLiburSet = new Set(
-        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
+        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0]),
       );
 
       const decrementDate = (date, days) => {
@@ -604,10 +605,10 @@ const jadwalProduksiController = {
                   }
 
                   const istirahatStart = parseInt(
-                    istirahat.jam_mulai.replace(":", "")
+                    istirahat.jam_mulai.replace(":", ""),
                   );
                   const istirahatEnd = parseInt(
-                    istirahat.jam_selesai.replace(":", "")
+                    istirahat.jam_selesai.replace(":", ""),
                   );
 
                   if (
@@ -743,14 +744,14 @@ const jadwalProduksiController = {
               if (stage.drying_time > 0) {
                 currentDate = addHoursWithoutShiftRestriction(
                   currentDate,
-                  -stage.drying_time
+                  -stage.drying_time,
                 );
 
                 // Setelah drying time, cari waktu mulai yang sesuai dengan shift untuk tahap berikutnya
                 currentDate = findNextAvailableShiftTime(
                   currentDate,
                   jadwalLiburSet,
-                  dataShift
+                  dataShift,
                 );
               }
             }
@@ -786,13 +787,13 @@ const jadwalProduksiController = {
         listJadwalPerJam,
         allExistingSchedule,
         jadwalLiburSet,
-        dataShift
+        dataShift,
       );
 
       // Menambahkan list jadwal per jam ke dalam data tahap
       dataById.tahap.map((stage, index) => {
         stage.listJadwalPerJam = listJadwalPerJam.filter(
-          (jadwal) => jadwal.tahapan === stage.tahapan
+          (jadwal) => jadwal.tahapan === stage.tahapan,
         );
       });
 
@@ -801,7 +802,7 @@ const jadwalProduksiController = {
 
       await TiketJadwalProduksi.update(
         { status: "calculated", tgl_mulai_produksi: dateMulaiProduksi },
-        { where: { id: dataById.id }, transaction: t }
+        { where: { id: dataById.id }, transaction: t },
       );
 
       for (let i = 0; i < dataById.tahap.length; i++) {
@@ -821,7 +822,7 @@ const jadwalProduksiController = {
               id_tiket_jadwal_produksi: dataById.id,
               id_tiket_jadwal_produksi_tahapan: data.id,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }
@@ -847,7 +848,7 @@ const jadwalProduksiController = {
       }
 
       const dataTiket = await TiketJadwalProduksi.findByPk(
-        dataToUpdate.id_tiket_jadwal_produksi
+        dataToUpdate.id_tiket_jadwal_produksi,
       );
       if (!dataTiket) {
         return res.status(404).json({ message: "Data tiket tidak ditemukan." });
@@ -900,7 +901,7 @@ const jadwalProduksiController = {
       }
 
       const jadwalLiburSet = new Set(
-        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
+        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0]),
       );
 
       const lastTanggal = new Date(dataToUpdate.tanggal);
@@ -919,7 +920,7 @@ const jadwalProduksiController = {
       // Update data yang diubah
       await TiketJadwalProduksiPerJam.update(
         { tanggal: data_jadwal.tanggal, jam: data_jadwal.jam },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       // Ambil semua data berikutnya berdasarkan tanggal dan jam
@@ -1050,7 +1051,7 @@ const jadwalProduksiController = {
         // Tambahkan interval waktu ke waktu saat ini
         let nextDateTime = moment(currentDateTime).add(
           intervalInMinutes,
-          "minutes"
+          "minutes",
         );
         let loopSafety = 0; // Mencegah infinite loop
 
@@ -1129,7 +1130,7 @@ const jadwalProduksiController = {
             // Jika tidak ada shift yang berlanjut, lompat ke hari kerja berikutnya
             let nextWorkingDate = moment(date).add(1, "days");
             let nextWorkDay = getDayOfWeek(
-              nextWorkingDate.format("YYYY-MM-DD")
+              nextWorkingDate.format("YYYY-MM-DD"),
             );
 
             while (
@@ -1147,7 +1148,7 @@ const jadwalProduksiController = {
               nextDateTime = moment(
                 `${nextWorkingDate.format("YYYY-MM-DD")}T${
                   nextShiftInfo.shift_1_masuk
-                }`
+                }`,
               );
               continue;
             }
@@ -1208,7 +1209,7 @@ const jadwalProduksiController = {
                 nextDateTime = moment(
                   `${nextDate.format("YYYY-MM-DD")}T${
                     nextShiftInfo.shift_1_masuk
-                  }`
+                  }`,
                 );
                 continue;
               }
@@ -1233,7 +1234,7 @@ const jadwalProduksiController = {
               nextDateTime = moment(
                 `${validWorkDate.format("YYYY-MM-DD")}T${
                   validShiftInfo.shift_1_masuk
-                }`
+                }`,
               );
               continue;
             }
@@ -1265,7 +1266,7 @@ const jadwalProduksiController = {
             tanggal: updatedDate,
             jam: updatedTime,
           },
-          { where: { id: data.id }, transaction: t }
+          { where: { id: data.id }, transaction: t },
         );
       }
 
@@ -1324,7 +1325,7 @@ const jadwalProduksiController = {
           tgl_kirim_update: formatted,
           tgl_kirim_update_date: tgl_kirim,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       await TiketJadwalProduksiPerJam.destroy({
@@ -1386,10 +1387,10 @@ const jadwalProduksiController = {
 
         const dataJadwal = element.jadwal_per_jam.sort((a, b) => {
           const tanggalA = new Date(
-            `${a.tanggal.toISOString().split("T")[0]}T${a.jam}`
+            `${a.tanggal.toISOString().split("T")[0]}T${a.jam}`,
           );
           const tanggalB = new Date(
-            `${b.tanggal.toISOString().split("T")[0]}T${b.jam}`
+            `${b.tanggal.toISOString().split("T")[0]}T${b.jam}`,
           );
           return tanggalA - tanggalB;
         });
@@ -1431,12 +1432,12 @@ const jadwalProduksiController = {
       if (data.type == "jadwal") {
         await TiketJadwalProduksi.update(
           { status_tiket: "history", tgl_masuk_jadwal: new Date() },
-          { where: { id: id }, transaction: t }
+          { where: { id: id }, transaction: t },
         );
       } else {
         await TiketJadwalProduksi.update(
           { status_tiket: "penjadwalan", tgl_masuk_jadwal: new Date() },
-          { where: { id: id }, transaction: t }
+          { where: { id: id }, transaction: t },
         );
       }
 
@@ -1484,7 +1485,7 @@ const jadwalProduksiController = {
         {
           status_tiket: "canceled",
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       await TiketJadwalProduksiPerJam.destroy({
@@ -1526,7 +1527,7 @@ const jadwalProduksiController = {
         const element = data[i];
         await TiketJadwalProduksi.update(
           { status_tiket: "expired" },
-          { where: { id: element.id }, transaction: t }
+          { where: { id: element.id }, transaction: t },
         );
         if (element.status_tiket == "history") {
           await JadwalProduksi.destroy({
@@ -1649,7 +1650,7 @@ const isBreakTime = (date, schedule) => {
 
   const timeStr = date.toTimeString().slice(0, 8);
   return schedule.istirahat.some(
-    (breakTime) => timeStr >= breakTime.dari && timeStr < breakTime.sampai
+    (breakTime) => timeStr >= breakTime.dari && timeStr < breakTime.sampai,
   );
 };
 
@@ -1705,7 +1706,7 @@ const isWithinShiftHours = (date, holidaySet, shift) => {
 function isSlotOccupied(dataTerjadwal, mesin, tanggal, jam) {
   return dataTerjadwal.some(
     (item) =>
-      item.mesin === mesin && item.tanggal === tanggal && item.jam === jam
+      item.mesin === mesin && item.tanggal === tanggal && item.jam === jam,
   );
 }
 
@@ -1716,7 +1717,7 @@ function findNextAvailableSlot(
   startDate,
   startTime,
   jadwalLiburSet,
-  dataShift
+  dataShift,
 ) {
   let currentDate = new Date(startDate);
   let currentHour = parseInt(startTime.split(":")[0]);
@@ -1750,7 +1751,7 @@ function resolveScheduleConflicts(
   listJadwalPerJam,
   dataTerjadwal,
   jadwalLiburSet,
-  dataShift
+  dataShift,
 ) {
   // Gabungkan data terjadwal dengan data yang sudah diproses
   let allScheduledData = [...dataTerjadwal];
@@ -1765,7 +1766,7 @@ function resolveScheduleConflicts(
         allScheduledData,
         currentItem.mesin,
         currentItem.tgl,
-        currentItem.jam
+        currentItem.jam,
       )
     ) {
       // Cari slot kosong berikutnya
@@ -1775,7 +1776,7 @@ function resolveScheduleConflicts(
         currentItem.tgl,
         currentItem.jam,
         jadwalLiburSet,
-        dataShift
+        dataShift,
       );
 
       // Update item dengan slot baru
@@ -1798,7 +1799,7 @@ function resolveScheduleConflicts(
             formatNowDateOnly(nextSlot.date),
             formatNowTimeOnly(nextSlot.date),
             jadwalLiburSet,
-            dataShift
+            dataShift,
           );
 
           listJadwalPerJam[j].tgl = nextNextSlot.tanggal;
