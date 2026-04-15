@@ -170,7 +170,7 @@ const PembuatanStandarWarnaService = {
           customer: dataCustomer?.nama_customer || null,
           produk: dataProduk?.nama_produk || null,
         },
-        { transaction: t },
+        { transaction: t }
       );
       if (!transaction) await t.commit();
       return {
@@ -202,7 +202,7 @@ const PembuatanStandarWarnaService = {
       }
       await PembuatanStandarWarna.update(
         { status: "request marketing", id_user_qc: id_user },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
       if (!transaction) await t.commit();
       return {
@@ -234,15 +234,15 @@ const PembuatanStandarWarnaService = {
       }
       await PembuatanStandarWarna.update(
         { status: "approved", status_proses: "done", id_user_approve: id_user },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
 
       if (checkData.id_so) {
         //untuk update so
       } else {
         await IoModel.update(
-          { status_send_proof: "done" },
-          { where: { id: checkData.id_io }, transaction: t },
+          { status_send_proof: "done", is_send_proof: false },
+          { where: { id: checkData.id_io }, transaction: t }
         );
       }
       if (!transaction) await t.commit();
@@ -282,25 +282,25 @@ const PembuatanStandarWarnaService = {
           id_user_reject: id_user,
           note: note,
         },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
 
       if (is_create_again == "true" || is_create_again == true) {
         if (checkData.id_so) {
           await SoModel.update(
             { is_jo_done: false },
-            { where: { id: checkData.id_so }, transaction: t },
+            { where: { id: checkData.id_so }, transaction: t }
           );
         } else {
           await IoModel.update(
-            { status_send_proof: "reject marketing" },
-            { where: { id: checkData.id_io }, transaction: t },
+            { status_send_proof: "reject marketing", is_send_proof: false },
+            { where: { id: checkData.id_io }, transaction: t }
           );
         }
       } else {
         await IoModel.update(
-          { status_send_proof: "rejected" },
-          { where: { id: checkData.id_io }, transaction: t },
+          { status_send_proof: "rejected", is_send_proof: false },
+          { where: { id: checkData.id_io }, transaction: t }
         );
       }
       if (!transaction) await t.commit();

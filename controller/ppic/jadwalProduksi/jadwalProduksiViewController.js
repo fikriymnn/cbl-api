@@ -14,10 +14,22 @@ const jadwalProduksiViewController = {
       const { status, start_date, end_date, mesin, page, limit, search } =
         req.query;
       const { id } = req.params;
+
+      // BUG FIX: Validasi input start_date dan end_date
+      if (!id && (!start_date || !end_date)) {
+        return res
+          .status(400)
+          .json({ msg: "start_date dan end_date wajib diisi." });
+      }
+
       const offset = (parseInt(page) - 1) * parseInt(limit);
+
       if (id) {
         const dataById = await JadwalProduksi.findByPk(id);
-        res.status(200).json({ data: dataById });
+        if (!dataById) {
+          return res.status(404).json({ msg: "Data tidak ditemukan." });
+        }
+        return res.status(200).json({ data: dataById });
       } else {
         const data = await JadwalProduksi.findAll({
           where: {
@@ -29,7 +41,7 @@ const jadwalProduksiViewController = {
             },
           },
         });
-        res.status(200).json({ data: data });
+        return res.status(200).json({ data: data });
       }
     } catch (err) {
       res.status(500).json({ msg: err.message });
@@ -40,7 +52,21 @@ const jadwalProduksiViewController = {
     try {
       const { start_date, end_date } = req.query;
 
+      // BUG FIX: Validasi input
+      if (!start_date || !end_date) {
+        return res
+          .status(400)
+          .json({ msg: "start_date dan end_date wajib diisi." });
+      }
+
+      // BUG FIX #4 (Rekomendasi): Tambahkan attributes agar tidak error di strict SQL mode
       const data = await JadwalProduksi.findAll({
+        attributes: [
+          "no_jo",
+          "tanggal",
+          "mesin",
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "jumlah"],
+        ],
         group: ["no_jo", "tanggal", "mesin"],
         where: {
           tanggal: {
@@ -51,20 +77,28 @@ const jadwalProduksiViewController = {
           },
         },
       });
-      res.status(200).json({ data: data });
+      return res.status(200).json({ data: data });
     } catch (err) {
       res.status(500).json({ msg: err.message });
     }
   },
 
+  // BUG FIX #3: createJadwalProduksiView — ambil data dari req.body bukan variabel undefined
   createJadwalProduksiView: async (req, res) => {
     const t = await db.transaction();
     try {
-      const data = await JadwalProduksi.bulkCreate(dataDumy, {
-        transaction: t,
-      });
+      const { data } = req.body;
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        await t.rollback();
+        return res
+          .status(400)
+          .json({ msg: "Data jadwal wajib diisi dan berupa array." });
+      }
+
+      await JadwalProduksi.bulkCreate(data, { transaction: t });
       await t.commit();
-      res.status(200).json({ msg: "create success" });
+      return res.status(200).json({ msg: "create success" });
     } catch (err) {
       await t.rollback();
       res.status(500).json({ msg: err.message });
@@ -76,11 +110,12 @@ const jadwalProduksiViewController = {
     const { data_jadwal, isSemuaTahap } = req.body;
     const t = await db.transaction();
     try {
-      // Cari data yang akan diubah berdasarkan ID
       const dataToUpdate = await JadwalProduksi.findByPk(_id);
 
+      // BUG FIX #8: Kirim HTTP response yang benar jika data tidak ditemukan
       if (!dataToUpdate) {
-        return { message: "Data tidak ditemukan." };
+        await t.rollback();
+        return res.status(404).json({ message: "Data tidak ditemukan." });
       }
 
       const jadwalLembur = await JadwalLemburProduksi.findAll({
@@ -93,15 +128,11 @@ const jadwalProduksiViewController = {
       const newTanggal = new Date(data_jadwal.tanggal);
       const newDate = newTanggal.toISOString().split("T")[0];
 
-      // Menggunakan moment untuk mengonversi waktu ke zona waktu lokal dan UTC
       const originalDateTime = moment.utc(`${lastDate}T${dataToUpdate.jam}`);
       const newDateTime = moment.utc(`${newDate}T${data_jadwal.jam}`);
 
-      // Menghitung selisih waktu dalam milidetik
       const timeDifference = newDateTime.diff(originalDateTime);
 
-      // Ambil satu data pertama di setiap mesin dengan no_jo yang sama
-      // yang tanggal dan jamnya lebih besar dari data yang dipindah
       let allDataAfterUpdate = [];
 
       if (isSemuaTahap) {
@@ -109,34 +140,18 @@ const jadwalProduksiViewController = {
           allDataAfterUpdate = await JadwalProduksi.findAll({
             where: {
               [Op.and]: [
-                {
-                  no_jo: dataToUpdate.no_jo,
-                },
+                { no_jo: dataToUpdate.no_jo },
                 {
                   [Op.or]: [
-                    {
-                      tanggal: {
-                        [Op.gt]: dataToUpdate.tanggal,
-                      },
-                    },
+                    { tanggal: { [Op.gt]: dataToUpdate.tanggal } },
                     {
                       [Op.and]: [
                         { tanggal: dataToUpdate.tanggal },
-                        {
-                          jam: {
-                            [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
-                          },
-                        },
+                        { jam: { [Op.gte]: dataToUpdate.jam } },
                       ],
                     },
                   ],
                 },
-                // Uncomment jika ingin mengecualikan id tertentu
-                // {
-                //   id: {
-                //     [Op.ne]: _id,
-                //   },
-                // },
               ],
               tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
             },
@@ -146,38 +161,22 @@ const jadwalProduksiViewController = {
               ["jam", "ASC"],
             ],
           });
-        } else if (!dataToUpdate.no_jo) {
+        } else {
           allDataAfterUpdate = await JadwalProduksi.findAll({
             where: {
               [Op.and]: [
-                {
-                  no_booking: dataToUpdate.no_booking,
-                },
+                { no_booking: dataToUpdate.no_booking },
                 {
                   [Op.or]: [
-                    {
-                      tanggal: {
-                        [Op.gt]: dataToUpdate.tanggal,
-                      },
-                    },
+                    { tanggal: { [Op.gt]: dataToUpdate.tanggal } },
                     {
                       [Op.and]: [
                         { tanggal: dataToUpdate.tanggal },
-                        {
-                          jam: {
-                            [Op.gte]: dataToUpdate.jam, // gunakan >= (greater than or equal)
-                          },
-                        },
+                        { jam: { [Op.gte]: dataToUpdate.jam } },
                       ],
                     },
                   ],
                 },
-                // Uncomment jika ingin mengecualikan id tertentu
-                // {
-                //   id: {
-                //     [Op.ne]: _id,
-                //   },
-                // },
               ],
               tahapan_ke: { [Op.gte]: dataToUpdate.tahapan_ke },
             },
@@ -192,7 +191,6 @@ const jadwalProduksiViewController = {
         allDataAfterUpdate.push(dataToUpdate);
       }
 
-      // Ambil hanya satu data pertama dari setiap mesin (dengan no_jo yang sama)
       const firstDataPerMachine = [];
       const processedMachines = new Set();
 
@@ -202,72 +200,58 @@ const jadwalProduksiViewController = {
           processedMachines.add(item.mesin);
         }
       }
-      // console.log(firstDataPerMachine.map((j) => j.get({ plain: true })));
 
       const sortedData = firstDataPerMachine.sort((a, b) => {
         const dateTimeA = new Date(
-          new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam
+          new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam,
         );
         const dateTimeB = new Date(
-          new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam
+          new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam,
         );
         return dateTimeA - dateTimeB;
       });
 
-      const updated = adjustScheduleByTimeChange(sortedData, timeDifference);
-
-      // await t.commit();
-
       function adjustScheduleByTimeChange(data, perbedaanJam) {
-        // Clone data agar tidak mengubah aslinya
         const cloned = JSON.parse(JSON.stringify(data));
 
-        const updated = cloned.map((d) => {
+        return cloned.map((d) => {
           const lastTanggal = new Date(d.tanggal);
           const lastDate = lastTanggal.toISOString().split("T")[0];
-
           const currentDateTime = moment.utc(`${lastDate}T${d.jam}`);
-
-          // Tambahkan selisih waktu ke data berikutnya
           const updatedDateTime = moment(currentDateTime).add(
             perbedaanJam,
-            "milliseconds"
+            "milliseconds",
           );
-
-          // Perbarui tanggal dan jam dengan format yang benar
           const updatedDate = updatedDateTime.toISOString().split("T")[0];
           const updatedTime = updatedDateTime
             .toISOString()
             .split("T")[1]
             .split(".")[0];
 
-          // Tidak berubah jika waktu sebelumnya dari waktuAwal
-          return {
-            ...d,
-            tanggal: updatedDate,
-            jam: updatedTime,
-          };
+          return { ...d, tanggal: updatedDate, jam: updatedTime };
         });
-
-        return updated;
       }
+
+      const updated = adjustScheduleByTimeChange(sortedData, timeDifference);
 
       for (let i = 0; i < updated.length; i++) {
         const elementData = updated[i];
         const dataLemburMesin = jadwalLembur.filter(
-          (L) => L.mesin == elementData.mesin
+          (L) => L.mesin == elementData.mesin,
         );
 
-        const res = await lemburFunction.changeLemburMonly(
+        await lemburFunction.changeLemburMonly(
           elementData,
           dataLemburMesin,
           elementData.id,
-          false
+          false,
         );
-        //console.log(elementData);
       }
 
-      res
+      // BUG FIX #4: Commit transaksi yang sebelumnya dikomentari
+      await t.commit();
+
+      return res
         .status(200)
         .json({ msg: "update success", tes: sortedData, up: updated });
     } catch (error) {
@@ -281,11 +265,12 @@ const jadwalProduksiViewController = {
     const { data_jadwal, tanggal, jam } = req.body;
     const t = await db.transaction();
     try {
-      // Cari data yang akan diubah berdasarkan ID
       const dataToUpdate = await JadwalProduksi.findByPk(_id);
 
+      // BUG FIX #8: Kirim HTTP response yang benar jika data tidak ditemukan
       if (!dataToUpdate) {
-        return { message: "Data tidak ditemukan." };
+        await t.rollback();
+        return res.status(404).json({ message: "Data tidak ditemukan." });
       }
 
       const jadwalLembur = await JadwalLemburProduksi.findAll({
@@ -301,15 +286,11 @@ const jadwalProduksiViewController = {
       const newTanggal = new Date(data_jadwal.tanggal);
       const newDate = newTanggal.toISOString().split("T")[0];
 
-      // Menggunakan moment untuk mengonversi waktu ke zona waktu lokal dan UTC
       const originalDateTime = moment.utc(`${lastDate}T${dataToUpdate.jam}`);
       const newDateTime = moment.utc(`${newDate}T${data_jadwal.jam}`);
 
-      // Menghitung selisih waktu dalam milidetik
       const timeDifference = newDateTime.diff(originalDateTime);
 
-      // Ambil satu data pertama di setiap mesin dengan no_jo yang sama
-      // yang tanggal dan jamnya lebih besar dari data yang dipindah
       let allDataAfterUpdate = [];
 
       if (dataToUpdate.no_jo) {
@@ -324,11 +305,10 @@ const jadwalProduksiViewController = {
             ["jam", "ASC"],
           ],
         });
-      } else if (!dataToUpdate.no_jo) {
+      } else {
         allDataAfterUpdate = await JadwalProduksi.findAll({
           where: {
             no_booking: dataToUpdate.no_booking,
-
             mesin: dataToUpdate.mesin,
           },
           order: [
@@ -339,7 +319,6 @@ const jadwalProduksiViewController = {
         });
       }
 
-      // Ambil hanya satu data pertama dari setiap mesin (dengan no_jo yang sama)
       const firstDataPerMachine = [];
       const processedMachines = new Set();
 
@@ -349,79 +328,51 @@ const jadwalProduksiViewController = {
           processedMachines.add(item.mesin);
         }
       }
-      // console.log(firstDataPerMachine.map((j) => j.get({ plain: true })));
 
       const sortedData = firstDataPerMachine.sort((a, b) => {
         const dateTimeA = new Date(
-          new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam
+          new Date(a.tanggal).toISOString().split("T")[0] + "T" + a.jam,
         );
         const dateTimeB = new Date(
-          new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam
+          new Date(b.tanggal).toISOString().split("T")[0] + "T" + b.jam,
         );
         return dateTimeA - dateTimeB;
       });
 
-      const updated = adjustScheduleByTimeChange(sortedData, timeDifference);
-
-      // await t.commit();
-
       function adjustScheduleByTimeChange(data, perbedaanJam) {
-        // Clone data agar tidak mengubah aslinya
         const cloned = JSON.parse(JSON.stringify(data));
 
-        const updated = cloned.map((d) => {
+        return cloned.map((d) => {
           const lastTanggal = new Date(d.tanggal);
           const lastDate = lastTanggal.toISOString().split("T")[0];
-
           const currentDateTime = moment.utc(`${lastDate}T${d.jam}`);
-
-          // Tambahkan selisih waktu ke data berikutnya
           const updatedDateTime = moment(currentDateTime).add(
             perbedaanJam,
-            "milliseconds"
+            "milliseconds",
           );
-
-          // Perbarui tanggal dan jam dengan format yang benar
           const updatedDate = updatedDateTime.toISOString().split("T")[0];
           const updatedTime = updatedDateTime
             .toISOString()
             .split("T")[1]
             .split(".")[0];
 
-          // Tidak berubah jika waktu sebelumnya dari waktuAwal
-          return {
-            ...d,
-            tanggal: updatedDate,
-            jam: updatedTime,
-          };
+          return { ...d, tanggal: updatedDate, jam: updatedTime };
         });
-
-        return updated;
       }
 
-      // for (let i = 0; i < updated.length; i++) {
-      //   const elementData = updated[i];
-      //   const dataLemburMesin = jadwalLembur.filter(
-      //     (L) => L.mesin == elementData.mesin
-      //   );
-
-      //   const res = await lemburFunction.changeLemburMonly(
-      //     elementData,
-      //     dataLemburMesin,
-      //     elementData.id,
-      //     true
-      //   );
-      //   //console.log(elementData);
-      // }
+      const updated = adjustScheduleByTimeChange(sortedData, timeDifference);
 
       const respon = await lemburFunction.changeLemburMonly(
         data_jadwal,
         jadwalLembur,
         _id,
-        true
+        true,
       );
 
-      res
+      // BUG FIX #6: Commit transaksi yang sebelumnya tidak pernah dipanggil
+      await t.commit();
+
+      return res
         .status(200)
         .json({ msg: "update success", tes: sortedData, up: updated });
     } catch (error) {
@@ -436,16 +387,16 @@ const jadwalProduksiViewController = {
 
     const t = await db.transaction();
     try {
-      // Cari data yang akan diubah berdasarkan ID
       const dataToUpdate = await JadwalProduksi.findByPk(_id);
 
       if (!dataToUpdate) {
+        await t.rollback();
         return res.status(404).json({ message: "Data tidak ditemukan." });
       }
 
       const oneYearFromNow = new Date();
       oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-      oneYearFromNow.setHours(23, 59, 59, 999); // Akhir hari satu tahun ke depan
+      oneYearFromNow.setHours(23, 59, 59, 999);
 
       const dataJadwal = await JadwalKaryawan.findAll({
         order: [["createdAt", "DESC"]],
@@ -458,17 +409,10 @@ const jadwalProduksiViewController = {
       });
 
       const dataShift = await masterShift.findAll({
-        include: [
-          {
-            model: masterIstirahat,
-            as: "istirahat",
-          },
-        ],
+        include: [{ model: masterIstirahat, as: "istirahat" }],
       });
 
-      // Jadwal libur
       let jadwalLibur = [];
-
       dataJadwal.map((jadwal) => {
         const date = new Date(jadwal.tanggal);
         const formattedDate = date.toISOString().slice(0, 10);
@@ -476,7 +420,7 @@ const jadwalProduksiViewController = {
       });
 
       const jadwalLiburSet = new Set(
-        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0])
+        jadwalLibur.map((date) => new Date(date).toISOString().split("T")[0]),
       );
 
       const lastTanggal = new Date(dataToUpdate.tanggal);
@@ -485,33 +429,24 @@ const jadwalProduksiViewController = {
       const newTanggal = new Date(data_jadwal.tanggal);
       const newDate = newTanggal.toISOString().split("T")[0];
 
-      // Menggunakan moment untuk mengonversi waktu ke zona waktu lokal dan UTC
       const originalDateTime = moment.utc(`${lastDate}T${dataToUpdate.jam}`);
       const newDateTime = moment.utc(`${newDate}T${data_jadwal.jam}`);
 
-      // Menghitung selisih waktu dalam milidetik
       const timeDifference = newDateTime.diff(originalDateTime);
 
-      // Update data yang diubah
+      // Update data utama terlebih dahulu
       await JadwalProduksi.update(
         { tanggal: data_jadwal.tanggal, jam: data_jadwal.jam },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
-      // Ambil semua data berikutnya berdasarkan tanggal dan jam
       const subsequentData = await JadwalProduksi.findAll({
         where: {
           [Op.or]: [
+            { tanggal: { [Op.gt]: dataToUpdate.tanggal } },
             {
-              tanggal: {
-                [Op.gt]: dataToUpdate.tanggal, // Tanggal lebih besar
-              },
-            },
-            {
-              tanggal: dataToUpdate.tanggal, // Tanggal sama tetapi jam lebih besar
-              jam: {
-                [Op.gt]: dataToUpdate.jam,
-              },
+              tanggal: dataToUpdate.tanggal,
+              jam: { [Op.gt]: dataToUpdate.jam },
             },
           ],
           mesin: dataToUpdate.mesin,
@@ -522,7 +457,6 @@ const jadwalProduksiViewController = {
         ],
       });
 
-      // Helper function untuk mendapatkan hari dari tanggal
       const getDayOfWeek = (date) => {
         const days = [
           "Minggu",
@@ -536,42 +470,32 @@ const jadwalProduksiViewController = {
         return days[new Date(date).getDay()];
       };
 
-      // Helper function untuk memeriksa apakah tanggal adalah hari libur
-      const isHoliday = (date) => {
-        return jadwalLiburSet.has(date);
-      };
+      const isHoliday = (date) => jadwalLiburSet.has(date);
 
-      // Modified helper function untuk memeriksa apakah tanggal adalah hari lembur
+      // BUG FIX #7: Gunakan batas shift konsisten (Shift1: 08-19, Shift2: 20-07)
       const isOvertimeDay = (date, time = null) => {
         if (!tgl_lembur) return false;
 
-        // Konversi date ke format YYYY-MM-DD untuk perbandingan
         const formattedDate = new Date(date).toISOString().split("T")[0];
         const formattedOvertimeDate = new Date(tgl_lembur)
           .toISOString()
           .split("T")[0];
 
-        // Check if this is the overtime day
         if (formattedDate === formattedOvertimeDate) {
           return true;
         }
 
-        // Check if this is early morning hours (00:00-04:00) of the day after overtime
         if (time) {
           const hourOfDay = parseInt(time.split(":")[0], 10);
-
-          // If it's between midnight and 4 AM
-          if (hourOfDay < 4) {
-            // Check if previous day was the overtime day
+          if (hourOfDay < 8) {
             const prevDate = moment(date)
               .subtract(1, "days")
               .format("YYYY-MM-DD");
             const formattedPrevDate = new Date(prevDate)
               .toISOString()
               .split("T")[0];
-
             if (formattedPrevDate === formattedOvertimeDate) {
-              return true; // This is the continuation of overtime into early morning
+              return true;
             }
           }
         }
@@ -579,12 +503,9 @@ const jadwalProduksiViewController = {
         return false;
       };
 
-      // Helper function untuk mendapatkan informasi shift berdasarkan hari
-      const getShiftInfo = (day) => {
-        return dataShift.find((shift) => shift.hari === day) || null;
-      };
+      const getShiftInfo = (day) =>
+        dataShift.find((shift) => shift.hari === day) || null;
 
-      // Helper function untuk memeriksa apakah waktu tertentu berada dalam jam istirahat
       const isBreakTime = (time, breakTimes) => {
         if (!breakTimes || breakTimes.length === 0) return false;
 
@@ -609,33 +530,26 @@ const jadwalProduksiViewController = {
         return { isBreak: false };
       };
 
-      // Helper function untuk memeriksa apakah waktu berada dalam jam kerja shift
-      // Modifikasi untuk menangani jam lembur (24 jam) dengan menyertakan overnight
       const isWorkingHour = (dateTime, shiftInfo) => {
         if (!shiftInfo) return { isWorking: false };
 
         const time = dateTime.format("HH:mm:ss");
         const date = dateTime.format("YYYY-MM-DD");
+        const hourOfDay = parseInt(time.split(":")[0], 10);
 
-        // Jika hari ini adalah hari lembur, tentukan shift berdasarkan jam
         if (isOvertimeDay(date, time)) {
-          // Untuk lembur, kita menentukan shift berdasarkan jam:
-          // - Shift 1: 00:00:00 - 11:59:59
-          // - Shift 2: 12:00:00 - 23:59:59
-          const hourOfDay = parseInt(time.split(":")[0], 10);
-          if (hourOfDay < 12) {
+          // BUG FIX #7: Gunakan batas shift 08-19 dan 20-07 konsisten
+          if (hourOfDay >= 8 && hourOfDay < 20) {
             return { isWorking: true, shift: 1, isOvertimeShift: true };
           } else {
             return { isWorking: true, shift: 2, isOvertimeShift: true };
           }
         }
 
-        // Dapatkan hari sebelumnya untuk mengecek shift yang melewati tengah malam
         const prevDate = moment(date).subtract(1, "days").format("YYYY-MM-DD");
         const prevDay = getDayOfWeek(prevDate);
         const prevShiftInfo = getShiftInfo(prevDay);
 
-        // Cek shift 1
         if (
           shiftInfo.shift_1_masuk &&
           shiftInfo.shift_1_keluar &&
@@ -645,13 +559,11 @@ const jadwalProduksiViewController = {
           return { isWorking: true, shift: 1 };
         }
 
-        // Cek shift 2 di hari ini
         if (
           shiftInfo.shift_2_masuk &&
           shiftInfo.shift_2_keluar &&
           time >= shiftInfo.shift_2_masuk
         ) {
-          // Jika shift 2 keluar lebih awal dari masuk, berarti melewati tengah malam
           if (shiftInfo.shift_2_keluar < shiftInfo.shift_2_masuk) {
             return { isWorking: true, shift: 2 };
           } else if (time <= shiftInfo.shift_2_keluar) {
@@ -659,7 +571,6 @@ const jadwalProduksiViewController = {
           }
         }
 
-        // Cek apakah waktu berada di shift 2 hari sebelumnya yang melewati tengah malam
         if (
           prevShiftInfo &&
           prevShiftInfo.shift_2_masuk &&
@@ -673,15 +584,12 @@ const jadwalProduksiViewController = {
         return { isWorking: false };
       };
 
-      // Ubah fungsi getNextValidDateTime untuk menangani hari lembur (24 jam)
-      // termasuk periode 18:00-04:00
       const getNextValidDateTime = (currentDateTime, intervalInMinutes) => {
-        // Tambahkan interval waktu ke waktu saat ini
         let nextDateTime = moment(currentDateTime).add(
           intervalInMinutes,
-          "minutes"
+          "minutes",
         );
-        let loopSafety = 0; // Mencegah infinite loop
+        let loopSafety = 0;
 
         while (loopSafety < 1000) {
           loopSafety++;
@@ -691,88 +599,70 @@ const jadwalProduksiViewController = {
           const day = getDayOfWeek(date);
           const hourOfDay = parseInt(time.split(":")[0], 10);
 
-          // Cek jika hari ini adalah hari lembur (24 jam) termasuk early morning
           if (isOvertimeDay(date, time)) {
-            // Special handling for overnight hours (18:00-04:00)
-            if (hourOfDay >= 18 || hourOfDay < 4) {
-              // During overnight hours of overtime, just return the time with interval
-              return nextDateTime;
-            }
-
-            // Pada hari lembur, semua waktu valid kecuali waktu istirahat
             const shiftInfo = getShiftInfo(day);
             if (shiftInfo && shiftInfo.istirahat) {
               const breakCheck = isBreakTime(time, shiftInfo.istirahat);
               if (breakCheck.isBreak) {
-                // Lewati waktu istirahat
                 nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
                 continue;
               }
             }
 
-            // Handle transition between shifts on overtime day
-            if (hourOfDay === 11 && parseInt(time.split(":")[1], 10) >= 59) {
-              nextDateTime = moment(`${date}T12:00:00`);
+            // BUG FIX #7: Gunakan batas overnight 20:00-07:59
+            if (hourOfDay >= 20 || hourOfDay < 8) {
+              return nextDateTime;
+            }
+
+            if (hourOfDay === 19 && parseInt(time.split(":")[1], 10) >= 59) {
+              nextDateTime = moment(`${date}T20:00:00`);
               continue;
             }
 
-            // Jika bukan jam istirahat, waktu valid untuk lembur
             break;
           }
 
-          // Dapatkan data shift untuk hari ini
           const shiftInfo = getShiftInfo(day);
 
-          // Dapatkan data untuk hari berikutnya untuk memeriksa apakah itu hari libur
           const nextDate = moment(date).add(1, "days");
-          const nextDay = getDayOfWeek(nextDate.format("YYYY-MM-DD"));
           const isNextDayHoliday = isHoliday(nextDate.format("YYYY-MM-DD"));
           const isNextDayOvertime = isOvertimeDay(
-            nextDate.format("YYYY-MM-DD")
+            nextDate.format("YYYY-MM-DD"),
           );
 
-          // Cek jika waktu saat ini masih dalam shift 2 dan hari berikutnya adalah hari libur
-          // atau hari lembur, pastikan shift 2 menyelesaikan jadwalnya
           if (
             shiftInfo &&
             shiftInfo.shift_2_masuk &&
             shiftInfo.shift_2_keluar &&
             (isNextDayHoliday || isNextDayOvertime)
           ) {
-            // Cek apakah waktu berada dalam jam kerja shift 2
             const isShift2 =
               time >= shiftInfo.shift_2_masuk ||
               (shiftInfo.shift_2_keluar < shiftInfo.shift_2_masuk &&
                 time <= shiftInfo.shift_2_keluar);
 
             if (isShift2) {
-              // Jika masih dalam shift 2 dan jam berikutnya valid, gunakan waktu itu
               const workingHourCheck = isWorkingHour(nextDateTime, shiftInfo);
               if (workingHourCheck.isWorking && workingHourCheck.shift === 2) {
-                // Periksa apakah waktu berada dalam jam istirahat shift 2
                 const breakCheck = isBreakTime(time, shiftInfo.istirahat);
                 if (breakCheck.isBreak) {
                   nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
                   continue;
                 }
-                break; // Waktu valid dalam shift 2, gunakan ini
+                break;
               }
             }
           }
 
-          // Cek apakah hari libur
           if (isHoliday(date)) {
-            // Periksa apakah ada shift 2 dari hari sebelumnya yang masih berlanjut
             const prevDate = moment(date).subtract(1, "days");
             const prevDay = getDayOfWeek(prevDate.format("YYYY-MM-DD"));
             const prevShiftInfo = getShiftInfo(prevDay);
             const isPrevDayOvertime = isOvertimeDay(
-              prevDate.format("YYYY-MM-DD")
+              prevDate.format("YYYY-MM-DD"),
             );
 
-            // Check if previous day was overtime and this is early morning
-            if (isPrevDayOvertime && hourOfDay < 4) {
-              // Still in overtime period, valid time
+            if (isPrevDayOvertime && hourOfDay < 8) {
               break;
             }
 
@@ -783,23 +673,19 @@ const jadwalProduksiViewController = {
               prevShiftInfo.shift_2_keluar < prevShiftInfo.shift_2_masuk &&
               time <= prevShiftInfo.shift_2_keluar
             ) {
-              // Masih dalam shift 2 hari sebelumnya yang berlanjut ke hari libur
-              // Periksa apakah berada dalam waktu istirahat
               const breakCheck = isBreakTime(time, prevShiftInfo.istirahat);
               if (breakCheck.isBreak) {
                 nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
                 continue;
               }
-              break; // Waktu valid dalam shift 2 hari sebelumnya, gunakan ini
+              break;
             }
 
-            // Jika tidak ada shift yang berlanjut, lompat ke hari kerja berikutnya
             let nextWorkingDate = moment(date).add(1, "days");
             let nextWorkDay = getDayOfWeek(
-              nextWorkingDate.format("YYYY-MM-DD")
+              nextWorkingDate.format("YYYY-MM-DD"),
             );
 
-            // Terus geser sampai menemukan hari kerja atau hari lembur
             while (
               isHoliday(nextWorkingDate.format("YYYY-MM-DD")) &&
               !isOvertimeDay(nextWorkingDate.format("YYYY-MM-DD"))
@@ -808,54 +694,43 @@ const jadwalProduksiViewController = {
               nextWorkDay = getDayOfWeek(nextWorkingDate.format("YYYY-MM-DD"));
             }
 
-            // Jika hari berikutnya adalah hari lembur, gunakan jam pertama hari tersebut
             if (isOvertimeDay(nextWorkingDate.format("YYYY-MM-DD"))) {
               nextDateTime = moment(
-                `${nextWorkingDate.format("YYYY-MM-DD")}T00:00:00`
+                `${nextWorkingDate.format("YYYY-MM-DD")}T00:00:00`,
               );
               continue;
             }
 
-            // Jika bukan hari lembur, gunakan shift 1 hari kerja tersebut
             const nextShiftInfo = getShiftInfo(nextWorkDay);
             if (nextShiftInfo && nextShiftInfo.shift_1_masuk) {
               nextDateTime = moment(
-                `${nextWorkingDate.format("YYYY-MM-DD")}T${
-                  nextShiftInfo.shift_1_masuk
-                }`
+                `${nextWorkingDate.format("YYYY-MM-DD")}T${nextShiftInfo.shift_1_masuk}`,
               );
               continue;
             }
           }
 
-          // Jika tidak ada informasi shift untuk hari ini
           if (!shiftInfo) {
-            nextDateTime = moment(date).add(1, "days").set({
-              hour: 8,
-              minute: 0,
-              second: 0,
-            });
+            nextDateTime = moment(date)
+              .add(1, "days")
+              .set({ hour: 8, minute: 0, second: 0 });
             continue;
           }
 
-          // Cek apakah waktu berada dalam jam istirahat
           const breakCheck = isBreakTime(time, shiftInfo.istirahat);
           if (breakCheck.isBreak) {
             nextDateTime = moment(`${date}T${breakCheck.breakEndTime}`);
             continue;
           }
 
-          // Cek apakah waktu berada dalam jam kerja
           const workingHourCheck = isWorkingHour(nextDateTime, shiftInfo);
 
           if (!workingHourCheck.isWorking) {
-            // Cek apakah waktu saat ini sebelum shift 1 dimulai pada hari yang sama
             if (shiftInfo.shift_1_masuk && time < shiftInfo.shift_1_masuk) {
               nextDateTime = moment(`${date}T${shiftInfo.shift_1_masuk}`);
               continue;
             }
 
-            // Cek apakah waktu saat ini berada di antara shift 1 dan shift 2
             if (
               shiftInfo.shift_1_keluar &&
               shiftInfo.shift_2_masuk &&
@@ -866,36 +741,27 @@ const jadwalProduksiViewController = {
               continue;
             }
 
-            // Jika setelah semua shift hari ini atau tidak ada shift lagi,
-            // periksa apakah bisa masuk ke hari berikutnya
+            const nextDateInner = moment(date).add(1, "days");
+            const nextDayDateInner = nextDateInner.format("YYYY-MM-DD");
 
-            // Cek apakah hari besok adalah hari lembur
-            const nextDate = moment(date).add(1, "days");
-            const nextDayDate = nextDate.format("YYYY-MM-DD");
-
-            if (isOvertimeDay(nextDayDate)) {
-              // Jika besok hari lembur, mulai jam 00:00
-              nextDateTime = moment(`${nextDayDate}T00:00:00`);
+            if (isOvertimeDay(nextDayDateInner)) {
+              nextDateTime = moment(`${nextDayDateInner}T00:00:00`);
               continue;
             }
 
-            const nextDay = getDayOfWeek(nextDayDate);
-
-            // Jika hari berikutnya bukan hari libur dan memiliki shift
-            if (!isHoliday(nextDayDate)) {
-              const nextShiftInfo = getShiftInfo(nextDay);
-
+            const nextDayInner = getDayOfWeek(nextDayDateInner);
+            if (!isHoliday(nextDayDateInner)) {
+              const nextShiftInfo = getShiftInfo(nextDayInner);
               if (nextShiftInfo && nextShiftInfo.shift_1_masuk) {
                 nextDateTime = moment(
-                  `${nextDayDate}T${nextShiftInfo.shift_1_masuk}`
+                  `${nextDayDateInner}T${nextShiftInfo.shift_1_masuk}`,
                 );
                 continue;
               }
             }
 
-            // Jika tidak bisa masuk ke hari berikutnya, cari hari kerja atau lembur terdekat
-            let validWorkDate = moment(nextDate);
-            let validWorkDay = nextDay;
+            let validWorkDate = moment(nextDateInner);
+            let validWorkDay = nextDayInner;
 
             while (
               isHoliday(validWorkDate.format("YYYY-MM-DD")) &&
@@ -906,68 +772,57 @@ const jadwalProduksiViewController = {
               validWorkDay = getDayOfWeek(validWorkDate.format("YYYY-MM-DD"));
             }
 
-            // Jika hari valid berikutnya adalah hari lembur
             if (isOvertimeDay(validWorkDate.format("YYYY-MM-DD"))) {
               nextDateTime = moment(
-                `${validWorkDate.format("YYYY-MM-DD")}T00:00:00`
+                `${validWorkDate.format("YYYY-MM-DD")}T00:00:00`,
               );
               continue;
             }
 
-            // Jika bukan hari lembur, pakai shift 1
             const validShiftInfo = getShiftInfo(validWorkDay);
             if (validShiftInfo && validShiftInfo.shift_1_masuk) {
               nextDateTime = moment(
-                `${validWorkDate.format("YYYY-MM-DD")}T${
-                  validShiftInfo.shift_1_masuk
-                }`
+                `${validWorkDate.format("YYYY-MM-DD")}T${validShiftInfo.shift_1_masuk}`,
               );
               continue;
             }
           }
 
-          // Jika sudah valid, keluar dari loop
           break;
+        }
+
+        // BUG FIX #5 (Rekomendasi): Log warning jika loop safety tercapai
+        if (loopSafety >= 1000) {
+          console.warn(
+            "[changeLemburJadwalProduksiView] Loop safety limit reached.",
+          );
         }
 
         return nextDateTime;
       };
 
-      // Update data berikutnya dengan mempertimbangkan shift, hari libur, dan hari lembur
       let updatedDateTime = newDateTime;
+      const normalInterval = 60;
+      const overtimeInterval = 60;
 
-      // Interval waktu pada hari normal vs hari lembur
-      const normalInterval = 60; // 60 menit untuk hari normal
-      const overtimeInterval = 60; // 60 menit untuk hari lembur, bisa disesuaikan
-
-      // Proses update jadwal
       for (const data of subsequentData) {
-        // Debug info - uncomment if needed
-        // console.log(`Processing ID ${data.id}: Current time ${updatedDateTime.format('YYYY-MM-DD HH:mm:ss')}`);
-
-        // Mendapatkan waktu valid berikutnya
         const currentDate = updatedDateTime.format("YYYY-MM-DD");
         const currentTime = updatedDateTime.format("HH:mm:ss");
         const hourOfDay = parseInt(currentTime.split(":")[0], 10);
 
-        // Special handling for overnight hours during overtime
+        // BUG FIX #7: Batas overnight konsisten 20-07
         const isOvernightOvertime =
           isOvertimeDay(currentDate, currentTime) &&
-          (hourOfDay >= 18 || hourOfDay < 4);
+          (hourOfDay >= 20 || hourOfDay < 8);
 
-        // Use appropriate interval
         const interval = isOvertimeDay(currentDate, currentTime)
           ? overtimeInterval
           : normalInterval;
 
-        // Special case for overnight hours during overtime
         if (isOvernightOvertime) {
-          // For overnight hours, just increment by interval without other checks
           updatedDateTime = moment(updatedDateTime).add(interval, "minutes");
 
-          // Handle day transition at midnight
           if (updatedDateTime.format("HH:mm:ss") === "00:00:00") {
-            // We've crossed midnight - ensure we're using the correct date
             const nextDate = moment(currentDate)
               .add(1, "days")
               .format("YYYY-MM-DD");
@@ -975,66 +830,53 @@ const jadwalProduksiViewController = {
           }
         } else if (
           isOvertimeDay(currentDate, currentTime) &&
-          hourOfDay === 11 &&
+          hourOfDay === 19 &&
           parseInt(currentTime.split(":")[1], 10) >= 59
         ) {
-          // Special case for transition from shift 1 to shift 2 on overtime days
-          const shiftChangeTime = moment(`${currentDate}T12:00:00`);
+          // BUG FIX #7: Transisi shift 1 ke shift 2 di jam 20:00 bukan 12:00
+          const shiftChangeTime = moment(`${currentDate}T20:00:00`);
           updatedDateTime = shiftChangeTime;
         } else {
-          // Regular scheduling with all the checks
           updatedDateTime = getNextValidDateTime(updatedDateTime, interval);
         }
 
-        // Perbarui tanggal dan jam dengan format yang benar
         const updatedDate = updatedDateTime.format("YYYY-MM-DD");
         const updatedTime = updatedDateTime.format("HH:mm:ss");
 
         await JadwalProduksi.update(
-          {
-            tanggal: updatedDate,
-            jam: updatedTime,
-          },
-          { where: { id: data.id }, transaction: t }
+          { tanggal: updatedDate, jam: updatedTime },
+          { where: { id: data.id }, transaction: t },
         );
-
-        // Debug info - uncomment if needed
-        // console.log(`Updated to: ${updatedDate} ${updatedTime}`);
       }
 
       await t.commit();
 
-      res.status(200).json({ msg: "update success" });
+      return res.status(200).json({ msg: "update success" });
     } catch (error) {
       await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
 
+  // BUG FIX #1: changeLemburMonlyJadwalProduksiView — list_lembur diambil dari req.body
   changeLemburMonlyJadwalProduksiView: async (req, res) => {
     const _id = req.params.id;
-    const { data_jadwal, mesin } = req.body;
+    const { data_jadwal, mesin, list_lembur } = req.body;
 
-    // const list_lembur = [
-    //   {
-    //     tanggal_lembur: "2025-04-21",
-    //     shift_1: true,
-    //     shift_2: true,
-    //   },
-    //   {
-    //     tanggal_lembur: "2025-04-22",
-    //     shift_1: true,
-    //     shift_2: false,
-    //   },
-    //   {
-    //     tanggal_lembur: "2025-04-23",
-    //     shift_1: true,
-    //     shift_2: false,
-    //   },
-    // ];
+    // Validasi list_lembur
+    if (
+      !list_lembur ||
+      !Array.isArray(list_lembur) ||
+      list_lembur.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({ msg: "list_lembur wajib diisi dan berupa array." });
+    }
+
     try {
       await lemburFunction.changeLemburMonly(data_jadwal, list_lembur, _id);
-      res.status(200).json({ msg: "update success" });
+      return res.status(200).json({ msg: "update success" });
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }

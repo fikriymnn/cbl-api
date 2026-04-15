@@ -101,6 +101,7 @@ const BomController = {
                     "keterangan_warna_depan",
                     "keterangan_warna_belakang",
                     "file",
+                    "spesifikasi",
                   ],
                   include: {
                     model: IoTahapan,
@@ -416,7 +417,7 @@ const BomController = {
       if (id_so && id_so != "") {
         dataSo = await soModel.findByPk(id_so);
       } else {
-        dataIo = await IoModel.findByPk(id_io);
+        dataSo = await IoModel.findByPk(id_io);
       }
 
       const dataMountingSelected = jo_mounting.find(
@@ -462,42 +463,175 @@ const BomController = {
         });
       }
 
-      // const createTiketJadwal =
-      //   await JadwalProduksiService.creteJadwalProduksiService(
-      //     produk,
-      //     no_jo,
-      //     null,
-      //     dataSo.no_po_customer,
-      //     no_io,
-      //     customer,
-      //     dataMountingSelected.nama_kertas,
-      //     formatDate(tgl_kirim),
-      //     formatDate(dataSo.tgl_pembuatan_so),
-      //     null,
-      //     po_qty || 0,
-      //     qty || 0,
-      //     qty_druk || 0,
-      //     0,
-      //     dataTahapanMounting,
-      //     dataJobOrder.id,
-      //     t
-      //   );
+      const createTiketJadwal =
+        await JadwalProduksiService.creteJadwalProduksiService(
+          produk,
+          no_jo,
+          null,
+          dataSo?.no_po_customer,
+          no_io,
+          customer,
+          dataMountingSelected.nama_kertas,
+          formatDate(tgl_kirim),
+          dataSo?.tgl_pembuatan_so
+            ? formatDate(dataSo?.tgl_pembuatan_so)
+            : null,
+          null,
+          po_qty || 0,
+          qty || 0,
+          qty_druk || 0,
+          qty_lp || 0,
+          dataTahapanMounting,
+          dataJobOrder.id,
+          t,
+        );
 
-      // if (createTiketJadwal.success === false) {
-      //   await t.rollback();
+      if (createTiketJadwal.success === false) {
+        await t.rollback();
 
-      //   return res.status(400).json({
-      //     succes: false,
-      //     status_code: 400,
-      //     msg: createTiketJadwal.msg,
-      //   });
-      // }
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: createTiketJadwal.msg,
+        });
+      }
 
       await t.commit();
       res.status(200).json({
         succes: true,
         status_code: 200,
         msg: "Create Successfully",
+        data: dataJobOrder,
+      });
+    } catch (error) {
+      await t.rollback();
+      console.log(error);
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  sendToJadwal: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+
+    try {
+      const dataJobOrder = await JobOrder.findByPk(_id, {
+        include: [
+          {
+            model: JobOrderMounting,
+            as: "jo_mounting",
+            where: { is_selected: true, is_active: true },
+          },
+        ],
+      });
+
+      if (!dataJobOrder) {
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data JO tidak ditemukan",
+        });
+      }
+      const dataSo = await soModel.findByPk(dataJobOrder.id_so);
+
+      if (!dataSo) {
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data SO tidak ditemukan",
+        });
+      }
+
+      const dataMountingSelected = dataJobOrder?.jo_mounting.find(
+        (e) => e.is_selected === true,
+      );
+
+      if (!dataMountingSelected) {
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data Mounting tidak ditemukan",
+        });
+      }
+
+      const dataIoMountingSelected = await ioMountingModel.findByPk(
+        dataMountingSelected.id_io_mounting,
+        {
+          include: [
+            {
+              model: IoTahapan,
+              as: "tahapan",
+            },
+          ],
+        },
+      );
+
+      let dataTahapanMounting = [];
+
+      for (let i = 0; i < dataIoMountingSelected.tahapan.length; i++) {
+        //const dataMasterKapasitas = MasterSettingKapasitas.findByPk()
+        const e = dataIoMountingSelected.tahapan[i];
+        dataTahapanMounting.push({
+          tahapan: e.nama_proses,
+          tahapan_ke: e.index,
+          nama_kategori: e.nama_setting_kapasitas,
+          kategori: e.nama_kapasitas, //ini belum ngambil dari mana mana
+          kategori_drying_time: e.nama_drying_time,
+          mesin: e.nama_mesin,
+          kapasitas_per_jam: e.value_kapasitas,
+          drying_time: e.value_drying_time,
+          setting: e.value_setting,
+          toleransi: 0,
+        });
+      }
+
+      function formatDate(dateStr, locale = "en-GB") {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(locale, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      }
+
+      const createTiketJadwal =
+        await JadwalProduksiService.creteJadwalProduksiService(
+          dataJobOrder.produk,
+          dataJobOrder.no_jo,
+          null,
+          dataSo.no_po_customer,
+          dataJobOrder.no_io,
+          dataJobOrder.customer,
+          dataMountingSelected.nama_kertas,
+          formatDate(dataJobOrder.tgl_kirim),
+          formatDate(dataSo.tgl_pembuatan_so),
+          null,
+          dataJobOrder.po_qty || 0,
+          dataJobOrder.qty || 0,
+          dataJobOrder.qty_druk || 0,
+          dataJobOrder.qty_lp || 0,
+          dataTahapanMounting,
+          dataJobOrder.id,
+          t,
+        );
+
+      if (createTiketJadwal.success === false) {
+        await t.rollback();
+
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: createTiketJadwal.msg,
+        });
+      }
+
+      await t.commit();
+      res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "send Successfully",
         data: dataJobOrder,
       });
     } catch (error) {

@@ -17,5 +17,6 @@ router.put(
 );
 router.put("/ppic/jo/approve/:id", auth, JobOrderController.approveJobOrder);
 router.put("/ppic/jo/reject/:id", auth, JobOrderController.rejectJobOrder);
+router.put("/ppic/jo/sendJadwal/:id", auth, JobOrderController.sendToJadwal);
 
 module.exports = router;
