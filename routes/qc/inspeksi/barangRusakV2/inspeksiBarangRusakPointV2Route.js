@@ -41,6 +41,12 @@ router.post(
   auth,
   inspeksiBarangRusakDefectV2.addInspeksiBarangRusakDefectV2V2
 );
+
+router.put(
+  "/qc/cs/inspeksiBarangRusakPointV2/updateDefect/:id",
+  auth,
+  inspeksiBarangRusakDefectV2.updateInspeksiBarangRusakDefectV2V2
+);
 router.put(
   "/qc/cs/inspeksiBarangRusakPointV2/simpanDefect/:id",
   auth,

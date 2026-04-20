@@ -8,4 +8,10 @@ router.post(
   inspeksiLemPeriodeDefect.addInspeksiLemDefect
 );
 
+router.put(
+  "/qc/cs/inspeksiLemPeriodePoint/updateDefect/:id",
+  auth,
+  inspeksiLemPeriodeDefect.updateInspeksiLemDefect
+);
+
 module.exports = router;

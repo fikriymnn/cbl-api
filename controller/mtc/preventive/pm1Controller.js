@@ -392,6 +392,24 @@ const Pm1Controller = {
     }
   },
 
+  noCheckingTicketPm1: async (req, res) => {
+    const _id = req.params.id;
+    const { note } = req.body;
+    try {
+      await TicketPm1.update(
+        {
+          status: "no checking",
+          id_inspector: req.user.id,
+          catatan: note,
+        },
+        { where: { id: _id } }
+      );
+      res.status(200).json({ msg: "success" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   doneTicketPm1: async (req, res) => {
     const _id = req.params.id;
     const { catatan, id_leader, id_supervisor, id_ka_bag } = req.body;

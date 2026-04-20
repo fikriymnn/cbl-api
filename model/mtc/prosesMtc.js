@@ -121,7 +121,7 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    img_url: {
+    file: {
       type: DataTypes.STRING,
       allowNull: true,
     },

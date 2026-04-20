@@ -63,4 +63,11 @@ router.post(
   inspeksiCoatingPeriodeResult.addInspeksiCoatingPeriodePoint
 );
 
+router.put(
+  "/qc/cs/inspeksiCoatingResult/periode/defect/:id",
+  auth,
+
+  inspeksiCoatingPeriodeResult.updateInspeksiCoatingDefect
+);
+
 module.exports = router;

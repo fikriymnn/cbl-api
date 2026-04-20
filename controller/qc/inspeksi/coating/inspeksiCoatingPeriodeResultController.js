@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+const db = require("../../../../config/database");
 const InspeksiCoatingResultPointPeriode = require("../../../../model/qc/inspeksi/coating/inspeksiCoatingResultPointPeriodeModel");
 const InspeksiCoatingResultPeriode = require("../../../../model/qc/inspeksi/coating/result/inspeksiCoatingResultPeriodeModel");
 const InspeksiCoatingPointMasterPeriode = require("../../../../model/masterData/qc/inspeksi/masterKodeMasalahCoatingModel");
@@ -159,6 +160,43 @@ const inspeksiCoatingPeriodeResultController = {
       res.status(200).json({ data: "create data successfully", msg: "OK" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
+    }
+  },
+
+  updateInspeksiCoatingDefect: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      hasil,
+      id_mastter_defect,
+      jumlah_defect,
+      jumlah_up_defect,
+      kode_lkh,
+      masalah_lkh,
+      file,
+    } = req.body;
+    const t = await db.transaction();
+    try {
+      await InspeksiCoatingResultPointPeriode.update(
+        {
+          hasil,
+          id_mastter_defect,
+          jumlah_defect,
+          jumlah_up_defect,
+          kode_lkh,
+          masalah_lkh,
+          file,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      await t.commit();
+
+      res
+        .status(200)
+        .json({ success: false, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
+      return res.status(400).json({ msg: error.message });
     }
   },
 

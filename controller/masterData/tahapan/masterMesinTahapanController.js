@@ -55,13 +55,11 @@ const MasterMesinTahapanController = {
     const { kode_mesin, nama_mesin } = req.body;
     const t = await db.transaction();
     if (!nama_mesin)
-      return res
-        .status(404)
-        .json({
-          succes: false,
-          status_code: 404,
-          msg: "nama mesin wajib di isi!!",
-        });
+      return res.status(404).json({
+        succes: false,
+        status_code: 404,
+        msg: "nama mesin wajib di isi!!",
+      });
 
     try {
       const response = await MasterMesinTahapan.create(
@@ -88,13 +86,14 @@ const MasterMesinTahapanController = {
 
   updateMasterMesinTahapan: async (req, res) => {
     const _id = req.params.id;
-    const { kode_mesin, nama_mesin, is_active } = req.body;
+    const { kode_mesin, nama_mesin, type_kapasitas, is_active } = req.body;
     const t = await db.transaction();
 
     try {
       let obj = {};
       if (kode_mesin) obj.kode_mesin = kode_mesin;
       if (nama_mesin) obj.nama_mesin = nama_mesin;
+      if (type_kapasitas) obj.type_kapasitas = type_kapasitas;
       if (is_active) obj.is_active = is_active;
       const checkData = await MasterMesinTahapan.findByPk(_id);
       if (!checkData)

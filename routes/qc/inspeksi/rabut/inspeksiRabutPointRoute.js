@@ -31,6 +31,11 @@ router.post(
   auth,
   inspeksiRabutPoint.createInspeksiRabutPointDefect
 );
+router.put(
+  "/qc/cs/inspeksiRabutPoint/updateDefect/:id",
+  auth,
+  inspeksiRabutPoint.updateInspeksiRabutPointDefect
+);
 
 router.put(
   "/qc/cs/inspeksiRabutPoint/istirahat/:id",

@@ -201,6 +201,52 @@ const inspeksiRabutpointController = {
     }
   },
 
+  updateInspeksiRabutPointDefect: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      hasil,
+      kode,
+      masalah,
+      kode_lkh,
+      masalah_lkh,
+      kriteria,
+      persen_kriteria,
+      sumber_masalah,
+      mesin,
+      operator,
+    } = req.body;
+    //console.log(req.body);
+    const t = await db.transaction();
+
+    try {
+      // const MasterDefect = await MasterKodeMasalahRabut.findOne({
+      //   where: { id: id_defect },
+      // });
+
+      await InspeksiRabutDefect.update(
+        {
+          hasil,
+          kode,
+          masalah,
+          kode_lkh,
+          masalah_lkh,
+          kriteria,
+          persen_kriteria,
+          sumber_masalah,
+          mesin,
+          operator,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      await t.commit();
+      res.status(200).json({ msg: "update Successful" });
+    } catch (error) {
+      await t.rollback();
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
   istirahatRabutPoint: async (req, res) => {
     const _id = req.params.id;
     try {

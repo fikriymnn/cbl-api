@@ -413,7 +413,7 @@ const ProsessMtc = {
       nama_mesin,
       unit,
       bagian_mesin,
-      image_url,
+      file,
     } = req.body;
 
     if (
@@ -485,7 +485,7 @@ const ProsessMtc = {
         note_analisis: note_analisis,
         unit: unit,
         bagian_mesin: bagian_mesin,
-        //image_url: image_url,
+        file: file,
       };
       if (prosesData.is_rework == false) {
         // Perbedaan dalam milidetik
@@ -766,6 +766,93 @@ const ProsessMtc = {
         await t.commit();
         res.status(201).json({ msg: "Ticket maintenance finish Successfuly" });
       }
+    } catch (error) {
+      await t.rollback();
+      res.status(400).json({ msg: error.message });
+    }
+  },
+
+  updateAnalisisMtc: async (req, res) => {
+    const _id = req.params.id;
+
+    const {
+      id_proses,
+      kode_analisis_mtc,
+      nama_analisis_mtc,
+      jenis_analisis_mtc,
+      note_analisis,
+      skor_mtc,
+      cara_perbaikan,
+      note_mtc,
+      nama_mesin,
+      unit,
+      bagian_mesin,
+      file,
+    } = req.body;
+
+    if (
+      !id_proses ||
+      !kode_analisis_mtc ||
+      !jenis_analisis_mtc ||
+      !nama_analisis_mtc ||
+      !skor_mtc ||
+      !cara_perbaikan ||
+      !nama_mesin
+    )
+      return res.status(401).json({ msg: "incomplite data" });
+
+    const t = await db.transaction();
+
+    try {
+      const monitoring = await MasterMonitoring.findByPk(1);
+      const prosesData = await ProsesMtc.findByPk(id_proses);
+      const tiketData = await Ticket.findByPk(_id, {
+        include: [
+          {
+            model: TicketDepartment,
+            as: "data_department",
+          },
+        ],
+      });
+
+      let status = "";
+      if (skor_mtc < monitoring.minimal_skor) {
+        status = "temporary";
+      } else if (skor_mtc >= monitoring.minimal_skor) {
+        status = "monitoring";
+      }
+
+      let obj = {
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+        unit: unit,
+      };
+
+      let obj_proses = {
+        kode_analisis_mtc: kode_analisis_mtc,
+        nama_analisis_mtc: nama_analisis_mtc,
+        jenis_analisis_mtc: jenis_analisis_mtc,
+        skor_mtc: skor_mtc,
+        cara_perbaikan: cara_perbaikan,
+        note_mtc: note_mtc,
+        note_analisis: note_analisis,
+        unit: unit,
+        bagian_mesin: bagian_mesin,
+        file: file,
+      };
+      await Ticket.update(obj, { where: { id: _id }, transaction: t }),
+        // await MasalahSparepart.bulkCreate(masalah_sparepart);
+
+        await ProsesMtc.update(obj_proses, {
+          where: { id: id_proses },
+          transaction: t,
+        }),
+        await t.commit();
+
+      res.status(200).json({ msg: "Ticket maintenance update Successfuly" });
     } catch (error) {
       await t.rollback();
       res.status(400).json({ msg: error.message });
