@@ -4,6 +4,7 @@ const {
   getPm1ById,
   createTicketPm1,
   responseTicketPm1,
+  noCheckingTicketPm1,
   createPointPm1,
   updateTaskPm1,
   startTaskPm1,
@@ -16,6 +17,7 @@ router.get("/pm1", getPm1);
 router.get("/pm1/:id", getPm1ById);
 router.post("/pm1/create", createTicketPm1);
 router.get("/pm1/response/:id", auth, responseTicketPm1);
+router.put("/pm1/noChecking/:id", auth, noCheckingTicketPm1);
 router.post("/pm1/createPoint", createPointPm1);
 router.put("/pm1/task/:id", auth, updateTaskPm1);
 router.put("/pm1/taskStart/:id", startTaskPm1);

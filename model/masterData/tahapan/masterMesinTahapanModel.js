@@ -14,6 +14,10 @@ const MasterMesin = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    type_kapasitas: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

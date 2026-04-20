@@ -85,6 +85,39 @@ const inspeksiBarangRusakController = {
       return res.status(400).json({ msg: error.message });
     }
   },
+
+  updateInspeksiBarangRusakDefectV2V2: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      jumlah_defect,
+      kode,
+      masalah,
+      kode_lkh,
+      masalah_lkh,
+      mesin,
+      operator,
+    } = req.body;
+    const t = await db.transaction();
+    try {
+      await InspeksiBarangRusakDefectV2.update(
+        {
+          jumlah_defect,
+          kode,
+          masalah,
+          kode_lkh,
+          masalah_lkh,
+          mesin,
+          operator,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+      await t.commit();
+      res.status(200).json({ msg: "update Successful" });
+    } catch (error) {
+      await t.rollback();
+      return res.status(400).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = inspeksiBarangRusakController;

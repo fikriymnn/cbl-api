@@ -8,4 +8,10 @@ router.post(
   inspeksiPondPeriodeDefect.addInspeksiPondDefect
 );
 
+router.put(
+  "/qc/cs/inspeksiPondPeriodePoint/updateDefect/:id",
+  auth,
+  inspeksiPondPeriodeDefect.updateInspeksiPondDefect
+);
+
 module.exports = router;

@@ -253,6 +253,7 @@ const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculate
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
 const TiketPerubahanJadwalKirim = require("./model/ppic/jadwalProduksiCalculateModel/tiketPerubahanTanggalKirimModel");
 const BookingJadwal = require("./model/ppic/bookingJadwal/bookingJadwalModel");
+const KapasitasMesin = require("./model/ppic/kapasitasMesin/kapsitasMesinModel");
 
 //hak akses
 // const MasterRole = require("./model/masterData/masterRoleModel");
@@ -400,7 +401,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await PembuatanStandarWarna.sync({
+//   await KapasitasMesin.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

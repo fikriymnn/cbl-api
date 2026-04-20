@@ -27,6 +27,12 @@ router.post(
 );
 
 router.put(
+  "/qc/cs/inspeksiAmparLemPoint/updateDefect/:id",
+  auth,
+  inspeksiAmparLemPoint.updateInspeksiAmparLemPointDefect
+);
+
+router.put(
   "/qc/cs/inspeksiAmparLemPoint/istirahat/:id",
   auth,
   inspeksiAmparLemPoint.istirahatAmparLemPoint

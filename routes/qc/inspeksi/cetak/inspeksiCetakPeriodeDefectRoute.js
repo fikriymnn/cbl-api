@@ -8,4 +8,10 @@ router.post(
   inspeksiCetakPeriodeDefect.addInspeksiCetakDefect
 );
 
+router.put(
+  "/qc/cs/inspeksiCetakPeriodePoint/updateDefect/:id",
+  auth,
+  inspeksiCetakPeriodeDefect.updateInspeksiCetakDefect
+);
+
 module.exports = router;

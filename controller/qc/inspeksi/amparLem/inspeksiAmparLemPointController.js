@@ -1,5 +1,5 @@
 const { Op, Sequelize, where } = require("sequelize");
-
+const db = require("../../../../config/database");
 const InspeksiAmparLemPoint = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPointModel");
 const InspeksiAmparLemDefect = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
 const InspeksiAmparLemDefectDepartment = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
@@ -135,6 +135,50 @@ const inspeksiAmparLempointController = {
 
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  updateInspeksiAmparLemPointDefect: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      hasil,
+      kode,
+      masalah,
+      kode_lkh,
+      masalah_lkh,
+      kriteria,
+      persen_kriteria,
+      mesin,
+      operator,
+      sumber_masalah,
+    } = req.body;
+    const t = await db.transaction();
+    try {
+      // const MasterDefect = await MasterKodeMasalahRabut.findOne({
+      //   where: { id: id_defect },
+      // });
+
+      await InspeksiAmparLemDefect.update(
+        {
+          hasil,
+          kode,
+          masalah,
+          kode_lkh,
+          masalah_lkh,
+          kriteria,
+          persen_kriteria,
+          mesin,
+          operator,
+          sumber_masalah,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      await t.commit();
+      res.status(200).json({ msg: "update Successful" });
+    } catch (error) {
+      await t.rollback();
       return res.status(400).json({ msg: error.message });
     }
   },

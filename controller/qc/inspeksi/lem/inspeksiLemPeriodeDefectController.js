@@ -1,5 +1,5 @@
 const { Op, Sequelize, where } = require("sequelize");
-
+const db = require("../../../../config/database");
 const InspeksiLemPeriodeDefect = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectModel");
 const InspeksiLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/lem/inspeksiLemPeriodeDefectDepartmentModel");
 const User = require("../../../../model/userModel");
@@ -37,6 +37,41 @@ const inspeksiLemPeriodeDefectController = {
 
       res.status(200).json({ msg: "Create Successful" });
     } catch (error) {
+      return res.status(400).json({ msg: error.message });
+    }
+  },
+
+  updateInspeksiLemDefect: async (req, res) => {
+    const _id = req.params.id;
+    const {
+      hasil,
+      id_mastter_defect,
+      jumlah_defect,
+      kode_lkh,
+      masalah_lkh,
+      file,
+    } = req.body;
+    const t = await db.transaction();
+    try {
+      await InspeksiLemPeriodeDefect.update(
+        {
+          hasil,
+          id_mastter_defect,
+          jumlah_defect,
+          kode_lkh,
+          masalah_lkh,
+          file,
+        },
+        { where: { id: _id }, transaction: t }
+      );
+
+      await t.commit();
+
+      res
+        .status(200)
+        .json({ success: false, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
       return res.status(400).json({ msg: error.message });
     }
   },
