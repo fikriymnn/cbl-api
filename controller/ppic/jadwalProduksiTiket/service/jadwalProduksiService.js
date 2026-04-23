@@ -27,7 +27,7 @@ const JadwalProduksiService = {
     qty_lp,
     tahap,
     id_jo,
-    transaction = null
+    transaction = null,
   ) => {
     const t = transaction || (await db.transaction());
 
@@ -59,7 +59,7 @@ const JadwalProduksiService = {
         });
         await TiketJadwalProduksi.update(
           { status_tiket: "history", no_jo: no_jo },
-          { where: { no_booking: no_booking }, transaction: t }
+          { where: { no_booking: no_booking }, transaction: t },
         );
         if (!transaction) await t.commit();
 
@@ -91,7 +91,7 @@ const JadwalProduksiService = {
             qty_druk,
             qty_lp,
           },
-          { transaction: t }
+          { transaction: t },
         );
         let dataTahapan = [];
         for (let i = 0; i < tahap.length; i++) {
@@ -138,7 +138,6 @@ const JadwalProduksiService = {
         const findTahapFG = dataTahapan.find((data) => data.tahapan === "FG");
 
         if (!findTahapFG) {
-          // Buat objek tahapan FG
           let tahapanFG = {
             id_tiket_jadwal_produksi: dataTiket.id,
             item: item,
@@ -155,13 +154,13 @@ const JadwalProduksiService = {
             toleransi: 0,
           };
 
-          // Tentukan posisi kedua terakhir (sebelum "Kirim")
-          let insertIndex = dataTahapan.length - 1;
+          // 1. Sort dulu
+          dataTahapan.sort((a, b) => a.tahapan_ke - b.tahapan_ke);
 
-          // Sisipkan tahapan FG pada posisi kedua terakhir
-          dataTahapan.splice(insertIndex, 0, tahapanFG);
+          // 2. Tambah ke paling akhir
+          dataTahapan.push(tahapanFG);
 
-          // Perbarui tahapan_ke secara otomatis
+          // 3. Re-index ulang tahapan_ke
           dataTahapan.forEach((item, index) => {
             item.tahapan_ke = index + 1;
           });
@@ -199,7 +198,7 @@ const JadwalProduksiService = {
             qty_druk,
             qty_lp,
           },
-          { transaction: t }
+          { transaction: t },
         );
         let dataTahapan = [];
         for (let i = 0; i < tahap.length; i++) {
@@ -245,7 +244,7 @@ const JadwalProduksiService = {
 
         const findTahapFG = dataTahapan.find((data) => data.tahapan === "FG");
         const indexFinalInspection = dataTahapan.findIndex((data) =>
-          data.tahapan.toLowerCase().includes("final inspection")
+          data.tahapan.toLowerCase().includes("final inspection"),
         );
 
         if (!findTahapFG && indexFinalInspection !== -1) {
@@ -266,12 +265,13 @@ const JadwalProduksiService = {
             toleransi: 0,
           };
 
-          // Jika ditemukan, sisipkan FG setelahnya
-          const insertIndex = indexFinalInspection + 1;
+          // 1. Sort dulu
+          dataTahapan.sort((a, b) => a.tahapan_ke - b.tahapan_ke);
 
-          dataTahapan.splice(insertIndex, 0, tahapanFG);
+          // 2. Tambah ke paling akhir
+          dataTahapan.push(tahapanFG);
 
-          // Perbarui tahapan_ke
+          // 3. Re-index ulang tahapan_ke
           dataTahapan.forEach((item, index) => {
             item.tahapan_ke = index + 1;
           });

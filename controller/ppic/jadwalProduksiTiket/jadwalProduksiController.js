@@ -486,6 +486,16 @@ const jadwalProduksiController = {
           listJadwalPerJam: [],
         });
       });
+      const result = !dataById.tahap.some(
+        (item) =>
+          item.kapasitas_per_jam === 1 ||
+          item.drying_time === 1 ||
+          item.setting === 1,
+      );
+
+      if (result == false) {
+        return res.status(400).json({ msg: "data belum lengkap" });
+      }
 
       const dataJadwal = await JadwalKaryawan.findAll({
         order: [["createdAt", "DESC"]],
