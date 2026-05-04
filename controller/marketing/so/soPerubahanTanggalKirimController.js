@@ -1,5 +1,6 @@
 const { Op, fn, col, literal } = require("sequelize");
 const SoModel = require("../../../model/marketing/so/soModel");
+const JoModel = require("../../../model/ppic/jobOrder/jobOrderModel");
 const soPerubahanTanggalKirimModel = require("../../../model/marketing/so/soPerubahanTanggalKirimModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
@@ -31,6 +32,12 @@ const SoPerubahanTanggalKirimController = {
             {
               model: SoModel,
               as: "so",
+              include: [
+                {
+                  model: JoModel,
+                  as: "job_order",
+                },
+              ],
             },
           ],
           offset: parseInt(offset),
@@ -49,6 +56,12 @@ const SoPerubahanTanggalKirimController = {
             {
               model: SoModel,
               as: "so",
+              include: [
+                {
+                  model: JoModel,
+                  as: "job_order",
+                },
+              ],
             },
           ],
         });

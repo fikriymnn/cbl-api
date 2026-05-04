@@ -52,7 +52,7 @@ const MasterMesinTahapanController = {
   },
 
   createMasterMesinTahapan: async (req, res) => {
-    const { kode_mesin, nama_mesin } = req.body;
+    const { kode_mesin, nama_mesin, type_kapasitas } = req.body;
     const t = await db.transaction();
     if (!nama_mesin)
       return res.status(404).json({
@@ -66,6 +66,7 @@ const MasterMesinTahapanController = {
         {
           kode_mesin: kode_mesin,
           nama_mesin: nama_mesin,
+          type_kapasitas: type_kapasitas,
         },
         { transaction: t }
       );
