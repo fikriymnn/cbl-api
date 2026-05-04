@@ -20,8 +20,16 @@ const JadwalProduksiService = require("../jadwalProduksiTiket/service/jadwalProd
 const BomController = {
   getJobOrder: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, status, status_proses, search } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      status,
+      status_proses,
+      search,
+      sort = "newest",
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search) {
@@ -41,13 +49,19 @@ const BomController = {
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      obj.tgl_pembuatan_jo = { [Op.between]: [startDate, endDate] };
+      obj.tgl_kirim = { [Op.between]: [startDate, endDate] };
     }
+
+    // Jika ada filter tanggal, order by tgl_kirim, jika tidak order by createdAt
+    const orderField = start_date && end_date ? "tgl_kirim" : "createdAt";
+    const orderDirection = sort === "oldest" ? "ASC" : "DESC";
+    const orderClause = [[orderField, orderDirection]];
+
     try {
       if (page && limit) {
         const length = await JobOrder.count({ where: obj });
         const data = await JobOrder.findAll({
-          order: [["tgl_pembuatan_jo", "DESC"]],
+          order: orderClause,
           limit: parseInt(limit),
           include: [
             {
@@ -125,7 +139,6 @@ const BomController = {
                     "warna_depan",
                     "warna_belakang",
                     "jumlah_warna",
-                    "keterangan_warna_depan",
                     "keterangan_warna_belakang",
                     "file",
                     "spesifikasi",
@@ -157,7 +170,7 @@ const BomController = {
         });
       } else {
         const data = await JobOrder.findAll({
-          order: [["tgl_pembuatan_jo", "DESC"]],
+          order: orderClause,
           include: [
             {
               model: JobOrderMounting,
