@@ -23,6 +23,7 @@ const SoController = {
       is_active,
       is_bom_done,
       is_jo_done,
+      is_so_kanban,
       id_io,
       page,
       limit,
@@ -59,6 +60,9 @@ const SoController = {
       }
       if (is_jo_done) {
         obj.is_jo_done = is_jo_done == "true" ? true : false;
+      }
+      if (is_so_kanban) {
+        obj.is_so_kanban = is_so_kanban == "true" ? true : false;
       }
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
@@ -297,6 +301,7 @@ const SoController = {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
+          is_so_kanban: false,
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
@@ -319,6 +324,7 @@ const SoController = {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
+          is_so_kanban: false,
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
@@ -341,6 +347,30 @@ const SoController = {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
           },
+          is_so_kanban: false,
+          no_so: {
+            [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
+          },
+        },
+        order: [
+          // extract nomor urut pada format SO-01319/CBL/1025
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      const lengthKanban = await SoModel.findOne({
+        where: {
+          // Filter hanya format baru yang mengandung '/' (SO-01319/CBL/1025)
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+          is_so_kanban: true,
           no_so: {
             [Op.like]: "%/%", // hanya ambil yang ada karakter '/'
           },
@@ -364,6 +394,7 @@ const SoController = {
       // 2. Tentukan nomor urut berikutnya
       let nextNumberTax = 1;
       let nextNumberNonTax = 1;
+      let nextNumberKanban = 1;
 
       let number = 0;
 
@@ -396,26 +427,42 @@ const SoController = {
         nextNumberNonTax = lastSeq + 1;
       }
 
+      //type kanban
+      if (lengthKanban) {
+        const lastNo = lengthKanban.no_so;
+
+        // Ambil "00001" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+
+        nextNumberKanban = lastSeq + 1;
+      }
+
       // 3. Buat nomor urut padded 4 digit
       //untuk tax
       const paddedNumberTax = String(nextNumberTax).padStart(5, "0");
       //untuk non tax
       const paddedNumberNonTax = String(nextNumberNonTax).padStart(5, "0");
+      //untuk kanban
+      const paddedNumberkanban = String(nextNumberKanban).padStart(5, "0");
 
       // 4. Susun format akhir
       //type tax
       const newSoTaxNumberTax = `SO-${paddedNumberTax}/CBL/${currentMonth}${shortYear}`;
       // type non tax
       const newSoTaxNumberNonTax = `SO-${paddedNumberNonTax}/${currentMonth}${shortYear}`;
+      // type kanban
+      const newSoNumberKanban = `SO-${paddedNumberkanban}/${currentMonth}${shortYear}-K`;
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
         total_data: number,
-        no_so_tax: lengthPajak?.no_so,
+        no_so_tax: lengthPajak?.no_so || null,
         no_so_tax_new: newSoTaxNumberTax,
-        no_so_non_tax: lengthNonPajak?.no_so,
+        no_so_non_tax: lengthNonPajak?.no_so || null,
         no_so_non_tax_new: newSoTaxNumberNonTax,
+        no_so_kanban: lengthKanban?.no_so || null,
+        no_so_kanban_new: newSoNumberKanban,
       });
     } catch (error) {
       res
@@ -447,6 +494,7 @@ const SoController = {
       alamat_penagihan,
       ada_standar_warna,
       is_io_selesai,
+      is_so_kanban = false,
     } = req.body;
     const t = await db.transaction();
     if (!id_kalkulasi)
@@ -508,6 +556,7 @@ const SoController = {
           alamat_penagihan,
           ada_standar_warna,
           label: checkKalkulasi.label,
+          is_so_kanban: is_so_kanban,
         },
         { transaction: t }
       );
