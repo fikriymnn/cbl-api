@@ -305,51 +305,25 @@ const IncomingBarangJadiService = {
         { where: { id: id }, transaction: t },
       );
 
-      const checkDataGudangFg =
-        await GudangFinishGoodService.checkGudangFinishGoodByJo({
+      const createGudangFG =
+        await GudangFinishGoodService.creteGudangFinishGoodService({
+          id_customer: dataIncomingBarangJadi.id_customer,
+          id_io: dataIncomingBarangJadi.id_io,
           id_jo: dataIncomingBarangJadi.id_jo,
+          id_produk: dataIncomingBarangJadi.id_produk,
+          id_so: dataIncomingBarangJadi.id_so,
+          jumlah_qty: dataIncomingBarangJadi.jumlah_qty,
+          transaction: t,
         });
 
-      if (checkDataGudangFg.data) {
-        const updateQtyGudangFG =
-          await GudangFinishGoodService.updateQtyGudangFinishGood({
-            id: checkDataGudangFg.data.id,
-            jumlah_qty:
-              checkDataGudangFg.data.jumlah_qty +
-              dataIncomingBarangJadi.jumlah_qty,
-            transaction: t,
-          });
+      if (createGudangFG.success === false) {
+        await t.rollback();
 
-        if (updateQtyGudangFG.success === false) {
-          await t.rollback();
-
-          throw {
-            succes: false,
-            status_code: 400,
-            message: updateQtyGudangFG.message,
-          };
-        }
-      } else {
-        const createGudangFG =
-          await GudangFinishGoodService.creteGudangFinishGoodService({
-            id_customer: dataIncomingBarangJadi.id_customer,
-            id_io: dataIncomingBarangJadi.id_io,
-            id_jo: dataIncomingBarangJadi.id_jo,
-            id_produk: dataIncomingBarangJadi.id_produk,
-            id_so: dataIncomingBarangJadi.id_so,
-            jumlah_qty: dataIncomingBarangJadi.jumlah_qty,
-            transaction: t,
-          });
-
-        if (createGudangFG.success === false) {
-          await t.rollback();
-
-          throw {
-            succes: false,
-            status_code: 400,
-            message: createGudangFG.message,
-          };
-        }
+        throw {
+          succes: false,
+          status_code: 400,
+          message: createGudangFG.message,
+        };
       }
 
       const createMutasiBarang =

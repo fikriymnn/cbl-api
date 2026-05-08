@@ -11,6 +11,7 @@ const MasterHargaPengiriman = require("../../../../model/masterData/marketing/ma
 const Users = require("../../../../model/userModel");
 const DeliveryOrderService = require("../../../deliveryOrder/service/deliveryOrderService");
 const MutasiBarangFinishGoodService = require("../../mutasiBarangFinishGood/service/mutasiBarangFinishGoodService");
+const JobOrderMounting = require("../../../../model/ppic/jobOrder/joMountingModel");
 
 const GudangFinishGoodService = {
   getGudangFinishGoodService: async ({
@@ -220,6 +221,130 @@ const GudangFinishGoodService = {
         data,
         total_page: Math.ceil(totalGroups / parseInt(limit)),
       };
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
+  getGudangFinishGoodGroupByJO: async ({
+    page,
+    limit,
+    start_date,
+    end_date,
+    search,
+  }) => {
+    let whereObj = {
+      is_active: true,
+      jumlah_qty: { [Op.gt]: 0 },
+    };
+
+    if (search) {
+      whereObj[Op.or] = [
+        { no_jo: { [Op.like]: `%${search}%` } },
+        { customer: { [Op.like]: `%${search}%` } },
+        { produk: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      whereObj.createdAt = { [Op.between]: [startDate, endDate] };
+    }
+
+    const usePagination = page && limit;
+
+    try {
+      const findAllOptions = {
+        attributes: [
+          "id_jo",
+          "no_jo",
+          "id_customer",
+          "customer",
+          "id_produk",
+          "produk",
+          [Sequelize.fn("SUM", Sequelize.col("jumlah_qty")), "jumlah_qty"],
+          [
+            Sequelize.fn("SUM", Sequelize.col("jumlah_qty_keluar")),
+            "jumlah_qty_keluar",
+          ],
+        ],
+        where: whereObj,
+        group: [
+          "id_jo",
+          "no_jo",
+          "id_customer",
+          "customer",
+          "id_produk",
+          "produk",
+        ],
+        order: [[Sequelize.fn("MAX", Sequelize.col("createdAt")), "DESC"]],
+        raw: true,
+      };
+
+      if (usePagination) {
+        findAllOptions.limit = parseInt(limit);
+        findAllOptions.offset = (parseInt(page) - 1) * parseInt(limit);
+      }
+
+      const groupedData = await GudangFinishGood.findAll(findAllOptions);
+
+      const idJoList = groupedData.map((item) => item.id_jo);
+
+      const joData = await JobOrder.findAll({
+        where: { id: { [Op.in]: idJoList } },
+        include: [
+          {
+            model: JobOrderMounting,
+            as: "jo_mounting",
+          },
+        ],
+      });
+
+      const joMap = joData.reduce((acc, jo) => {
+        acc[jo.id] = jo;
+        return acc;
+      }, {});
+
+      const data = groupedData.map((group) => {
+        const jumlah_qty = parseFloat(group.jumlah_qty) || 0;
+        const jumlah_qty_keluar = parseFloat(group.jumlah_qty_keluar) || 0;
+        const jumlah_qty_sisa = jumlah_qty - jumlah_qty_keluar;
+
+        return {
+          id_jo: group.id_jo,
+          no_jo: group.no_jo,
+          id_customer: group.id_customer,
+          customer: group.customer,
+          id_produk: group.id_produk,
+          produk: group.produk,
+          jumlah_qty,
+          jumlah_qty_keluar,
+          jumlah_qty_sisa,
+          data_jo: joMap[group.id_jo] || null,
+        };
+      });
+
+      const response = {
+        status: 200,
+        success: true,
+        data,
+      };
+
+      if (usePagination) {
+        const totalGroups = await GudangFinishGood.count({
+          where: whereObj,
+          distinct: true,
+          col: "no_jo",
+        });
+        response.total_page = Math.ceil(totalGroups / parseInt(limit));
+      }
+
+      return response;
     } catch (error) {
       return {
         status: 500,
