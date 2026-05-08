@@ -14,6 +14,12 @@ router.get(
   GudangFinishGood.getGudangFinishGoodByIo,
 );
 
+router.get(
+  "/fg/gudangFinishGoodByJo",
+  auth,
+  GudangFinishGood.getGudangFinishGoodByJo,
+);
+
 router.post(
   "/fg/gudangFinishGood/sendDo/single",
   auth,

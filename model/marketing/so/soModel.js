@@ -232,6 +232,11 @@ const so = db.define(
       allowNull: true,
       defaultValue: true,
     },
+    is_so_kanban: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
@@ -240,7 +245,7 @@ const so = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 Io.hasMany(so, {

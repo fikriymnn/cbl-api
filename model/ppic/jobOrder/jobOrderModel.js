@@ -76,7 +76,10 @@ const JobOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    // no_jo_fg: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    // },
     customer: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -165,6 +168,11 @@ const JobOrder = db.define(
     note_reject: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    is_done_fg: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
     is_active: {
       type: DataTypes.BOOLEAN,

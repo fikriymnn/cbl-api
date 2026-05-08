@@ -9,6 +9,7 @@ router.get(
   JobOrderController.getJobOrderJumlahData,
 );
 router.post("/ppic/jo", auth, JobOrderController.createJobOrder);
+router.post("/ppic/joKanban", auth, JobOrderController.createJobOrderKanban);
 router.put("/ppic/jo/:id", auth, JobOrderController.updateJobOrder);
 router.put(
   "/ppic/jo/request/:id",

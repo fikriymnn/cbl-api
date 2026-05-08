@@ -552,6 +552,296 @@ const BomController = {
     }
   },
 
+  createJobOrderKanban: async (req, res) => {
+    const { job_orders } = req.body; // array of job order objects
+    const t = await db.transaction();
+
+    try {
+      if (
+        !job_orders ||
+        !Array.isArray(job_orders) ||
+        job_orders.length === 0
+      ) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "Data job_orders harus berupa array dan tidak boleh kosong",
+        });
+      }
+
+      const results = [];
+
+      for (let idx = 0; idx < job_orders.length; idx++) {
+        const {
+          id_io,
+          id_so,
+          no_jo,
+          no_io,
+          no_so,
+          customer,
+          produk,
+          status_kalkulasi,
+          status_jo,
+          stok_fg,
+          qty,
+          qty_druk,
+          qty_lp,
+          po_qty,
+          spesifikasi,
+          keterangan_pengerjaan,
+          toleransi,
+          alamat_pengiriman,
+          tgl_kirim,
+          standar_warna,
+          tipe_jo,
+          jo_mounting,
+        } = job_orders[idx];
+
+        const isKanban = tipe_jo === "JO KANBAN";
+
+        // ── 1. Validasi & ambil data SO / IO ──────────────────────────────────
+        let checkData = null;
+        let id_so_update = null;
+        let status_jo_update = null;
+
+        if (id_so && id_so != "") {
+          checkData = await SoModel.findByPk(id_so);
+          id_so_update = id_so;
+          status_jo_update = checkData?.status_jo;
+        } else {
+          checkData = await IoModel.findByPk(id_io);
+          status_jo_update = checkData?.status_io;
+        }
+
+        if (!checkData && id_so && id_so != "") {
+          await t.rollback();
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: `[JO ke-${idx + 1}] Data SO tidak ditemukan`,
+          });
+        } else if (!checkData && id_io && id_io != "") {
+          await t.rollback();
+          return res.status(404).json({
+            succes: false,
+            status_code: 404,
+            msg: `[JO ke-${idx + 1}] Data IO tidak ditemukan`,
+          });
+        }
+
+        // ── 2. Cek BOM (skip jika KANBAN) ────────────────────────────────────
+        let checkBom = null;
+        let checkBomPpic = null;
+
+        if (!isKanban) {
+          if (id_so && id_so != "") {
+            checkBom = await BomModel.findOne({
+              where: { id_so: checkData.id },
+            });
+            checkBomPpic = await BomPpicModel.findOne({
+              where: { id_so: checkData.id },
+            });
+          } else {
+            checkBom = await BomModel.findOne({
+              where: { id_io: checkData.id },
+            });
+            checkBomPpic = await BomPpicModel.findOne({
+              where: { id_io: checkData.id },
+            });
+          }
+        }
+
+        // ── 3. Create Job Order ───────────────────────────────────────────────
+        const dataJobOrder = await JobOrder.create(
+          {
+            id_io,
+            id_so: id_so_update,
+            id_customer: checkData.id_customer,
+            id_produk: checkData.id_produk,
+            id_create_jo: req.user.id,
+            no_jo,
+            no_io,
+            no_so,
+            customer,
+            produk,
+            status_kalkulasi,
+            status_jo: status_jo_update,
+            stok_fg,
+            qty,
+            qty_druk,
+            qty_lp,
+            po_qty,
+            spesifikasi,
+            keterangan_pengerjaan,
+            toleransi,
+            alamat_pengiriman,
+            tgl_kirim,
+            standar_warna,
+            tipe_jo,
+            label: checkData.label,
+          },
+          { transaction: t }
+        );
+
+        // ── 4. Create JO Mounting ─────────────────────────────────────────────
+        if (jo_mounting && jo_mounting.length > 0) {
+          const dataJoMounting = jo_mounting.map((e) => ({
+            id_jo: dataJobOrder.id,
+            id_io_mounting: e.id_io_mounting,
+            id_kertas: e.id_kertas,
+            nama_mounting: e.nama_mounting,
+            nama_kertas: e.nama_kertas,
+            gramature_kertas: e.gramature_kertas,
+            panjang_kertas: e.panjang_kertas,
+            lebar_kertas: e.lebar_kertas,
+            jumlah_kertas: e.jumlah_kertas,
+            ukuran_cetak_panjang_1: e.ukuran_cetak_panjang_1,
+            ukuran_cetak_lebar_1: e.ukuran_cetak_lebar_1,
+            ukuran_cetak_bagian_1: e.ukuran_cetak_bagian_1,
+            ukuran_cetak_isi_1: e.ukuran_cetak_isi_1,
+            jumlah_cetak_1: e.jumlah_cetak_1,
+            tambahan_insheet_1: e.tambahan_insheet_1,
+            ukuran_cetak_panjang_2: e.ukuran_cetak_panjang_2,
+            ukuran_cetak_lebar_2: e.ukuran_cetak_lebar_2,
+            ukuran_cetak_bagian_2: e.ukuran_cetak_bagian_2,
+            ukuran_cetak_isi_2: e.ukuran_cetak_isi_2,
+            jumlah_cetak_2: e.jumlah_cetak_2,
+            tambahan_insheet_2: e.tambahan_insheet_2,
+            jumlah_druk_cetak: e.jumlah_druk_cetak,
+            jumlah_insheet_cetak: e.jumlah_insheet_cetak,
+            jumlah_druk_pond: e.jumlah_druk_pond,
+            jumlah_insheet_pond: e.jumlah_insheet_pond,
+            jumlah_druk_finishing: e.jumlah_druk_finishing,
+            jumlah_insheet_finishing: e.jumlah_insheet_finishing,
+            total_insheet: e.total_insheet,
+            is_selected: e.is_selected,
+          }));
+
+          await JobOrderMounting.bulkCreate(dataJoMounting, { transaction: t });
+        }
+
+        // ── 5. Update SO / IO ─────────────────────────────────────────────────
+        if (id_so && id_so != "") {
+          await SoModel.update(
+            { is_jo_done: true },
+            { where: { id: id_so }, transaction: t }
+          );
+        } else {
+          await IoModel.update(
+            { status_send_proof: "progress" },
+            { where: { id: id_io }, transaction: t }
+          );
+        }
+
+        // ── 6. Update BOM & BOM PPIC (skip jika KANBAN) ───────────────────────
+        if (!isKanban) {
+          if (checkBom) {
+            await BomModel.update(
+              { id_jo: dataJobOrder.id, no_jo: dataJobOrder.no_jo },
+              { where: { id: checkBom.id }, transaction: t }
+            );
+          }
+          if (checkBomPpic) {
+            await BomPpicModel.update(
+              { id_jo: dataJobOrder.id, no_jo: dataJobOrder.no_jo },
+              { where: { id: checkBomPpic.id }, transaction: t }
+            );
+          }
+
+          // ── 7. Create Tiket Jadwal Produksi (skip jika KANBAN) ─────────────
+          let dataSo = null;
+          if (id_so && id_so != "") {
+            dataSo = await soModel.findByPk(id_so);
+          } else {
+            dataSo = await IoModel.findByPk(id_io);
+          }
+
+          const dataMountingSelected = jo_mounting.find(
+            (e) => e.is_selected === true
+          );
+          const dataIoMountingSelected = await ioMountingModel.findByPk(
+            dataMountingSelected.id_io_mounting,
+            { include: [{ model: IoTahapan, as: "tahapan" }] }
+          );
+
+          const dataTahapanMounting = dataIoMountingSelected.tahapan.map(
+            (e) => ({
+              tahapan: e.nama_proses,
+              tahapan_ke: e.index,
+              nama_kategori: e.nama_setting_kapasitas,
+              kategori: e.nama_kapasitas,
+              kategori_drying_time: e.nama_drying_time,
+              mesin: e.nama_mesin,
+              kapasitas_per_jam: e.value_kapasitas,
+              drying_time: e.value_drying_time,
+              setting: e.value_setting,
+              toleransi: 0,
+            })
+          );
+
+          function formatDate(dateStr, locale = "en-GB") {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString(locale, {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            });
+          }
+
+          const createTiketJadwal =
+            await JadwalProduksiService.creteJadwalProduksiService(
+              produk,
+              no_jo,
+              null,
+              dataSo?.no_po_customer,
+              no_io,
+              customer,
+              dataMountingSelected.nama_kertas,
+              formatDate(tgl_kirim),
+              dataSo?.tgl_pembuatan_so
+                ? formatDate(dataSo?.tgl_pembuatan_so)
+                : null,
+              null,
+              po_qty || 0,
+              qty || 0,
+              qty_druk || 0,
+              qty_lp || 0,
+              dataTahapanMounting,
+              dataJobOrder.id,
+              t
+            );
+
+          if (createTiketJadwal.success === false) {
+            await t.rollback();
+            return res.status(400).json({
+              succes: false,
+              status_code: 400,
+              msg: `[JO ke-${idx + 1}] ${createTiketJadwal.msg}`,
+            });
+          }
+        }
+
+        results.push(dataJobOrder);
+      }
+
+      await t.commit();
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "Create Successfully",
+        data: results,
+      });
+    } catch (error) {
+      await t.rollback();
+      console.log(error);
+      return res.status(400).json({
+        succes: false,
+        status_code: 400,
+        msg: error.message,
+      });
+    }
+  },
+
   sendToJadwal: async (req, res) => {
     const _id = req.params.id;
     const t = await db.transaction();
