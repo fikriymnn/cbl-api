@@ -5,13 +5,13 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/produksi/lkhTahapan/:id?",
   auth,
-  ProduksiLkhTahapanController.getProduksiLkhTahapan,
+  ProduksiLkhTahapanController.getProduksiLkhTahapan
 );
 
 router.get(
   "/produksi/mesinByJo",
   auth,
-  ProduksiLkhTahapanController.getMesinByJO,
+  ProduksiLkhTahapanController.getMesinByJO
 );
 
 // router.put(
@@ -23,13 +23,19 @@ router.get(
 router.put(
   "/produksi/lkhTahapan/approve/:id",
   auth,
-  ProduksiLkhTahapanController.approveProduksiLkhTahapan,
+  ProduksiLkhTahapanController.approveProduksiLkhTahapan
 );
 
 router.put(
   "/produksi/activedLkhTahapan",
   auth,
-  ProduksiLkhTahapanController.activedProduksiLkhTahapan,
+  ProduksiLkhTahapanController.activedProduksiLkhTahapan
+);
+
+router.put(
+  "/produksi/openLkhTahapan/:id",
+  auth,
+  ProduksiLkhTahapanController.openProduksiLkhTahapan
 );
 
 module.exports = router;
