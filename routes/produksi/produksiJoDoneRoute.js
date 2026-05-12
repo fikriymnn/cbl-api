@@ -12,4 +12,9 @@ router.put(
   auth,
   ProduksiJoDoneController.KirimProduksiJoDone
 );
+router.put(
+  "/produksi/joDone/open/:id",
+  auth,
+  ProduksiJoDoneController.OpenProduksiJoDone
+);
 module.exports = router;
