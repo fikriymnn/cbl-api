@@ -177,7 +177,7 @@ const ProduksiJoDoneService = {
           customer: dataCustomer?.nama_customer || null,
           produk: dataProduk?.nama_produk || null,
         },
-        { transaction: t },
+        { transaction: t }
       );
       if (!transaction) await t.commit();
       return {
@@ -226,7 +226,7 @@ const ProduksiJoDoneService = {
           status_proses: "check qc",
           qty_kirim: checkData.qty_kirim + qty_kirim,
         },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
 
       const formatTanggalNow = FormatTanggalFunction.formatTanggal(new Date());
@@ -276,7 +276,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "done", status_proses: "done" },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
       if (!transaction) await t.commit();
       return {
@@ -304,13 +304,41 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "reject", status_proses: "reject qc" },
-        { where: { id: checkData.id }, transaction: t },
+        { where: { id: checkData.id }, transaction: t }
       );
       if (!transaction) await t.commit();
       return {
         status_code: 200,
         success: true,
         message: "reject success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { status_code: 500, success: false, message: error.message };
+    }
+  },
+
+  openProduksiJoDoneService: async ({ id, transaction = null }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const checkData = await ProduksiJoDone.findByPk(id);
+      if (!checkData) {
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data List JO Done Tidak Ditemukan",
+        };
+      }
+      await ProduksiJoDone.update(
+        { is_jo_done: false },
+        { where: { id: checkData.id }, transaction: t }
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "open success",
       };
     } catch (error) {
       if (!transaction) await t.rollback();

@@ -55,6 +55,20 @@ const ProduksiJoDoneController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  OpenProduksiJoDone: async (req, res) => {
+    const _id = req.params.id;
+    const { qty_kirim, is_jo_done } = req.body;
+
+    try {
+      const kirimData = await ProduksiJoDoneService.openProduksiJoDoneService({
+        id: _id,
+      });
+      return res.status(200).json(kirimData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = ProduksiJoDoneController;

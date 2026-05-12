@@ -1242,30 +1242,34 @@ const BomController = {
         { id_jo: checkData.id, id_user: req.user.id, status: "approve" },
         { transaction: t }
       );
-      for (let i = 0; i < ioMounting.tahapan.length; i++) {
-        const e = ioMounting.tahapan[i];
-        await ProduksiLkhTahapan.create(
-          {
-            id_jo: checkData.id,
-            id_io: checkData.id_io,
-            id_so: checkData.id_so,
-            id_customer: checkData.id_customer,
-            id_produk: checkData.id_produk,
-            id_tahapan: e.tahapan_mesin.id_tahapan,
-            index: e.index,
-            no_jo: checkData.no_jo,
-            no_io: checkData.no_io,
-            no_so: checkData.no_so,
-            customer: checkData.customer,
-            produk: checkData.produk,
-            tgl_kirim: checkData.tgl_kirim,
-            qty_jo: checkData.qty,
-            spesifikasi: checkData.spesifikasi,
-            status: e.index == 1 ? "active" : "nonactive",
-          },
-          { transaction: t }
-        );
+
+      if (checkData.tipe_jo != "JO KANBAN") {
+        for (let i = 0; i < ioMounting.tahapan.length; i++) {
+          const e = ioMounting.tahapan[i];
+          await ProduksiLkhTahapan.create(
+            {
+              id_jo: checkData.id,
+              id_io: checkData.id_io,
+              id_so: checkData.id_so,
+              id_customer: checkData.id_customer,
+              id_produk: checkData.id_produk,
+              id_tahapan: e.tahapan_mesin.id_tahapan,
+              index: e.index,
+              no_jo: checkData.no_jo,
+              no_io: checkData.no_io,
+              no_so: checkData.no_so,
+              customer: checkData.customer,
+              produk: checkData.produk,
+              tgl_kirim: checkData.tgl_kirim,
+              qty_jo: checkData.qty,
+              spesifikasi: checkData.spesifikasi,
+              status: e.index == 1 ? "active" : "nonactive",
+            },
+            { transaction: t }
+          );
+        }
       }
+
       await t.commit(),
         res
           .status(200)

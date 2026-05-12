@@ -300,7 +300,7 @@ const ProduksiLkhTahapanController = {
           {
             where: { id: e.id },
             transaction: t,
-          },
+          }
         );
       }
 
@@ -322,7 +322,7 @@ const ProduksiLkhTahapanController = {
             {
               where: { id: e.id },
               transaction: t,
-            },
+            }
           );
         }
       }
@@ -337,7 +337,7 @@ const ProduksiLkhTahapanController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
 
       //buat tahapan selanjutnya jadi active & cek apakah tahapan ini adalah tahapan terakhir (untuk kirim tiket ke list jo selesai)
@@ -354,7 +354,7 @@ const ProduksiLkhTahapanController = {
           //buat tahapan selanjutnya active
           await ProduksiLkhTahapan.update(
             { status: "active" },
-            { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
+            { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
           );
         } else {
           //tahapan selanjutnya sudah active atau done maka tidak perlu update status
@@ -404,10 +404,10 @@ const ProduksiLkhTahapanController = {
         }
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -431,15 +431,41 @@ const ProduksiLkhTahapanController = {
             {
               where: { id: e.id },
               transaction: t,
-            },
+            }
           );
         }
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Actived Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Actived Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  openProduksiLkhTahapan: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      await ProduksiLkhTahapan.update(
+        {
+          status: "active",
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      );
+
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Open Successful" });
     } catch (error) {
       await t.rollback();
       res
