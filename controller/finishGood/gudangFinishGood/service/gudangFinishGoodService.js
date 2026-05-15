@@ -236,6 +236,7 @@ const GudangFinishGoodService = {
     start_date,
     end_date,
     search,
+    id_io,
   }) => {
     let whereObj = {
       is_active: true,
@@ -256,13 +257,17 @@ const GudangFinishGoodService = {
       whereObj.createdAt = { [Op.between]: [startDate, endDate] };
     }
 
+    if (id_io) whereObj.id_io = id_io;
+
     const usePagination = page && limit;
 
     try {
       const findAllOptions = {
         attributes: [
           "id_jo",
+          "id_io",
           "no_jo",
+          "no_io",
           "id_customer",
           "customer",
           "id_produk",
@@ -317,7 +322,9 @@ const GudangFinishGoodService = {
 
         return {
           id_jo: group.id_jo,
+          id_io: group.id_io,
           no_jo: group.no_jo,
+          no_io: group.no_io,
           id_customer: group.id_customer,
           customer: group.customer,
           id_produk: group.id_produk,
