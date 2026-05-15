@@ -59,7 +59,7 @@ const GudangFinishGoodController = {
 
   getGudangFinishGoodByJo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search } = req.query;
+    const { page, limit, start_date, end_date, search, id_io } = req.query;
 
     try {
       const getData =
@@ -70,6 +70,7 @@ const GudangFinishGoodController = {
           start_date: start_date,
           end_date: end_date,
           search: search,
+          id_io: id_io,
         });
       return res.status(200).json(getData);
     } catch (error) {
