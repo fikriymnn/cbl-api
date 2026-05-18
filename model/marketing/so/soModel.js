@@ -120,12 +120,18 @@ const so = db.define(
       allowNull: true,
     },
     harga_jual: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
+      get() {
+        return parseFloat(this.getDataValue("harga_jual"));
+      },
     },
     total_harga: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
+      get() {
+        return parseFloat(this.getDataValue("total_harga"));
+      },
     },
     no_po_customer: {
       type: DataTypes.STRING,
@@ -140,8 +146,11 @@ const so = db.define(
       allowNull: true,
     },
     profit: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
+      get() {
+        return parseFloat(this.getDataValue("profit"));
+      },
     },
     tgl_pengiriman: {
       type: DataTypes.DATE,
