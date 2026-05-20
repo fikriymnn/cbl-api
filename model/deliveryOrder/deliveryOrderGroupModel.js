@@ -161,7 +161,51 @@ const DeliveryOrderGroup = db.define(
   },
   {
     freezeTableName: true,
-  },
+    indexes: [
+      {
+        name: "idx_do_group_so",
+        fields: ["id_so"],
+      },
+      {
+        name: "idx_do_group_io",
+        fields: ["id_io"],
+      },
+      {
+        name: "idx_do_group_customer",
+        fields: ["id_customer"],
+      },
+      {
+        name: "idx_do_group_produk",
+        fields: ["id_produk"],
+      },
+      {
+        name: "idx_do_group_tgl",
+        fields: ["tgl_do"],
+      },
+      {
+        name: "idx_do_group_status",
+        fields: ["status"],
+      },
+      {
+        name: "idx_do_group_active",
+        fields: ["is_active"],
+      },
+
+      // composite
+      {
+        name: "idx_do_group_so_tgl",
+        fields: ["id_so", "tgl_do"],
+      },
+      {
+        name: "idx_do_group_status_tgl",
+        fields: ["status", "tgl_do"],
+      },
+      {
+        name: "idx_do_group_active_tgl",
+        fields: ["is_active", "tgl_do"],
+      },
+    ],
+  }
 );
 
 IoModel.hasMany(DeliveryOrderGroup, {
@@ -173,7 +217,7 @@ DeliveryOrderGroup.belongsTo(IoModel, {
   as: "io",
 });
 
-SoModel.hasOne(DeliveryOrderGroup, {
+SoModel.hasMany(DeliveryOrderGroup, {
   foreignKey: "id_so",
   as: "delivery_order_group",
 });

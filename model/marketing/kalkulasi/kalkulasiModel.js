@@ -672,7 +672,55 @@ const Kalkulasi = db.define(
   },
   {
     freezeTableName: true,
-  },
+    indexes: [
+      {
+        name: "idx_kalkulasi_customer",
+        fields: ["id_customer"],
+      },
+      {
+        name: "idx_kalkulasi_marketing",
+        fields: ["id_marketing"],
+      },
+      {
+        name: "idx_kalkulasi_produk",
+        fields: ["id_produk"],
+      },
+      {
+        name: "idx_kalkulasi_status",
+        fields: ["status"],
+      },
+      {
+        name: "idx_kalkulasi_status_proses",
+        fields: ["status_proses"],
+      },
+      {
+        name: "idx_kalkulasi_active",
+        fields: ["is_active"],
+      },
+      {
+        name: "idx_kalkulasi_created",
+        fields: ["createdAt"],
+      },
+      {
+        name: "idx_kalkulasi_tgl",
+        fields: ["tgl_kalkulasi"],
+      },
+
+      // composite
+      {
+        name: "idx_kalkulasi_marketing_created",
+        fields: ["id_marketing", "createdAt"],
+      },
+      {
+        name: "idx_kalkulasi_customer_created",
+        fields: ["id_customer", "createdAt"],
+      },
+      {
+        name: "idx_kalkulasi_status_created",
+        fields: ["status", "createdAt"],
+      },
+    ],
+  }
 );
 
 //~~start~~//

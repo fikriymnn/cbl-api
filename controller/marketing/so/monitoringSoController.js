@@ -26,8 +26,8 @@ const MonitoringSoController = {
 
     try {
       let obj = { status: "history" };
-      let objDo = {};
 
+      // ─── Validasi parameter wajib ─────────────────────────────────────────────
       if (!start_date || !end_date || !sort_by || !status_po)
         return res.status(404).json({
           succes: false,
@@ -40,6 +40,20 @@ const MonitoringSoController = {
       const endDate = new Date(end_date);
       endDate.setHours(23, 59, 59, 999);
 
+      // ─── Subquery total qty terkirim di level SO ──────────────────────────────
+      // Dipakai untuk rekap, post-filter selesai/kurang/over qty.
+      // ─────────────────────────────────────────────────────────────────────────
+      const subqueryTotalQty = literal(`(
+        SELECT COALESCE(SUM(do_inner.jumlah_qty), 0)
+        FROM delivery_order AS do_inner
+        WHERE do_inner.id_so = so.id
+          AND do_inner.is_active = 1
+      )`);
+
+      // ─── DoInclude ────────────────────────────────────────────────────────────
+      // separate: true → ambil semua DO group per SO (hasMany).
+      // total_qty per group dihitung via subquery masing-masing group.
+      // ─────────────────────────────────────────────────────────────────────────
       const DoInclude = {
         model: DeliveriOrderGrupModel,
         as: "delivery_order_group",
@@ -47,19 +61,18 @@ const MonitoringSoController = {
           "id",
           "tgl_do",
           "no_do",
+          // ✅ subquery per group — hitung hanya DO dalam group ini
           [
-            fn("SUM", col("delivery_order_group->delivery_order.jumlah_qty")),
+            literal(`(
+              SELECT COALESCE(SUM(do_grp.jumlah_qty), 0)
+              FROM delivery_order AS do_grp
+              WHERE do_grp.id_do_group = delivery_order_group.id
+                AND do_grp.is_active = 1
+            )`),
             "total_qty",
           ],
         ],
-        include: [
-          {
-            model: DeliveriOrderModel,
-            as: "delivery_order",
-            attributes: [],
-          },
-        ],
-        duplicating: false,
+        separate: true,
       };
 
       const KalkulasiInclude = {
@@ -69,15 +82,13 @@ const MonitoringSoController = {
         duplicating: false,
       };
 
-      // Filter sort_by
+      // ─── Filter sort_by ───────────────────────────────────────────────────────
       if (sort_by == "input so") {
         obj.createdAt = { [Op.between]: [startDate, endDate] };
       } else if (sort_by == "kirim so") {
         obj.tgl_pengiriman = { [Op.between]: [startDate, endDate] };
       } else if (sort_by == "do") {
-        objDo.tgl_do = { [Op.between]: [startDate, endDate] };
-        DoInclude.where = objDo;
-        DoInclude.required = true;
+        DoInclude.where = { tgl_do: { [Op.between]: [startDate, endDate] } };
       } else {
         return res.status(404).json({
           succes: false,
@@ -86,22 +97,19 @@ const MonitoringSoController = {
         });
       }
 
-      // Filter status_po
+      // ─── Filter status_po ─────────────────────────────────────────────────────
       if (status_po == "semua") {
-        // tidak ada filter tambahan
       } else if (status_po == "close") {
         obj.status_work = "done";
       } else if (status_po == "cancel") {
         obj.status = "cancel";
-      } else if (status_po == "belum kirim") {
-        DoInclude.required = false;
-        obj["$delivery_order_group.id$"] = { [Op.is]: null };
-      } else if (status_po == "selesai") {
-        DoInclude.required = true;
-      } else if (status_po == "kurang qty") {
-        DoInclude.required = true;
-      } else if (status_po == "over qty") {
-        DoInclude.required = true;
+      } else if (
+        status_po == "belum kirim" ||
+        status_po == "selesai" ||
+        status_po == "kurang qty" ||
+        status_po == "over qty"
+      ) {
+        // ditangani post-filter
       } else {
         return res.status(404).json({
           succes: false,
@@ -110,6 +118,7 @@ const MonitoringSoController = {
         });
       }
 
+      // ─── Filter id_marketing ──────────────────────────────────────────────────
       if (id_marketing) {
         KalkulasiInclude.where = { id_marketing };
         KalkulasiInclude.required = true;
@@ -117,7 +126,14 @@ const MonitoringSoController = {
 
       if (id_customer) obj.id_customer = id_customer;
 
+      // ─── Query utama ──────────────────────────────────────────────────────────
       let data = await SoModel.findAll({
+        attributes: {
+          include: [
+            // total_qty = total semua DO milik SO, untuk rekap & post-filter
+            [subqueryTotalQty, "total_qty"],
+          ],
+        },
         where: obj,
         include: [
           DoInclude,
@@ -159,50 +175,57 @@ const MonitoringSoController = {
                   "waktu_mulai",
                 ],
                 limit: 1,
-                order: [["createdAt", "ASC"]], // paling lama
-                separate: true, // WAJIB supaya limit bekerja
+                order: [["createdAt", "ASC"]],
+                separate: true,
                 include: [
                   { model: MasterMesinTahapan, as: "mesin" },
-                  {
-                    model: Users,
-                    as: "operator",
-                  },
+                  { model: Users, as: "operator" },
                 ],
               },
             ],
           },
         ],
-        group: ["so.id", "delivery_order_group.id"],
       });
 
-      // Post-filter untuk selesai, kurang qty, over qty
-      if (status_po == "selesai") {
+      // ─── Konversi ke plain object ─────────────────────────────────────────────
+      // toJSON() memastikan semua field subquery & virtual muncul di response.
+      // total_qty per group sudah dihitung sendiri via subquery di DoInclude.
+      // ─────────────────────────────────────────────────────────────────────────
+      data = data.map((item) => item.toJSON());
+
+      // ─── Post-filter ──────────────────────────────────────────────────────────
+      // Pakai total_qty (total SO) untuk perbandingan dengan po_qty.
+      // ─────────────────────────────────────────────────────────────────────────
+      if (status_po == "belum kirim") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) === item.po_qty;
+          const dogs = item.delivery_order_group;
+          return !dogs || (Array.isArray(dogs) && dogs.length === 0);
+        });
+      } else if (status_po == "selesai") {
+        data = data.filter((item) => {
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > 0 && totalKirim === item.po_qty;
         });
       } else if (status_po == "kurang qty") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) < item.po_qty;
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > 0 && totalKirim < item.po_qty;
         });
       } else if (status_po == "over qty") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) > item.po_qty;
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > item.po_qty;
         });
       }
 
-      const dataRekap = await hitungRekapan(data);
-
-      // ✅ Tambahan rekap per bulan
+      const dataRekap = hitungRekapan(data);
       const dataRekapPerBulan = hitungRekapanPerBulan(data, sort_by);
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
         data_rekap: dataRekap,
-        data_rekap_per_bulan: dataRekapPerBulan, // ✅
+        data_rekap_per_bulan: dataRekapPerBulan,
         data: data,
       });
     } catch (error) {
@@ -213,6 +236,9 @@ const MonitoringSoController = {
   },
 };
 
+// ─── hitungRekapan ────────────────────────────────────────────────────────────
+// Pakai total_qty dari subquery SO level untuk akurasi lintas group.
+// ─────────────────────────────────────────────────────────────────────────────
 function hitungRekapan(data) {
   let otsQty = 0;
   let qtyTerkirim = 0;
@@ -222,8 +248,7 @@ function hitungRekapan(data) {
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
     const harga = item.harga_jual || 0;
-    const doQty =
-      parseInt(item.delivery_order_group?.dataValues?.total_qty) || 0;
+    const doQty = parseFloat(item.total_qty) || 0;
 
     const qtySudahKirim = doQty;
     const qtyBelumKirim = Math.max(poQty - doQty, 0);
@@ -248,33 +273,36 @@ function hitungRekapan(data) {
   };
 }
 
-// ✅ Fungsi rekap per bulan
+// ─── hitungRekapanPerBulan ────────────────────────────────────────────────────
 function hitungRekapanPerBulan(data, sort_by) {
   const rekapMap = {};
 
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
     const harga = item.harga_jual || 0;
-    const doQty =
-      parseInt(item.delivery_order_group?.dataValues?.total_qty) || 0;
+    const doQty = parseFloat(item.total_qty) || 0;
 
-    // Tentukan tanggal acuan berdasarkan sort_by
     let tanggalAcuan;
     if (sort_by == "input so") {
       tanggalAcuan = item.createdAt;
     } else if (sort_by == "kirim so") {
       tanggalAcuan = item.tgl_pengiriman;
     } else if (sort_by == "do") {
-      tanggalAcuan = item.delivery_order_group?.dataValues?.tgl_do;
+      data = data.filter(
+        (item) =>
+          Array.isArray(item.delivery_order_group) &&
+          item.delivery_order_group.length > 0
+      );
+      const dogs = item.delivery_order_group;
+      tanggalAcuan = Array.isArray(dogs) ? dogs[0]?.tgl_do : dogs?.tgl_do;
     }
 
-    if (!tanggalAcuan) return; // skip jika tanggal tidak ada
+    if (!tanggalAcuan) return;
 
     const date = new Date(tanggalAcuan);
-    // Key format: "YYYY-MM" untuk sorting yang mudah
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0",
+      "0"
     )}`;
 
     if (!rekapMap[key]) {
@@ -299,7 +327,6 @@ function hitungRekapanPerBulan(data, sort_by) {
     rekapMap[key].ots += qtyBelumKirim * harga;
   });
 
-  // Hitung total dan urutkan berdasarkan bulan (ascending)
   const result = Object.values(rekapMap)
     .map((item) => ({
       ...item,
