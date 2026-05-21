@@ -41,7 +41,7 @@ const MonitoringSoController = {
       endDate.setHours(23, 59, 59, 999);
 
       // ─── Subquery total qty terkirim di level SO ──────────────────────────────
-      // Dipakai untuk rekap, post-filter selesai/kurang/over qty.
+      // Total semua DO milik SO ini lintas semua group — untuk rekap & post-filter.
       // ─────────────────────────────────────────────────────────────────────────
       const subqueryTotalQty = literal(`(
         SELECT COALESCE(SUM(do_inner.jumlah_qty), 0)
@@ -49,31 +49,6 @@ const MonitoringSoController = {
         WHERE do_inner.id_so = so.id
           AND do_inner.is_active = 1
       )`);
-
-      // ─── DoInclude ────────────────────────────────────────────────────────────
-      // separate: true → ambil semua DO group per SO (hasMany).
-      // total_qty per group dihitung via subquery masing-masing group.
-      // ─────────────────────────────────────────────────────────────────────────
-      const DoInclude = {
-        model: DeliveriOrderGrupModel,
-        as: "delivery_order_group",
-        attributes: [
-          "id",
-          "tgl_do",
-          "no_do",
-          // ✅ subquery per group — hitung hanya DO dalam group ini
-          [
-            literal(`(
-              SELECT COALESCE(SUM(do_grp.jumlah_qty), 0)
-              FROM delivery_order AS do_grp
-              WHERE do_grp.id_do_group = delivery_order_group.id
-                AND do_grp.is_active = 1
-            )`),
-            "total_qty",
-          ],
-        ],
-        separate: true,
-      };
 
       const KalkulasiInclude = {
         model: Kalkulasi,
@@ -88,7 +63,16 @@ const MonitoringSoController = {
       } else if (sort_by == "kirim so") {
         obj.tgl_pengiriman = { [Op.between]: [startDate, endDate] };
       } else if (sort_by == "do") {
-        DoInclude.where = { tgl_do: { [Op.between]: [startDate, endDate] } };
+        // Filter SO yang punya DO dalam rentang tanggal — via subquery EXISTS
+        obj[Op.and] = literal(`EXISTS (
+          SELECT 1
+          FROM delivery_order_group dog
+          JOIN delivery_order do2 ON do2.id_do_group = dog.id
+            AND do2.id_so = so.id
+            AND do2.is_active = 1
+          WHERE dog.tgl_do BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            AND dog.is_active = 1
+        )`);
       } else {
         return res.status(404).json({
           succes: false,
@@ -126,17 +110,16 @@ const MonitoringSoController = {
 
       if (id_customer) obj.id_customer = id_customer;
 
-      // ─── Query utama ──────────────────────────────────────────────────────────
+      // ─── Query utama — tanpa DoInclude ────────────────────────────────────────
+      // DO group di-fetch manual setelah ini agar bisa menangkap DO group
+      // yang id_so-nya berbeda dengan SO (kasus 1 DO group berisi 2 SO berbeda).
+      // ─────────────────────────────────────────────────────────────────────────
       let data = await SoModel.findAll({
         attributes: {
-          include: [
-            // total_qty = total semua DO milik SO, untuk rekap & post-filter
-            [subqueryTotalQty, "total_qty"],
-          ],
+          include: [[subqueryTotalQty, "total_qty"]],
         },
         where: obj,
         include: [
-          DoInclude,
           KalkulasiInclude,
           {
             model: JoModel,
@@ -188,19 +171,56 @@ const MonitoringSoController = {
       });
 
       // ─── Konversi ke plain object ─────────────────────────────────────────────
-      // toJSON() memastikan semua field subquery & virtual muncul di response.
-      // total_qty per group sudah dihitung sendiri via subquery di DoInclude.
-      // ─────────────────────────────────────────────────────────────────────────
       data = data.map((item) => item.toJSON());
 
-      // ─── Post-filter ──────────────────────────────────────────────────────────
-      // Pakai total_qty (total SO) untuk perbandingan dengan po_qty.
+      // ─── Fetch DO group manual per SO ─────────────────────────────────────────
+      // Mencari DO group via delivery_order.id_so — bukan via delivery_order_group.id_so
+      // sehingga DO group yang berisi item dari 2 SO berbeda tetap terbaca oleh keduanya.
+      // total_qty per group dihitung hanya dari DO milik SO ini.
+      //
+      // Jika sort_by == "do", filter DO group berdasarkan rentang tgl_do.
       // ─────────────────────────────────────────────────────────────────────────
+      const doGroupTglFilter =
+        sort_by == "do"
+          ? `AND dog.tgl_do BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`
+          : "";
+
+      data = await Promise.all(
+        data.map(async (item) => {
+          const doGroups = await db.query(
+            `
+            SELECT
+              dog.id,
+              dog.no_do,
+              dog.tgl_do,
+              COALESCE(SUM(do2.jumlah_qty), 0) AS total_qty
+            FROM delivery_order_group dog
+            JOIN delivery_order do2
+              ON do2.id_do_group = dog.id
+              AND do2.id_so = :id_so
+              AND do2.is_active = 1
+            WHERE dog.is_active = 1
+              ${doGroupTglFilter}
+            GROUP BY dog.id, dog.no_do, dog.tgl_do
+            ORDER BY dog.tgl_do ASC
+            `,
+            {
+              replacements: { id_so: item.id },
+              type: db.QueryTypes.SELECT,
+            }
+          );
+
+          item.delivery_order_group = doGroups;
+          return item;
+        })
+      );
+
+      // ─── Post-filter ──────────────────────────────────────────────────────────
       if (status_po == "belum kirim") {
-        data = data.filter((item) => {
-          const dogs = item.delivery_order_group;
-          return !dogs || (Array.isArray(dogs) && dogs.length === 0);
-        });
+        data = data.filter(
+          (item) =>
+            !item.delivery_order_group || item.delivery_order_group.length === 0
+        );
       } else if (status_po == "selesai") {
         data = data.filter((item) => {
           const totalKirim = parseFloat(item.total_qty) || 0;
@@ -237,8 +257,6 @@ const MonitoringSoController = {
 };
 
 // ─── hitungRekapan ────────────────────────────────────────────────────────────
-// Pakai total_qty dari subquery SO level untuk akurasi lintas group.
-// ─────────────────────────────────────────────────────────────────────────────
 function hitungRekapan(data) {
   let otsQty = 0;
   let qtyTerkirim = 0;
@@ -274,6 +292,9 @@ function hitungRekapan(data) {
 }
 
 // ─── hitungRekapanPerBulan ────────────────────────────────────────────────────
+// FIX: hapus data = data.filter() di dalam forEach — menyebabkan duplikasi data
+// dan side effect pada array yang sedang di-iterasi.
+// ─────────────────────────────────────────────────────────────────────────────
 function hitungRekapanPerBulan(data, sort_by) {
   const rekapMap = {};
 
@@ -288,13 +309,9 @@ function hitungRekapanPerBulan(data, sort_by) {
     } else if (sort_by == "kirim so") {
       tanggalAcuan = item.tgl_pengiriman;
     } else if (sort_by == "do") {
-      data = data.filter(
-        (item) =>
-          Array.isArray(item.delivery_order_group) &&
-          item.delivery_order_group.length > 0
-      );
+      // Ambil tgl_do dari group pertama (sudah ORDER BY tgl_do ASC)
       const dogs = item.delivery_order_group;
-      tanggalAcuan = Array.isArray(dogs) ? dogs[0]?.tgl_do : dogs?.tgl_do;
+      tanggalAcuan = Array.isArray(dogs) ? dogs[0]?.tgl_do : null;
     }
 
     if (!tanggalAcuan) return;
