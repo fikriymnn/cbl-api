@@ -135,6 +135,47 @@ const ProduksiLkhProses = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      {
+        name: "idx_mesin_tahapan_createdAt",
+        fields: ["id_mesin", "id_tahapan", "createdAt"],
+      },
+
+      {
+        name: "idx_id_jo",
+        fields: ["id_jo"],
+      },
+      {
+        name: "idx_id_produksi_lkh",
+        fields: ["id_produksi_lkh"],
+      },
+      {
+        name: "idx_id_produksi_lkh_tahapan",
+        fields: ["id_produksi_lkh_tahapan"],
+      },
+      {
+        name: "idx_id_tahapan",
+        fields: ["id_tahapan"],
+      },
+      {
+        name: "idx_id_operator",
+        fields: ["id_operator"],
+      },
+      {
+        name: "idx_id_kode_produksi",
+        fields: ["id_kode_produksi"],
+      },
+
+      {
+        name: "idx_is_active",
+        fields: ["is_active"],
+      },
+
+      {
+        name: "idx_status",
+        fields: ["status"],
+      },
+    ],
   }
 );
 
@@ -190,5 +231,14 @@ Users.hasMany(ProduksiLkhProses, {
 ProduksiLkhProses.belongsTo(Users, {
   foreignKey: "id_operator",
   as: "operator",
+});
+
+MasterKodeProduksi.hasMany(ProduksiLkhProses, {
+  foreignKey: "id_kode_produksi",
+  as: "produksi_lkh_proses_operator",
+});
+ProduksiLkhProses.belongsTo(MasterKodeProduksi, {
+  foreignKey: "id_kode_produksi",
+  as: "kode_produksi",
 });
 module.exports = ProduksiLkhProses;

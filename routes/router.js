@@ -329,6 +329,7 @@ router.use("/", require("./produksi/produksiLkhTahapanRoute"));
 router.use("/", require("./produksi/produksiLkhProsesRoute"));
 router.use("/", require("./produksi/produksiLkhWasteRoute"));
 router.use("/", require("./produksi/produksiJoDoneRoute"));
+router.use("/", require("./produksi/produksiLkhRekapRoute"));
 
 //standar warna
 router.use("/", require("./ppic/standarWarna/pembuatanStandarWarnaRoute"));
