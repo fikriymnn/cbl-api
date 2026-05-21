@@ -26,8 +26,8 @@ const MonitoringSoController = {
 
     try {
       let obj = { status: "history" };
-      let objDo = {};
 
+      // ─── Validasi parameter wajib ─────────────────────────────────────────────
       if (!start_date || !end_date || !sort_by || !status_po)
         return res.status(404).json({
           succes: false,
@@ -40,27 +40,15 @@ const MonitoringSoController = {
       const endDate = new Date(end_date);
       endDate.setHours(23, 59, 59, 999);
 
-      const DoInclude = {
-        model: DeliveriOrderGrupModel,
-        as: "delivery_order_group",
-        attributes: [
-          "id",
-          "tgl_do",
-          "no_do",
-          [
-            fn("SUM", col("delivery_order_group->delivery_order.jumlah_qty")),
-            "total_qty",
-          ],
-        ],
-        include: [
-          {
-            model: DeliveriOrderModel,
-            as: "delivery_order",
-            attributes: [],
-          },
-        ],
-        duplicating: false,
-      };
+      // ─── Subquery total qty terkirim di level SO ──────────────────────────────
+      // Total semua DO milik SO ini lintas semua group — untuk rekap & post-filter.
+      // ─────────────────────────────────────────────────────────────────────────
+      const subqueryTotalQty = literal(`(
+        SELECT COALESCE(SUM(do_inner.jumlah_qty), 0)
+        FROM delivery_order AS do_inner
+        WHERE do_inner.id_so = so.id
+          AND do_inner.is_active = 1
+      )`);
 
       const KalkulasiInclude = {
         model: Kalkulasi,
@@ -69,15 +57,22 @@ const MonitoringSoController = {
         duplicating: false,
       };
 
-      // Filter sort_by
+      // ─── Filter sort_by ───────────────────────────────────────────────────────
       if (sort_by == "input so") {
         obj.createdAt = { [Op.between]: [startDate, endDate] };
       } else if (sort_by == "kirim so") {
         obj.tgl_pengiriman = { [Op.between]: [startDate, endDate] };
       } else if (sort_by == "do") {
-        objDo.tgl_do = { [Op.between]: [startDate, endDate] };
-        DoInclude.where = objDo;
-        DoInclude.required = true;
+        // Filter SO yang punya DO dalam rentang tanggal — via subquery EXISTS
+        obj[Op.and] = literal(`EXISTS (
+          SELECT 1
+          FROM delivery_order_group dog
+          JOIN delivery_order do2 ON do2.id_do_group = dog.id
+            AND do2.id_so = so.id
+            AND do2.is_active = 1
+          WHERE dog.tgl_do BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'
+            AND dog.is_active = 1
+        )`);
       } else {
         return res.status(404).json({
           succes: false,
@@ -86,22 +81,19 @@ const MonitoringSoController = {
         });
       }
 
-      // Filter status_po
+      // ─── Filter status_po ─────────────────────────────────────────────────────
       if (status_po == "semua") {
-        // tidak ada filter tambahan
       } else if (status_po == "close") {
         obj.status_work = "done";
       } else if (status_po == "cancel") {
         obj.status = "cancel";
-      } else if (status_po == "belum kirim") {
-        DoInclude.required = false;
-        obj["$delivery_order_group.id$"] = { [Op.is]: null };
-      } else if (status_po == "selesai") {
-        DoInclude.required = true;
-      } else if (status_po == "kurang qty") {
-        DoInclude.required = true;
-      } else if (status_po == "over qty") {
-        DoInclude.required = true;
+      } else if (
+        status_po == "belum kirim" ||
+        status_po == "selesai" ||
+        status_po == "kurang qty" ||
+        status_po == "over qty"
+      ) {
+        // ditangani post-filter
       } else {
         return res.status(404).json({
           succes: false,
@@ -110,6 +102,7 @@ const MonitoringSoController = {
         });
       }
 
+      // ─── Filter id_marketing ──────────────────────────────────────────────────
       if (id_marketing) {
         KalkulasiInclude.where = { id_marketing };
         KalkulasiInclude.required = true;
@@ -117,10 +110,16 @@ const MonitoringSoController = {
 
       if (id_customer) obj.id_customer = id_customer;
 
+      // ─── Query utama — tanpa DoInclude ────────────────────────────────────────
+      // DO group di-fetch manual setelah ini agar bisa menangkap DO group
+      // yang id_so-nya berbeda dengan SO (kasus 1 DO group berisi 2 SO berbeda).
+      // ─────────────────────────────────────────────────────────────────────────
       let data = await SoModel.findAll({
+        attributes: {
+          include: [[subqueryTotalQty, "total_qty"]],
+        },
         where: obj,
         include: [
-          DoInclude,
           KalkulasiInclude,
           {
             model: JoModel,
@@ -159,50 +158,94 @@ const MonitoringSoController = {
                   "waktu_mulai",
                 ],
                 limit: 1,
-                order: [["createdAt", "ASC"]], // paling lama
-                separate: true, // WAJIB supaya limit bekerja
+                order: [["createdAt", "ASC"]],
+                separate: true,
                 include: [
                   { model: MasterMesinTahapan, as: "mesin" },
-                  {
-                    model: Users,
-                    as: "operator",
-                  },
+                  { model: Users, as: "operator" },
                 ],
               },
             ],
           },
         ],
-        group: ["so.id", "delivery_order_group.id"],
       });
 
-      // Post-filter untuk selesai, kurang qty, over qty
-      if (status_po == "selesai") {
+      // ─── Konversi ke plain object ─────────────────────────────────────────────
+      data = data.map((item) => item.toJSON());
+
+      // ─── Fetch DO group manual per SO ─────────────────────────────────────────
+      // Mencari DO group via delivery_order.id_so — bukan via delivery_order_group.id_so
+      // sehingga DO group yang berisi item dari 2 SO berbeda tetap terbaca oleh keduanya.
+      // total_qty per group dihitung hanya dari DO milik SO ini.
+      //
+      // Jika sort_by == "do", filter DO group berdasarkan rentang tgl_do.
+      // ─────────────────────────────────────────────────────────────────────────
+      const doGroupTglFilter =
+        sort_by == "do"
+          ? `AND dog.tgl_do BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`
+          : "";
+
+      data = await Promise.all(
+        data.map(async (item) => {
+          const doGroups = await db.query(
+            `
+            SELECT
+              dog.id,
+              dog.no_do,
+              dog.tgl_do,
+              COALESCE(SUM(do2.jumlah_qty), 0) AS total_qty
+            FROM delivery_order_group dog
+            JOIN delivery_order do2
+              ON do2.id_do_group = dog.id
+              AND do2.id_so = :id_so
+              AND do2.is_active = 1
+            WHERE dog.is_active = 1
+              ${doGroupTglFilter}
+            GROUP BY dog.id, dog.no_do, dog.tgl_do
+            ORDER BY dog.tgl_do ASC
+            `,
+            {
+              replacements: { id_so: item.id },
+              type: db.QueryTypes.SELECT,
+            }
+          );
+
+          item.delivery_order_group = doGroups;
+          return item;
+        })
+      );
+
+      // ─── Post-filter ──────────────────────────────────────────────────────────
+      if (status_po == "belum kirim") {
+        data = data.filter(
+          (item) =>
+            !item.delivery_order_group || item.delivery_order_group.length === 0
+        );
+      } else if (status_po == "selesai") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) === item.po_qty;
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > 0 && totalKirim === item.po_qty;
         });
       } else if (status_po == "kurang qty") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) < item.po_qty;
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > 0 && totalKirim < item.po_qty;
         });
       } else if (status_po == "over qty") {
         data = data.filter((item) => {
-          const dg = item.delivery_order_group;
-          return dg && parseInt(dg.dataValues.total_qty) > item.po_qty;
+          const totalKirim = parseFloat(item.total_qty) || 0;
+          return totalKirim > item.po_qty;
         });
       }
 
-      const dataRekap = await hitungRekapan(data);
-
-      // ✅ Tambahan rekap per bulan
+      const dataRekap = hitungRekapan(data);
       const dataRekapPerBulan = hitungRekapanPerBulan(data, sort_by);
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
         data_rekap: dataRekap,
-        data_rekap_per_bulan: dataRekapPerBulan, // ✅
+        data_rekap_per_bulan: dataRekapPerBulan,
         data: data,
       });
     } catch (error) {
@@ -213,6 +256,7 @@ const MonitoringSoController = {
   },
 };
 
+// ─── hitungRekapan ────────────────────────────────────────────────────────────
 function hitungRekapan(data) {
   let otsQty = 0;
   let qtyTerkirim = 0;
@@ -222,8 +266,7 @@ function hitungRekapan(data) {
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
     const harga = item.harga_jual || 0;
-    const doQty =
-      parseInt(item.delivery_order_group?.dataValues?.total_qty) || 0;
+    const doQty = parseFloat(item.total_qty) || 0;
 
     const qtySudahKirim = doQty;
     const qtyBelumKirim = Math.max(poQty - doQty, 0);
@@ -248,33 +291,35 @@ function hitungRekapan(data) {
   };
 }
 
-// ✅ Fungsi rekap per bulan
+// ─── hitungRekapanPerBulan ────────────────────────────────────────────────────
+// FIX: hapus data = data.filter() di dalam forEach — menyebabkan duplikasi data
+// dan side effect pada array yang sedang di-iterasi.
+// ─────────────────────────────────────────────────────────────────────────────
 function hitungRekapanPerBulan(data, sort_by) {
   const rekapMap = {};
 
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
     const harga = item.harga_jual || 0;
-    const doQty =
-      parseInt(item.delivery_order_group?.dataValues?.total_qty) || 0;
+    const doQty = parseFloat(item.total_qty) || 0;
 
-    // Tentukan tanggal acuan berdasarkan sort_by
     let tanggalAcuan;
     if (sort_by == "input so") {
       tanggalAcuan = item.createdAt;
     } else if (sort_by == "kirim so") {
       tanggalAcuan = item.tgl_pengiriman;
     } else if (sort_by == "do") {
-      tanggalAcuan = item.delivery_order_group?.dataValues?.tgl_do;
+      // Ambil tgl_do dari group pertama (sudah ORDER BY tgl_do ASC)
+      const dogs = item.delivery_order_group;
+      tanggalAcuan = Array.isArray(dogs) ? dogs[0]?.tgl_do : null;
     }
 
-    if (!tanggalAcuan) return; // skip jika tanggal tidak ada
+    if (!tanggalAcuan) return;
 
     const date = new Date(tanggalAcuan);
-    // Key format: "YYYY-MM" untuk sorting yang mudah
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0",
+      "0"
     )}`;
 
     if (!rekapMap[key]) {
@@ -299,7 +344,6 @@ function hitungRekapanPerBulan(data, sort_by) {
     rekapMap[key].ots += qtyBelumKirim * harga;
   });
 
-  // Hitung total dan urutkan berdasarkan bulan (ascending)
   const result = Object.values(rekapMap)
     .map((item) => ({
       ...item,

@@ -254,6 +254,47 @@ const so = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      {
+        name: "idx_so_createdAt",
+        fields: ["createdAt"],
+      },
+      {
+        name: "idx_so_tgl_pengiriman",
+        fields: ["tgl_pengiriman"],
+      },
+      {
+        name: "idx_so_status",
+        fields: ["status"],
+      },
+      {
+        name: "idx_so_status_work",
+        fields: ["status_work"],
+      },
+      {
+        name: "idx_so_customer",
+        fields: ["id_customer"],
+      },
+      {
+        name: "idx_so_kalkulasi",
+        fields: ["id_kalkulasi"],
+      },
+      {
+        name: "idx_so_active",
+        fields: ["is_active"],
+      },
+
+      // COMPOSITE INDEX (SANGAT PENTING)
+      {
+        name: "idx_so_status_created",
+        fields: ["status", "createdAt"],
+      },
+
+      {
+        name: "idx_so_status_pengiriman",
+        fields: ["status", "tgl_pengiriman"],
+      },
+    ],
   }
 );
 

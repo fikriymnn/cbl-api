@@ -145,6 +145,61 @@ const DeliveryOrder = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      {
+        name: "idx_do_group",
+        fields: ["id_do_group"],
+      },
+      {
+        name: "idx_do_jo",
+        fields: ["id_jo"],
+      },
+      {
+        name: "idx_do_so",
+        fields: ["id_so"],
+      },
+      {
+        name: "idx_do_io",
+        fields: ["id_io"],
+      },
+      {
+        name: "idx_do_customer",
+        fields: ["id_customer"],
+      },
+      {
+        name: "idx_do_produk",
+        fields: ["id_produk"],
+      },
+      {
+        name: "idx_do_status",
+        fields: ["status"],
+      },
+      {
+        name: "idx_do_active",
+        fields: ["is_active"],
+      },
+      {
+        name: "idx_do_tgl_pengiriman",
+        fields: ["tgl_pengiriman"],
+      },
+
+      // SUPER PENTING
+      {
+        name: "idx_do_so_active",
+        fields: ["id_so", "is_active"],
+      },
+
+      // penting untuk monitoring
+      {
+        name: "idx_do_so_tgl",
+        fields: ["id_so", "tgl_pengiriman"],
+      },
+
+      {
+        name: "idx_do_status_tgl",
+        fields: ["status", "tgl_pengiriman"],
+      },
+    ],
   }
 );
 

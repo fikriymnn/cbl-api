@@ -401,7 +401,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await So.sync({
+//   await ProduksiLkhProses.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
