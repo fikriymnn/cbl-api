@@ -16,15 +16,25 @@ router.post("/qc/cs/inspeksiPotong", inspeksiPotong.createInpeksiPotong);
 //update
 router.put(
   "/qc/cs/inspeksiPotong/update/:id",
+  auth,
   inspeksiPotong.updateInspeksiPotong
 );
 // start and stop
 router.get(
   "/qc/cs/inspeksiPotong/start/:id",
+  auth,
   inspeksiPotong.startInspeksiPotong
 );
-router.put("/qc/cs/inspeksiPotong/stop/:id", inspeksiPotong.stopInspeksiPotong);
+router.put(
+  "/qc/cs/inspeksiPotong/stop/:id",
+  auth,
+  inspeksiPotong.stopInspeksiPotong
+);
 //done potong
-router.put("/qc/cs/inspeksiPotong/done/:id", inspeksiPotong.doneInspeksiPotong);
+router.put(
+  "/qc/cs/inspeksiPotong/done/:id",
+  auth,
+  inspeksiPotong.doneInspeksiPotong
+);
 
 module.exports = router;

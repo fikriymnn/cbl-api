@@ -122,7 +122,17 @@ const ProduksiWaste = db.define(
   },
   {
     freezeTableName: true,
-  },
+    indexes: [
+      { name: "idx_plkhw_id_jo", fields: ["id_jo"] },
+      { name: "idx_plkhw_id_produksi_lkh", fields: ["id_produksi_lkh"] },
+      {
+        name: "idx_plkhw_id_produksi_lkh_tahapan",
+        fields: ["id_produksi_lkh_tahapan"],
+      },
+      { name: "idx_plkhw_is_active", fields: ["is_active"] },
+      { name: "idx_plkhw_createdAt", fields: ["createdAt"] },
+    ],
+  }
 );
 
 JoModel.hasMany(ProduksiWaste, {

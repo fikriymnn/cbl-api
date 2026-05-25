@@ -139,6 +139,24 @@ const ProduksiLkh = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      { name: "idx_plkh_id_jo", fields: ["id_jo"] },
+      { name: "idx_plkh_id_tahapan", fields: ["id_tahapan"] },
+      { name: "idx_plkh_id_mesin", fields: ["id_mesin"] },
+      { name: "idx_plkh_id_operator", fields: ["id_operator"] },
+      {
+        name: "idx_plkh_id_produksi_lkh_tahapan",
+        fields: ["id_produksi_lkh_tahapan"],
+      },
+      { name: "idx_plkh_is_active", fields: ["is_active"] },
+      { name: "idx_plkh_status", fields: ["status"] },
+      // Composite: sering di-query WHERE id_jo + id_tahapan + id_mesin + id_operator (startProduksiLkhProses)
+      {
+        name: "idx_plkh_jo_tahapan_mesin_operator",
+        fields: ["id_jo", "id_tahapan", "id_mesin", "id_operator"],
+      },
+      { name: "idx_plkh_createdAt", fields: ["createdAt"] },
+    ],
   }
 );
 
