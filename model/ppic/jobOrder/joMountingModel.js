@@ -170,6 +170,15 @@ const JobOrderMounting = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      { name: "idx_jom_is_active", fields: ["is_active"] },
+      { name: "idx_jom_is_selected", fields: ["is_selected"] },
+      // Composite: sering WHERE id_jo + is_active + is_selected
+      {
+        name: "idx_jom_jo_active_selected",
+        fields: ["id_jo", "is_active", "is_selected"],
+      },
+    ],
   }
 );
 

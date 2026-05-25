@@ -106,12 +106,12 @@ const inspeksiPotongController = {
           },
         });
 
-        if (data && !data?.inspector) {
-          await InspeksiPotong.update(
-            { inspector: req.user.name },
-            { where: { id } }
-          );
-        }
+        // if (data && !data?.inspector) {
+        //   await InspeksiPotong.update(
+        //     { inspector: req.user.name },
+        //     { where: { id } }
+        //   );
+        // }
 
         return res.status(200).json({ data });
       } else {
@@ -363,7 +363,14 @@ const inspeksiPotongController = {
     const id = req.params.id;
     const date = new Date();
     try {
-      await InspeksiPotong.update({ waktu_mulai: date }, { where: { id: id } }),
+      await InspeksiPotong.update(
+        {
+          waktu_mulai: date,
+          inspector: req.user.name,
+          id_inspektor: req.user.id,
+        },
+        { where: { id: id } }
+      ),
         res.status(200).json({ msg: "start successfuly" });
     } catch (error) {
       res.status(400).json({ msg: error.message });

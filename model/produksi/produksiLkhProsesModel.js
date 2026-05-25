@@ -140,6 +140,19 @@ const ProduksiLkhProses = db.define(
         name: "idx_mesin_tahapan_createdAt",
         fields: ["id_mesin", "id_tahapan", "createdAt"],
       },
+      { name: "idx_plkhp_is_final_result", fields: ["is_final_result"] },
+      // Composite: untuk getRekap WHERE id_mesin + id_tahapan + createdAt + total_waktu
+      {
+        name: "idx_plkhp_mesin_tahapan_waktu",
+        fields: ["id_mesin", "id_tahapan", "total_waktu", "createdAt"],
+      },
+      // Composite: untuk query getKendalaByJO WHERE id_jo + proses
+      { name: "idx_plkhp_jo_proses", fields: ["id_jo", "proses"] },
+      // Composite: untuk query barang rusak WHERE id_jo + is_final_result
+      {
+        name: "idx_plkhp_jo_final_result",
+        fields: ["id_jo", "is_final_result"],
+      },
 
       {
         name: "idx_id_jo",

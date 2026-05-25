@@ -182,7 +182,17 @@ const JobOrder = db.define(
   },
   {
     freezeTableName: true,
-  },
+    indexes: [
+      { name: "idx_jo_no_jo", fields: ["no_jo"] },
+      { name: "idx_jo_status", fields: ["status"] },
+      { name: "idx_jo_status_proses", fields: ["status_proses"] },
+      { name: "idx_jo_is_active", fields: ["is_active"] },
+      { name: "idx_jo_tgl_kirim", fields: ["tgl_kirim"] },
+      { name: "idx_jo_createdAt", fields: ["createdAt"] },
+      // Composite: untuk getJobOrderJumlahData (filter tahun + urut no_jo)
+      { name: "idx_jo_tipe_no_jo", fields: ["tipe_jo", "no_jo"] },
+    ],
+  }
 );
 
 IoModel.hasMany(JobOrder, {

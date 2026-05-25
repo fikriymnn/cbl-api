@@ -153,7 +153,28 @@ const ProduksiLkhTahapan = db.define(
   },
   {
     freezeTableName: true,
-  },
+    indexes: [
+      { name: "idx_plkht_id_jo", fields: ["id_jo"] },
+      { name: "idx_plkht_id_io", fields: ["id_io"] },
+      { name: "idx_plkht_id_so", fields: ["id_so"] },
+      { name: "idx_plkht_id_tahapan", fields: ["id_tahapan"] },
+      { name: "idx_plkht_id_customer", fields: ["id_customer"] },
+      { name: "idx_plkht_id_produk", fields: ["id_produk"] },
+      { name: "idx_plkht_status", fields: ["status"] },
+      { name: "idx_plkht_is_active", fields: ["is_active"] },
+      // Composite: sering di-query WHERE id_jo + id_tahapan + is_active
+      {
+        name: "idx_plkht_jo_tahapan_active",
+        fields: ["id_jo", "id_tahapan", "is_active"],
+      },
+      // Composite: untuk cari tahapan berikutnya WHERE id_jo + index + is_active
+      {
+        name: "idx_plkht_jo_index_active",
+        fields: ["id_jo", "index", "is_active"],
+      },
+      { name: "idx_plkht_createdAt", fields: ["createdAt"] },
+    ],
+  }
 );
 
 JoModel.hasMany(ProduksiLkhTahapan, {
