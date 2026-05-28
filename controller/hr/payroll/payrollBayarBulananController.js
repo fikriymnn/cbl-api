@@ -167,7 +167,7 @@ const PayrollBayarController = {
           gaji: data_payroll.gaji,
           tmk: data_payroll.tmk,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       for (let i = 0; i < data_payroll.potonganSakit.length; i++) {
@@ -181,7 +181,7 @@ const PayrollBayarController = {
             total: data.total,
             tipe: "potongan",
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
       for (let i = 0; i < data_payroll.potonganIzin.length; i++) {
@@ -195,7 +195,7 @@ const PayrollBayarController = {
             total: data.total,
             tipe: "potongan",
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
       for (let i = 0; i < data_payroll.potonganMangkir.length; i++) {
@@ -209,7 +209,7 @@ const PayrollBayarController = {
             total: data.total,
             tipe: "potongan",
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -224,7 +224,7 @@ const PayrollBayarController = {
             total: data.total,
             tipe: "potongan",
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -238,7 +238,7 @@ const PayrollBayarController = {
             total: data_payroll.potonganPinjaman.jumlah_cicilan,
             tipe: "potongan",
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         const sisaPinjaman =
@@ -252,13 +252,156 @@ const PayrollBayarController = {
             sisa_pinjaman: sisaPinjaman,
             status_pinjaman: sisaPinjaman == 0 ? "lunas" : "belum lunas",
           },
-          { where: { id: data_payroll.potonganPinjaman.id }, transaction: t }
+          { where: { id: data_payroll.potonganPinjaman.id }, transaction: t },
         );
       }
 
       await t.commit();
       res.status(200).json({
         msg: "pembayaran berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  addDetailPayrollBayarBulanan: async (req, res) => {
+    const { id_payroll_bulanan, jumlah, label, nilai, total, tipe } = req.body;
+
+    const t = await db.transaction();
+
+    try {
+      if (tipe !== "bayaran" && tipe !== "potongan") {
+        return res.status(404).json({ msg: "data tipe tidak sesuai" });
+      }
+      const checkDataPayrollBulanan =
+        await PayrollBulanan.findByPk(id_payroll_bulanan);
+      if (!checkDataPayrollBulanan) {
+        return res
+          .status(404)
+          .json({ msg: "Data payroll bulanan tidak ditemukan" });
+      }
+
+      await PayrollBulananDetail.create(
+        {
+          id_payroll_bulanan: id_payroll_bulanan,
+          label: label,
+          jumlah: jumlah,
+          nilai: nilai,
+          total: total,
+          tipe: tipe, // ini pilihannya 2 yaitu bayaran dan potongan
+        },
+        { transaction: t },
+      );
+
+      if (tipe === "potongan") {
+        await PayrollBulanan.update(
+          {
+            total_potongan: Sequelize.literal(`total_potongan + ${total}`),
+            sub_total_upah: Sequelize.literal(`sub_total_upah - ${total}`),
+          },
+          {
+            where: {
+              id: id_payroll_bulanan,
+            },
+            transaction: t,
+          },
+        );
+      } else if (tipe === "bayaran") {
+        await PayrollBulanan.update(
+          {
+            total_upah: Sequelize.literal(`total_upah + ${total}`),
+            sub_total_upah: Sequelize.literal(`sub_total_upah + ${total}`),
+          },
+          {
+            where: {
+              id: id_payroll_bulanan,
+            },
+            transaction: t,
+          },
+        );
+      } else {
+      }
+
+      await t.commit();
+      res.status(200).json({
+        msg: "penambahan berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  deleteDetailPayrollBayarBulanan: async (req, res) => {
+    const { id_payroll_bulanan, id_payroll_bulanan_detail } = req.body;
+
+    const t = await db.transaction();
+
+    try {
+      const checkDataPayrollBulanan =
+        await PayrollBulanan.findByPk(id_payroll_bulanan);
+      if (!checkDataPayrollBulanan) {
+        return res
+          .status(404)
+          .json({ msg: "Data payroll bulanan tidak ditemukan" });
+      }
+
+      const checkDataPayrollBulananDetail = await PayrollBulananDetail.findByPk(
+        id_payroll_bulanan_detail,
+      );
+      if (!checkDataPayrollBulananDetail) {
+        return res
+          .status(404)
+          .json({ msg: "Data payroll bulanan detail tidak ditemukan" });
+      }
+
+      await PayrollBulananDetail.destroy({
+        where: { id: id_payroll_bulanan_detail },
+        transaction: t,
+      });
+
+      if (checkDataPayrollBulananDetail.tipe === "potongan") {
+        await PayrollBulanan.update(
+          {
+            total_potongan: Sequelize.literal(
+              `total_potongan - ${checkDataPayrollBulananDetail.total}`,
+            ),
+            sub_total_upah: Sequelize.literal(
+              `sub_total_upah + ${checkDataPayrollBulananDetail.total}`,
+            ),
+          },
+          {
+            where: {
+              id: id_payroll_bulanan,
+            },
+            transaction: t,
+          },
+        );
+      } else if (checkDataPayrollBulananDetail.tipe === "bayaran") {
+        await PayrollBulanan.update(
+          {
+            total_upah: Sequelize.literal(
+              `total_upah - ${checkDataPayrollBulananDetail.total}`,
+            ),
+            sub_total_upah: Sequelize.literal(
+              `sub_total_upah - ${checkDataPayrollBulananDetail.total}`,
+            ),
+          },
+          {
+            where: {
+              id: id_payroll_bulanan,
+            },
+            transaction: t,
+          },
+        );
+      } else {
+      }
+
+      await t.commit();
+      res.status(200).json({
+        msg: "delete berhasil",
       });
     } catch (error) {
       await t.rollback();
