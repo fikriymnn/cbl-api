@@ -14,7 +14,7 @@ const db = new Sequelize(
 
     // Pool configuration - ini yang benar untuk Sequelize
     pool: {
-      max: 25, // maksimal 20 koneksi
+      max: 10, // maksimal 10 koneksi bersamaan
       min: 0, // minimal 0 koneksi
       acquire: 60000, // waktu maksimal untuk mendapatkan koneksi (60 detik)
       idle: 10000, // waktu idle sebelum disconnect (10 detik)
@@ -46,11 +46,6 @@ const db = new Sequelize(
       collate: "utf8mb4_unicode_ci",
     },
 
-    // Query options
-    query: {
-      timeout: 30000, // timeout untuk query individual (30 detik)
-    },
-
     // Retry configuration
     retry: {
       match: [
@@ -66,7 +61,7 @@ const db = new Sequelize(
         /SequelizeInvalidConnectionError/,
         /SequelizeConnectionTimedOutError/,
       ],
-      max: 5, // maksimal 3 kali retry
+      max: 2, // maksimal 3 kali retry
     },
 
     // Logging
@@ -87,7 +82,7 @@ const testConnection = async () => {
 
     // Jangan exit process, biarkan aplikasi tetap jalan
     // Process akan di-handle oleh PM2 jika terus error
-    setTimeout(testConnection, 5000); // retry setelah 5 detik
+    process.exit(1);
   }
 };
 
