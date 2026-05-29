@@ -6,35 +6,57 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get(
   "/hr/payroll/bayarMingguan",
-  payrollBayarMingguanController.getPayrollBayarMingguan
+  payrollBayarMingguanController.getPayrollBayarMingguan,
 );
 
 router.post(
   "/hr/payroll/bayarMingguan",
   auth,
-  payrollBayarMingguanController.createPayrollBayarMingguan
+  payrollBayarMingguanController.createPayrollBayarMingguan,
+);
+
+router.put(
+  "/hr/payroll/bayarMingguan/detail/delete",
+  auth,
+  payrollBayarMingguanController.deleteDetailPayrollBayarMingguan,
+);
+
+router.post(
+  "/hr/payroll/bayarMingguan/detail",
+  auth,
+  payrollBayarMingguanController.addDetailPayrollBayarMingguan,
 );
 
 router.get(
   "/hr/payroll/bayarMingguanPeriode",
-  payrollBayarMingguanPeriodeController.getPayrollBayarMingguanPeriode
+  payrollBayarMingguanPeriodeController.getPayrollBayarMingguanPeriode,
+);
+router.get(
+  "/hr/payroll/checkBayarMingguanPeriode",
+  payrollBayarMingguanPeriodeController.checkPayrollBayarMingguanPeriode,
+);
+
+router.put(
+  "/hr/payroll/bayarMingguanPeriode/submit/:id",
+  auth,
+  payrollBayarMingguanPeriodeController.submitPayrollMingguanPeriode,
 );
 
 router.post(
   "/hr/payroll/bayarMingguanPeriode",
   auth,
-  payrollBayarMingguanPeriodeController.createPayrollBayarMingguanPeriode
+  payrollBayarMingguanPeriodeController.createPayrollBayarMingguanPeriode,
 );
 router.put(
   "/hr/payroll/bayarMingguanPeriode/approve/:id",
   auth,
-  payrollBayarMingguanPeriodeController.approvePayrollBayarMingguanPeriode
+  payrollBayarMingguanPeriodeController.approvePayrollBayarMingguanPeriode,
 );
 
 router.put(
   "/hr/payroll/bayarMingguanPeriode/bayar/:id",
   auth,
-  payrollBayarMingguanPeriodeController.bayarPayrollBayarMingguanPeriode
+  payrollBayarMingguanPeriodeController.bayarPayrollBayarMingguanPeriode,
 );
 //router.get("/hr/payrollBulanan", payrollController.getPayrollBulanan);
 

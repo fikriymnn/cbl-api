@@ -22,6 +22,7 @@ const MonitoringSoController = {
       id_marketing,
       sort_by,
       status_po,
+      no_so,
     } = req.query;
 
     try {
@@ -87,10 +88,11 @@ const MonitoringSoController = {
         obj.status_work = "done";
       } else if (status_po == "cancel") {
         obj.status = "cancel";
+      } else if (status_po == "kurang qty") {
+        obj.status_work = { [Op.ne]: "done" };
       } else if (
         status_po == "belum kirim" ||
         status_po == "selesai" ||
-        status_po == "kurang qty" ||
         status_po == "over qty"
       ) {
         // ditangani post-filter
@@ -109,6 +111,10 @@ const MonitoringSoController = {
       }
 
       if (id_customer) obj.id_customer = id_customer;
+
+      //jika pakai no_so maka filter yg lain di matikan hanya filter no_so saja yang di gunakan
+      if (no_so)
+        obj = { status: "history", no_so: { [Op.like]: `%${no_so}%` } };
 
       // ─── Query utama — tanpa DoInclude ────────────────────────────────────────
       // DO group di-fetch manual setelah ini agar bisa menangkap DO group
@@ -257,11 +263,14 @@ const MonitoringSoController = {
 };
 
 // ─── hitungRekapan ────────────────────────────────────────────────────────────
+// ─── hitungRekapan ────────────────────────────────────────────────────────────
 function hitungRekapan(data) {
   let otsQty = 0;
   let qtyTerkirim = 0;
   let ots = 0;
   let realisasi = 0;
+  let qtyClose = 0;
+  let omsetClose = 0;
 
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
@@ -272,14 +281,19 @@ function hitungRekapan(data) {
     const qtyBelumKirim = Math.max(poQty - doQty, 0);
 
     qtyTerkirim += qtySudahKirim;
-    otsQty += qtyBelumKirim;
-
     realisasi += qtySudahKirim * harga;
-    ots += qtyBelumKirim * harga;
+
+    if (item.status_work === "done") {
+      qtyClose += qtyBelumKirim;
+      omsetClose += qtyBelumKirim * harga;
+    } else {
+      otsQty += qtyBelumKirim;
+      ots += qtyBelumKirim * harga;
+    }
   });
 
-  const totalQtyKeseluruhan = otsQty + qtyTerkirim;
-  const omset = ots + realisasi;
+  const totalQtyKeseluruhan = otsQty + qtyTerkirim + qtyClose;
+  const omset = ots + realisasi + omsetClose;
 
   return {
     otsQty,
@@ -288,13 +302,12 @@ function hitungRekapan(data) {
     realisasi,
     totalQtyKeseluruhan,
     omset,
+    qtyClose,
+    omsetClose,
   };
 }
 
 // ─── hitungRekapanPerBulan ────────────────────────────────────────────────────
-// FIX: hapus data = data.filter() di dalam forEach — menyebabkan duplikasi data
-// dan side effect pada array yang sedang di-iterasi.
-// ─────────────────────────────────────────────────────────────────────────────
 function hitungRekapanPerBulan(data, sort_by) {
   const rekapMap = {};
 
@@ -309,7 +322,6 @@ function hitungRekapanPerBulan(data, sort_by) {
     } else if (sort_by == "kirim so") {
       tanggalAcuan = item.tgl_pengiriman;
     } else if (sort_by == "do") {
-      // Ambil tgl_do dari group pertama (sudah ORDER BY tgl_do ASC)
       const dogs = item.delivery_order_group;
       tanggalAcuan = Array.isArray(dogs) ? dogs[0]?.tgl_do : null;
     }
@@ -332,6 +344,8 @@ function hitungRekapanPerBulan(data, sort_by) {
         realisasi: 0,
         totalQtyKeseluruhan: 0,
         omset: 0,
+        qtyClose: 0,
+        omsetClose: 0,
       };
     }
 
@@ -339,16 +353,22 @@ function hitungRekapanPerBulan(data, sort_by) {
     const qtyBelumKirim = Math.max(poQty - doQty, 0);
 
     rekapMap[key].qtyTerkirim += qtySudahKirim;
-    rekapMap[key].otsQty += qtyBelumKirim;
     rekapMap[key].realisasi += qtySudahKirim * harga;
-    rekapMap[key].ots += qtyBelumKirim * harga;
+
+    if (item.status_work === "done") {
+      rekapMap[key].qtyClose += qtyBelumKirim;
+      rekapMap[key].omsetClose += qtyBelumKirim * harga;
+    } else {
+      rekapMap[key].otsQty += qtyBelumKirim;
+      rekapMap[key].ots += qtyBelumKirim * harga;
+    }
   });
 
   const result = Object.values(rekapMap)
     .map((item) => ({
       ...item,
-      totalQtyKeseluruhan: item.otsQty + item.qtyTerkirim,
-      omset: item.ots + item.realisasi,
+      totalQtyKeseluruhan: item.otsQty + item.qtyTerkirim + item.qtyClose,
+      omset: item.ots + item.realisasi + item.omsetClose,
     }))
     .sort((a, b) => a.bulan.localeCompare(b.bulan));
 

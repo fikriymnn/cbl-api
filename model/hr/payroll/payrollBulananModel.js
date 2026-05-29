@@ -81,36 +81,71 @@ const Payroll = db.define(
       allowNull: true,
     },
     total_upah: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("total_upah");
+        return value === null ? null : Number(value);
+      },
     },
     sub_total_upah: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("sub_total_upah");
+        return value === null ? null : Number(value);
+      },
     },
     pengurangan_penambahan: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("pengurangan_penambahan");
+        return value === null ? null : Number(value);
+      },
     },
     note_pengurangan_penambahan: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     total_potongan: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("total_potongan");
+        return value === null ? null : Number(value);
+      },
     },
     gaji: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("gaji");
+        return value === null ? null : Number(value);
+      },
     },
     tmk: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("tmk");
+        return value === null ? null : Number(value);
+      },
     },
     insentif: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL(15, 0),
+      defaultValue: 0,
       allowNull: true,
+      get() {
+        const value = this.getDataValue("insentif");
+        return value === null ? null : Number(value);
+      },
     },
     tipe_karyawan: {
       type: DataTypes.STRING,
@@ -123,7 +158,7 @@ const Payroll = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 //relasi karyawan

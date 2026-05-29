@@ -8,6 +8,7 @@ const PayrollMingguanDetail = require("../../../model/hr/payroll/payrollMingguan
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const MasterDivisi = require("../../../model/masterData/hr/masterDivisiModel");
 const MasterJabatan = require("../../../model/masterData/hr/masterJabatanModel");
+const User = require("../../../model/userModel");
 
 const db = require("../../../config/database");
 
@@ -126,6 +127,22 @@ const PayrollBayarPeriodeController = {
                 },
               ],
             },
+            {
+              model: User,
+              as: "user_create",
+            },
+            {
+              model: User,
+              as: "user_submit",
+            },
+            {
+              model: User,
+              as: "user_approve",
+            },
+            {
+              model: User,
+              as: "user_pay",
+            },
           ],
         });
         return res.status(200).json({
@@ -190,6 +207,40 @@ const PayrollBayarPeriodeController = {
     }
   },
 
+  checkPayrollBayarMingguanPeriode: async (req, res) => {
+    const { periode_dari, periode_sampai } = req.query;
+    try {
+      const checkPeriode = await PayrollMingguanPeriode.findOne({
+        where: {
+          periode_dari: {
+            [Op.lte]: periode_sampai,
+          },
+          periode_sampai: {
+            [Op.gte]: periode_dari,
+          },
+        },
+      });
+
+      if (checkPeriode) {
+        return res.status(404).json({
+          status_code: 404,
+          success: false,
+          data: checkPeriode,
+          msg: "Periode sudah ada atau bentrok dengan data lain",
+        });
+      } else {
+        return res.status(200).json({
+          status_code: 200,
+          success: true,
+          data: checkPeriode,
+          msg: "Periode belum ada atau tidak bentrok dengan data lain",
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   createPayrollBayarMingguanPeriode: async (req, res) => {
     const { data_payroll } = req.body;
 
@@ -203,9 +254,10 @@ const PayrollBayarPeriodeController = {
           periode_sampai: data_payroll.periode_sampai,
           tgl_bayar: new Date(),
           total: data_payroll.total,
-          status: "incoming approved",
+          status: "draft",
+          id_user_create: req.user.id,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       for (let i = 0; i < data_payroll.detail.length; i++) {
@@ -231,7 +283,7 @@ const PayrollBayarPeriodeController = {
             tipe_penggajian: data.tipe_penggajian,
             tipe_karyawan: data.tipe_karyawan,
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         for (let i = 0; i < data.rincian.length; i++) {
@@ -245,7 +297,7 @@ const PayrollBayarPeriodeController = {
               total: data2.total,
               tipe: "bayaran",
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
         for (let i = 0; i < data.upahHarianSakit.length; i++) {
@@ -259,7 +311,7 @@ const PayrollBayarPeriodeController = {
               total: data3.total,
               tipe: "bayaran",
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
 
@@ -274,7 +326,7 @@ const PayrollBayarPeriodeController = {
               total: data4.total,
               tipe: "potongan",
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
 
@@ -288,7 +340,7 @@ const PayrollBayarPeriodeController = {
               total: data.potonganPinjaman.jumlah_cicilan,
               tipe: "potongan",
             },
-            { transaction: t }
+            { transaction: t },
           );
 
           const sisaPinjaman =
@@ -301,7 +353,7 @@ const PayrollBayarPeriodeController = {
               sisa_pinjaman: sisaPinjaman,
               status_pinjaman: sisaPinjaman == 0 ? "lunas" : "belum lunas",
             },
-            { where: { id: data.potonganPinjaman.id }, transaction: t }
+            { where: { id: data.potonganPinjaman.id }, transaction: t },
           );
         }
       }
@@ -309,6 +361,30 @@ const PayrollBayarPeriodeController = {
       await t.commit();
       res.status(200).json({
         msg: "pembayaran berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  submitPayrollMingguanPeriode: async (req, res) => {
+    const _id = req.params.id;
+
+    const t = await db.transaction();
+
+    try {
+      const dataPayrollPeriode = await PayrollMingguanPeriode.update(
+        {
+          status: "incoming approved",
+          id_user_submit: req.user.id,
+        },
+        { where: { id: _id }, transaction: t },
+      );
+
+      await t.commit();
+      res.status(200).json({
+        msg: "submit berhasil",
       });
     } catch (error) {
       await t.rollback();
@@ -325,8 +401,9 @@ const PayrollBayarPeriodeController = {
       const dataPayrollPeriode = await PayrollMingguanPeriode.update(
         {
           status: "incoming pay",
+          id_user_approve: req.user.id,
         },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       await t.commit();
@@ -347,8 +424,9 @@ const PayrollBayarPeriodeController = {
       const dataPayrollPeriode = await PayrollMingguanPeriode.update(
         {
           status: "done",
+          id_user_pay: req.user.id,
         },
-        { where: { id: _id }, transaction: t }
+        { where: { id: _id }, transaction: t },
       );
 
       await t.commit();

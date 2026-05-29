@@ -145,7 +145,10 @@ function buildDetail(row) {
     id: row.id,
     id_jo: row.id_jo,
     no_jo: row.jo?.no_jo,
+    no_io: row.jo?.no_io,
     tipe_jo: row.jo?.tipe_jo,
+    produk: row.jo?.produk,
+    customer: row.jo?.customer,
     kode: row.kode,
     deskripsi: row.deskripsi,
     proses: row.proses,
@@ -170,18 +173,17 @@ const ProduksiLkhRekapController = {
   getProduksiLkhRekap: async (req, res) => {
     const { start_date, end_date, id_mesin, id_tahapan } = req.query;
 
-    if (!start_date || !end_date || !id_mesin || !id_tahapan) {
+    if (!start_date || !end_date || !id_mesin) {
       return res.status(400).json({
         status_code: 400,
         success: false,
-        msg: "start_date, end_date, id_mesin, dan id_tahapan harus diisi",
+        msg: "start_date, end_date,dan id_mesin harus diisi",
       });
     }
 
     const whereClause = {
       total_waktu: { [Op.ne]: null },
       id_mesin,
-      id_tahapan,
       createdAt: {
         [Op.between]: [
           new Date(start_date).setHours(0, 0, 0, 0),
@@ -189,6 +191,8 @@ const ProduksiLkhRekapController = {
         ],
       },
     };
+
+    if (id_tahapan) whereClause.id_tahapan = id_tahapan;
 
     try {
       // Ambil hanya kolom yang dibutuhkan untuk kalkulasi (lean query)
@@ -216,7 +220,14 @@ const ProduksiLkhRekapController = {
           {
             model: JobOrder,
             as: "jo",
-            attributes: ["id", "no_jo", "tipe_jo"],
+            attributes: [
+              "id",
+              "no_jo",
+              "tipe_jo",
+              "produk",
+              "no_io",
+              "customer",
+            ],
           },
           {
             model: MasterKodeProduksi,
