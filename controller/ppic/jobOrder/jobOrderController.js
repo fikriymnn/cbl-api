@@ -1,5 +1,7 @@
 const { Op, fn, col, literal } = require("sequelize");
 const ProduksiLkhTahapan = require("../../../model/produksi/produksiLkhTahapanModel");
+const ProduksiLkhProses = require("../../../model/produksi/produksiLkhProsesModel");
+const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const IoModel = require("../../../model/marketing/io/ioModel");
 const ioMountingModel = require("../../../model/marketing/io/ioMountingModel");
 const IoTahapan = require("../../../model/marketing/io/ioTahapanModel");
@@ -30,6 +32,7 @@ const BomController = {
       status_proses,
       search,
       sort = "newest",
+      is_open_label,
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -51,6 +54,10 @@ const BomController = {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_kirim = { [Op.between]: [startDate, endDate] };
+    }
+
+    if (is_open_label) {
+      obj.is_open_label = is_open_label === "true" ? true : false;
     }
 
     // Jika ada filter tanggal, order by tgl_kirim, jika tidak order by createdAt
@@ -174,12 +181,46 @@ const BomController = {
           data: data,
         });
       } else {
+        const tahapanCetak = await MasterTahapan.findAll({
+          where: { nama_tahapan: { [Op.like]: "%cetak%" } },
+          attributes: ["id"],
+        });
+        const idTahapanCetak = tahapanCetak.map((t) => t.id);
         const data = await JobOrder.findAll({
           order: orderClause,
           include: [
             {
               model: JobOrderMounting,
               as: "jo_mounting",
+              attributes: [
+                "id",
+                "id_io_mounting",
+                "nama_mounting",
+                "is_selected",
+              ],
+              include: {
+                model: ioMountingModel,
+                as: "io_mounting",
+                attributes: ["id", "nama_mounting", "isi_dalam_1_pack"],
+              },
+            },
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
+              attributes: [
+                "id",
+                "id_tahapan",
+                "waktu_mulai",
+                "kode",
+                "deskripsi",
+              ],
+              limit: 1,
+              order: [["waktu_mulai", "ASC"]],
+              where: {
+                is_active: true,
+                id_tahapan: { [Op.in]: idTahapanCetak },
+              },
+              separate: true,
             },
           ],
           where: obj,
@@ -1363,6 +1404,74 @@ const BomController = {
         res
           .status(200)
           .json({ succes: true, status_code: 200, msg: "reject Successful" }));
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  openLabelJobOrder: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await JobOrder.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      await JobOrder.update(
+        {
+          is_open_label: true,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+      await t.commit();
+      res
+        .status(200)
+        .json({ succes: true, status_code: 200, msg: "Open Label Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
+  closeLabelJobOrder: async (req, res) => {
+    const _id = req.params.id;
+    const t = await db.transaction();
+    try {
+      const checkData = await JobOrder.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      await JobOrder.update(
+        {
+          is_open_label: false,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        },
+      );
+      await t.commit();
+      res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "Close Label Successful",
+      });
     } catch (error) {
       await t.rollback();
       res

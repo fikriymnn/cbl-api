@@ -408,7 +408,31 @@ const PayrollBayarPeriodeController = {
 
       await t.commit();
       res.status(200).json({
-        msg: "pembayaran berhasil",
+        msg: "approve berhasil",
+      });
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  rejectPayrollBayarMingguanPeriode: async (req, res) => {
+    const _id = req.params.id;
+
+    const t = await db.transaction();
+
+    try {
+      const dataPayrollPeriode = await PayrollMingguanPeriode.update(
+        {
+          status: "rejected",
+          id_user_reject: req.user.id,
+        },
+        { where: { id: _id }, transaction: t },
+      );
+
+      await t.commit();
+      res.status(200).json({
+        msg: "reject berhasil",
       });
     } catch (error) {
       await t.rollback();

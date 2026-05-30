@@ -40,6 +40,14 @@ const Payroll = db.define(
         key: "id",
       },
     },
+    id_user_reject: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: UserModel,
+        key: "id",
+      },
+    },
     id_user_pay: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -110,6 +118,14 @@ UserModel.hasMany(Payroll, {
 Payroll.belongsTo(UserModel, {
   foreignKey: "id_user_approve",
   as: "user_approve",
+});
+UserModel.hasMany(Payroll, {
+  foreignKey: "id_user_reject",
+  as: "hr_payroll_periode_mingguan_reject",
+});
+Payroll.belongsTo(UserModel, {
+  foreignKey: "id_user_reject",
+  as: "user_reject",
 });
 
 UserModel.hasMany(Payroll, {
