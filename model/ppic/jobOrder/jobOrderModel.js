@@ -174,6 +174,11 @@ const JobOrder = db.define(
       allowNull: true,
       defaultValue: false,
     },
+    is_open_label: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
@@ -192,7 +197,7 @@ const JobOrder = db.define(
       // Composite: untuk getJobOrderJumlahData (filter tahun + urut no_jo)
       { name: "idx_jo_tipe_no_jo", fields: ["tipe_jo", "no_jo"] },
     ],
-  }
+  },
 );
 
 IoModel.hasMany(JobOrder, {

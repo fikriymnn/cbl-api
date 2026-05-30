@@ -52,6 +52,11 @@ router.put(
   auth,
   payrollBayarMingguanPeriodeController.approvePayrollBayarMingguanPeriode,
 );
+router.put(
+  "/hr/payroll/bayarMingguanPeriode/reject/:id",
+  auth,
+  payrollBayarMingguanPeriodeController.rejectPayrollBayarMingguanPeriode,
+);
 
 router.put(
   "/hr/payroll/bayarMingguanPeriode/bayar/:id",

@@ -112,7 +112,7 @@ const InspeksiPotong = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 User.hasMany(InspeksiPotong, {
@@ -120,7 +120,7 @@ User.hasMany(InspeksiPotong, {
 });
 InspeksiPotong.belongsTo(User, {
   foreignKey: "id_inspektor",
-  as: "data_inspektor",
+  as: "inspektor",
 });
 
 module.exports = InspeksiPotong;
