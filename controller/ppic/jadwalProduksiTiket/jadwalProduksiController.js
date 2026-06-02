@@ -586,46 +586,37 @@ const jadwalProduksiController = {
       const isWithinShift1Hours = (date, jadwalLiburSet, dataShift) => {
         const formattedDate = date.toISOString().split("T")[0];
 
-        // Cek apakah tanggal adalah hari libur
-        if (jadwalLiburSet.has(formattedDate)) {
-          return false;
-        }
+        if (jadwalLiburSet.has(formattedDate)) return false;
 
+        const dayOfWeek = date.getDay();
+        const isSaturday = dayOfWeek === 6;
         const currentTime = date.getHours() * 100 + date.getMinutes();
 
+        // ✅ Batasi Sabtu maksimal jam 13:00
+        if (isSaturday && currentTime >= 1300) return false;
+
         for (const shift of dataShift) {
-          // Pastikan shift_1_masuk dan shift_1_keluar ada dan tidak null/undefined
-          if (!shift.shift_1_masuk || !shift.shift_1_keluar) {
-            continue;
-          }
+          if (!shift.shift_1_masuk || !shift.shift_1_keluar) continue;
 
           const shift1Start = parseInt(shift.shift_1_masuk.replace(":", ""));
           const shift1End = parseInt(shift.shift_1_keluar.replace(":", ""));
 
-          // Cek shift 1
           if (shift1Start <= shift1End) {
-            // Shift dalam hari yang sama
             if (currentTime >= shift1Start && currentTime < shift1End) {
-              // Cek apakah bukan waktu istirahat
               if (shift.istirahat && shift.istirahat.length > 0) {
                 for (const istirahat of shift.istirahat) {
-                  // Pastikan jam_mulai dan jam_selesai ada
-                  if (!istirahat.jam_mulai || !istirahat.jam_selesai) {
-                    continue;
-                  }
-
+                  if (!istirahat.jam_mulai || !istirahat.jam_selesai) continue;
                   const istirahatStart = parseInt(
                     istirahat.jam_mulai.replace(":", ""),
                   );
                   const istirahatEnd = parseInt(
                     istirahat.jam_selesai.replace(":", ""),
                   );
-
                   if (
                     currentTime >= istirahatStart &&
                     currentTime < istirahatEnd
                   ) {
-                    return false; // Waktu istirahat
+                    return false;
                   }
                 }
               }
@@ -647,7 +638,6 @@ const jadwalProduksiController = {
 
         return currentDate;
       };
-
       // Kalkulasi kapasitas dan total_waktu_produksi untuk setiap tahap
       dataById.tahap.forEach((tahap) => {
         if (tahap.from === "druk" && tahap.kapasitas_per_jam != 0) {
@@ -747,17 +737,14 @@ const jadwalProduksiController = {
 
             // Setelah selesai tahap produksi, tambahkan drying time untuk tahap berikutnya
             if (i > 0) {
-              // Jika bukan tahap pertama
-              const nextStage = tahap[i - 1]; // Tahap sebelumnya (yang akan diproses selanjutnya)
+              const prevStage = tahap[i - 1];
+              const dryingTimeToApply = prevStage.drying_time ?? 0;
 
-              // Tambahkan drying_time dari tahap saat ini tanpa memperhatikan shift
-              if (stage.drying_time > 0) {
+              if (dryingTimeToApply > 0) {
                 currentDate = addHoursWithoutShiftRestriction(
                   currentDate,
-                  -stage.drying_time,
+                  -dryingTimeToApply, // <-- pakai drying_time tahap SEBELUMNYA
                 );
-
-                // Setelah drying time, cari waktu mulai yang sesuai dengan shift untuk tahap berikutnya
                 currentDate = findNextAvailableShiftTime(
                   currentDate,
                   jadwalLiburSet,
@@ -1675,21 +1662,21 @@ const isWithinShiftHours = (date, holidaySet, shift) => {
   previousDay.setDate(date.getDate() - 1);
   const previousSchedule = getShiftSchedule(previousDay, shift);
 
-  // Skip if time is within break time
   if (isBreakTime(date, schedule)) return false;
+  if (isHoliday(currentDate, holidaySet)) return false;
 
-  // Scenario 1: If today is a holiday, skip to the next valid workday
-  if (isHoliday(currentDate, holidaySet)) {
-    return false;
-  }
+  // ✅ Batasi Sabtu maksimal jam 13:00
+  const isSaturday = date.getDay() === 6;
+  if (isSaturday && timeStr >= "13:00:00") return false;
 
-  // Scenario 2: Regular shift 1 check
+  // Shift 1
   if (timeStr >= schedule.shift_1_masuk && timeStr <= schedule.shift_1_keluar) {
     return true;
   }
 
-  // Scenario 3: Current day shift 2 check (before midnight)
+  // Shift 2 hari ini (sebelum tengah malam) — tidak berlaku Sabtu
   if (
+    !isSaturday &&
     schedule.shift_2_masuk &&
     schedule.shift_2_masuk !== "" &&
     timeStr >= schedule.shift_2_masuk &&
@@ -1698,8 +1685,9 @@ const isWithinShiftHours = (date, holidaySet, shift) => {
     return true;
   }
 
-  // Scenario 4: Previous day's shift 2 extending into current day (after midnight)
+  // Shift 2 hari sebelumnya yang melewati tengah malam — tidak berlaku Sabtu
   if (
+    !isSaturday &&
     previousSchedule &&
     previousSchedule.shift_2_keluar &&
     previousSchedule.shift_2_keluar !== "" &&
