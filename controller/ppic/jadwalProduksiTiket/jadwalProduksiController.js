@@ -1450,6 +1450,7 @@ const jadwalProduksiController = {
 
   cancelJadwalProduksi: async (req, res) => {
     const { id } = req.params;
+    const { note_cancel } = req.body;
     const t = await db.transaction();
     try {
       const data = await TiketJadwalProduksi.findByPk(id, {
@@ -1481,6 +1482,8 @@ const jadwalProduksiController = {
       await TiketJadwalProduksi.update(
         {
           status_tiket: "canceled",
+          note_cancel: note_cancel,
+          tgl_cancel: new Date(),
         },
         { where: { id: id }, transaction: t },
       );

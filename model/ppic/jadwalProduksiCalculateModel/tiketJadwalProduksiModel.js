@@ -82,6 +82,10 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tgl_cancel: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     tgl_mulai_produksi: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -100,6 +104,10 @@ const TiketJadwalProduksi = db.define(
     },
     qty_lp: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    note_cancel: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     status: {
