@@ -104,10 +104,10 @@ const jadwalProduksiController = {
                 },
               ],
             },
-            // {
-            //   model: TiketJadwalProduksiPerJam,
-            //   as: "jadwal_per_jam",
-            // },
+            {
+              model: TiketJadwalProduksiPerJam,
+              as: "jadwal_per_jam",
+            },
 
             {
               model: TiketPerubahanTanggalKirim,
