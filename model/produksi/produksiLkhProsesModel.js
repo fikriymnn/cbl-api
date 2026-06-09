@@ -189,7 +189,7 @@ const ProduksiLkhProses = db.define(
         fields: ["status"],
       },
     ],
-  }
+  },
 );
 
 JoModel.hasMany(ProduksiLkhProses, {
@@ -199,6 +199,15 @@ JoModel.hasMany(ProduksiLkhProses, {
 ProduksiLkhProses.belongsTo(JoModel, {
   foreignKey: "id_jo",
   as: "jo",
+});
+
+JoModel.hasMany(ProduksiLkhProses, {
+  foreignKey: "id_jo",
+  as: "produksi_lkh_proses_awal",
+});
+ProduksiLkhProses.belongsTo(JoModel, {
+  foreignKey: "id_jo",
+  as: "jo_awal",
 });
 
 produksiLkh.hasMany(ProduksiLkhProses, {
