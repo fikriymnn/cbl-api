@@ -33,6 +33,7 @@ const BomController = {
       search,
       sort = "newest",
       is_open_label,
+      is_get_label,
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -180,7 +181,7 @@ const BomController = {
           status_code: 200,
           data: data,
         });
-      } else {
+      } else if (is_get_label == true || is_get_label == "true") {
         const tahapanCetak = await MasterTahapan.findAll({
           where: { nama_tahapan: { [Op.like]: "%cetak%" } },
           attributes: ["id"],
@@ -221,6 +222,52 @@ const BomController = {
                 id_tahapan: { [Op.in]: idTahapanCetak },
               },
               separate: true,
+            },
+
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses_awal",
+              attributes: [
+                "id",
+                "id_tahapan",
+                "waktu_mulai",
+                "kode",
+                "deskripsi",
+              ],
+              where: {
+                is_active: true,
+              },
+              limit: 1,
+              order: [["waktu_mulai", "ASC"]],
+              separate: true,
+              required: false,
+            },
+          ],
+          where: obj,
+        });
+        return res.status(200).json({
+          succes: true,
+          status_code: 200,
+          data: data,
+        });
+      } else {
+        const data = await JobOrder.findAll({
+          order: orderClause,
+          include: [
+            {
+              model: JobOrderMounting,
+              as: "jo_mounting",
+              attributes: [
+                "id",
+                "id_io_mounting",
+                "nama_mounting",
+                "is_selected",
+              ],
+              include: {
+                model: ioMountingModel,
+                as: "io_mounting",
+                attributes: ["id", "nama_mounting", "isi_dalam_1_pack"],
+              },
             },
           ],
           where: obj,
@@ -1273,6 +1320,7 @@ const BomController = {
           status_proses: "done",
           id_approve_jo: req.user.id,
           tgl_approve_jo: new Date(),
+          is_open_label: true,
         },
         {
           where: { id: _id },

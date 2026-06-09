@@ -213,19 +213,20 @@ const MonitoringSoController = {
             {
               replacements: { id_so: item.id },
               type: db.QueryTypes.SELECT,
-            }
+            },
           );
 
           item.delivery_order_group = doGroups;
           return item;
-        })
+        }),
       );
 
       // ─── Post-filter ──────────────────────────────────────────────────────────
       if (status_po == "belum kirim") {
         data = data.filter(
           (item) =>
-            !item.delivery_order_group || item.delivery_order_group.length === 0
+            !item.delivery_order_group ||
+            item.delivery_order_group.length === 0,
         );
       } else if (status_po == "selesai") {
         data = data.filter((item) => {
@@ -271,6 +272,8 @@ function hitungRekapan(data) {
   let realisasi = 0;
   let qtyClose = 0;
   let omsetClose = 0;
+  let totalQtyKeseluruhan = 0;
+  let omset = 0;
 
   data.forEach((item) => {
     const poQty = item.po_qty || 0;
@@ -279,6 +282,9 @@ function hitungRekapan(data) {
 
     const qtySudahKirim = doQty;
     const qtyBelumKirim = Math.max(poQty - doQty, 0);
+
+    totalQtyKeseluruhan += poQty;
+    omset += poQty * harga;
 
     qtyTerkirim += qtySudahKirim;
     realisasi += qtySudahKirim * harga;
@@ -292,9 +298,6 @@ function hitungRekapan(data) {
     }
   });
 
-  const totalQtyKeseluruhan = otsQty + qtyTerkirim + qtyClose;
-  const omset = ots + realisasi + omsetClose;
-
   return {
     otsQty,
     qtyTerkirim,
@@ -307,7 +310,6 @@ function hitungRekapan(data) {
   };
 }
 
-// ─── hitungRekapanPerBulan ────────────────────────────────────────────────────
 function hitungRekapanPerBulan(data, sort_by) {
   const rekapMap = {};
 
@@ -315,6 +317,9 @@ function hitungRekapanPerBulan(data, sort_by) {
     const poQty = item.po_qty || 0;
     const harga = item.harga_jual || 0;
     const doQty = parseFloat(item.total_qty) || 0;
+
+    const qtySudahKirim = doQty;
+    const qtyBelumKirim = Math.max(poQty - doQty, 0);
 
     let tanggalAcuan;
     if (sort_by == "input so") {
@@ -329,10 +334,7 @@ function hitungRekapanPerBulan(data, sort_by) {
     if (!tanggalAcuan) return;
 
     const date = new Date(tanggalAcuan);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}`;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
     if (!rekapMap[key]) {
       rekapMap[key] = {
@@ -349,8 +351,8 @@ function hitungRekapanPerBulan(data, sort_by) {
       };
     }
 
-    const qtySudahKirim = doQty;
-    const qtyBelumKirim = Math.max(poQty - doQty, 0);
+    rekapMap[key].totalQtyKeseluruhan += poQty;
+    rekapMap[key].omset += poQty * harga;
 
     rekapMap[key].qtyTerkirim += qtySudahKirim;
     rekapMap[key].realisasi += qtySudahKirim * harga;
@@ -364,15 +366,7 @@ function hitungRekapanPerBulan(data, sort_by) {
     }
   });
 
-  const result = Object.values(rekapMap)
-    .map((item) => ({
-      ...item,
-      totalQtyKeseluruhan: item.otsQty + item.qtyTerkirim + item.qtyClose,
-      omset: item.ots + item.realisasi + item.omsetClose,
-    }))
-    .sort((a, b) => a.bulan.localeCompare(b.bulan));
-
-  return result;
+  return Object.values(rekapMap).sort((a, b) => a.bulan.localeCompare(b.bulan));
 }
 
 module.exports = MonitoringSoController;

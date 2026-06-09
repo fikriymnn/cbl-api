@@ -740,7 +740,7 @@ const hitungPayroll = async (
           }
         }
 
-        jamIstirahat = totalSeconds / 3600;
+        jamIstirahat = absen.jam_istirahat_lembur;
         jamIstirahat = Math.round(jamIstirahat * 2) / 2; // bulatkan ke 0.5
         jamLembur = absen.jam_lembur - jamIstirahat;
       } else if (absen.status_lembur === "Lembur") {
@@ -779,7 +779,7 @@ const hitungPayroll = async (
         }
 
         // Konversi detik ke jam desimal
-        jamIstirahat = totalSeconds / 3600;
+        jamIstirahat = absen.jam_istirahat_lembur;
 
         // Bulatkan ke kelipatan 0.5 terdekat
         jamIstirahat = Math.round(jamIstirahat * 2) / 2;

@@ -1303,9 +1303,19 @@ const absenFunction = {
           jam_masuk: jamMasuk,
           jam_keluar: jamKeluar,
           menit_terlambat: menitTerlambat,
-          jam_lembur: jamLembur,
-          jam_lembur_spl: jamLemburSPL,
-          jam_istirahat_lembur: jamIstirahatLembur,
+          // jam_lembur: jamLembur,
+          // jam_lembur_spl: jamLemburSPL,
+          // jam_istirahat_lembur: jamIstirahatLembur,
+          jam_lembur:
+            jamLembur == jamLemburSPL
+              ? jamLembur - jamIstirahatLembur
+              : jamLembur, //ini unuk potong jam lembur dengan jam istirahat lembur tapi harus sama dulu antara jm lembur dan jam lembur spl
+          jam_lembur_spl:
+            jamLembur == jamLemburSPL
+              ? jamLemburSPL - jamIstirahatLembur
+              : jamLemburSPL,
+          jam_istirahat_lembur:
+            jamLembur == jamLemburSPL ? 0 : jamIstirahatLembur,
           status_lembur: statusLembur,
           status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
@@ -1549,6 +1559,8 @@ const absenFunction = {
             (karyawanDitemukan.menit_terlambat = absen.menit_terlambat),
             (karyawanDitemukan.jam_lembur = absen.jam_lembur),
             (karyawanDitemukan.jam_lembur_spl = absen.jam_lembur_spl),
+            (karyawanDitemukan.jam_istirahat_lembur =
+              absen.jam_istirahat_lembur),
             (karyawanDitemukan.status_lembur = absen.status_lembur),
             (karyawanDitemukan.status_lembur_spl = absen.status_lembur_spl),
             (karyawanDitemukan.status_masuk = absen.status_masuk),
@@ -1582,6 +1594,7 @@ const absenFunction = {
             menit_terlambat: absen.menit_terlambat,
             jam_lembur: absen.jam_lembur,
             jam_lembur_spl: absen.jam_lembur_spl,
+            jam_istirahat_lembur: absen.jam_istirahat_lembur,
             status_lembur: absen.status_lembur,
             status_lembur_spl: absen.status_lembur_spl,
             status_masuk: absen.status_masuk,
@@ -2671,6 +2684,7 @@ const generatekaryawanList = (
         menit_terlambat: null,
         jam_lembur: null,
         jam_lembur_spl: null,
+        jam_istirahat_lembur: null,
         status_lembur: null,
         status_lembur_spl: null,
         status_masuk: null,
