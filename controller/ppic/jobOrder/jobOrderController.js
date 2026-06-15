@@ -1001,6 +1001,18 @@ const BomController = {
         },
       );
 
+      await TiketJadwalProduksi.update(
+        { is_send_again: true },
+        {
+          where: {
+            no_jo: dataJobOrder.no_jo,
+            status_tiket: "canceled",
+            is_send_again: false,
+          },
+          transaction: t,
+        },
+      );
+
       let dataTahapanMounting = [];
 
       for (let i = 0; i < dataIoMountingSelected.tahapan.length; i++) {

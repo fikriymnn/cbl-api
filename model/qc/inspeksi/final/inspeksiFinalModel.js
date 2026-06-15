@@ -98,10 +98,14 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    quantity_kirim_fg: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Users.hasMany(InspeksiFinal, {

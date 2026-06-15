@@ -39,7 +39,11 @@ const jadwalProduksiController = {
         search,
         start_date,
         end_date,
+        start_date_cancel,
+        end_date_cancel,
         type,
+        is_send_again,
+        sort_cancel = "newest",
       } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -57,6 +61,8 @@ const jadwalProduksiController = {
       if (status_tiket) obj.status_tiket = status_tiket;
       if (tgl) obj.tgl = tgl;
       if (type) obj.type = type;
+      if (is_send_again)
+        obj.is_send_again = is_send_again == "true" ? true : false;
       if (start_date && end_date) {
         obj.tgl_kirim_date = {
           [Op.between]: [
@@ -66,12 +72,23 @@ const jadwalProduksiController = {
         };
       }
 
+      const orderCancelDirection = sort_cancel === "oldest" ? "ASC" : "DESC";
+      const orderCancelClause = [["tgl_cancel", orderCancelDirection]];
+
+      if (start_date_cancel && end_date_cancel) {
+        obj.tgl_cancel = {
+          [Op.between]: [
+            new Date(start_date_cancel).setHours(0, 0, 0, 0),
+            new Date(end_date_cancel).setHours(23, 59, 59, 999),
+          ],
+        };
+      }
+
       if (page && limit) {
         const length = await TiketJadwalProduksi.count({ where: obj });
         const data = await TiketJadwalProduksi.findAll({
-          order: [["tgl_kirim_date", "DESC"]],
+          order: orderCancelClause,
           where: obj,
-          order: [["createdAt", "DESC"]],
           limit: parseInt(limit),
           offset,
           include: [
