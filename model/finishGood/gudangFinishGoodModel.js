@@ -23,6 +23,14 @@ const GudangFinishGood = db.define(
         key: "id",
       },
     },
+    id_jo_booking: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: JoModel,
+        key: "id",
+      },
+    },
     id_io: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -92,6 +100,14 @@ const GudangFinishGood = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    tgl_masuk: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     toleransi_pengiriman: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -118,6 +134,15 @@ JoModel.hasMany(GudangFinishGood, {
 GudangFinishGood.belongsTo(JoModel, {
   foreignKey: "id_jo",
   as: "jo",
+});
+
+JoModel.hasMany(GudangFinishGood, {
+  foreignKey: "id_jo_booking",
+  as: "gudang_finish_good_booking",
+});
+GudangFinishGood.belongsTo(JoModel, {
+  foreignKey: "id_jo_booking",
+  as: "jo_booking",
 });
 
 IoModel.hasMany(GudangFinishGood, {

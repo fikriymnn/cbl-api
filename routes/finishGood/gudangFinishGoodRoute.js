@@ -32,4 +32,24 @@ router.post(
   GudangFinishGood.sendDoGudangFinishGoodGroup,
 );
 
+//untuk keperluan booking
+
+router.get(
+  "/fg/getJoNormalBookingFG/:id?",
+  auth,
+  GudangFinishGood.getJoBookingNormalFG,
+);
+
+router.get(
+  "/fg/getJoKanbanBookingFG/:id?",
+  auth,
+  GudangFinishGood.getJoBookingKanbanFG,
+);
+
+router.post(
+  "/fg/gudangFinishGood/bookingJo",
+  auth,
+  GudangFinishGood.bookingDoGudangFinishGood,
+);
+
 module.exports = router;
