@@ -272,6 +272,7 @@ const inspeksiFinalController = {
         catatan,
         no_barcode,
         lama_pengerjaan,
+        quantity_kirim_fg,
       } = req.body;
 
       if (!qty_packing)
@@ -297,6 +298,12 @@ const inspeksiFinalController = {
           statusCode: 400,
           status: false,
           msg: "Status wajib di isi",
+        });
+      if (!quantity_kirim_fg)
+        return res.status(400).json({
+          statusCode: 400,
+          status: false,
+          msg: "Quantity kirim FG wajib di isi",
         });
 
       for (let i = 0; i < inspeksi_final_point.length; i++) {
@@ -345,6 +352,7 @@ const inspeksiFinalController = {
           waktu_selesai: new Date(),
           bagian_tiket: "history",
           no_doc: noDoc.kode,
+          quantity_kirim_fg: quantity_kirim_fg,
         },
         { where: { id }, transaction: t },
       );
@@ -419,7 +427,7 @@ const inspeksiFinalController = {
         //     id_so: dataListJoDone.data[0].id_so,
         //     id_customer: dataListJoDone.data[0].id_customer,
         //     id_produk: dataListJoDone.data[0].id_produk,
-        //     jumlah_qty: getInspeksiFinal.quantity,
+        //     jumlah_qty: getInspeksiFinal.quantity_kirim_fg,
         //     transaction: t,
         //   });
 

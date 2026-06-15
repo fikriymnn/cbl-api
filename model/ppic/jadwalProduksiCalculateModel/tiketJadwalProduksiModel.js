@@ -110,6 +110,11 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_send_again: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
