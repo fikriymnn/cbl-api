@@ -401,7 +401,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiFinal.sync({
+//   await JobOrderModel.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

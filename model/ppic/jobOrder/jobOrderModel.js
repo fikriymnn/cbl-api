@@ -179,6 +179,11 @@ const JobOrder = db.define(
       allowNull: true,
       defaultValue: false,
     },
+    is_booking_done: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
