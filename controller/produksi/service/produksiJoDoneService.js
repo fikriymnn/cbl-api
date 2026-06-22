@@ -6,6 +6,7 @@ const SoModel = require("../../../model/marketing/so/soModel");
 const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const MasterCustomer = require("../../../model/masterData/marketing/masterCustomerModel");
 const MasterProduk = require("../../../model/masterData/marketing/masterProdukModel");
+const InspeksiFinal = require("../../../model/qc/inspeksi/final/inspeksiFinalModel");
 const InspeksiFinalService = require("../../../controller/qc/inspeksi/final/service/inspeksiFinalService");
 const FormatTanggalFunction = require("../../../helper/tanggalFormatFunction");
 
@@ -77,10 +78,14 @@ const ProduksiJoDoneService = {
         };
       } else if (id) {
         const data = await ProduksiJoDone.findByPk(id);
+        const dataFinal = await InspeksiFinal.findAll({
+          where: { id_jo: data.id_jo },
+        });
         return {
           status: 200,
           success: true,
           data: data,
+          data_final_inspeksi: dataFinal,
         };
       } else {
         const data = await ProduksiJoDone.findAll({
@@ -177,7 +182,7 @@ const ProduksiJoDoneService = {
           customer: dataCustomer?.nama_customer || null,
           produk: dataProduk?.nama_produk || null,
         },
-        { transaction: t }
+        { transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -226,7 +231,7 @@ const ProduksiJoDoneService = {
           status_proses: "check qc",
           qty_kirim: checkData.qty_kirim + qty_kirim,
         },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
 
       const formatTanggalNow = FormatTanggalFunction.formatTanggal(new Date());
@@ -276,7 +281,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "done", status_proses: "done" },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -304,7 +309,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { status: "reject", status_proses: "reject qc" },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -332,7 +337,7 @@ const ProduksiJoDoneService = {
       }
       await ProduksiJoDone.update(
         { is_jo_done: false },
-        { where: { id: checkData.id }, transaction: t }
+        { where: { id: checkData.id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {

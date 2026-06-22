@@ -310,7 +310,7 @@ const SoController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -333,7 +333,7 @@ const SoController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -356,7 +356,7 @@ const SoController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -379,7 +379,7 @@ const SoController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_so, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -558,7 +558,7 @@ const SoController = {
           label: checkKalkulasi.label,
           is_so_kanban: is_so_kanban,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       if (is_io_selesai == true || is_io_selesai == "true") {
@@ -567,18 +567,18 @@ const SoController = {
           {
             where: { id_io: checkKalkulasi.id_io, is_io_active: true },
             transaction: t,
-          }
+          },
         );
       }
 
       if (id_so_cancel && so_cancel) {
         await SoModel.update(
           { status_proses: "cancel" },
-          { where: { id: id_so_cancel }, transaction: t }
+          { where: { id: id_so_cancel }, transaction: t },
         );
         await SoUserAction.create(
           { id_io: id_so_cancel, id_user: req.user.id, status: "cancel" },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -656,17 +656,17 @@ const SoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await SoUserAction.create(
         { id_so: checkData.id, id_user: req.user.id, status: "update" },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -713,7 +713,7 @@ const SoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await SoUserAction.create(
@@ -722,12 +722,12 @@ const SoController = {
           id_user: req.user.id,
           status: "update kelengkapan po",
         },
-        { transaction: t }
+        { transaction: t },
       );
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -747,7 +747,7 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await SoModel.update(
+      (await SoModel.update(
         {
           status: "requested",
           status_proses: "request to kabag",
@@ -755,16 +755,16 @@ const SoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await SoUserAction.create(
           { id_so: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" });
+          .json({ succes: true, status_code: 200, msg: "Request Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -785,7 +785,7 @@ const SoController = {
           msg: "Data tidak ditemukan",
         });
 
-      await SoModel.update(
+      (await SoModel.update(
         {
           status: "history",
           status_proses: "done",
@@ -797,12 +797,12 @@ const SoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -823,7 +823,7 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await SoModel.update(
+      (await SoModel.update(
         {
           status_proses: "reject kabag",
           status: "draft",
@@ -832,16 +832,16 @@ const SoController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await SoUserAction.create(
           { id_so: checkData.id, id_user: req.user.id, status: "kabag reject" },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -867,20 +867,23 @@ const SoController = {
           status: "cancel",
           status_proses: "cancel",
           note_cancel: note_cancel,
+          is_jo_done: true,
+          is_bom_done: true,
+          is_active: false,
         },
         {
           where: { id: _id },
           transaction: t,
-        }
-      ),
-        await SoUserAction.create(
-          { id_io: checkData.id, id_user: req.user.id, status: "cancel" },
-          { transaction: t }
-        );
-      await t.commit(),
+        },
+      );
+      await SoUserAction.create(
+        { id_io: checkData.id, id_user: req.user.id, status: "cancel" },
+        { transaction: t },
+      );
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -900,19 +903,19 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await SoModel.update(
+      (await SoModel.update(
         {
           status_work: "done",
         },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "done Successful" });
+          .json({ succes: true, status_code: 200, msg: "done Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -932,12 +935,12 @@ const SoController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await SoModel.update(
+      (await SoModel.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await SoUserAction.create(
           {
@@ -945,12 +948,12 @@ const SoController = {
             id_user: req.user.id,
             status: "delete io",
           },
-          { transaction: t }
-        );
-      await t.commit(),
+          { transaction: t },
+        ));
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       await t.rollback();
       res

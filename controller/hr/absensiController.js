@@ -183,10 +183,12 @@ const AbsensiController = {
     }
   },
   getAbsensiMonthPeriode: async (req, res) => {
-    const { idDepartment, is_active, startDate, endDate } = req.query;
+    const { idDepartment, divisi_bawahan, is_active, startDate, endDate } =
+      req.query;
 
     let obj = {};
     if (idDepartment) obj.id_department = idDepartment;
+    if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
     if (is_active && is_active == "true") {
       obj.is_active = true;
     } else if (is_active && is_active == "false") {
