@@ -9,10 +9,11 @@ const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
 const SoPerubahanTanggalKirimController = {
   getSoPerubahanTglKirim: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, status } = req.query;
+    const { is_active, page, limit, search, no_jo, status } = req.query;
 
     try {
       let obj = {};
+      let objJo = {};
       const offset = (page - 1) * limit;
 
       if (search) {
@@ -21,21 +22,42 @@ const SoPerubahanTanggalKirimController = {
         };
       }
       if (status) obj.status = status;
+      if (no_jo) objJo.no_jo = { [Op.like]: `%${no_jo}%` };
       if (is_active) {
         obj.is_active = is_active == "true" ? true : false;
       }
       if (page && limit) {
-        const length = await soPerubahanTanggalKirimModel.count({ where: obj });
+        const length = await soPerubahanTanggalKirimModel.count({
+          where: obj,
+          include: [
+            {
+              model: SoModel,
+              as: "so",
+              required: no_jo ? true : false,
+              include: [
+                {
+                  model: JoModel,
+                  as: "job_order",
+                  required: no_jo ? true : false,
+                  where: objJo,
+                },
+              ],
+            },
+          ],
+        });
         const data = await soPerubahanTanggalKirimModel.findAll({
           where: obj,
           include: [
             {
               model: SoModel,
               as: "so",
+              required: no_jo ? true : false,
               include: [
                 {
                   model: JoModel,
                   as: "job_order",
+                  required: no_jo ? true : false,
+                  where: objJo,
                 },
               ],
             },
@@ -132,7 +154,7 @@ const SoPerubahanTanggalKirimController = {
           note: note,
           id_user_create: req.user.id,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       await t.commit();
@@ -172,13 +194,13 @@ const SoPerubahanTanggalKirimController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -198,7 +220,7 @@ const SoPerubahanTanggalKirimController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await soPerubahanTanggalKirimModel.update(
+      (await soPerubahanTanggalKirimModel.update(
         {
           status: "approved",
           id_user_approve: req.user.id,
@@ -207,12 +229,12 @@ const SoPerubahanTanggalKirimController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await SoModel.update(
           { tgl_pengiriman: checkData.tgl_perubahan },
-          { where: { id: checkData.id_so }, transaction: t }
-        );
+          { where: { id: checkData.id_so }, transaction: t },
+        ));
 
       await JobOrder.update(
         {
@@ -221,7 +243,7 @@ const SoPerubahanTanggalKirimController = {
         {
           where: { id_so: checkData.id_so },
           transaction: t,
-        }
+        },
       );
       await t.commit();
       res
@@ -247,7 +269,7 @@ const SoPerubahanTanggalKirimController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await soPerubahanTanggalKirimModel.update(
+      (await soPerubahanTanggalKirimModel.update(
         {
           status: "rejected",
           note_reject: note_reject,
@@ -257,12 +279,12 @@ const SoPerubahanTanggalKirimController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -282,17 +304,17 @@ const SoPerubahanTanggalKirimController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await soPerubahanTanggalKirimModel.update(
+      (await soPerubahanTanggalKirimModel.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -324,7 +346,7 @@ const SoPerubahanTanggalKirimController = {
           {
             where: { id_so: e.id_so },
             transaction: t,
-          }
+          },
         );
       }
       await t.commit();

@@ -95,6 +95,7 @@ const MonitoringSoController = {
         status_po == "selesai" ||
         status_po == "over qty"
       ) {
+        obj.status = { [Op.ne]: "cancel" };
         // ditangani post-filter
       } else {
         return res.status(404).json({
