@@ -9,7 +9,9 @@ const masterGradeModel = {
         const response = await masterGrade.findByPk(_id);
         res.status(200).json(response);
       } else {
-        const response = await masterGrade.findAll();
+        const response = await masterGrade.findAll({
+          where: { is_active: true },
+        });
         res.status(200).json({ data: response });
       }
     } catch (error) {

@@ -71,6 +71,10 @@ const IncomingBarangJadi = db.define(
         key: "id",
       },
     },
+    id_final_inspeksi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -120,6 +124,11 @@ const IncomingBarangJadi = db.define(
       allowNull: true,
       defaultValue: "progress",
     },
+    status_ticket: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "progress",
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
@@ -128,7 +137,7 @@ const IncomingBarangJadi = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 JoModel.hasMany(IncomingBarangJadi, {
