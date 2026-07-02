@@ -70,6 +70,11 @@ const MasterGrade = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
   },
   {
     freezeTableName: true,

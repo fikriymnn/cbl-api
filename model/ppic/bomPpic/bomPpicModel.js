@@ -92,6 +92,14 @@ const BomPpic = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    qty_po: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    qty_fg: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     tgl_kirim_customer: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -130,7 +138,7 @@ const BomPpic = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 JobOrder.hasMany(BomPpic, {
@@ -159,7 +167,7 @@ BomPpic.belongsTo(SoModel, {
   as: "so",
 });
 
-BomModel.hasMany(BomPpic, {
+BomModel.hasOne(BomPpic, {
   foreignKey: "id_bom",
   as: "bom_ppic",
 });

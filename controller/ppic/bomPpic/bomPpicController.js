@@ -60,6 +60,10 @@ const BomPpicController = {
         const data = await BomPpicModel.findByPk(_id, {
           include: [
             {
+              model: soModel,
+              as: "so",
+            },
+            {
               model: BomPpicKertasModel,
               as: "bom_ppic_kertas",
             },
@@ -166,6 +170,8 @@ const BomPpicController = {
       bom_ppic_coating,
       bom_ppic_lem,
       lain_lain,
+      qty_po,
+      qty_fg,
     } = req.body;
     const t = await db.transaction();
 
@@ -186,7 +192,7 @@ const BomPpicController = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom_ppic, 4), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom_ppic, 4), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -246,8 +252,10 @@ const BomPpicController = {
           customer,
           produk,
           tgl_kirim_customer: tgl_kirim_customer || null,
+          qty_fg,
+          qty_po,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       if (bom_ppic_kertas && bom_ppic_kertas.length > 0) {
@@ -282,7 +290,7 @@ const BomPpicController = {
               area_cetak: e.area_cetak,
               qty_tinta: e.qty_tinta,
             },
-            { transaction: t },
+            { transaction: t }
           );
 
           for (
@@ -301,7 +309,7 @@ const BomPpicController = {
                 qty_beli: e.qty_beli,
                 qty_stok: e.qty_stok,
               },
-              { transaction: t },
+              { transaction: t }
             );
           }
         }
@@ -462,7 +470,7 @@ const BomPpicController = {
           customer,
           produk,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       // === Fungsi util untuk update child ===
@@ -471,7 +479,7 @@ const BomPpicController = {
         tableName,
         foreignKey,
         newData,
-        idField = "id",
+        idField = "id"
       ) {
         const existing = await model.findAll({
           where: { [foreignKey]: id },
@@ -484,7 +492,7 @@ const BomPpicController = {
 
         // 🔸 Hapus data yang tidak ada lagi di frontend
         const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid),
+          (eid) => !incomingIds.includes(eid)
         );
         if (deletedIds.length > 0) {
           await model.destroy({
@@ -513,7 +521,7 @@ const BomPpicController = {
           BomPpicKertasModel,
           "bom_ppic_kertas",
           "id_bom_ppic",
-          bom_ppic_kertas,
+          bom_ppic_kertas
         );
       }
 
@@ -522,7 +530,7 @@ const BomPpicController = {
           BomPpicCorrugatedModel,
           "bom_ppic_corrugated",
           "id_bom_ppic",
-          bom_ppic_corrugated,
+          bom_ppic_corrugated
         );
       }
 
@@ -531,7 +539,7 @@ const BomPpicController = {
           BomPpicPolibanModel,
           "bom_ppic_poliban",
           "id_bom_ppic",
-          bom_ppic_poliban,
+          bom_ppic_poliban
         );
       }
 
@@ -540,7 +548,7 @@ const BomPpicController = {
           BomPpicCoatingModel,
           "bom_ppic_coating",
           "id_bom_ppic",
-          bom_ppic_coating,
+          bom_ppic_coating
         );
       }
 
@@ -549,7 +557,7 @@ const BomPpicController = {
           BomPpicLemModel,
           "bom_ppic_lem",
           "id_bom_ppic",
-          bom_ppic_lem,
+          bom_ppic_lem
         );
       }
 
@@ -573,7 +581,7 @@ const BomPpicController = {
 
         // Hapus tinta yang dihapus
         const deletedTintaIds = existingTintaIds.filter(
-          (eid) => !incomingTintaIds.includes(eid),
+          (eid) => !incomingTintaIds.includes(eid)
         );
         if (deletedTintaIds.length > 0) {
           await BomPpicTintaDetailModel.destroy({
@@ -597,7 +605,7 @@ const BomPpicController = {
           } else {
             tintaModel = await BomPpicTintaModel.create(
               { ...tinta, id_bom: id },
-              { transaction: t },
+              { transaction: t }
             );
           }
 
@@ -611,7 +619,7 @@ const BomPpicController = {
           const existingDetailIds = existingDetail.map((d) => d.id);
           const incomingDetailIds = detail.filter((d) => d.id).map((d) => d.id);
           const deletedDetailIds = existingDetailIds.filter(
-            (eid) => !incomingDetailIds.includes(eid),
+            (eid) => !incomingDetailIds.includes(eid)
           );
 
           if (deletedDetailIds.length > 0) {
@@ -630,7 +638,7 @@ const BomPpicController = {
             } else {
               await BomPpicTintaDetailModel.create(
                 { ...d, id_bom_ppic_tinta: tintaModel.id },
-                { transaction: t },
+                { transaction: t }
               );
             }
           }
@@ -656,7 +664,7 @@ const BomPpicController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await BomPpicModel.update(
+      await BomPpicModel.update(
         {
           status: "requested",
           status_proses: "request to kabag",
@@ -664,16 +672,16 @@ const BomPpicController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await BomPpicUserAction.create(
           { id_bom: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Request Successful" });
     } catch (error) {
       res
         .status(400)
@@ -692,7 +700,7 @@ const BomPpicController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await BomPpicModel.update(
+      await BomPpicModel.update(
         {
           status: "history",
           status_proses: "done",
@@ -702,25 +710,25 @@ const BomPpicController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await BomModel.update(
           { is_bom_ppic_done: true },
-          { where: { id: checkData.id_bom }, transaction: t },
-        ));
+          { where: { id: checkData.id_bom }, transaction: t }
+        );
       await BomPpicUserAction.create(
         {
           id_bom_ppic: checkData.id,
           id_user: req.user.id,
           status: "approve",
         },
-        { transaction: t },
+        { transaction: t }
       );
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       res
         .status(400)
@@ -740,7 +748,7 @@ const BomPpicController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await BomPpicModel.update(
+      await BomPpicModel.update(
         {
           status_proses: "reject kabag",
           status: "draft",
@@ -749,7 +757,7 @@ const BomPpicController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await BomPpicUserAction.create(
           {
@@ -757,12 +765,12 @@ const BomPpicController = {
             id_user: req.user.id,
             status: "kabag reject",
           },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       res
         .status(400)
@@ -781,7 +789,7 @@ const BomPpicController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await BomPpicModel.update(
+      await BomPpicModel.update(
         {
           status_proses: "kembali ke BOM",
           status: "draft",
@@ -789,11 +797,11 @@ const BomPpicController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await BomModel.update(
           { status_proses: "kembali dari BOM PPIC", status: "draft" },
-          { where: { id: checkData.id_bom }, transaction: t },
+          { where: { id: checkData.id_bom }, transaction: t }
         ),
         await BomPpicUserAction.create(
           {
@@ -801,12 +809,12 @@ const BomPpicController = {
             id_user: req.user.id,
             status: "kembali ke BOM",
           },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       res
         .status(400)

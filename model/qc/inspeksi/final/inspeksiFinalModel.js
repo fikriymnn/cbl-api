@@ -82,6 +82,10 @@ const InspeksiFinal = db.define(
       type: DataTypes.STRING,
       defaultValue: "incoming",
     },
+    status_fg: {
+      type: DataTypes.STRING,
+      defaultValue: "",
+    },
     waktu_mulai: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -105,7 +109,7 @@ const InspeksiFinal = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 Users.hasMany(InspeksiFinal, {

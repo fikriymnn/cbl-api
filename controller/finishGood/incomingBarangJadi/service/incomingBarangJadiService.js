@@ -10,6 +10,7 @@ const MasterCustomer = require("../../../../model/masterData/marketing/masterCus
 const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
 const MasterHargaPengiriman = require("../../../../model/masterData/marketing/masterHargaPengirimanModel");
 const Users = require("../../../../model/userModel");
+const InspeksiFinal = require("../../../../model/qc/inspeksi/final/inspeksiFinalModel");
 const GudangFinishGoodService = require("../../gudangFinishGood/service/gudangFinishGoodService");
 const MutasiBarangFinishGoodService = require("../../mutasiBarangFinishGood/service/mutasiBarangFinishGoodService");
 
@@ -21,6 +22,7 @@ const IncomingBarangJadiService = {
     start_date,
     end_date,
     status,
+    status_ticket,
     search,
     id_jo,
     id_io,
@@ -47,6 +49,7 @@ const IncomingBarangJadiService = {
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
+    if (status_ticket) obj.status_ticket = status_ticket;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -132,6 +135,7 @@ const IncomingBarangJadiService = {
     id_so,
     id_customer,
     id_produk,
+    id_final_inspeksi,
     jumlah_qty,
     transaction = null,
   }) => {
@@ -194,6 +198,7 @@ const IncomingBarangJadiService = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
+          id_final_inspeksi: id_final_inspeksi,
           no_jo: dataJo?.no_jo || null,
           no_io: dataIo?.no_io || null,
           no_so: dataSo?.no_so || null,
@@ -205,7 +210,7 @@ const IncomingBarangJadiService = {
           toleransi_pengiriman: dataCustomer?.toleransi_pengiriman || null,
           note: dataSo?.note || null,
         },
-        { transaction: t },
+        { transaction: t }
       );
       if (!transaction) await t.commit();
       return {
@@ -239,7 +244,7 @@ const IncomingBarangJadiService = {
       }
 
       const dataJoDone = await JobOrderDone.findByPk(
-        dataIncomingBarangJadi.id_jo_done,
+        dataIncomingBarangJadi.id_jo_done
       );
       if (!dataJoDone) {
         return {
@@ -252,9 +257,10 @@ const IncomingBarangJadiService = {
         {
           note_user: note_user,
           status: "rejected",
+          status_ticket: "history",
           id_user: id_user,
         },
-        { where: { id: id }, transaction: t },
+        { where: { id: id }, transaction: t }
       );
 
       await JobOrderDone.update(
@@ -264,7 +270,15 @@ const IncomingBarangJadiService = {
           status_proses: "reject fg",
           qty_kirim: dataJoDone.qty_kirim - dataIncomingBarangJadi.jumlah_qty,
         },
-        { where: { id: dataJoDone.id }, transaction: t },
+        { where: { id: dataJoDone.id }, transaction: t }
+      );
+
+      await InspeksiFinal.update(
+        { status_fg: "rejected" },
+        {
+          where: { id: dataIncomingBarangJadi.id_final_inspeksi },
+          transaction: t,
+        }
       );
       if (!transaction) await t.commit();
       return {
@@ -300,9 +314,10 @@ const IncomingBarangJadiService = {
         {
           note_user: note_user,
           status: "approved",
+          status_ticket: "history",
           id_user: id_user,
         },
-        { where: { id: id }, transaction: t },
+        { where: { id: id }, transaction: t }
       );
 
       const createGudangFG =
@@ -348,6 +363,14 @@ const IncomingBarangJadiService = {
           message: createMutasiBarang.message,
         };
       }
+
+      await InspeksiFinal.update(
+        { status_fg: "approved" },
+        {
+          where: { id: dataIncomingBarangJadi.id_final_inspeksi },
+          transaction: t,
+        }
+      );
 
       if (!transaction) await t.commit();
       return {

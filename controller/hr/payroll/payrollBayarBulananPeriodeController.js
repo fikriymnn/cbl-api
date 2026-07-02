@@ -257,7 +257,7 @@ const PayrollBayarPeriodeBulananController = {
           status: "draft",
           id_user_create: req.user.id,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       for (let i = 0; i < data_payroll.detail.length; i++) {
@@ -286,7 +286,7 @@ const PayrollBayarPeriodeBulananController = {
             tipe_karyawan: data.tipe_karyawan,
             tipe_penggajian: data.tipe_penggajian,
           },
-          { transaction: t },
+          { transaction: t }
         );
 
         for (let i = 0; i < data.potonganSakit.length; i++) {
@@ -300,7 +300,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data1.total,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
         for (let i = 0; i < data.potonganIzin.length; i++) {
@@ -314,7 +314,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data2.total,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
         for (let i = 0; i < data.potonganMangkir.length; i++) {
@@ -328,7 +328,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data3.total,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
         for (let i = 0; i < data.potongan.length; i++) {
@@ -342,7 +342,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data4.total,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
         for (let i = 0; i < data.potongan_terlambat.length; i++) {
@@ -356,7 +356,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data5.total,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
 
@@ -370,7 +370,7 @@ const PayrollBayarPeriodeBulananController = {
               total: data.potonganPinjaman.jumlah_cicilan,
               tipe: "potongan",
             },
-            { transaction: t },
+            { transaction: t }
           );
 
           const sisaPinjaman =
@@ -383,7 +383,7 @@ const PayrollBayarPeriodeBulananController = {
               sisa_pinjaman: sisaPinjaman,
               status_pinjaman: sisaPinjaman == 0 ? "lunas" : "belum lunas",
             },
-            { where: { id: data.potonganPinjaman.id }, transaction: t },
+            { where: { id: data.potonganPinjaman.id }, transaction: t }
           );
         }
       }
@@ -409,7 +409,7 @@ const PayrollBayarPeriodeBulananController = {
           status: "incoming approved",
           id_user_submit: req.user.id,
         },
-        { where: { id: _id }, transaction: t },
+        { where: { id: _id }, transaction: t }
       );
 
       await t.commit();
@@ -433,7 +433,7 @@ const PayrollBayarPeriodeBulananController = {
           status: "incoming pay",
           id_user_approve: req.user.id,
         },
-        { where: { id: _id }, transaction: t },
+        { where: { id: _id }, transaction: t }
       );
 
       await t.commit();
@@ -456,7 +456,7 @@ const PayrollBayarPeriodeBulananController = {
           status: "done",
           id_user_pay: req.user.id,
         },
-        { where: { id: _id }, transaction: t },
+        { where: { id: _id }, transaction: t }
       );
 
       await t.commit();
