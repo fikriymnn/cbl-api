@@ -80,6 +80,10 @@ const BomController = {
               as: "so",
             },
             {
+              model: BomPpicModel,
+              as: "bom_ppic",
+            },
+            {
               model: BomKertasModel,
               as: "bom_kertas",
             },

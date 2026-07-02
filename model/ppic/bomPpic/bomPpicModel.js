@@ -167,7 +167,7 @@ BomPpic.belongsTo(SoModel, {
   as: "so",
 });
 
-BomModel.hasMany(BomPpic, {
+BomModel.hasOne(BomPpic, {
   foreignKey: "id_bom",
   as: "bom_ppic",
 });
