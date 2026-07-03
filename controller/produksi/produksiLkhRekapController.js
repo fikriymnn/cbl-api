@@ -19,6 +19,7 @@ function hitungRekap(rows) {
   let totalWaktuProduksi = 0;
   let totalWaktuKendala = 0;
   let totalWaktuOff = 0;
+  let totalWaktuPerawatanMesin = 0;
 
   let totalQtyBaik = 0;
   let totalQtyRusakSebagian = 0;
@@ -28,6 +29,7 @@ function hitungRekap(rows) {
   const detailProduksi = [];
   const detailKendala = [];
   const detailOff = [];
+  const detailPerawatanMesin = [];
 
   // Untuk rekap kendala per kategori: Map<kategoriLabel, { total_waktu, rows[] }>
   const kendalaMap = new Map();
@@ -73,6 +75,9 @@ function hitungRekap(rows) {
     } else if (proses === "Off") {
       totalWaktuOff += waktu;
       detailOff.push(buildDetail(row));
+    } else if (proses === "Perawatan Mesin") {
+      totalWaktuPerawatanMesin += waktu;
+      detailPerawatanMesin.push(buildDetail(row));
     }
 
     // Qty hanya dari final result
@@ -86,12 +91,16 @@ function hitungRekap(rows) {
   const totalQtyProduksi =
     totalQtyBaik + totalQtyRusakSebagian + totalQtyRusakTotal;
   const totalJam = secondsToHours(
-    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala + totalWaktuOff
+    totalWaktuSetting +
+      totalWaktuProduksi +
+      totalWaktuKendala +
+      totalWaktuOff +
+      totalWaktuPerawatanMesin,
   );
 
   // Net output: qty produksi / (setting + produksi + kendala) dalam JAM
   const pembagi = secondsToHours(
-    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala
+    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala,
   );
   const netOutput =
     pembagi > 0 ? parseFloat((totalQtyProduksi / pembagi).toFixed(4)) : 0;
@@ -106,7 +115,7 @@ function hitungRekap(rows) {
       persentase:
         totalWaktuKendala > 0
           ? parseFloat(
-              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2)
+              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2),
             )
           : 0,
       data_kendala: entry.rows,
@@ -123,6 +132,8 @@ function hitungRekap(rows) {
       detail_kendala: detailKendala,
       total_waktu_off_jam: secondsToHours(totalWaktuOff),
       detail_off: detailOff,
+      total_waktu_perawatan_mesin_jam: secondsToHours(totalWaktuPerawatanMesin),
+      detail_perawatan_mesin: detailPerawatanMesin,
       total_jam: totalJam,
       total_qty_baik: totalQtyBaik,
       total_qty_rusak_sebagian: totalQtyRusakSebagian,
@@ -274,7 +285,7 @@ const ProduksiLkhRekapController = {
       const rekap_operator = [];
       for (const [, opEntry] of operatorMap.entries()) {
         const { rekap_mesin: rm, rekap_kendala: rk } = hitungRekap(
-          opEntry.rows
+          opEntry.rows,
         );
         rekap_operator.push({
           id_operator: opEntry.id_operator,
