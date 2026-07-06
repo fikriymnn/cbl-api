@@ -187,7 +187,7 @@ const inspeksiFinalController = {
         },
         {
           transaction: t,
-        }
+        },
       );
 
       const masterSubFinal = await InspeksiMasterSubFinal.findOne(
@@ -201,7 +201,7 @@ const inspeksiFinalController = {
         },
         {
           transaction: t,
-        }
+        },
       );
       const masterPointFinal = await InspeksiMasterPointFinal.findAll({
         where: { status: "active" },
@@ -218,7 +218,7 @@ const inspeksiFinalController = {
           },
           {
             transaction: t,
-          }
+          },
         );
       }
 
@@ -232,7 +232,7 @@ const inspeksiFinalController = {
           },
           {
             transaction: t,
-          }
+          },
         );
       }
 
@@ -248,11 +248,11 @@ const inspeksiFinalController = {
     const id = req.params.id;
     const date = new Date();
     try {
-      await InspeksiFinal.update(
+      (await InspeksiFinal.update(
         { waktu_mulai: date, inspektor: req.user.id },
-        { where: { id: id } }
+        { where: { id: id } },
       ),
-        res.status(200).json({ msg: "start successfuly" });
+        res.status(200).json({ msg: "start successfuly" }));
     } catch (error) {
       res.status(400).json({ msg: error.message });
     }
@@ -354,7 +354,7 @@ const inspeksiFinalController = {
           no_doc: noDoc.kode,
           quantity_kirim_fg: quantity_kirim_fg,
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       for (let i = 0; i < inspeksi_final_point.length; i++) {
@@ -364,7 +364,7 @@ const inspeksiFinalController = {
             hasil: inspeksi_final_point[i].hasil,
             qty: inspeksi_final_point[i].qty,
           },
-          { where: { id: inspeksi_final_point[i].id }, transaction: t }
+          { where: { id: inspeksi_final_point[i].id }, transaction: t },
         );
       }
 
@@ -374,7 +374,7 @@ const inspeksiFinalController = {
             id_inspeksi_final: id,
             reject: totalQtyReject,
           },
-          { where: { id: inspeksi_final_sub[i].id }, transaction: t }
+          { where: { id: inspeksi_final_sub[i].id }, transaction: t },
         );
       }
 
@@ -398,37 +398,13 @@ const inspeksiFinalController = {
             msg: dataListJoDone.message,
           });
         }
-        // const createIncomingBarangJadi =
-        //   await DeliveryOrderService.creteDeliveryOrderService({
-        //     id_jo: dataListJoDone.data[0].id_jo,
-        //     id_io: dataListJoDone.data[0].id_io,
-        //     id_so: dataListJoDone.data[0].id_so,
-        //     id_customer: dataListJoDone.data[0].id_customer,
-        //     id_produk: dataListJoDone.data[0].id_produk,
-        //     transaction: t,
-        //   });
-
-        // if (createIncomingBarangJadi.success === false) {
-        //   await t.rollback();
-
-        //   return res.status(400).json({
-        //     succes: false,
-        //     status_code: 400,
-        //     msg: createIncomingBarangJadi.message,
-        //   });
-        // }
-
-        //ini untuk ke prod jika sudah meeting
         const createIncomingBarangJadi =
-          await IncomingBarangJadiService.creteIncomingBarangJadiService({
+          await DeliveryOrderService.creteDeliveryOrderService({
             id_jo: dataListJoDone.data[0].id_jo,
-            id_jo_done: dataListJoDone.data[0].id,
             id_io: dataListJoDone.data[0].id_io,
             id_so: dataListJoDone.data[0].id_so,
             id_customer: dataListJoDone.data[0].id_customer,
             id_produk: dataListJoDone.data[0].id_produk,
-            id_final_inspeksi: id,
-            jumlah_qty: quantity_kirim_fg,
             transaction: t,
           });
 
@@ -441,6 +417,30 @@ const inspeksiFinalController = {
             msg: createIncomingBarangJadi.message,
           });
         }
+
+        //ini untuk ke prod jika sudah meeting
+        // const createIncomingBarangJadi =
+        //   await IncomingBarangJadiService.creteIncomingBarangJadiService({
+        //     id_jo: dataListJoDone.data[0].id_jo,
+        //     id_jo_done: dataListJoDone.data[0].id,
+        //     id_io: dataListJoDone.data[0].id_io,
+        //     id_so: dataListJoDone.data[0].id_so,
+        //     id_customer: dataListJoDone.data[0].id_customer,
+        //     id_produk: dataListJoDone.data[0].id_produk,
+        //     id_final_inspeksi: id,
+        //     jumlah_qty: quantity_kirim_fg,
+        //     transaction: t,
+        //   });
+
+        // if (createIncomingBarangJadi.success === false) {
+        //   await t.rollback();
+
+        //   return res.status(400).json({
+        //     succes: false,
+        //     status_code: 400,
+        //     msg: createIncomingBarangJadi.message,
+        //   });
+        // }
 
         const doneDeliveryOrder =
           await ProduksiJoDoneService.doneProduksiJoDoneService({
