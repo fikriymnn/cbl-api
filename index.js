@@ -380,6 +380,11 @@ const IncomingBarangJadi = require("./model/finishGood/incomingBarangJadiModel")
 const GudangFinishGood = require("./model/finishGood/gudangFinishGoodModel");
 const MutasiBarangFinishGood = require("./model/finishGood/mutasiBarangFinishGoodModel");
 
+//Purchasing
+const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurchaseModel");
+const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
+const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
+
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
 const MasterRole = require("./model/masterData/menu/masterRoleModel");
@@ -401,7 +406,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiFinal.sync({
+//   await PurchaseOrder.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

@@ -17,15 +17,7 @@ const BomPpicCoating = db.define(
         key: "id",
       },
     },
-    id_coating_depan: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: MasterBarang,
-        key: "id",
-      },
-    },
-    id_coating_belakang: {
+    id_coating: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -34,19 +26,11 @@ const BomPpicCoating = db.define(
       },
     },
 
-    nama_coating_depan: {
+    nama_coating: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    nama_coating_belakang: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    qty_coating_depan: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    qty_coating_belakang: {
+    qty_coating: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
@@ -58,22 +42,12 @@ const BomPpicCoating = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    qty_beli_coating_depan: {
+    qty_beli: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
     },
-    qty_stok_coating_depan: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    qty_beli_coating_belakang: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    qty_stok_coating_belakang: {
+    qty_stok: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
@@ -86,7 +60,7 @@ const BomPpicCoating = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 BomPpicModel.hasMany(BomPpicCoating, {
@@ -99,19 +73,11 @@ BomPpicCoating.belongsTo(BomPpicModel, {
 });
 
 MasterBarang.hasMany(BomPpicCoating, {
-  foreignKey: "id_coating_depan",
+  foreignKey: "id_coating",
 });
 BomPpicCoating.belongsTo(MasterBarang, {
-  foreignKey: "id_coating_depan",
-  as: "coating_depan",
-});
-
-MasterBarang.hasMany(BomPpicCoating, {
-  foreignKey: "id_coating_belakang",
-});
-BomPpicCoating.belongsTo(MasterBarang, {
-  foreignKey: "id_coating_belakang",
-  as: "coating_belakang",
+  foreignKey: "id_coating",
+  as: "coating",
 });
 
 module.exports = BomPpicCoating;
