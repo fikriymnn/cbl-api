@@ -380,6 +380,11 @@ const IncomingBarangJadi = require("./model/finishGood/incomingBarangJadiModel")
 const GudangFinishGood = require("./model/finishGood/gudangFinishGoodModel");
 const MutasiBarangFinishGood = require("./model/finishGood/mutasiBarangFinishGoodModel");
 
+//Purchasing
+const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurchaseModel");
+const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
+const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
+
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
 const MasterRole = require("./model/masterData/menu/masterRoleModel");
@@ -401,7 +406,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiFinal.sync({
+//   await RequestPurchase.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
@@ -459,7 +464,7 @@ app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
   res.header(
     "Access-Control-Allow-Headers",
-    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept",
+    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
   );
   next();
 });
@@ -480,7 +485,7 @@ app.use(
   cors({
     credentials: true,
     origin: true,
-  }),
+  })
 );
 
 app.use(bodyParser.urlencoded({ extended: true }));

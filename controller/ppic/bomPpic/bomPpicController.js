@@ -18,8 +18,16 @@ const soModel = require("../../../model/marketing/so/soModel");
 const BomPpicController = {
   getBomPpicModel: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, status, status_proses, search } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      status,
+      status_proses,
+      search,
+      is_request_purchase,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
     if (search) {
@@ -37,6 +45,8 @@ const BomPpicController = {
     }
     if (status_proses) obj.status_tiket = status_tiket;
     if (status) obj.status = status;
+    if (is_request_purchase)
+      obj.is_request_purchase = is_request_purchase == "true" ? true : false;
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
@@ -248,7 +258,6 @@ const BomPpicController = {
           no_io,
           no_so,
           no_bom,
-          no_jo,
           customer,
           produk,
           tgl_kirim_customer: tgl_kirim_customer || null,
@@ -363,18 +372,13 @@ const BomPpicController = {
           const e = bom_ppic_coating[iCoating];
           dataBomPpicCoating.push({
             id_bom_ppic: dataBomPpicModel.id,
-            id_coating_depan: e.id_coating_depan,
-            id_coating_belakang: e.id_coating_belakang,
-            nama_coating_depan: e.nama_coating_depan,
-            nama_coating_belakang: e.nama_coating_belakang,
-            qty_coating_depan: e.qty_coating_depan,
-            qty_coating_belakang: e.qty_coating_belakang,
+            id_coating: e.id_coating,
+            nama_coating: e.nama_coating,
+            qty_coating: e.qty_coating,
             uv_wb: e.uv_wb,
             varnish_doff: e.varnish_doff,
-            qty_beli_coating_depan: e.qty_beli_coating_depan,
-            qty_stok_coating_depan: e.qty_stok_coating_depan,
-            qty_beli_coating_belakang: e.qty_beli_coating_belakang,
-            qty_stok_coating_belakang: e.qty_stok_coating_belakang,
+            qty_beli: e.qty_beli,
+            qty_stok: e.qty_stok,
           });
         }
         await BomPpicCoatingModel.bulkCreate(dataBomPpicCoating, {
@@ -456,7 +460,7 @@ const BomPpicController = {
       // Update BOM utama
       const dataBom = await BomPpicModel.findByPk(id);
       if (!dataBom)
-        return res.status(404).json({ msg: "Data BOM tidak ditemukan" });
+        return res.status(404).json({ msg: "Data BOM PPIC tidak ditemukan" });
 
       await dataBom.update(
         {

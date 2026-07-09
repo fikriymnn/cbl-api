@@ -1,15 +1,17 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
+const PurchaseOrder = require("../purchaseOrder/purchaseOrderModel");
 const IoModel = require("../../marketing/io/ioModel");
-const BomModel = require("../bom/bomModel");
-const SoModel = require("../../marketing//so/soModel");
-const JobOrder = require("../jobOrder/jobOrderModel");
+const BomPpicModel = require("../../ppic/bomPpic/bomPpicModel");
+const SoModel = require("../../marketing/so/soModel");
+const JobOrder = require("../../ppic/jobOrder/jobOrderModel");
+const MasterBarang = require("../../masterData/barang/masterBarangModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-const BomPpic = db.define(
-  "bom_ppic",
+const RequestPurchase = db.define(
+  "request_purchase",
   {
     id_jo: {
       type: DataTypes.INTEGER,
@@ -35,15 +37,23 @@ const BomPpic = db.define(
         key: "id",
       },
     },
-    id_bom: {
+    id_bom_ppic: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: BomModel,
+        model: BomPpicModel,
         key: "id",
       },
     },
-    id_create_bom_ppic: {
+    id_item: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBarang,
+        key: "id",
+      },
+    },
+    id_request: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -51,19 +61,14 @@ const BomPpic = db.define(
         key: "id",
       },
     },
-    id_approve_bom_ppic: {
+    id_purchase_order: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Users,
+        model: PurchaseOrder,
         key: "id",
       },
     },
-    tgl_approve_bom_ppic: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-
     no_bom_ppic: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -73,10 +78,6 @@ const BomPpic = db.define(
       allowNull: true,
     },
     no_so: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    no_bom: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -92,48 +93,40 @@ const BomPpic = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_po: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    qty_fg: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    tgl_kirim_customer: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.NOW,
-    },
-    tgl_pembuatan_bom_ppic: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: Sequelize.NOW,
-    },
-
-    status_bom_ppic: {
+    nama_item: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "baru",
+    },
+    qty: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    tipe_barang: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    satuan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tgl_kirim: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    rencana_cetak: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_request: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: Sequelize.NOW,
     },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "draft",
-    },
-    status_proses: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "draft",
-    },
-    note_reject: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    is_request_purchase: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
+      defaultValue: "incoming",
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -146,57 +139,66 @@ const BomPpic = db.define(
   }
 );
 
-JobOrder.hasMany(BomPpic, {
+JobOrder.hasMany(RequestPurchase, {
   foreignKey: "id_jo",
-  as: "bom_ppic",
+  as: "request_purchase",
 });
-BomPpic.belongsTo(JobOrder, {
+RequestPurchase.belongsTo(JobOrder, {
   foreignKey: "id_jo",
   as: "job_order",
 });
-IoModel.hasMany(BomPpic, {
+IoModel.hasMany(RequestPurchase, {
   foreignKey: "id_io",
-  as: "bom_ppic",
+  as: "request_purchase",
 });
-BomPpic.belongsTo(IoModel, {
+RequestPurchase.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-SoModel.hasOne(BomPpic, {
+SoModel.hasMany(RequestPurchase, {
   foreignKey: "id_so",
-  as: "bom_ppic",
+  as: "request_purchase",
 });
-BomPpic.belongsTo(SoModel, {
+RequestPurchase.belongsTo(SoModel, {
   foreignKey: "id_so",
   as: "so",
 });
 
-BomModel.hasOne(BomPpic, {
-  foreignKey: "id_bom",
+MasterBarang.hasMany(RequestPurchase, {
+  foreignKey: "id_item",
+  as: "request_purchase",
+});
+RequestPurchase.belongsTo(MasterBarang, {
+  foreignKey: "id_item",
+  as: "detail_item",
+});
+
+BomPpicModel.hasMany(RequestPurchase, {
+  foreignKey: "id_bom_ppic",
+  as: "request_purchase",
+});
+RequestPurchase.belongsTo(BomPpicModel, {
+  foreignKey: "id_bom_ppic",
   as: "bom_ppic",
 });
-BomPpic.belongsTo(BomModel, {
-  foreignKey: "id_bom",
-  as: "bom",
+
+PurchaseOrder.hasMany(RequestPurchase, {
+  foreignKey: "id_purchase_order",
+  as: "request_purchase",
+});
+RequestPurchase.belongsTo(PurchaseOrder, {
+  foreignKey: "id_purchase_order",
+  as: "purchase_order",
 });
 
-Users.hasMany(BomPpic, {
-  foreignKey: "id_create_bom_ppic",
-  as: "bom_ppic_create",
+Users.hasMany(RequestPurchase, {
+  foreignKey: "id_request",
+  as: "request_purchase",
 });
-BomPpic.belongsTo(Users, {
-  foreignKey: "id_create_bom_ppic",
-  as: "user_create",
-});
-
-Users.hasMany(BomPpic, {
-  foreignKey: "id_approve_bom_ppic",
-  as: "bom_ppic_approve",
-});
-BomPpic.belongsTo(Users, {
-  foreignKey: "id_approve_bom_ppic",
-  as: "user_approve",
+RequestPurchase.belongsTo(Users, {
+  foreignKey: "id_request",
+  as: "user_request",
 });
 
-module.exports = BomPpic;
+module.exports = RequestPurchase;
