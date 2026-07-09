@@ -130,6 +130,11 @@ const BomPpic = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_request_purchase: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
+const PurchaseOrder = require("../purchaseOrder/purchaseOrderModel");
 const IoModel = require("../../marketing/io/ioModel");
 const BomPpicModel = require("../../ppic/bomPpic/bomPpicModel");
 const SoModel = require("../../marketing/so/soModel");
@@ -57,6 +58,14 @@ const RequestPurchase = db.define(
       allowNull: true,
       references: {
         model: Users,
+        key: "id",
+      },
+    },
+    id_purchase_order: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PurchaseOrder,
         key: "id",
       },
     },
@@ -127,7 +136,7 @@ const RequestPurchase = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 JobOrder.hasMany(RequestPurchase, {
@@ -172,6 +181,15 @@ BomPpicModel.hasMany(RequestPurchase, {
 RequestPurchase.belongsTo(BomPpicModel, {
   foreignKey: "id_bom_ppic",
   as: "bom_ppic",
+});
+
+PurchaseOrder.hasMany(RequestPurchase, {
+  foreignKey: "id_purchase_order",
+  as: "request_purchase",
+});
+RequestPurchase.belongsTo(PurchaseOrder, {
+  foreignKey: "id_purchase_order",
+  as: "purchase_order",
 });
 
 Users.hasMany(RequestPurchase, {

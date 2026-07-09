@@ -8,6 +8,7 @@ const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
 const BomPpicModel = require("../../../../model/ppic/bomPpic/bomPpicModel");
 const MasterBarang = require("../../../../model/masterData/barang/masterBarangModel");
 const Users = require("../../../../model/userModel");
+const RequestPurchase = require("../../../../model/purchasing/requestPurchase/requestPurchaseModel");
 
 const PurchaseOrderService = {
   // 🔢 generate nomor PO berikutnya, format: 0713/CBL/072026
@@ -23,7 +24,7 @@ const PurchaseOrderService = {
       order: [
         [
           literal(
-            `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`,
+            `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`
           ),
           "DESC",
         ],
@@ -194,10 +195,6 @@ const PurchaseOrderService = {
 
   createPurchaseOrderService: async ({
     id_create,
-    id_jo,
-    id_io,
-    id_so,
-    id_bom_ppic,
     nama_vendor,
     tgl_po,
     tgl_kirim,
@@ -205,17 +202,25 @@ const PurchaseOrderService = {
     note_internal,
     note_supplier,
     items = [],
+    request_purchase_data = [],
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
 
     try {
       if (!items || items.length === 0) {
-        if (!transaction) await t.rollback();
         return {
           status_code: 400,
           success: false,
           message: "Item Purchase Order tidak boleh kosong",
+        };
+      }
+
+      if (!request_purchase_data || request_purchase_data.length === 0) {
+        return {
+          status_code: 400,
+          success: false,
+          message: "request_purchase_data tidak boleh kosong",
         };
       }
 
@@ -269,7 +274,7 @@ const PurchaseOrderService = {
           status_tiket: "draft",
           is_active: true,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       const itemsWithPoId = itemsPayload.map((item) => ({
@@ -278,6 +283,14 @@ const PurchaseOrderService = {
       }));
 
       await PurchaseOrderItem.bulkCreate(itemsWithPoId, { transaction: t });
+
+      for (let i = 0; i < request_purchase_data.length; i++) {
+        const element = array[i];
+        await RequestPurchase.update(
+          { id_purchase_order: newPo.id, status: "history" },
+          { where: { id: element.id }, transaction: t }
+        );
+      }
 
       if (!transaction) await t.commit();
       return {
@@ -370,7 +383,7 @@ const PurchaseOrderService = {
             id: { [Op.notIn]: itemIdsToKeep.length ? itemIdsToKeep : [0] },
           },
           transaction: t,
-        },
+        }
       );
 
       const total = sub_total + total_ppn - (discount ?? dataPo.discount ?? 0);
@@ -387,7 +400,7 @@ const PurchaseOrderService = {
           note_internal: note_internal ?? dataPo.note_internal,
           note_supplier: note_supplier ?? dataPo.note_supplier,
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -426,7 +439,7 @@ const PurchaseOrderService = {
           status: "request kabag",
           status_tiket: "request kabag",
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -465,7 +478,7 @@ const PurchaseOrderService = {
           status: "request finance",
           status_tiket: "request finance",
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -504,7 +517,7 @@ const PurchaseOrderService = {
           status: "proses",
           status_tiket: "proses",
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -543,7 +556,7 @@ const PurchaseOrderService = {
           status: "reject kabag",
           status_tiket: "draft",
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -582,7 +595,7 @@ const PurchaseOrderService = {
           status: "reject finance",
           status_tiket: "draft",
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();

@@ -5,12 +5,18 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/purchasing/request/:id?",
   auth,
-  RequestPurchasingController.getRequestPurchasing,
+  RequestPurchasingController.getRequestPurchasing
+);
+
+router.get(
+  "/purchasing/rekapRequestTipeBarang",
+  auth,
+  RequestPurchasingController.getRekapTipeBarangPurchasing
 );
 router.post(
   "/purchasing/request",
   auth,
-  RequestPurchasingController.createRequestPurchasing,
+  RequestPurchasingController.createRequestPurchasing
 );
 
 module.exports = router;

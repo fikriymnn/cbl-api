@@ -155,6 +155,7 @@ const BomController = {
                     "keterangan_warna_belakang",
                     "file",
                     "spesifikasi",
+                    "isi_dalam_1_pack",
                   ],
                   include: {
                     model: IoTahapan,
@@ -302,7 +303,7 @@ const BomController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -325,7 +326,7 @@ const BomController = {
           // extract nomor urut pada format SO-01319/CBL/1025
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_jo, 5), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -468,7 +469,7 @@ const BomController = {
           tipe_jo,
           label: checkData.label,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       if (jo_mounting && jo_mounting.length > 0) {
@@ -514,14 +515,14 @@ const BomController = {
       if (id_so && id_so != "") {
         await SoModel.update(
           { is_jo_done: true },
-          { where: { id: id_so }, transaction: t },
+          { where: { id: id_so }, transaction: t }
         );
       } else {
         await IoModel.update(
           {
             status_send_proof: "progress",
           },
-          { where: { id: id_io }, transaction: t },
+          { where: { id: id_io }, transaction: t }
         );
       }
 
@@ -531,7 +532,7 @@ const BomController = {
             id_jo: dataJobOrder.id,
             no_jo: dataJobOrder.no_jo,
           },
-          { where: { id: checkBom.id }, transaction: t },
+          { where: { id: checkBom.id }, transaction: t }
         );
       }
       if (checkBomPpic) {
@@ -540,7 +541,7 @@ const BomController = {
             id_jo: dataJobOrder.id,
             no_jo: dataJobOrder.no_jo,
           },
-          { where: { id: checkBomPpic.id }, transaction: t },
+          { where: { id: checkBomPpic.id }, transaction: t }
         );
       }
 
@@ -554,7 +555,7 @@ const BomController = {
       }
 
       const dataMountingSelected = jo_mounting.find(
-        (e) => e.is_selected === true,
+        (e) => e.is_selected === true
       );
       const dataIoMountingSelected = await ioMountingModel.findByPk(
         dataMountingSelected.id_io_mounting,
@@ -565,7 +566,7 @@ const BomController = {
               as: "tahapan",
             },
           ],
-        },
+        }
       );
 
       let dataTahapanMounting = [];
@@ -616,7 +617,7 @@ const BomController = {
           qty_lp || 0,
           dataTahapanMounting,
           dataJobOrder.id,
-          t,
+          t
         );
 
       if (createTiketJadwal.success === false) {
@@ -783,7 +784,7 @@ const BomController = {
             status: status,
             status_proses: statusProses,
           },
-          { transaction: t },
+          { transaction: t }
         );
 
         // ── 4. Create JO Mounting ─────────────────────────────────────────────
@@ -827,12 +828,12 @@ const BomController = {
         if (id_so && id_so != "") {
           await SoModel.update(
             { is_jo_done: true },
-            { where: { id: id_so }, transaction: t },
+            { where: { id: id_so }, transaction: t }
           );
         } else {
           await IoModel.update(
             { status_send_proof: "progress" },
-            { where: { id: id_io }, transaction: t },
+            { where: { id: id_io }, transaction: t }
           );
         }
 
@@ -841,13 +842,13 @@ const BomController = {
           if (checkBom) {
             await BomModel.update(
               { id_jo: dataJobOrder.id, no_jo: dataJobOrder.no_jo },
-              { where: { id: checkBom.id }, transaction: t },
+              { where: { id: checkBom.id }, transaction: t }
             );
           }
           if (checkBomPpic) {
             await BomPpicModel.update(
               { id_jo: dataJobOrder.id, no_jo: dataJobOrder.no_jo },
-              { where: { id: checkBomPpic.id }, transaction: t },
+              { where: { id: checkBomPpic.id }, transaction: t }
             );
           }
 
@@ -860,11 +861,11 @@ const BomController = {
           }
 
           const dataMountingSelected = jo_mounting.find(
-            (e) => e.is_selected === true,
+            (e) => e.is_selected === true
           );
           const dataIoMountingSelected = await ioMountingModel.findByPk(
             dataMountingSelected.id_io_mounting,
-            { include: [{ model: IoTahapan, as: "tahapan" }] },
+            { include: [{ model: IoTahapan, as: "tahapan" }] }
           );
 
           const dataTahapanMounting = dataIoMountingSelected.tahapan.map(
@@ -879,7 +880,7 @@ const BomController = {
               drying_time: e.value_drying_time,
               setting: e.value_setting,
               toleransi: 0,
-            }),
+            })
           );
 
           function formatDate(dateStr, locale = "en-GB") {
@@ -911,7 +912,7 @@ const BomController = {
               qty_lp || 0,
               dataTahapanMounting,
               dataJobOrder.id,
-              t,
+              t
             );
 
           if (createTiketJadwal.success === false) {
@@ -978,7 +979,7 @@ const BomController = {
       }
 
       const dataMountingSelected = dataJobOrder?.jo_mounting.find(
-        (e) => e.is_selected === true,
+        (e) => e.is_selected === true
       );
 
       if (!dataMountingSelected) {
@@ -998,7 +999,7 @@ const BomController = {
               as: "tahapan",
             },
           ],
-        },
+        }
       );
 
       await TiketJadwalProduksi.update(
@@ -1010,7 +1011,7 @@ const BomController = {
             is_send_again: false,
           },
           transaction: t,
-        },
+        }
       );
 
       let dataTahapanMounting = [];
@@ -1059,7 +1060,7 @@ const BomController = {
           dataJobOrder.qty_lp || 0,
           dataTahapanMounting,
           dataJobOrder.id,
-          t,
+          t
         );
 
       if (createTiketJadwal.success === false) {
@@ -1141,7 +1142,7 @@ const BomController = {
           standar_warna,
           tipe_jo,
         },
-        { where: { id: _id }, transaction: t },
+        { where: { id: _id }, transaction: t }
       );
 
       // === Fungsi util untuk update child ===
@@ -1150,7 +1151,7 @@ const BomController = {
         tableName,
         foreignKey,
         newData,
-        idField = "id",
+        idField = "id"
       ) {
         const existing = await model.findAll({
           where: { [foreignKey]: id },
@@ -1163,7 +1164,7 @@ const BomController = {
 
         // 🔸 Hapus data yang tidak ada lagi di frontend
         const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid),
+          (eid) => !incomingIds.includes(eid)
         );
         if (deletedIds.length > 0) {
           await model.destroy({
@@ -1229,7 +1230,7 @@ const BomController = {
                 total_insheet: e.total_insheet,
                 is_selected: e.is_selected,
               },
-              { transaction: t },
+              { transaction: t }
             );
           }
         }
@@ -1258,7 +1259,7 @@ const BomController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await JobOrder.update(
+      await JobOrder.update(
         {
           status: "requested",
           status_proses: "request to kabag",
@@ -1266,16 +1267,16 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await JobOrderUserAction.create(
           { id_jo: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Request Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -1324,7 +1325,7 @@ const BomController = {
               include: [{ model: MasterTahapanMesin, as: "tahapan_mesin" }],
             },
           ],
-        },
+        }
       );
       await JobOrder.update(
         {
@@ -1337,7 +1338,7 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
 
       if (checkDataBomPpic) {
@@ -1351,12 +1352,12 @@ const BomController = {
           {
             where: { id: checkDataBomPpic.id },
             transaction: t,
-          },
+          }
         );
       }
       await JobOrderUserAction.create(
         { id_jo: checkData.id, id_user: req.user.id, status: "approve" },
-        { transaction: t },
+        { transaction: t }
       );
 
       if (checkData.tipe_jo != "JO KANBAN") {
@@ -1381,15 +1382,15 @@ const BomController = {
               spesifikasi: checkData.spesifikasi,
               status: e.index == 1 ? "active" : "nonactive",
             },
-            { transaction: t },
+            { transaction: t }
           );
         }
       }
 
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -1428,7 +1429,7 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
       if (checkDataBomPpic) {
         await BomPpicModel.update(
@@ -1440,7 +1441,7 @@ const BomController = {
           {
             where: { id: checkDataBomPpic.id },
             transaction: t,
-          },
+          }
         );
 
         await BomPpicUserAction.create(
@@ -1449,7 +1450,7 @@ const BomController = {
             id_user: req.user.id,
             status: "kabag reject",
           },
-          { transaction: t },
+          { transaction: t }
         );
       }
       await JobOrderUserAction.create(
@@ -1458,12 +1459,12 @@ const BomController = {
           id_user: req.user.id,
           status: "kabag reject",
         },
-        { transaction: t },
+        { transaction: t }
       );
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -1491,7 +1492,7 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
       await t.commit();
       res
@@ -1524,7 +1525,7 @@ const BomController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
       await t.commit();
       res.status(200).json({

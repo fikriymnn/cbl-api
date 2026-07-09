@@ -147,6 +147,8 @@ const RequestPurchaseService = {
     id_so,
     id_customer,
     id_produk,
+    status,
+    tipe_barang,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -170,6 +172,8 @@ const RequestPurchaseService = {
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
+    if (status) obj.status = status;
+    if (tipe_barang) obj.tipe_barang = tipe_barang;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -196,6 +200,12 @@ const RequestPurchaseService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: MasterBarang,
+              as: "detail_item",
+            },
+          ],
         });
         return {
           status: 200,
@@ -232,6 +242,35 @@ const RequestPurchaseService = {
           data: data,
         };
       }
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
+  getRekapTipeBarangService: async () => {
+    try {
+      const data = await RequestPurchaseModel.findAll({
+        attributes: [
+          "tipe_barang",
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "total_data"],
+          // kalau ada kolom qty yang mau ditotal juga, tinggal tambahkan:
+          // [sequelize.fn("SUM", sequelize.col("qty")), "total_qty"],
+        ],
+        where: { is_active: true, status: "incoming" },
+        group: ["tipe_barang"],
+        order: [["tipe_barang", "ASC"]],
+        raw: true,
+      });
+
+      return {
+        status: 200,
+        success: true,
+        data: data,
+      };
     } catch (error) {
       return {
         status: 500,
@@ -316,7 +355,7 @@ const RequestPurchaseService = {
       // 🔧 generate payload request purchase (filter qty_beli > 0)
       const payloadRequestPurchase = buildRequestPurchasePayload(
         plainBomPpic,
-        id_user_request,
+        id_user_request
       );
 
       if (payloadRequestPurchase.length === 0) {
@@ -331,7 +370,12 @@ const RequestPurchaseService = {
       //📝 insert semua item request purchase
       const createdRequestPurchase = await RequestPurchaseModel.bulkCreate(
         payloadRequestPurchase,
-        { transaction: t },
+        { transaction: t }
+      );
+
+      await BomPpicModel.update(
+        { is_request_purchase: true },
+        { where: { id: id_bom_ppic }, transaction: t }
       );
 
       if (!transaction) await t.commit();

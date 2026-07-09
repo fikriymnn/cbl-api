@@ -49,10 +49,6 @@ const PurchaseOrderController = {
 
   createPurchaseOrder: async (req, res) => {
     const {
-      id_jo,
-      id_io,
-      id_so,
-      id_bom_ppic,
       nama_vendor,
       tgl_po,
       tgl_kirim,
@@ -60,15 +56,12 @@ const PurchaseOrderController = {
       note_internal,
       note_supplier,
       items,
+      request_purchase_data,
     } = req.body;
 
     try {
       const getData = await PurchaseOrderService.createPurchaseOrderService({
         id_create: req.user.id,
-        id_jo,
-        id_io,
-        id_so,
-        id_bom_ppic,
         nama_vendor,
         tgl_po,
         tgl_kirim,
@@ -76,6 +69,7 @@ const PurchaseOrderController = {
         note_internal,
         note_supplier,
         items,
+        request_purchase_data,
       });
       return res.status(200).json(getData);
     } catch (error) {

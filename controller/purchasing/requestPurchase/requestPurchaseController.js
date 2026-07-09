@@ -19,6 +19,8 @@ const RequestPurchasingController = {
       id_so,
       id_customer,
       id_produk,
+      status,
+      tipe_barang,
     } = req.query;
 
     try {
@@ -38,7 +40,19 @@ const RequestPurchasingController = {
         id_so: id_so,
         id_customer: id_customer,
         id_produk: id_produk,
+        status: status,
+        tipe_barang: tipe_barang,
       });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getRekapTipeBarangPurchasing: async (req, res) => {
+    try {
+      const getData =
+        await RequestPurchasingService.getRekapTipeBarangService();
       return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
