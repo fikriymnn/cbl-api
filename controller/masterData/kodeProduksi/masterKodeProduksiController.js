@@ -54,6 +54,7 @@ const MasterKodeProduksiController = {
       if (id_kriteria_frekuensi_mtc)
         obj.id_kriteria_frekuensi_mtc = id_kriteria_frekuensi_mtc;
       if (id_kategori_kendala) obj.id_kategori_kendala = id_kategori_kendala;
+      obj.is_active = true;
       if (is_active) obj.is_active = is_active == "true" ? true : false;
       if (page && limit) {
         const length = await MasterKodeProduksi.count({ where: obj });
@@ -246,7 +247,7 @@ const MasterKodeProduksiController = {
           id_kategori_kendala,
           target_department,
         },
-        { transaction: t },
+        { transaction: t }
       );
       await t.commit();
       return res.status(200).json({
@@ -319,10 +320,10 @@ const MasterKodeProduksiController = {
         where: { id: _id },
         transaction: t,
       });
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -342,17 +343,17 @@ const MasterKodeProduksiController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await MasterKodeProduksi.update(
+      await MasterKodeProduksi.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)

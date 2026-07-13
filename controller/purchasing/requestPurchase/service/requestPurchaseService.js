@@ -41,7 +41,8 @@ const buildRequestPurchasePayload = (bomPpic, id_user_request) => {
     no_jo: bomPpic.no_jo,
     customer: bomPpic.customer,
     produk: bomPpic.produk,
-    tgl_kirim: bomPpic?.so?.tgl_pengiriman || null,
+    tgl_kirim: bomPpic.tgl_kirim_customer || null,
+    rencana_cetak: bomPpic.tgl_rencana_cetak || null,
     tgl_request: new Date(),
     status: "incoming",
     is_active: true,
@@ -64,9 +65,9 @@ const buildRequestPurchasePayload = (bomPpic, id_user_request) => {
     pushItem({
       id_item: item.id_kertas,
       nama_item: item.nama_kertas,
-      qty: item.qty_beli,
+      qty: item.qty_beli / 500,
       tipe_barang: "kertas",
-      satuan: "lp",
+      satuan: "rim",
     });
   });
 
@@ -152,6 +153,7 @@ const RequestPurchaseService = {
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+
     if (search) {
       obj = {
         [Op.or]: [
@@ -173,7 +175,10 @@ const RequestPurchaseService = {
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
     if (status) obj.status = status;
-    if (tipe_barang) obj.tipe_barang = tipe_barang;
+    if (tipe_barang)
+      obj.tipe_barang = {
+        [Op.in]: tipe_barang,
+      };
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);

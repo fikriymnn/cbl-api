@@ -359,6 +359,8 @@ const BomController = {
           const e = bom_poliban[iPoliban];
           dataBomPoliban.push({
             id_bom: dataBomModel.id,
+            id_item_poliban: e.id_item_poliban,
+            nama_item_poliban: e.nama_item_poliban,
             item_poliban: e.item_poliban,
             isi_satu_ikat: e.isi_satu_ikat,
             lembar_poliban: e.lembar_poliban,
@@ -379,7 +381,9 @@ const BomController = {
           dataBomCoating.push({
             id_bom: dataBomModel.id,
             id_coating: e.id_coating,
+            id_brand: e.id_brand,
             nama_coating: e.nama_coating,
+            nama_brand: e.nama_brand,
             tipe_coating: e.tipe_coating,
             rumus_coating: e.rumus_coating,
             qty_coating: e.qty_coating,

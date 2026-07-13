@@ -6,6 +6,7 @@ const BomPpicModel = require("../../ppic/bomPpic/bomPpicModel");
 const SoModel = require("../../marketing/so/soModel");
 const JobOrder = require("../../ppic/jobOrder/jobOrderModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const MasterBrand = require("../../masterData/barang/masterBrandModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -53,6 +54,14 @@ const RequestPurchase = db.define(
         key: "id",
       },
     },
+    id_brand: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBrand,
+        key: "id",
+      },
+    },
     id_request: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -94,6 +103,10 @@ const RequestPurchase = db.define(
       allowNull: true,
     },
     nama_item: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_brand: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -172,6 +185,15 @@ MasterBarang.hasMany(RequestPurchase, {
 RequestPurchase.belongsTo(MasterBarang, {
   foreignKey: "id_item",
   as: "detail_item",
+});
+
+MasterBrand.hasMany(RequestPurchase, {
+  foreignKey: "id_brand",
+  as: "request_purchase",
+});
+RequestPurchase.belongsTo(MasterBrand, {
+  foreignKey: "id_brand",
+  as: "brand",
 });
 
 BomPpicModel.hasMany(RequestPurchase, {

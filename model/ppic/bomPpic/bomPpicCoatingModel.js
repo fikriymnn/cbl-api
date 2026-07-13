@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const BomPpicModel = require("./bomPpicModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const MasterBrand = require("../../masterData/barang/masterBrandModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -25,8 +26,20 @@ const BomPpicCoating = db.define(
         key: "id",
       },
     },
+    id_brand: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBrand,
+        key: "id",
+      },
+    },
 
     nama_coating: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_brand: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -60,7 +73,7 @@ const BomPpicCoating = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 BomPpicModel.hasMany(BomPpicCoating, {
@@ -78,6 +91,14 @@ MasterBarang.hasMany(BomPpicCoating, {
 BomPpicCoating.belongsTo(MasterBarang, {
   foreignKey: "id_coating",
   as: "coating",
+});
+
+MasterBrand.hasMany(BomPpicCoating, {
+  foreignKey: "id_brand",
+});
+BomPpicCoating.belongsTo(MasterBrand, {
+  foreignKey: "id_brand",
+  as: "brand",
 });
 
 module.exports = BomPpicCoating;

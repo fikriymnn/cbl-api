@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const BomPpicModel = require("./bomPpicModel");
 const Users = require("../../userModel");
+const MasterBarang = require("../../masterData/barang/masterBarangModel");
 
 const { DataTypes } = Sequelize;
 
@@ -15,6 +16,18 @@ const BomPpicPoliban = db.define(
         model: BomPpicModel,
         key: "id",
       },
+    },
+    id_item_poliban: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBarang,
+        key: "id",
+      },
+    },
+    nama_item_poliban: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
 
     item_poliban: {
@@ -61,6 +74,15 @@ BomPpicModel.hasMany(BomPpicPoliban, {
 BomPpicPoliban.belongsTo(BomPpicModel, {
   foreignKey: "id_bom_ppic",
   as: "bom_ppic",
+});
+
+MasterBarang.hasMany(BomPpicPoliban, {
+  foreignKey: "id_item_poliban",
+  as: "bom_ppic_poliban",
+});
+BomPpicPoliban.belongsTo(MasterBarang, {
+  foreignKey: "id_item_poliban",
+  as: "poliban",
 });
 
 module.exports = BomPpicPoliban;
