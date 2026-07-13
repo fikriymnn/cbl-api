@@ -94,7 +94,11 @@ const MasterBarang = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    is_include_tax: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

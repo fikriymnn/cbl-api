@@ -366,6 +366,9 @@ const DeliveryOrder = require("./model/deliveryOrder/deliveryOrderModel");
 //master kendaraan
 const MasterKendaraan = require("./model/masterData/kendaraan/masterKendaraanModel");
 
+//master Vendor
+const MasterVendor = require("./model/masterData/marketing/masterVendorModel");
+
 //akunting
 const Deposit = require("./model/akunting/deposit/depositModel");
 const Invoice = require("./model/akunting/invoice/invoiceModel");
@@ -406,7 +409,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await RequestPurchase.sync({
+//   await BomPpicModel.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

@@ -27,7 +27,9 @@ const MasterBarangController = {
       }
       if (kategori) obj.kategori = kategori;
       if (sub_kategori) obj.sub_kategori = sub_kategori;
+      obj.is_active = true;
       if (is_active) obj.is_active = is_active;
+
       if (page && limit) {
         const length = await MasterBarang.count({ where: obj });
         const data = await MasterBarang.findAll({
@@ -116,6 +118,7 @@ const MasterBarangController = {
       inventory_convert,
       warehouse,
       keterangan,
+      is_include_tax,
     } = req.body;
     const t = await db.transaction();
 
@@ -197,6 +200,7 @@ const MasterBarangController = {
           inventory_convert: inventory_convert || 0,
           warehouse: warehouse || null,
           keterangan: keterangan || null,
+          is_include_tax: is_include_tax || false,
         },
         { transaction: t }
       );
@@ -236,6 +240,7 @@ const MasterBarangController = {
       inventory_convert,
       warehouse,
       keterangan,
+      is_include_tax,
       is_active,
     } = req.body;
     const t = await db.transaction();
@@ -254,6 +259,7 @@ const MasterBarangController = {
       if (inventory_convert) obj.inventory_convert = inventory_convert;
       if (warehouse) obj.warehouse = warehouse;
       if (keterangan) obj.keterangan = keterangan;
+      if (is_include_tax) obj.is_include_tax = is_include_tax;
       if (is_active) obj.is_active = is_active;
       if (id_brand) {
         const checkBrand = await MasterBrand.findByPk(id_brand);
@@ -321,10 +327,13 @@ const MasterBarangController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterBarang.destroy({
-        where: { id: _id },
-        transaction: t,
-      }),
+      await MasterBarang.update(
+        { is_active: false },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
         await t.commit(),
         res
           .status(200)

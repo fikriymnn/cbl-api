@@ -25,7 +25,7 @@ const MasterWasteKendalaController = {
         // },
       };
       const offset = (page - 1) * limit;
-
+      obj.is_active = true;
       if (is_active) obj.is_active = is_active == "true" ? true : false;
       if (id_tahapan_produksi) obj.id_tahapan_produksi = id_tahapan_produksi;
       if (page && limit) {
@@ -236,7 +236,7 @@ const MasterWasteKendalaController = {
       result.sort((a, b) =>
         a.kode_waste.localeCompare(b.kode_waste, undefined, {
           numeric: true,
-        }),
+        })
       );
 
       return res.status(200).json({
@@ -355,13 +355,13 @@ const MasterWasteKendalaController = {
             }
           }
           return acc;
-        }, {}),
+        }, {})
       );
 
       deduped.sort((a, b) =>
         a.e_kode_produksi.localeCompare(b.e_kode_produksi, undefined, {
           numeric: true,
-        }),
+        })
       );
 
       return res.status(200).json(deduped);
@@ -444,7 +444,7 @@ const MasterWasteKendalaController = {
                     id_waste: e.id,
                     id_kendala: element.id,
                   },
-                  { transaction: t },
+                  { transaction: t }
                 );
               }
             }
@@ -477,17 +477,17 @@ const MasterWasteKendalaController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await MasterKodeProduksi.update(
+      await MasterKodeProduksi.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       res
         .status(400)

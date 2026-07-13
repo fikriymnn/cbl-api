@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const BomModel = require("./bomModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const MasterBrand = require("../../masterData/barang/masterBrandModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -25,8 +26,20 @@ const BomCoating = db.define(
         key: "id",
       },
     },
+    id_brand: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBrand,
+        key: "id",
+      },
+    },
 
     nama_coating: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_brand: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -69,7 +82,7 @@ const BomCoating = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 BomModel.hasMany(BomCoating, {
@@ -87,6 +100,14 @@ MasterBarang.hasMany(BomCoating, {
 BomCoating.belongsTo(MasterBarang, {
   foreignKey: "id_coating",
   as: "coating",
+});
+
+MasterBrand.hasMany(BomCoating, {
+  foreignKey: "id_brand",
+});
+BomCoating.belongsTo(MasterBrand, {
+  foreignKey: "id_brand",
+  as: "brand",
 });
 
 module.exports = BomCoating;

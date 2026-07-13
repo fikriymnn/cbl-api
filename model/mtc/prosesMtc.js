@@ -105,6 +105,10 @@ const ProsesMtc = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    note_tindakan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     note_mtc: {
       type: DataTypes.STRING,
       allowNull: true,

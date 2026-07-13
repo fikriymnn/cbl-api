@@ -100,10 +100,13 @@ const BomPpic = db.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    tgl_rencana_cetak: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     tgl_kirim_customer: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: Sequelize.NOW,
     },
     tgl_pembuatan_bom_ppic: {
       type: DataTypes.DATE,

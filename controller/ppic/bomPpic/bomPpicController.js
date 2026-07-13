@@ -172,6 +172,7 @@ const BomPpicController = {
       no_jo,
       customer,
       produk,
+      tgl_rencana_cetak,
       tgl_kirim_customer,
       bom_ppic_kertas,
       bom_ppic_tinta,
@@ -260,6 +261,7 @@ const BomPpicController = {
           no_bom,
           customer,
           produk,
+          tgl_rencana_cetak: tgl_rencana_cetak || null,
           tgl_kirim_customer: tgl_kirim_customer || null,
           qty_fg,
           qty_po,
@@ -353,6 +355,8 @@ const BomPpicController = {
           const e = bom_ppic_poliban[iPoliban];
           dataBomPpicPoliban.push({
             id_bom_ppic: dataBomPpicModel.id,
+            id_item_poliban: e.id_item_poliban,
+            nama_item_poliban: e.nama_item_poliban,
             item_poliban: e.item_poliban,
             isi_satu_ikat: e.isi_satu_ikat,
             lembar_poliban: e.lembar_poliban,
@@ -373,7 +377,9 @@ const BomPpicController = {
           dataBomPpicCoating.push({
             id_bom_ppic: dataBomPpicModel.id,
             id_coating: e.id_coating,
+            id_brand: e.id_brand,
             nama_coating: e.nama_coating,
+            nama_brand: e.nama_brand,
             qty_coating: e.qty_coating,
             uv_wb: e.uv_wb,
             varnish_doff: e.varnish_doff,

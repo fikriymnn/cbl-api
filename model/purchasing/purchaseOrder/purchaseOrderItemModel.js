@@ -6,6 +6,7 @@ const BomPpicModel = require("../../ppic/bomPpic/bomPpicModel");
 const SoModel = require("../../marketing/so/soModel");
 const JobOrder = require("../../ppic/jobOrder/jobOrderModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const MasterBrand = require("../../masterData/barang/masterBrandModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -29,7 +30,19 @@ const PurchaseOrderItem = db.define(
         key: "id",
       },
     },
+    id_brand: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBrand,
+        key: "id",
+      },
+    },
     nama_item: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nama_brand: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -88,7 +101,7 @@ const PurchaseOrderItem = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 PurchaseOrder.hasMany(PurchaseOrderItem, {

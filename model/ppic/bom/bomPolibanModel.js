@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const BomModel = require("./bomModel");
 const Users = require("../../userModel");
+const MasterBarang = require("../../masterData/barang/masterBarangModel");
 
 const { DataTypes } = Sequelize;
 
@@ -16,7 +17,18 @@ const BomPoliban = db.define(
         key: "id",
       },
     },
-
+    id_item_poliban: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterBarang,
+        key: "id",
+      },
+    },
+    nama_item_poliban: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     item_poliban: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -61,6 +73,15 @@ BomModel.hasMany(BomPoliban, {
 BomPoliban.belongsTo(BomModel, {
   foreignKey: "id_bom",
   as: "bom",
+});
+
+MasterBarang.hasMany(BomPoliban, {
+  foreignKey: "id_item_poliban",
+  as: "bom_poliban",
+});
+BomPoliban.belongsTo(MasterBarang, {
+  foreignKey: "id_item_poliban",
+  as: "poliban",
 });
 
 module.exports = BomPoliban;

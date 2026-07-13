@@ -242,7 +242,9 @@ const PurchaseOrderService = {
 
         return {
           id_item: item.id_item || null,
+          id_brand: item.id_brand || null,
           nama_item: item.nama_item || null,
+          nama_brand: item.nama_brand || null,
           qty: item.qty || 0,
           qty_beli,
           tipe_barang: item.tipe_barang || null,
@@ -346,7 +348,9 @@ const PurchaseOrderService = {
         const itemPayload = {
           id_purchase_order: id,
           id_item: item.id_item || null,
+          id_brand: item.id_brand || null,
           nama_item: item.nama_item || null,
+          nama_brand: item.nama_brand || null,
           qty: item.qty || 0,
           qty_beli,
           tipe_barang: item.tipe_barang || null,
