@@ -146,10 +146,10 @@ const BomPpic = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
-JobOrder.hasMany(BomPpic, {
+JobOrder.hasOne(BomPpic, {
   foreignKey: "id_jo",
   as: "bom_ppic",
 });

@@ -388,6 +388,12 @@ const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurch
 const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
 
+//Gudang RM
+const TambahBahanPersiapan = require("./model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
+const TambahBahanPersiapanDefect = require("./model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanDefectModel");
+const TambahBahanPemakaian = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
+const TambahBahanPemakaianDefect = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
+
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
 const MasterRole = require("./model/masterData/menu/masterRoleModel");
@@ -409,7 +415,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await PurchaseOrder.sync({
+//   await BomPoliban.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
@@ -467,7 +473,7 @@ app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
   res.header(
     "Access-Control-Allow-Headers",
-    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
+    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept",
   );
   next();
 });
@@ -488,7 +494,7 @@ app.use(
   cors({
     credentials: true,
     origin: true,
-  })
+  }),
 );
 
 app.use(bodyParser.urlencoded({ extended: true }));
