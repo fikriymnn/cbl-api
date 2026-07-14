@@ -7,6 +7,7 @@ const SoModel = require("../../../../model/marketing/so/soModel");
 const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
 const BomPpicModel = require("../../../../model/ppic/bomPpic/bomPpicModel");
 const MasterBarang = require("../../../../model/masterData/barang/masterBarangModel");
+const MasterVendor = require("../../../../model/masterData/marketing/masterVendorModel");
 const Users = require("../../../../model/userModel");
 const RequestPurchase = require("../../../../model/purchasing/requestPurchase/requestPurchaseModel");
 
@@ -195,6 +196,7 @@ const PurchaseOrderService = {
 
   createPurchaseOrderService: async ({
     id_create,
+    id_vendor,
     nama_vendor,
     tgl_po,
     tgl_kirim,
@@ -263,6 +265,7 @@ const PurchaseOrderService = {
         {
           id_create,
           no_purchase_order,
+          id_vendor: id_vendor || null,
           nama_vendor: nama_vendor || null,
           tgl_po: tgl_po || new Date(),
           tgl_kirim: tgl_kirim || null,
@@ -287,7 +290,7 @@ const PurchaseOrderService = {
       await PurchaseOrderItem.bulkCreate(itemsWithPoId, { transaction: t });
 
       for (let i = 0; i < request_purchase_data.length; i++) {
-        const element = array[i];
+        const element = request_purchase_data[i];
         await RequestPurchase.update(
           { id_purchase_order: newPo.id, status: "history" },
           { where: { id: element.id }, transaction: t }
@@ -310,6 +313,7 @@ const PurchaseOrderService = {
   // update semua field kecuali field2 id (id_jo, id_io, id_so, id_bom_ppic, id_create, id_request, id_approve_*, id_reject_*)
   updatePurchaseOrderService: async ({
     id,
+    id_vendor,
     nama_vendor,
     tgl_po,
     tgl_kirim,
@@ -394,6 +398,7 @@ const PurchaseOrderService = {
 
       await PurchaseOrder.update(
         {
+          id_vendor: id_vendor ?? dataPo.id_vendor,
           nama_vendor: nama_vendor ?? dataPo.nama_vendor,
           tgl_po: tgl_po ?? dataPo.tgl_po,
           tgl_kirim: tgl_kirim ?? dataPo.tgl_kirim,

@@ -5,6 +5,7 @@ const BomPpicModel = require("../../ppic/bomPpic/bomPpicModel");
 const SoModel = require("../../marketing/so/soModel");
 const JobOrder = require("../../ppic/jobOrder/jobOrderModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const MasterVendor = require("../../masterData/marketing/masterVendorModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -12,6 +13,14 @@ const { DataTypes } = Sequelize;
 const PurchaseOrder = db.define(
   "purchase_order",
   {
+    id_vendor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: MasterVendor,
+        key: "id",
+      },
+    },
     id_create: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -134,8 +143,17 @@ const PurchaseOrder = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
+
+MasterVendor.hasMany(PurchaseOrder, {
+  foreignKey: "id_vendor",
+  as: "purchase_orders_request",
+});
+PurchaseOrder.belongsTo(MasterVendor, {
+  foreignKey: "id_vendor",
+  as: "vendor",
+});
 
 Users.hasMany(PurchaseOrder, {
   foreignKey: "id_request",
