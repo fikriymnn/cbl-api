@@ -409,7 +409,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await BomPpicModel.sync({
+//   await PurchaseOrder.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

@@ -49,6 +49,7 @@ const PurchaseOrderController = {
 
   createPurchaseOrder: async (req, res) => {
     const {
+      id_vendor,
       nama_vendor,
       tgl_po,
       tgl_kirim,
@@ -62,6 +63,7 @@ const PurchaseOrderController = {
     try {
       const getData = await PurchaseOrderService.createPurchaseOrderService({
         id_create: req.user.id,
+        id_vendor,
         nama_vendor,
         tgl_po,
         tgl_kirim,
@@ -80,6 +82,7 @@ const PurchaseOrderController = {
   updatePurchaseOrder: async (req, res) => {
     const _id = req.params.id;
     const {
+      id_vendor,
       nama_vendor,
       tgl_po,
       tgl_kirim,
@@ -92,6 +95,7 @@ const PurchaseOrderController = {
     try {
       const getData = await PurchaseOrderService.updatePurchaseOrderService({
         id: _id,
+        id_vendor,
         nama_vendor,
         tgl_po,
         tgl_kirim,

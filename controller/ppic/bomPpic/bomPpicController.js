@@ -58,7 +58,12 @@ const BomPpicController = {
         const data = await BomPpicModel.findAll({
           order: [["tgl_pembuatan_bom_ppic", "DESC"]],
           limit: parseInt(limit),
-
+          include: [
+            {
+              model: BomPpicKertasModel,
+              as: "bom_ppic_kertas",
+            },
+          ],
           offset,
           where: obj,
         });
