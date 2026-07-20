@@ -32,7 +32,12 @@ const TambahBahanPersiapanDefect = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_tambah_bahan: {
+    qty_tambah_bahan_lp: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_tambah_bahan_druk: {
       type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 0,
@@ -45,7 +50,7 @@ const TambahBahanPersiapanDefect = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 TambahBahanPerisapan.hasMany(TambahBahanPersiapanDefect, {

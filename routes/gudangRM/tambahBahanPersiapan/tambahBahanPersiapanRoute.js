@@ -5,55 +5,61 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 router.get(
   "/gudangRM/tambahBahanPersiapan/:id?",
   auth,
-  TambahBahanPersiapanController.getTambahBahanPersiapan,
+  TambahBahanPersiapanController.getTambahBahanPersiapan
 );
 
 router.post(
   "/gudangRM/tambahBahanPersiapan",
   auth,
-  TambahBahanPersiapanController.createTambahBahanPersiapan,
+  TambahBahanPersiapanController.createTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/:id",
   auth,
-  TambahBahanPersiapanController.editTambahBahanPersiapan,
+  TambahBahanPersiapanController.editTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/approveQc/:id",
   auth,
-  TambahBahanPersiapanController.approveQcTambahBahanPersiapan,
+  TambahBahanPersiapanController.approveQcTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/approveGudang/:id",
   auth,
-  TambahBahanPersiapanController.approveGudangTambahBahanPersiapan,
+  TambahBahanPersiapanController.approveGudangTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/rejectQc/:id",
   auth,
-  TambahBahanPersiapanController.rejectQcTambahBahanPersiapan,
+  TambahBahanPersiapanController.rejectQcTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/rejectGudang/:id",
   auth,
-  TambahBahanPersiapanController.rejectGudangTambahBahanPersiapan,
+  TambahBahanPersiapanController.rejectGudangTambahBahanPersiapan
 );
 
 router.put(
   "/gudangRM/tambahBahanPersiapan/pakaiTambahBahan/:id",
   auth,
-  TambahBahanPersiapanController.pakaiTambahBahanTambahBahanPersiapan,
+  TambahBahanPersiapanController.pakaiTambahBahanTambahBahanPersiapan
+);
+
+router.put(
+  "/gudangRM/tambahBahanPersiapan/approveQcPemakaian/:id",
+  auth,
+  TambahBahanPersiapanController.approveQcPemakaianTambahBahanPersiapan
 );
 
 router.delete(
   "/gudangRM/tambahBahanPersiapan/:id",
   auth,
-  TambahBahanPersiapanController.deleteTambahBahanPersiapan,
+  TambahBahanPersiapanController.deleteTambahBahanPersiapan
 );
 
 module.exports = router;

@@ -48,6 +48,7 @@ const TambahBahanPersiapanService = {
       { model: Users, as: "user_request" },
       { model: Users, as: "user_qc" },
       { model: Users, as: "user_gudang" },
+      { model: Users, as: "user_qc_pemakaian" },
       {
         model: TambahBahanPersiapanDefect,
         as: "tambah_bahan_persiapan_defect",
@@ -105,7 +106,8 @@ const TambahBahanPersiapanService = {
     id_jo,
     id_kertas,
     id_user_request,
-    qty_tambah_bahan,
+    qty_tambah_bahan_lp,
+    qty_tambah_bahan_druk,
     note,
     transaction = null,
   }) => {
@@ -139,12 +141,13 @@ const TambahBahanPersiapanService = {
           id_user_request,
           no_jo: dataJo?.no_jo || null,
           nama_kertas: dataKertas?.nama_barang || null,
-          qty_tambah_bahan: qty_tambah_bahan || 0,
+          qty_tambah_bahan_lp: qty_tambah_bahan_lp || 0,
+          qty_tambah_bahan_druk: qty_tambah_bahan_druk || 0,
           note: note || null,
           status: "request qc",
           status_tiket: "incoming",
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -167,11 +170,14 @@ const TambahBahanPersiapanService = {
     id_user_request,
     id_user_qc,
     id_user_gudang,
-    qty_tambah_bahan,
-    qty_pakai_tambah_bahan,
+    qty_tambah_bahan_lp,
+    qty_tambah_bahan_druk,
+    qty_pakai_tambah_bahan_lp,
+    qty_pakai_tambah_bahan_druk,
     note,
     note_qc,
     note_gudang,
+    note_qc_pemakaian,
     status,
     status_tiket,
     tambah_bahan_defect = [],
@@ -228,17 +234,25 @@ const TambahBahanPersiapanService = {
           id_user_gudang: id_user_gudang ?? dataTambahBahan.id_user_gudang,
           no_jo,
           nama_kertas,
-          qty_tambah_bahan:
-            qty_tambah_bahan ?? dataTambahBahan.qty_tambah_bahan,
-          qty_pakai_tambah_bahan:
-            qty_pakai_tambah_bahan ?? dataTambahBahan.qty_pakai_tambah_bahan,
+          qty_tambah_bahan_lp:
+            qty_tambah_bahan_lp ?? dataTambahBahan.qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk:
+            qty_tambah_bahan_druk ?? dataTambahBahan.qty_tambah_bahan_druk,
+          qty_pakai_tambah_bahan_lp:
+            qty_pakai_tambah_bahan_lp ??
+            dataTambahBahan.qty_pakai_tambah_bahan_lp,
+          qty_pakai_tambah_bahan_druk:
+            qty_pakai_tambah_bahan_druk ??
+            dataTambahBahan.qty_pakai_tambah_bahan_druk,
           note: note ?? dataTambahBahan.note,
           note_qc: note_qc ?? dataTambahBahan.note_qc,
+          note_qc_pemakaian:
+            note_qc_pemakaian ?? dataTambahBahan.note_qc_pemakaian,
           note_gudang: note_gudang ?? dataTambahBahan.note_gudang,
           status: status ?? dataTambahBahan.status,
           status_tiket: status_tiket ?? dataTambahBahan.status_tiket,
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       // sync child tambah_bahan_persiapan_defect
@@ -259,9 +273,9 @@ const TambahBahanPersiapanService = {
                 id_kode_produksi: item.id_kode_produksi ?? null,
                 kode: item.kode ?? null,
                 deskripsi: item.deskripsi ?? null,
-                qty_tambah_bahan: item.qty_tambah_bahan ?? 0,
+                qty_tambah_bahan_lp: item.qty_tambah_bahan_lp ?? 0,
               },
-              { where: { id: item.id }, transaction: t },
+              { where: { id: item.id }, transaction: t }
             );
           } else {
             await TambahBahanPersiapanDefect.create(
@@ -270,20 +284,20 @@ const TambahBahanPersiapanService = {
                 id_kode_produksi: item.id_kode_produksi || null,
                 kode: item.kode || null,
                 deskripsi: item.deskripsi || null,
-                qty_tambah_bahan: item.qty_tambah_bahan || 0,
+                qty_tambah_bahan_lp: item.qty_tambah_bahan_lp || 0,
               },
-              { transaction: t },
+              { transaction: t }
             );
           }
         }
 
         const removedIds = existingIds.filter(
-          (eid) => !payloadIds.includes(eid),
+          (eid) => !payloadIds.includes(eid)
         );
         if (removedIds.length > 0) {
           await TambahBahanPersiapanDefect.update(
             { is_active: false },
-            { where: { id: removedIds }, transaction: t },
+            { where: { id: removedIds }, transaction: t }
           );
         }
       }
@@ -324,8 +338,9 @@ const TambahBahanPersiapanService = {
           id_user_qc,
           note_qc,
           status: "approve qc",
+          tgl_qc: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -364,8 +379,9 @@ const TambahBahanPersiapanService = {
           id_user_gudang,
           note_gudang,
           status: "approve gudang",
+          tgl_gudang: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -405,8 +421,9 @@ const TambahBahanPersiapanService = {
           note_qc,
           status: "reject qc",
           status_tiket: "history",
+          tgl_qc: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -432,7 +449,6 @@ const TambahBahanPersiapanService = {
     try {
       const dataTambahBahan = await TambahBahanPersiapan.findByPk(id);
       if (!dataTambahBahan) {
-        if (!transaction) await t.rollback();
         return {
           status_code: 404,
           success: false,
@@ -446,8 +462,9 @@ const TambahBahanPersiapanService = {
           note_gudang,
           status: "reject gudang",
           status_tiket: "history",
+          tgl_gudang: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -495,29 +512,40 @@ const TambahBahanPersiapanService = {
         id_kode_produksi: item.id_kode_produksi || null,
         kode: item.kode || null,
         deskripsi: item.deskripsi || null,
-        qty_tambah_bahan: item.qty_tambah_bahan || 0,
+        qty_tambah_bahan_lp: item.qty_tambah_bahan_lp || 0,
+        qty_tambah_bahan_druk: item.qty_tambah_bahan_druk || 0,
       }));
 
       await TambahBahanPersiapanDefect.bulkCreate(payload, {
         transaction: t,
       });
 
-      // jumlahkan seluruh qty_tambah_bahan defect aktif (termasuk yang sebelumnya, jika ada pemakaian bertahap)
-      const totalQtyPakai = await TambahBahanPersiapanDefect.sum(
-        "qty_tambah_bahan",
+      // jumlahkan seluruh qty_tambah_bahan_lp defect aktif (termasuk yang sebelumnya, jika ada pemakaian bertahap)
+      const totalQtyPakaiLp = await TambahBahanPersiapanDefect.sum(
+        "qty_tambah_bahan_lp",
         {
           where: { id_tambah_bahan_persiapan: id, is_active: true },
           transaction: t,
-        },
+        }
+      );
+
+      // jumlahkan seluruh qty_tambah_bahan_druk defect aktif (termasuk yang sebelumnya, jika ada pemakaian bertahap)
+      const totalQtyPakaiDruk = await TambahBahanPersiapanDefect.sum(
+        "qty_tambah_bahan_druk",
+        {
+          where: { id_tambah_bahan_persiapan: id, is_active: true },
+          transaction: t,
+        }
       );
 
       await TambahBahanPersiapan.update(
         {
-          qty_pakai_tambah_bahan: totalQtyPakai || 0,
-          status: "done",
-          status_tiket: "history",
+          qty_pakai_tambah_bahan_lp: totalQtyPakaiLp || 0,
+          qty_pakai_tambah_bahan_druk: totalQtyPakaiDruk || 0,
+          status: "request qc pemakaian",
+          tgl_pakai: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -525,6 +553,47 @@ const TambahBahanPersiapanService = {
         status_code: 200,
         success: true,
         message: "pakai tambah bahan success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+
+  approveQcPakaiTambahBahanPersiapanService: async ({
+    id,
+    id_user_qc_pemakaian,
+    note_qc_pemakaian,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const dataTambahBahan = await TambahBahanPersiapan.findByPk(id);
+      if (!dataTambahBahan) {
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Tidak Ditemukan",
+        };
+      }
+
+      await TambahBahanPersiapan.update(
+        {
+          id_user_qc_pemakaian,
+          note_qc_pemakaian,
+          status: "done",
+          status_tiket: "history",
+          tgl_qc_pemakaian: new Date(),
+        },
+        { where: { id }, transaction: t }
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "approve qc pemakaian success",
       };
     } catch (error) {
       if (!transaction) await t.rollback();
@@ -548,12 +617,12 @@ const TambahBahanPersiapanService = {
 
       await TambahBahanPersiapan.update(
         { is_active: false },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       await TambahBahanPersiapanDefect.update(
         { is_active: false },
-        { where: { id_tambah_bahan_persiapan: id }, transaction: t },
+        { where: { id_tambah_bahan_persiapan: id }, transaction: t }
       );
 
       if (!transaction) await t.commit();

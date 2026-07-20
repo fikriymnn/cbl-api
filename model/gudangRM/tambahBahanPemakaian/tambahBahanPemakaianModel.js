@@ -57,17 +57,12 @@ const TambahBahanPemakaian = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_tambah_bahan: {
+    qty_tambah_bahan_lp: {
       type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 0,
     },
-    qty_tambah_bahan_qc: {
-      type: DataTypes.DOUBLE,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    qty_tambah_bahan_gudang: {
+    qty_tambah_bahan_druk: {
       type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 0,
@@ -89,6 +84,14 @@ const TambahBahanPemakaian = db.define(
       allowNull: true,
       defaultValue: Sequelize.NOW,
     },
+    tgl_qc: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_gudang: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -107,7 +110,7 @@ const TambahBahanPemakaian = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 JobOrder.hasMany(TambahBahanPemakaian, {
