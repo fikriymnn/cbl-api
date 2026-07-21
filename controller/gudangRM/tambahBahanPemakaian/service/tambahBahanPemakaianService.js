@@ -105,7 +105,8 @@ const TambahBahanPemakaianService = {
     id_jo,
     id_kertas,
     id_user_request,
-    qty_tambah_bahan,
+    qty_tambah_bahan_lp,
+    qty_tambah_bahan_druk,
     note,
     tambah_bahan_defect = [],
     transaction = null,
@@ -140,12 +141,13 @@ const TambahBahanPemakaianService = {
           id_user_request,
           no_jo: dataJo?.no_jo || null,
           nama_kertas: dataKertas?.nama_barang || null,
-          qty_tambah_bahan: qty_tambah_bahan || 0,
+          qty_tambah_bahan_lp: qty_tambah_bahan_lp || 0,
+          qty_tambah_bahan_druk: qty_tambah_bahan_druk || 0,
           note: note || null,
           status: "request qc",
           status_tiket: "incoming",
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       // defect langsung dibuat bareng parent (tidak ada fungsi "pakai" terpisah)
@@ -155,7 +157,8 @@ const TambahBahanPemakaianService = {
           id_kode_produksi: item.id_kode_produksi || null,
           kode: item.kode || null,
           deskripsi: item.deskripsi || null,
-          qty_tambah_bahan: item.qty_tambah_bahan || 0,
+          qty_tambah_bahan_lp: item.qty_tambah_bahan_lp || 0,
+          qty_tambah_bahan_druk: item.qty_tambah_bahan_druk || 0,
         }));
         await TambahBahanPemakaianDefect.bulkCreate(payload, {
           transaction: t,
@@ -182,9 +185,8 @@ const TambahBahanPemakaianService = {
     id_user_request,
     id_user_qc,
     id_user_gudang,
-    qty_tambah_bahan,
-    qty_tambah_bahan_qc,
-    qty_tambah_bahan_gudang,
+    qty_tambah_bahan_lp,
+    qty_tambah_bahan_druk,
     note,
     note_qc,
     note_gudang,
@@ -244,19 +246,17 @@ const TambahBahanPemakaianService = {
           id_user_gudang: id_user_gudang ?? dataTambahBahan.id_user_gudang,
           no_jo,
           nama_kertas,
-          qty_tambah_bahan:
-            qty_tambah_bahan ?? dataTambahBahan.qty_tambah_bahan,
-          qty_tambah_bahan_qc:
-            qty_tambah_bahan_qc ?? dataTambahBahan.qty_tambah_bahan_qc,
-          qty_tambah_bahan_gudang:
-            qty_tambah_bahan_gudang ?? dataTambahBahan.qty_tambah_bahan_gudang,
+          qty_tambah_bahan_lp:
+            qty_tambah_bahan_lp ?? dataTambahBahan.qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk:
+            qty_tambah_bahan_druk ?? dataTambahBahan.qty_tambah_bahan_druk,
           note: note ?? dataTambahBahan.note,
           note_qc: note_qc ?? dataTambahBahan.note_qc,
           note_gudang: note_gudang ?? dataTambahBahan.note_gudang,
           status: status ?? dataTambahBahan.status,
           status_tiket: status_tiket ?? dataTambahBahan.status_tiket,
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       // sync child defect (edit bisa ubah semuanya, termasuk defect)
@@ -277,9 +277,10 @@ const TambahBahanPemakaianService = {
                 id_kode_produksi: item.id_kode_produksi ?? null,
                 kode: item.kode ?? null,
                 deskripsi: item.deskripsi ?? null,
-                qty_tambah_bahan: item.qty_tambah_bahan ?? 0,
+                qty_tambah_bahan_lp: item.qty_tambah_bahan_lp ?? 0,
+                qty_tambah_bahan_druk: item.qty_tambah_bahan_druk ?? 0,
               },
-              { where: { id: item.id }, transaction: t },
+              { where: { id: item.id }, transaction: t }
             );
           } else {
             await TambahBahanPemakaianDefect.create(
@@ -288,20 +289,21 @@ const TambahBahanPemakaianService = {
                 id_kode_produksi: item.id_kode_produksi || null,
                 kode: item.kode || null,
                 deskripsi: item.deskripsi || null,
-                qty_tambah_bahan: item.qty_tambah_bahan || 0,
+                qty_tambah_bahan_lp: item.qty_tambah_bahan_lp || 0,
+                qty_tambah_bahan_druk: item.qty_tambah_bahan_druk || 0,
               },
-              { transaction: t },
+              { transaction: t }
             );
           }
         }
 
         const removedIds = existingIds.filter(
-          (eid) => !payloadIds.includes(eid),
+          (eid) => !payloadIds.includes(eid)
         );
         if (removedIds.length > 0) {
           await TambahBahanPemakaianDefect.update(
             { is_active: false },
-            { where: { id: removedIds }, transaction: t },
+            { where: { id: removedIds }, transaction: t }
           );
         }
       }
@@ -322,7 +324,6 @@ const TambahBahanPemakaianService = {
     id,
     id_user_qc,
     note_qc,
-    qty_tambah_bahan_qc,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -342,10 +343,10 @@ const TambahBahanPemakaianService = {
         {
           id_user_qc,
           note_qc,
-          qty_tambah_bahan_qc: qty_tambah_bahan_qc || 0,
           status: "approve qc",
+          tgl_qc: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -364,7 +365,6 @@ const TambahBahanPemakaianService = {
     id,
     id_user_gudang,
     note_gudang,
-    qty_tambah_bahan_gudang,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -384,11 +384,11 @@ const TambahBahanPemakaianService = {
         {
           id_user_gudang,
           note_gudang,
-          qty_tambah_bahan_gudang: qty_tambah_bahan_gudang || 0,
           status: "approve gudang",
           status_tiket: "history",
+          tgl_gudang: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -428,8 +428,9 @@ const TambahBahanPemakaianService = {
           note_qc,
           status: "reject qc",
           status_tiket: "history",
+          tgl_qc: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -469,8 +470,9 @@ const TambahBahanPemakaianService = {
           note_gudang,
           status: "reject gudang",
           status_tiket: "history",
+          tgl_gudang: new Date(),
         },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       if (!transaction) await t.commit();
@@ -501,12 +503,12 @@ const TambahBahanPemakaianService = {
 
       await TambahBahanPemakaian.update(
         { is_active: false },
-        { where: { id }, transaction: t },
+        { where: { id }, transaction: t }
       );
 
       await TambahBahanPemakaianDefect.update(
         { is_active: false },
-        { where: { id_tambah_bahan_pemakaian: id }, transaction: t },
+        { where: { id_tambah_bahan_pemakaian: id }, transaction: t }
       );
 
       if (!transaction) await t.commit();

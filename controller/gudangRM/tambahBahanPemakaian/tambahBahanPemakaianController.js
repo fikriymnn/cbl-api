@@ -36,8 +36,14 @@ const TambahBahanPemakaianController = {
   },
 
   createTambahBahanPemakaian: async (req, res) => {
-    const { id_jo, id_kertas, qty_tambah_bahan, note, tambah_bahan_defect } =
-      req.body;
+    const {
+      id_jo,
+      id_kertas,
+      qty_tambah_bahan_lp,
+      qty_tambah_bahan_druk,
+      note,
+      tambah_bahan_defect,
+    } = req.body;
 
     try {
       const getData =
@@ -45,7 +51,8 @@ const TambahBahanPemakaianController = {
           id_jo,
           id_kertas,
           id_user_request: req.user.id,
-          qty_tambah_bahan,
+          qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk,
           note,
           tambah_bahan_defect,
         });
@@ -63,9 +70,8 @@ const TambahBahanPemakaianController = {
       id_user_request,
       id_user_qc,
       id_user_gudang,
-      qty_tambah_bahan,
-      qty_tambah_bahan_qc,
-      qty_tambah_bahan_gudang,
+      qty_tambah_bahan_lp,
+      qty_tambah_bahan_druk,
       note,
       note_qc,
       note_gudang,
@@ -83,9 +89,8 @@ const TambahBahanPemakaianController = {
           id_user_request,
           id_user_qc,
           id_user_gudang,
-          qty_tambah_bahan,
-          qty_tambah_bahan_qc,
-          qty_tambah_bahan_gudang,
+          qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk,
           note,
           note_qc,
           note_gudang,
@@ -101,7 +106,7 @@ const TambahBahanPemakaianController = {
 
   approveQcTambahBahanPemakaian: async (req, res) => {
     const _id = req.params.id;
-    const { note_qc, qty_tambah_bahan_qc } = req.body;
+    const { note_qc } = req.body;
 
     try {
       const getData =
@@ -109,7 +114,6 @@ const TambahBahanPemakaianController = {
           id: _id,
           id_user_qc: req.user.id,
           note_qc,
-          qty_tambah_bahan_qc,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -119,7 +123,7 @@ const TambahBahanPemakaianController = {
 
   approveGudangTambahBahanPemakaian: async (req, res) => {
     const _id = req.params.id;
-    const { note_gudang, qty_tambah_bahan_gudang } = req.body;
+    const { note_gudang } = req.body;
 
     try {
       const getData =
@@ -128,8 +132,7 @@ const TambahBahanPemakaianController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-            qty_tambah_bahan_gudang,
-          },
+          }
         );
       return res.status(200).json(getData);
     } catch (error) {
@@ -165,7 +168,7 @@ const TambahBahanPemakaianController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-          },
+          }
         );
       return res.status(200).json(getData);
     } catch (error) {

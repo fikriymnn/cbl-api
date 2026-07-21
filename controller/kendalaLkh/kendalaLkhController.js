@@ -243,7 +243,6 @@ const KendalaLkhController = {
       note_qc: note_qc,
     };
     const t = await db.transaction();
-    const t2 = await db.transaction();
     try {
       const kendalaLkh = await KendalaLkh.findByPk(_id, {
         include: [

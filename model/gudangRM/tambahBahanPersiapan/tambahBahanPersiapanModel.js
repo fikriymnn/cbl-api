@@ -49,6 +49,14 @@ const TambahBahanPersiapan = db.define(
         key: "id",
       },
     },
+    id_user_qc_pemakaian: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -57,12 +65,22 @@ const TambahBahanPersiapan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    qty_tambah_bahan: {
+    qty_tambah_bahan_lp: {
       type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 0,
     },
-    qty_pakai_tambah_bahan: {
+    qty_tambah_bahan_druk: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_pakai_tambah_bahan_lp: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    qty_pakai_tambah_bahan_druk: {
       type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 0,
@@ -79,10 +97,30 @@ const TambahBahanPersiapan = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    note_qc_pemakaian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     tgl_request: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: Sequelize.NOW,
+    },
+    tgl_qc: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_gudang: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_qc_pemakaian: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_pakai: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
@@ -102,7 +140,7 @@ const TambahBahanPersiapan = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 JobOrder.hasMany(TambahBahanPersiapan, {
@@ -148,6 +186,15 @@ Users.hasMany(TambahBahanPersiapan, {
 TambahBahanPersiapan.belongsTo(Users, {
   foreignKey: "id_user_gudang",
   as: "user_gudang",
+});
+
+Users.hasMany(TambahBahanPersiapan, {
+  foreignKey: "id_user_qc_pemakaian",
+  as: "tambah_bahan_persiapan_qc_pemakaian",
+});
+TambahBahanPersiapan.belongsTo(Users, {
+  foreignKey: "id_user_qc_pemakaian",
+  as: "user_qc_pemakaian",
 });
 
 module.exports = TambahBahanPersiapan;

@@ -131,7 +131,7 @@ const MonitoringSoController = {
           {
             model: JoModel,
             as: "job_order",
-            attributes: ["no_jo", "qty_lp", "qty_druk"],
+            attributes: ["no_jo", "qty_lp", "qty_druk", "status_jo"],
             include: [
               {
                 model: JobOrderMounting,
@@ -214,20 +214,19 @@ const MonitoringSoController = {
             {
               replacements: { id_so: item.id },
               type: db.QueryTypes.SELECT,
-            },
+            }
           );
 
           item.delivery_order_group = doGroups;
           return item;
-        }),
+        })
       );
 
       // ─── Post-filter ──────────────────────────────────────────────────────────
       if (status_po == "belum kirim") {
         data = data.filter(
           (item) =>
-            !item.delivery_order_group ||
-            item.delivery_order_group.length === 0,
+            !item.delivery_order_group || item.delivery_order_group.length === 0
         );
       } else if (status_po == "selesai") {
         data = data.filter((item) => {
@@ -335,7 +334,10 @@ function hitungRekapanPerBulan(data, sort_by) {
     if (!tanggalAcuan) return;
 
     const date = new Date(tanggalAcuan);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
 
     if (!rekapMap[key]) {
       rekapMap[key] = {

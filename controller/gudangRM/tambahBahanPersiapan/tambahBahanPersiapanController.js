@@ -36,7 +36,13 @@ const TambahBahanPersiapanController = {
   },
 
   createTambahBahanPersiapan: async (req, res) => {
-    const { id_jo, id_kertas, qty_tambah_bahan, note } = req.body;
+    const {
+      id_jo,
+      id_kertas,
+      qty_tambah_bahan_lp,
+      qty_tambah_bahan_druk,
+      note,
+    } = req.body;
 
     try {
       const getData =
@@ -44,7 +50,8 @@ const TambahBahanPersiapanController = {
           id_jo,
           id_kertas,
           id_user_request: req.user.id,
-          qty_tambah_bahan,
+          qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk,
           note,
         });
       return res.status(200).json(getData);
@@ -61,11 +68,14 @@ const TambahBahanPersiapanController = {
       id_user_request,
       id_user_qc,
       id_user_gudang,
-      qty_tambah_bahan,
-      qty_pakai_tambah_bahan,
+      qty_tambah_bahan_lp,
+      qty_tambah_bahan_druk,
+      qty_pakai_tambah_bahan_lp,
+      qty_pakai_tambah_bahan_druk,
       note,
       note_qc,
       note_gudang,
+      note_qc_pemakaian,
       status,
       status_tiket,
       tambah_bahan_defect,
@@ -80,11 +90,14 @@ const TambahBahanPersiapanController = {
           id_user_request,
           id_user_qc,
           id_user_gudang,
-          qty_tambah_bahan,
-          qty_pakai_tambah_bahan,
+          qty_tambah_bahan_lp,
+          qty_tambah_bahan_druk,
+          qty_pakai_tambah_bahan_lp,
+          qty_pakai_tambah_bahan_druk,
           note,
           note_qc,
           note_gudang,
+          note_qc_pemakaian,
           status,
           status_tiket,
           tambah_bahan_defect,
@@ -123,7 +136,7 @@ const TambahBahanPersiapanController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-          },
+          }
         );
       return res.status(200).json(getData);
     } catch (error) {
@@ -159,7 +172,7 @@ const TambahBahanPersiapanController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-          },
+          }
         );
       return res.status(200).json(getData);
     } catch (error) {
@@ -177,7 +190,26 @@ const TambahBahanPersiapanController = {
           {
             id: _id,
             tambah_bahan_defect,
-          },
+          }
+        );
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  approveQcPemakaianTambahBahanPersiapan: async (req, res) => {
+    const _id = req.params.id;
+    const { note_qc_pemakaian } = req.body;
+
+    try {
+      const getData =
+        await TambahBahanPersiapanService.approveQcPakaiTambahBahanPersiapanService(
+          {
+            id: _id,
+            id_user_qc_pemakaian: req.user.id,
+            note_qc_pemakaian,
+          }
         );
       return res.status(200).json(getData);
     } catch (error) {
