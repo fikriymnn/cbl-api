@@ -333,6 +333,7 @@ const ProduksiLkhTahapanController = {
           status: "done",
           id_approve: req.user.id,
           tgl_approve: new Date(),
+          tgl_selesai: new Date(),
         },
         {
           where: { id: _id },
@@ -358,6 +359,17 @@ const ProduksiLkhTahapanController = {
           );
         } else {
           //tahapan selanjutnya sudah active atau done maka tidak perlu update status
+        }
+
+        //update tgl_mulai untuk tahapan berikutnya jika belum terisi
+        if (
+          !checkDataLkhtahapanNext.tgl_mulai ||
+          checkDataLkhtahapanNext.tgl_mulai == null
+        ) {
+          await ProduksiLkhTahapan.update(
+            { tgl_mulai: new Date() },
+            { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+          );
         }
       } else {
         if (

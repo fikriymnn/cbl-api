@@ -1,5 +1,6 @@
 const { Op, Sequelize } = require("sequelize");
 const ProduksiLkhProses = require("../../model/produksi/produksiLkhProsesModel");
+const ProduksiLkhTahapan = require("../../model/produksi/produksiLkhTahapanModel");
 const MasterKodeProduksi = require("../../model/masterData/kodeProduksi/masterKodeProduksiModel");
 const MasterKategoriKendala = require("../../model/masterData/kodeProduksi/masterKategoriKendalaModel");
 const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel");
@@ -95,12 +96,12 @@ function hitungRekap(rows) {
       totalWaktuProduksi +
       totalWaktuKendala +
       totalWaktuOff +
-      totalWaktuPerawatanMesin,
+      totalWaktuPerawatanMesin
   );
 
   // Net output: qty produksi / (setting + produksi + kendala) dalam JAM
   const pembagi = secondsToHours(
-    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala,
+    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala
   );
   const netOutput =
     pembagi > 0 ? parseFloat((totalQtyProduksi / pembagi).toFixed(4)) : 0;
@@ -115,7 +116,7 @@ function hitungRekap(rows) {
       persentase:
         totalWaktuKendala > 0
           ? parseFloat(
-              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2),
+              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2)
             )
           : 0,
       data_kendala: entry.rows,
@@ -285,7 +286,7 @@ const ProduksiLkhRekapController = {
       const rekap_operator = [];
       for (const [, opEntry] of operatorMap.entries()) {
         const { rekap_mesin: rm, rekap_kendala: rk } = hitungRekap(
-          opEntry.rows,
+          opEntry.rows
         );
         rekap_operator.push({
           id_operator: opEntry.id_operator,
@@ -301,6 +302,73 @@ const ProduksiLkhRekapController = {
         rekap_mesin,
         rekap_kendala,
         rekap_operator,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status_code: 500,
+        success: false,
+        msg: error.message,
+      });
+    }
+  },
+  getProduksiLkhMonitoringWIP: async (req, res) => {
+    try {
+      const dataProduksiLkhTahapan = await ProduksiLkhTahapan.findAll({
+        where: {
+          tgl_mulai: {
+            [Op.ne]: null, // tidak sama dengan null
+          },
+          tgl_selesai: {
+            [Op.is]: null, // sama dengan null
+          },
+          status: {
+            [Op.in]: ["active", "request to spv"], // status active atau request svp
+          },
+        },
+        include: [
+          {
+            model: MasterTahapan,
+            as: "tahapan",
+          },
+        ],
+        order: [["tgl_mulai", "ASC"]],
+      });
+
+      const now = new Date();
+
+      // hitung umur_pengerjaan_hari tiap item, lalu kelompokkan berdasarkan id_tahapan
+      const grouped = {};
+
+      dataProduksiLkhTahapan.forEach((item) => {
+        const plain = item.toJSON();
+
+        const tglMulai = new Date(plain.tgl_mulai);
+        const diffMs = now - tglMulai;
+        const umurPengerjaan = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        plain.umur_pengerjaan_hari = umurPengerjaan;
+
+        const key = plain.id_tahapan;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            id_tahapan: plain.id_tahapan,
+            tahapan: plain.tahapan, // ambil info tahapan dari item pertama
+            total_data: 0,
+            data: [],
+          };
+        }
+
+        grouped[key].total_data += 1;
+        grouped[key].data.push(plain);
+      });
+
+      const result = Object.values(grouped);
+
+      return res.status(200).json({
+        status_code: 200,
+        success: true,
+        data: result,
       });
     } catch (error) {
       return res.status(500).json({

@@ -140,6 +140,14 @@ const ProduksiLkhTahapan = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tgl_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -171,6 +179,10 @@ const ProduksiLkhTahapan = db.define(
       {
         name: "idx_plkht_jo_index_active",
         fields: ["id_jo", "index", "is_active"],
+      },
+      {
+        name: "idx_plkht_tgl_mulai_selesai_status",
+        fields: ["tgl_mulai", "tgl_selesai", "status"],
       },
       { name: "idx_plkht_createdAt", fields: ["createdAt"] },
     ],

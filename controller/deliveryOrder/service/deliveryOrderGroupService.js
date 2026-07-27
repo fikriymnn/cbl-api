@@ -184,7 +184,7 @@ const DeliveryOrderGroupService = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -204,7 +204,7 @@ const DeliveryOrderGroupService = {
           // extract nomor urut pada format SDP00001/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '-', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_do, 4), '-', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -364,7 +364,7 @@ const DeliveryOrderGroupService = {
           id_kenek_2: id_kenek_2 || null,
           tgl_do: tgl_do,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       for (let i = 0; i < data_do.length; i++) {
@@ -381,7 +381,7 @@ const DeliveryOrderGroupService = {
             pack_3: e.pack_3,
             status: "done",
           },
-          { where: { id: e.id }, transaction: t },
+          { where: { id: e.id }, transaction: t }
         );
       }
       if (!transaction) await t.commit();
@@ -389,6 +389,58 @@ const DeliveryOrderGroupService = {
         status_code: 200,
         success: true,
         message: "create success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+
+  updateTglDoDeliveryOrderGroupService: async ({
+    id,
+    tgl_do,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      if (!id) {
+        return {
+          status_code: 400,
+          success: false,
+          message: "ID Delivery Order Group Wajib Diisi",
+        };
+      }
+
+      if (!tgl_do) {
+        return {
+          status_code: 400,
+          success: false,
+          message: "Tanggal DO Wajib Diisi",
+        };
+      }
+
+      const dataDoGroup = await DeliveryOrderGroup.findByPk(id);
+      if (!dataDoGroup) {
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Delivery Order Group Tidak Ditemukan",
+        };
+      }
+
+      await DeliveryOrderGroup.update(
+        {
+          tgl_do: tgl_do,
+        },
+        { where: { id: id }, transaction: t }
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "update tanggal DO success",
       };
     } catch (error) {
       if (!transaction) await t.rollback();
@@ -491,7 +543,7 @@ const DeliveryOrderGroupService = {
           id_kenek: id_kenek,
           id_kenek_2: id_kenek_2,
         },
-        { where: { id: id }, transaction: t },
+        { where: { id: id }, transaction: t }
       );
 
       for (let i = 0; i < data_do.length; i++) {
@@ -507,7 +559,7 @@ const DeliveryOrderGroupService = {
             pack_3: e.pack_3,
             status: "done",
           },
-          { where: { id: e.id }, transaction: t },
+          { where: { id: e.id }, transaction: t }
         );
       }
       if (!transaction) await t.commit();
@@ -689,7 +741,7 @@ const DeliveryOrderGroupService = {
 
         const dogId = raw.delivery_order_group?.id;
         const alreadyExists = group.delivery_order_groups.some(
-          (d) => d.id === dogId,
+          (d) => d.id === dogId
         );
         if (dogId && !alreadyExists) {
           group.delivery_order_groups.push(raw.delivery_order_group);
