@@ -330,30 +330,113 @@ const ProduksiLkhRekapController = {
             model: MasterTahapan,
             as: "tahapan",
           },
+          {
+            model: ProduksiLkhProses,
+            as: "produksi_lkh_proses",
+            where: { is_final_result: true },
+            required: false,
+            attributes: ["id", "baik", "rusak_sebagian", "rusak_total"],
+          },
         ],
         order: [["tgl_mulai", "ASC"]],
       });
 
       const now = new Date();
 
-      // hitung umur_pengerjaan_hari tiap item, lalu kelompokkan berdasarkan id_tahapan
-      const grouped = {};
-
-      dataProduksiLkhTahapan.forEach((item) => {
+      // ubah ke plain object, hitung umur_pengerjaan_hari & total_qty_produksi (dari proses sendiri)
+      const plainData = dataProduksiLkhTahapan.map((item) => {
         const plain = item.toJSON();
-
         const tglMulai = new Date(plain.tgl_mulai);
         const diffMs = now - tglMulai;
-        const umurPengerjaan = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        plain.umur_pengerjaan_hari = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        plain.umur_pengerjaan_hari = umurPengerjaan;
+        // total_qty_produksi = baik + rusak_sebagian, dari proses tahapan yang sedang berjalan ini sendiri
+        const totalBaikSendiri = (plain.produksi_lkh_proses || []).reduce(
+          (sum, p) => sum + (p.baik || 0),
+          0
+        );
+        const totalRusakSebagianSendiri = (
+          plain.produksi_lkh_proses || []
+        ).reduce((sum, p) => sum + (p.rusak_sebagian || 0), 0);
+        plain.total_qty_produksi = totalBaikSendiri + totalRusakSebagianSendiri;
+
+        return plain;
+      });
+
+      // ========================================
+      // Ambil data proses sebelumnya (index - 1) berdasarkan id_jo yang sama
+      // hanya untuk keperluan total_qty_produksi_target & detail tahapan_sebelumnya
+      // ========================================
+      const prevPairs = plainData
+        .filter((item) => item.index > 1) // index 1 tidak punya proses sebelumnya
+        .map((item) => ({ id_jo: item.id_jo, index: item.index - 1 }));
+
+      const prevDataMap = {};
+
+      if (prevPairs.length > 0) {
+        const dataTahapanSebelumnya = await ProduksiLkhTahapan.findAll({
+          where: {
+            [Op.or]: prevPairs.map((p) => ({
+              id_jo: p.id_jo,
+              index: p.index,
+            })),
+          },
+          include: [
+            {
+              model: MasterTahapan,
+              as: "tahapan",
+            },
+            {
+              model: ProduksiLkhProses,
+              as: "produksi_lkh_proses",
+              where: { is_final_result: true },
+              required: false,
+              attributes: ["id", "baik", "rusak_sebagian", "rusak_total"],
+            },
+          ],
+        });
+
+        dataTahapanSebelumnya.forEach((item) => {
+          const plain = item.toJSON();
+          const key = `${plain.id_jo}_${plain.index}`;
+
+          const totalBaik = (plain.produksi_lkh_proses || []).reduce(
+            (sum, p) => sum + (p.baik || 0),
+            0
+          );
+          const totalRusakSebagian = (plain.produksi_lkh_proses || []).reduce(
+            (sum, p) => sum + (p.rusak_sebagian || 0),
+            0
+          );
+
+          prevDataMap[key] = {
+            total_qty_produksi_target: totalBaik + totalRusakSebagian,
+            tahapan_sebelumnya: plain, // detail lengkap data tahapan sebelumnya
+          };
+        });
+      }
+
+      // ========================================
+      // Gabungkan total_qty_produksi_target & tahapan_sebelumnya, lalu kelompokkan berdasarkan id_tahapan
+      // ========================================
+      const grouped = {};
+
+      plainData.forEach((plain) => {
+        const prevKey = `${plain.id_jo}_${plain.index - 1}`;
+        const prevInfo = prevDataMap[prevKey] || {
+          total_qty_produksi_target: 0,
+          tahapan_sebelumnya: null,
+        };
+
+        plain.total_qty_produksi_target = prevInfo.total_qty_produksi_target;
+        plain.tahapan_sebelumnya = prevInfo.tahapan_sebelumnya;
 
         const key = plain.id_tahapan;
 
         if (!grouped[key]) {
           grouped[key] = {
             id_tahapan: plain.id_tahapan,
-            tahapan: plain.tahapan, // ambil info tahapan dari item pertama
+            tahapan: plain.tahapan,
             total_data: 0,
             data: [],
           };
