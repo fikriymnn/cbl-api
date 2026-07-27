@@ -101,6 +101,24 @@ const DeliveryOrderGroupController = {
     }
   },
 
+  updateDeliveryOrderGroup: async (req, res) => {
+    const _id = req.params.id;
+    const { tgl_do } = req.body;
+
+    try {
+      const getData =
+        await DeliveryOrderGroupService.updateTglDoDeliveryOrderGroupService({
+          id: _id,
+          tgl_do: tgl_do,
+        });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ status_code: 400, success: false, msg: error.message });
+    }
+  },
+
   konfirmasiDeliveryOrderGroup: async (req, res) => {
     const _id = req.params.id;
     const {

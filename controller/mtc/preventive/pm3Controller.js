@@ -481,7 +481,7 @@ const Pm3Controller = {
         attributes: ["id", "id_ticket", "hasil", "category"],
       });
 
-      if (dataPoint.hasil == "jelek" || dataPoint.hasil == "tidak terpasang") {
+      if (dataPoint.hasil != "baik") {
         const ticketPm3 = await TicketPm3.findOne({
           where: { id: dataPoint.id_ticket },
         });

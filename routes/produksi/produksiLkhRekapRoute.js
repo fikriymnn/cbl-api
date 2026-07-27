@@ -7,5 +7,10 @@ router.get(
   auth,
   ProduksiLkhRekapController.getProduksiLkhRekap
 );
+router.get(
+  "/produksi/monitoringWIP",
+  auth,
+  ProduksiLkhRekapController.getProduksiLkhMonitoringWIP
+);
 
 module.exports = router;
