@@ -448,18 +448,14 @@ const hitungLemburBaru = ({
   if (tipePenggajianKaryawan === "bulanan") {
     if (!isLiburHari) {
       // --- Lembur biasa (hari kerja normal) ---
-      // Hanya PRODUKSI yang dibayar per jam (jam x uangLemburBiasa).
-      // STAFF tidak dihitung upah lemburnya untuk lembur biasa, hanya
       // berhak atas uangMakanLembur kalau memenuhi threshold di bawah.
-      if (tipeKaryawan === "produksi") {
-        rincian.push({
-          label: "uangLembur",
-          jumlah: jamLembur,
-          nilai: uangLemburBiasa,
-          total: jamLembur * uangLemburBiasa,
-        });
-        total += jamLembur * uangLemburBiasa;
-      }
+      rincian.push({
+        label: "uangLembur",
+        jumlah: jamLembur,
+        nilai: uangLemburBiasa,
+        total: jamLembur * uangLemburBiasa,
+      });
+      total += jamLembur * uangLemburBiasa;
 
       // uangMakanLembur: flat 1x kalau >= 3.5 jam, berlaku untuk staff
       // maupun produksi.
@@ -794,7 +790,15 @@ const hitungPayroll = async (
           payroll.total += upahPerHari;
         }
         //perhitungan tunjangan uang kopi untuk karyawan bulanan
-        if (tipePenggajianKaryawan === "bulanan") {
+        if (
+          (tipePenggajianKaryawan === "bulanan" &&
+            absen.status_absen === "masuk" &&
+            (absen.status_keluar === "Keluar" ||
+              absen.status_keluar === "Pulang Cepat" ||
+              absen.status_keluar === "Pulang Cepat : dinas" ||
+              absen.status_keluar === "Pulang Cepat : pribadi")) ||
+          absen.status_absen === "dinas"
+        ) {
           payroll.rincian.push({
             label: "tunjanganKopi",
             jumlah: 1,
@@ -815,39 +819,37 @@ const hitungPayroll = async (
             absen.status_masuk == "Terlambat : pribadi"
           ) {
             //untuk menentukan jam terlamabat(0.5 sampai 1 jam pertama tidak dapat uang makan dan jam berikutnya potong uang lembur)
-            let jamTerlambat = absen.menit_terlambat;
-            if (absen.menit_terlambat >= 0.5 && absen.menit_terlambat < 1) {
-              jamTerlambat = absen.menit_terlambat - 0.5;
-            } else if (
-              absen.menit_terlambat >= 0.5 &&
-              absen.menit_terlambat >= 1
-            ) {
-              jamTerlambat = absen.menit_terlambat - 1;
-            }
-
-            if (jamTerlambat > 0) {
-              const findTerlambat = summaryPayroll.potongan.find(
-                (dataT) => dataT.label === "potonganTerlambat",
-              );
-
-              if (!findTerlambat) {
-                summaryPayroll.potongan.push({
-                  label: "potonganTerlambat",
-                  jumlah: jamTerlambat,
-                  nilai: uangLemburBiasa,
-                  total: jamTerlambat * uangLemburBiasa,
-                });
-              } else {
-                findTerlambat.jumlah += jamTerlambat;
-                findTerlambat.total += jamTerlambat * uangLemburBiasa;
-              }
-
-              //penambahan nilai ke total potongan
-              summaryPayroll.total_potongan += jamTerlambat * uangLemburBiasa;
-              summaryPayroll.sub_total -= jamTerlambat * uangLemburBiasa;
-              //pengurangan nilai ke total gaji
-              //summaryPayroll.total -= jamTerlambat * uangLemburBiasa;
-            }
+            //di nonaktifkan dahulu
+            // let jamTerlambat = absen.menit_terlambat;
+            // if (absen.menit_terlambat >= 0.5 && absen.menit_terlambat < 1) {
+            //   jamTerlambat = absen.menit_terlambat - 0.5;
+            // } else if (
+            //   absen.menit_terlambat >= 0.5 &&
+            //   absen.menit_terlambat >= 1
+            // ) {
+            //   jamTerlambat = absen.menit_terlambat - 1;
+            // }
+            // if (jamTerlambat > 0) {
+            //   const findTerlambat = summaryPayroll.potongan.find(
+            //     (dataT) => dataT.label === "potonganTerlambat",
+            //   );
+            //   if (!findTerlambat) {
+            //     summaryPayroll.potongan.push({
+            //       label: "potonganTerlambat",
+            //       jumlah: jamTerlambat,
+            //       nilai: uangLemburBiasa,
+            //       total: jamTerlambat * uangLemburBiasa,
+            //     });
+            //   } else {
+            //     findTerlambat.jumlah += jamTerlambat;
+            //     findTerlambat.total += jamTerlambat * uangLemburBiasa;
+            //   }
+            //   //penambahan nilai ke total potongan
+            //   summaryPayroll.total_potongan += jamTerlambat * uangLemburBiasa;
+            //   summaryPayroll.sub_total -= jamTerlambat * uangLemburBiasa;
+            //   //pengurangan nilai ke total gaji
+            //   //summaryPayroll.total -= jamTerlambat * uangLemburBiasa;
+            // }
           } else {
             if (
               absen.status_absen != "cuti tahunan" &&

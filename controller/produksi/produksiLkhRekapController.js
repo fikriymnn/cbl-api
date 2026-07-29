@@ -7,6 +7,7 @@ const MasterTahapan = require("../../model/masterData/tahapan/masterTahapanModel
 const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTahapanModel");
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
 const Users = require("../../model/userModel");
+const JobOrderMounting = require("../../model/ppic/jobOrder/joMountingModel");
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -331,6 +332,25 @@ const ProduksiLkhRekapController = {
             as: "tahapan",
           },
           {
+            model: JobOrder,
+            as: "jo",
+            attributes: ["id", "no_jo", "qty"],
+            include: [
+              {
+                model: JobOrderMounting,
+                as: "jo_mounting",
+                where: { is_selected: true },
+                attributes: [
+                  "jumlah_insheet_pond",
+                  "jumlah_insheet_finishing",
+                  "total_insheet",
+                  "ukuran_cetak_isi_1",
+                  "ukuran_cetak_isi_2",
+                ],
+              },
+            ],
+          },
+          {
             model: ProduksiLkhProses,
             as: "produksi_lkh_proses",
             where: { is_final_result: true },
@@ -343,14 +363,44 @@ const ProduksiLkhRekapController = {
 
       const now = new Date();
 
-      // ubah ke plain object, hitung umur_pengerjaan_hari & total_qty_produksi (dari proses sendiri)
+      // daftar keyword nama_tahapan untuk aturan target & konversi
+      const TAHAPAN_TARGET_COATING = ["coating"];
+      const TAHAPAN_TARGET_FINISHING = ["pond", "rabut", "sortir", "lem"];
+      const TAHAPAN_KONVERSI_PRODUKSI = ["cetak", "coating", "pond", "potong"];
+
+      const containsKeyword = (namaTahapan, keywords) =>
+        keywords.some((kw) => namaTahapan.includes(kw));
+
       const plainData = dataProduksiLkhTahapan.map((item) => {
         const plain = item.toJSON();
         const tglMulai = new Date(plain.tgl_mulai);
         const diffMs = now - tglMulai;
         plain.umur_pengerjaan_hari = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        // total_qty_produksi = baik + rusak_sebagian, dari proses tahapan yang sedang berjalan ini sendiri
+        const namaTahapan = (plain.tahapan?.nama_tahapan || "").toLowerCase();
+
+        // ambil data mounting (jo_mounting) yang terpilih
+        const mounting =
+          (plain.jo?.jo_mounting && plain.jo.jo_mounting[0]) || null;
+
+        const ukuranCetakIsi1 = mounting?.ukuran_cetak_isi_1 || 0;
+        const ukuranCetakIsi2 = mounting?.ukuran_cetak_isi_2 || 0;
+        const totalUkuranCetakIsi = ukuranCetakIsi1 + ukuranCetakIsi2;
+        const totalInsheet = mounting?.total_insheet || 0;
+        const jumlahInsheetPond = mounting?.jumlah_insheet_pond || 0;
+        const jumlahInsheetFinishing = mounting?.jumlah_insheet_finishing || 0;
+
+        // ========================================
+        // qty_jo = qty (jo) - (total_insheet * (ukuran_cetak_isi_1 + ukuran_cetak_isi_2))
+        // ========================================
+        const qtyJo = mounting
+          ? (plain.jo?.qty || 0) - totalInsheet * totalUkuranCetakIsi
+          : plain.jo?.qty || 0;
+        plain.qty_jo = qtyJo;
+
+        // ========================================
+        // total_qty_produksi dari proses tahapan sendiri, dengan konversi jika perlu
+        // ========================================
         const totalBaikSendiri = (plain.produksi_lkh_proses || []).reduce(
           (sum, p) => sum + (p.baik || 0),
           0
@@ -358,79 +408,38 @@ const ProduksiLkhRekapController = {
         const totalRusakSebagianSendiri = (
           plain.produksi_lkh_proses || []
         ).reduce((sum, p) => sum + (p.rusak_sebagian || 0), 0);
-        plain.total_qty_produksi = totalBaikSendiri + totalRusakSebagianSendiri;
+
+        let totalQtyProduksi = totalBaikSendiri + totalRusakSebagianSendiri;
+
+        if (containsKeyword(namaTahapan, TAHAPAN_KONVERSI_PRODUKSI)) {
+          totalQtyProduksi = totalQtyProduksi * totalUkuranCetakIsi;
+        }
+        plain.total_qty_produksi = totalQtyProduksi;
+
+        // ========================================
+        // total_qty_produksi_target berdasarkan nama_tahapan
+        // ========================================
+        let totalQtyProduksiTarget = 0;
+
+        if (containsKeyword(namaTahapan, TAHAPAN_TARGET_COATING)) {
+          totalQtyProduksiTarget =
+            qtyJo + jumlahInsheetPond * totalUkuranCetakIsi;
+        } else if (containsKeyword(namaTahapan, TAHAPAN_TARGET_FINISHING)) {
+          totalQtyProduksiTarget =
+            qtyJo + jumlahInsheetFinishing * totalUkuranCetakIsi;
+        }
+
+        plain.total_qty_produksi_target = totalQtyProduksiTarget;
 
         return plain;
       });
 
       // ========================================
-      // Ambil data proses sebelumnya (index - 1) berdasarkan id_jo yang sama
-      // hanya untuk keperluan total_qty_produksi_target & detail tahapan_sebelumnya
-      // ========================================
-      const prevPairs = plainData
-        .filter((item) => item.index > 1) // index 1 tidak punya proses sebelumnya
-        .map((item) => ({ id_jo: item.id_jo, index: item.index - 1 }));
-
-      const prevDataMap = {};
-
-      if (prevPairs.length > 0) {
-        const dataTahapanSebelumnya = await ProduksiLkhTahapan.findAll({
-          where: {
-            [Op.or]: prevPairs.map((p) => ({
-              id_jo: p.id_jo,
-              index: p.index,
-            })),
-          },
-          include: [
-            {
-              model: MasterTahapan,
-              as: "tahapan",
-            },
-            {
-              model: ProduksiLkhProses,
-              as: "produksi_lkh_proses",
-              where: { is_final_result: true },
-              required: false,
-              attributes: ["id", "baik", "rusak_sebagian", "rusak_total"],
-            },
-          ],
-        });
-
-        dataTahapanSebelumnya.forEach((item) => {
-          const plain = item.toJSON();
-          const key = `${plain.id_jo}_${plain.index}`;
-
-          const totalBaik = (plain.produksi_lkh_proses || []).reduce(
-            (sum, p) => sum + (p.baik || 0),
-            0
-          );
-          const totalRusakSebagian = (plain.produksi_lkh_proses || []).reduce(
-            (sum, p) => sum + (p.rusak_sebagian || 0),
-            0
-          );
-
-          prevDataMap[key] = {
-            total_qty_produksi_target: totalBaik + totalRusakSebagian,
-            tahapan_sebelumnya: plain, // detail lengkap data tahapan sebelumnya
-          };
-        });
-      }
-
-      // ========================================
-      // Gabungkan total_qty_produksi_target & tahapan_sebelumnya, lalu kelompokkan berdasarkan id_tahapan
+      // Kelompokkan berdasarkan id_tahapan
       // ========================================
       const grouped = {};
 
       plainData.forEach((plain) => {
-        const prevKey = `${plain.id_jo}_${plain.index - 1}`;
-        const prevInfo = prevDataMap[prevKey] || {
-          total_qty_produksi_target: 0,
-          tahapan_sebelumnya: null,
-        };
-
-        plain.total_qty_produksi_target = prevInfo.total_qty_produksi_target;
-        plain.tahapan_sebelumnya = prevInfo.tahapan_sebelumnya;
-
         const key = plain.id_tahapan;
 
         if (!grouped[key]) {
