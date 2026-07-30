@@ -589,9 +589,9 @@ const hitungLemburBaru = ({
         dapatUpahHarian = true;
       }
 
-      // Mulai bayar per jam & uangMakanLembur di 5.5 jam
-      if (jamLembur >= 5.5) {
-        const jamDibayar = jamLembur - 5.5;
+      // Mulai bayar per jam & uangMakanLembur di 5 jam
+      if (jamLembur >= 5) {
+        const jamDibayar = jamLembur - 5;
         if (jamDibayar > 0) {
           rincian.push({
             label: "uangLemburLibur",
