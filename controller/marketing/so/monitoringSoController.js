@@ -12,6 +12,8 @@ const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
+const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
+const TambahBahanPersiapan = require("../../../model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
 
 const MonitoringSoController = {
   getSoMonitoring: async (req, res) => {
@@ -139,6 +141,38 @@ const MonitoringSoController = {
                 where: { is_selected: true },
                 required: false,
               },
+              {
+                model: TambahBahanPemakaian,
+                as: "tambah_bahan_pemakaian",
+                required: false,
+                where: {
+                  status: "approve gudang",
+                  status_tiket: "history",
+                },
+                attributes: [
+                  "id",
+                  "id_jo",
+                  "status",
+                  "status_tiket",
+                  "qty_tambah_bahan_druk",
+                ],
+              },
+              {
+                model: TambahBahanPersiapan,
+                as: "tambah_bahan_persiapan",
+                required: false,
+                where: {
+                  status: "done",
+                  status_tiket: "history",
+                },
+                attributes: [
+                  "id",
+                  "id_jo",
+                  "status",
+                  "status_tiket",
+                  "qty_pakai_tambah_bahan_druk",
+                ],
+              },
             ],
           },
           {
@@ -163,8 +197,11 @@ const MonitoringSoController = {
                   "deskripsi",
                   "proses",
                   "waktu_mulai",
+                  "baik",
+                  "rusak_sebagian",
+                  "rusak_total",
                 ],
-                limit: 1,
+                where: { is_final_result: true },
                 order: [["createdAt", "ASC"]],
                 separate: true,
                 include: [
@@ -214,19 +251,20 @@ const MonitoringSoController = {
             {
               replacements: { id_so: item.id },
               type: db.QueryTypes.SELECT,
-            }
+            },
           );
 
           item.delivery_order_group = doGroups;
           return item;
-        })
+        }),
       );
 
       // ─── Post-filter ──────────────────────────────────────────────────────────
       if (status_po == "belum kirim") {
         data = data.filter(
           (item) =>
-            !item.delivery_order_group || item.delivery_order_group.length === 0
+            !item.delivery_order_group ||
+            item.delivery_order_group.length === 0,
         );
       } else if (status_po == "selesai") {
         data = data.filter((item) => {
@@ -336,7 +374,7 @@ function hitungRekapanPerBulan(data, sort_by) {
     const date = new Date(tanggalAcuan);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}`;
 
     if (!rekapMap[key]) {
