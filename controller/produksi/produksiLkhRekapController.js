@@ -8,6 +8,8 @@ const MasterMesinTahapan = require("../../model/masterData/tahapan/masterMesinTa
 const JobOrder = require("../../model/ppic/jobOrder/jobOrderModel");
 const Users = require("../../model/userModel");
 const JobOrderMounting = require("../../model/ppic/jobOrder/joMountingModel");
+const TambahBahanPemakaian = require("../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
+const TambahBahanPersiapan = require("../../model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -97,12 +99,12 @@ function hitungRekap(rows) {
       totalWaktuProduksi +
       totalWaktuKendala +
       totalWaktuOff +
-      totalWaktuPerawatanMesin
+      totalWaktuPerawatanMesin,
   );
 
   // Net output: qty produksi / (setting + produksi + kendala) dalam JAM
   const pembagi = secondsToHours(
-    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala
+    totalWaktuSetting + totalWaktuProduksi + totalWaktuKendala,
   );
   const netOutput =
     pembagi > 0 ? parseFloat((totalQtyProduksi / pembagi).toFixed(4)) : 0;
@@ -117,7 +119,7 @@ function hitungRekap(rows) {
       persentase:
         totalWaktuKendala > 0
           ? parseFloat(
-              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2)
+              ((entry.total_waktu / totalWaktuKendala) * 100).toFixed(2),
             )
           : 0,
       data_kendala: entry.rows,
@@ -287,7 +289,7 @@ const ProduksiLkhRekapController = {
       const rekap_operator = [];
       for (const [, opEntry] of operatorMap.entries()) {
         const { rekap_mesin: rm, rekap_kendala: rk } = hitungRekap(
-          opEntry.rows
+          opEntry.rows,
         );
         rekap_operator.push({
           id_operator: opEntry.id_operator,
@@ -361,6 +363,81 @@ const ProduksiLkhRekapController = {
         order: [["tgl_mulai", "ASC"]],
       });
 
+      // ========================================
+      // ambil id_jo dari tahapan yang namanya mengandung "cetak"
+      // ========================================
+      const idJoCetak = dataProduksiLkhTahapan
+        .filter((item) =>
+          (item.tahapan?.nama_tahapan || "").toLowerCase().includes("cetak"),
+        )
+        .map((item) => item.jo?.id)
+        .filter((id) => id != null);
+
+      // get data untuk tahapan cetak dari tambah bahan persiapan dan pemakaian
+      const tambahBahanPersiapan = idJoCetak.length
+        ? await TambahBahanPersiapan.findAll({
+            where: {
+              id_jo: { [Op.in]: idJoCetak },
+              status: "done",
+              status_tiket: "history",
+            },
+            attributes: [
+              "id",
+              "id_jo",
+              "status",
+              "status_tiket",
+              "qty_pakai_tambah_bahan_druk",
+            ],
+          })
+        : [];
+
+      const tambahBahanPemakaian = idJoCetak.length
+        ? await TambahBahanPemakaian.findAll({
+            where: {
+              id_jo: { [Op.in]: idJoCetak },
+              status: "approve gudang",
+              status_tiket: "history",
+            },
+            attributes: [
+              "id",
+              "id_jo",
+              "status",
+              "status_tiket",
+              "qty_tambah_bahan_druk",
+            ],
+          })
+        : [];
+
+      // ========================================
+      // gabungkan jadi map: id_jo -> { total, detail_persiapan, detail_pemakaian }
+      // ========================================
+      const tambahBahanDrukMap = {};
+
+      const ensureEntry = (idJo) => {
+        if (!tambahBahanDrukMap[idJo]) {
+          tambahBahanDrukMap[idJo] = {
+            total: 0,
+            persiapan: [],
+            pemakaian: [],
+          };
+        }
+        return tambahBahanDrukMap[idJo];
+      };
+
+      tambahBahanPersiapan.forEach((item) => {
+        const plainItem = item.toJSON ? item.toJSON() : item;
+        const entry = ensureEntry(plainItem.id_jo);
+        entry.total += plainItem.qty_pakai_tambah_bahan_druk || 0;
+        entry.persiapan.push(plainItem);
+      });
+
+      tambahBahanPemakaian.forEach((item) => {
+        const plainItem = item.toJSON ? item.toJSON() : item;
+        const entry = ensureEntry(plainItem.id_jo);
+        entry.total += plainItem.qty_tambah_bahan_druk || 0;
+        entry.pemakaian.push(plainItem);
+      });
+
       const now = new Date();
 
       // daftar keyword nama_tahapan untuk aturan target & konversi
@@ -403,13 +480,32 @@ const ProduksiLkhRekapController = {
         // ========================================
         const totalBaikSendiri = (plain.produksi_lkh_proses || []).reduce(
           (sum, p) => sum + (p.baik || 0),
-          0
+          0,
         );
         const totalRusakSebagianSendiri = (
           plain.produksi_lkh_proses || []
         ).reduce((sum, p) => sum + (p.rusak_sebagian || 0), 0);
 
         let totalQtyProduksi = totalBaikSendiri + totalRusakSebagianSendiri;
+
+        // ========================================
+        // untuk tahapan "cetak": tambahkan qty dari tambah bahan druk
+        // (persiapan + pemakaian) sebelum konversi
+        // ========================================
+        if (namaTahapan.includes("cetak")) {
+          const idJo = plain.jo?.id;
+          const tambahBahanDruk = tambahBahanDrukMap[idJo] || {
+            total: 0,
+            persiapan: [],
+            pemakaian: [],
+          };
+
+          totalQtyProduksi += tambahBahanDruk.total;
+
+          plain.tambah_bahan_persiapan = tambahBahanDruk.persiapan;
+          plain.tambah_bahan_pemakaian = tambahBahanDruk.pemakaian;
+          plain.total_qty_tambah_bahan_druk = tambahBahanDruk.total;
+        }
 
         if (containsKeyword(namaTahapan, TAHAPAN_KONVERSI_PRODUKSI)) {
           totalQtyProduksi = totalQtyProduksi * totalUkuranCetakIsi;
