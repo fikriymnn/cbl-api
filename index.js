@@ -382,6 +382,7 @@ const PerubahanInvoiceProduk = require("./model/akunting/perubahanInvoice/peruba
 const IncomingBarangJadi = require("./model/finishGood/incomingBarangJadiModel");
 const GudangFinishGood = require("./model/finishGood/gudangFinishGoodModel");
 const MutasiBarangFinishGood = require("./model/finishGood/mutasiBarangFinishGoodModel");
+const AdjustStock = require("./model/finishGood/adjustStockModel");
 
 //Purchasing
 const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurchaseModel");
@@ -415,7 +416,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await ProduksiLkhTahapan.sync({
+//   await AdjustStock.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

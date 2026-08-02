@@ -210,7 +210,7 @@ const IncomingBarangJadiService = {
           toleransi_pengiriman: dataCustomer?.toleransi_pengiriman || null,
           note: dataSo?.note || null,
         },
-        { transaction: t }
+        { transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -244,7 +244,7 @@ const IncomingBarangJadiService = {
       }
 
       const dataJoDone = await JobOrderDone.findByPk(
-        dataIncomingBarangJadi.id_jo_done
+        dataIncomingBarangJadi.id_jo_done,
       );
       if (!dataJoDone) {
         return {
@@ -260,7 +260,7 @@ const IncomingBarangJadiService = {
           status_ticket: "history",
           id_user: id_user,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       await JobOrderDone.update(
@@ -270,7 +270,7 @@ const IncomingBarangJadiService = {
           status_proses: "reject fg",
           qty_kirim: dataJoDone.qty_kirim - dataIncomingBarangJadi.jumlah_qty,
         },
-        { where: { id: dataJoDone.id }, transaction: t }
+        { where: { id: dataJoDone.id }, transaction: t },
       );
 
       await InspeksiFinal.update(
@@ -278,7 +278,7 @@ const IncomingBarangJadiService = {
         {
           where: { id: dataIncomingBarangJadi.id_final_inspeksi },
           transaction: t,
-        }
+        },
       );
       if (!transaction) await t.commit();
       return {
@@ -317,7 +317,7 @@ const IncomingBarangJadiService = {
           status_ticket: "history",
           id_user: id_user,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
 
       const createGudangFG =
@@ -369,7 +369,7 @@ const IncomingBarangJadiService = {
         {
           where: { id: dataIncomingBarangJadi.id_final_inspeksi },
           transaction: t,
-        }
+        },
       );
 
       if (!transaction) await t.commit();
