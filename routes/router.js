@@ -351,6 +351,7 @@ router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
 router.use("/", require("./finishGood/incomingBarangJadiRoute"));
 router.use("/", require("./finishGood/gudangFinishGoodRoute"));
 router.use("/", require("./finishGood/mutasiBarangFinishGoodRoute"));
+router.use("/", require("./finishGood/adjustStockRoute"));
 
 //master Vendor
 router.use("/", require("./masterdata/marketing/masterVendorRoute"));

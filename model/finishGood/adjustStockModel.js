@@ -1,20 +1,26 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../config/database");
+const GudangFinishGood = require("./gudangFinishGoodModel");
 const JoModel = require("../ppic/jobOrder/jobOrderModel");
 const IoModel = require("../marketing/io/ioModel");
 const SoModel = require("../marketing/so/soModel");
 const MasterCustomer = require("../masterData/marketing/masterCustomerModel");
-const JoDoneModel = require("../produksi/produksiJoDoneModel");
 const MasterProduk = require("../masterData/marketing/masterProdukModel");
-const MasterTahapan = require("../masterData/tahapan/masterTahapanModel");
-const MasterMesinTahapan = require("../masterData/tahapan/masterMesinTahapanModel");
 const Users = require("../userModel");
 
 const { DataTypes } = Sequelize;
 
-const MutasiBarangFinishGood = db.define(
-  "mutasi_barang_finish_good",
+const AdjustStock = db.define(
+  "adjust_stock",
   {
+    id_gudang_finish_good: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: GudangFinishGood,
+        key: "id",
+      },
+    },
     id_jo: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -87,31 +93,26 @@ const MutasiBarangFinishGood = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    jumlah_qty: {
+    po_qty: {
       type: DataTypes.FLOAT,
       allowNull: true,
     },
-    //type mutasi untuk keluar dan masuk
-    type_mutasi: {
-      type: DataTypes.STRING,
+    jumlah_qty_awal: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
-    //type mutasi keluar untuk traking tipe kiriman ke do (single, group)
-    type_mutasi_keluar: {
-      type: DataTypes.STRING,
+    jumlah_qty_adjust: {
+      type: DataTypes.FLOAT,
       allowNull: true,
     },
-    //type main jo mutasi keluar untuk traking jo utama jika type_mutasi_keluar group
-    main_jo_mutasi_keluar: {
-      type: DataTypes.STRING,
+    tgl_adjust: {
+      type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: Sequelize.NOW,
     },
-
-    //untuk mengetahui sumber mutasi barang finish good (adjust stock, normal (alur masuk keluar biasa), opname, bap)
-    sumber_mutasi: {
+    status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "normal",
     },
     note: {
       type: DataTypes.STRING,
@@ -128,56 +129,65 @@ const MutasiBarangFinishGood = db.define(
   },
 );
 
-JoModel.hasMany(MutasiBarangFinishGood, {
-  foreignKey: "id_jo",
-  as: "mutasi_barang_finish_good",
+GudangFinishGood.hasMany(AdjustStock, {
+  foreignKey: "id_gudang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(JoModel, {
+AdjustStock.belongsTo(GudangFinishGood, {
+  foreignKey: "id_gudang_finish_good",
+  as: "gudang_finish_good",
+});
+
+JoModel.hasMany(AdjustStock, {
+  foreignKey: "id_jo",
+  as: "adjust_stock",
+});
+AdjustStock.belongsTo(JoModel, {
   foreignKey: "id_jo",
   as: "jo",
 });
 
-IoModel.hasMany(MutasiBarangFinishGood, {
+IoModel.hasMany(AdjustStock, {
   foreignKey: "id_io",
-  as: "mutasi_barang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(IoModel, {
+AdjustStock.belongsTo(IoModel, {
   foreignKey: "id_io",
   as: "io",
 });
 
-SoModel.hasOne(MutasiBarangFinishGood, {
+SoModel.hasOne(AdjustStock, {
   foreignKey: "id_so",
-  as: "mutasi_barang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(SoModel, {
+AdjustStock.belongsTo(SoModel, {
   foreignKey: "id_so",
   as: "so",
 });
-MasterCustomer.hasMany(MutasiBarangFinishGood, {
+MasterCustomer.hasMany(AdjustStock, {
   foreignKey: "id_customer",
-  as: "mutasi_barang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(MasterCustomer, {
+AdjustStock.belongsTo(MasterCustomer, {
   foreignKey: "id_customer",
   as: "detail_customer",
 });
 
-MasterProduk.hasMany(MutasiBarangFinishGood, {
+MasterProduk.hasMany(AdjustStock, {
   foreignKey: "id_produk",
-  as: "mutasi_barang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(MasterProduk, {
+AdjustStock.belongsTo(MasterProduk, {
   foreignKey: "id_produk",
   as: "detail_produk",
 });
 
-Users.hasMany(MutasiBarangFinishGood, {
+Users.hasMany(AdjustStock, {
   foreignKey: "id_user",
-  as: "mutasi_barang_finish_good",
+  as: "adjust_stock",
 });
-MutasiBarangFinishGood.belongsTo(Users, {
+AdjustStock.belongsTo(Users, {
   foreignKey: "id_user",
   as: "user",
 });
-module.exports = MutasiBarangFinishGood;
+module.exports = AdjustStock;

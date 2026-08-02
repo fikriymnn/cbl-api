@@ -255,6 +255,8 @@ const MutasiBarangFinishGoodService = {
     type_mutasi,
     type_mutasi_keluar = null,
     main_jo_mutasi_keluar = null,
+    sumber_mutasi = "normal",
+    note = null,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -326,6 +328,8 @@ const MutasiBarangFinishGoodService = {
           type_mutasi: type_mutasi,
           type_mutasi_keluar: type_mutasi_keluar,
           main_jo_mutasi_keluar: main_jo_mutasi_keluar,
+          sumber_mutasi: sumber_mutasi,
+          note: note || null,
         },
         { transaction: t },
       );
