@@ -190,7 +190,7 @@ const OkpController = {
           // extract nomor urut pada format OK00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_okp, 5), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_okp, 5), '/', 1) AS UNSIGNED)`
             ),
             "DESC",
           ],
@@ -266,7 +266,7 @@ const OkpController = {
       if (status_okp == "repeat perubahan") {
         // cek kalkulasi sebelumnya
         const previousKalkulasi = await Kalkulasi.findByPk(
-          checkKalkulasi.id_kalkulasi_previous,
+          checkKalkulasi.id_kalkulasi_previous
         );
         // if (!previousKalkulasi)
         //   return res.status(404).json({
@@ -302,7 +302,7 @@ const OkpController = {
             tahapan: tahapan,
             label: checkKalkulasi.label,
           },
-          { transaction: t },
+          { transaction: t }
         );
         await OkpProses.create({ id_okp: response.id }, { transaction: t });
         await OkpActionUser.create(
@@ -311,7 +311,7 @@ const OkpController = {
             id_user: req.user.id,
             status: "create",
           },
-          { transaction: t },
+          { transaction: t }
         );
         //update kalkulasi untuk id okp dan no okp
         await Kalkulasi.update(
@@ -321,7 +321,7 @@ const OkpController = {
             is_io_active: false,
             is_okp_done: true,
           },
-          { where: { id: id_kalkulasi }, transaction: t },
+          { where: { id: id_kalkulasi }, transaction: t }
         );
 
         await t.commit();
@@ -355,7 +355,7 @@ const OkpController = {
             label: checkKalkulasi.label,
             is_new_okp: true,
           },
-          { transaction: t },
+          { transaction: t }
         );
         await OkpProses.create({ id_okp: response.id }, { transaction: t });
         await OkpActionUser.create(
@@ -364,7 +364,7 @@ const OkpController = {
             id_user: req.user.id,
             status: "create",
           },
-          { transaction: t },
+          { transaction: t }
         );
 
         //update kalkulasi untuk id okp dan no okp
@@ -375,7 +375,7 @@ const OkpController = {
             is_io_active: false,
             is_okp_done: true,
           },
-          { where: { id: id_kalkulasi }, transaction: t },
+          { where: { id: id_kalkulasi }, transaction: t }
         );
         await t.commit();
         return res.status(200).json({
@@ -390,6 +390,55 @@ const OkpController = {
       return res
         .status(400)
         .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+  updateNoOkp: async (req, res) => {
+    const _id = req.params.id;
+    const { no_okp, produk } = req.body;
+    const t = await db.transaction();
+
+    try {
+      let obj = {};
+
+      if (no_okp) obj.no_okp = no_okp;
+      if (produk) obj.produk = produk;
+      const checkData = await Okp.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await Okp.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
+
+      if (no_okp) {
+        await Kalkulasi.update(
+          { no_okp },
+          { where: { id_okp: checkData.id }, transaction: t }
+        );
+      }
+      const StatusAction =
+        no_okp && produk
+          ? "update no okp dan produk"
+          : no_okp
+          ? "update no okp"
+          : "update produk";
+      await OkpActionUser.create(
+        { id_okp: checkData.id, id_user: req.user.id, status: StatusAction },
+        { transaction: t }
+      );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
@@ -449,12 +498,12 @@ const OkpController = {
       });
       await OkpActionUser.create(
         { id_okp: checkData.id, id_user: req.user.id, status: "update" },
-        { transaction: t },
+        { transaction: t }
       );
-      (await t.commit(),
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -491,7 +540,7 @@ const OkpController = {
       if (checkKalkulasi.status_kalkulasi == "repeat perubahan") {
         // cek kalkulasi sebelumnya
         const previousKalkulasi = await Kalkulasi.findByPk(
-          checkKalkulasi.id_kalkulasi_previous,
+          checkKalkulasi.id_kalkulasi_previous
         );
         if (previousKalkulasi) {
           const checkOkpPrevious = await Okp.findByPk(previousKalkulasi.id_okp);
@@ -506,7 +555,7 @@ const OkpController = {
           no_okp: null,
           status_proses: "cancel okp",
         },
-        { transaction: t, where: { id: checkData.id_kalkulasi } },
+        { transaction: t, where: { id: checkData.id_kalkulasi } }
       );
 
       // update okp menggunakan kalkulasi baru
@@ -523,7 +572,7 @@ const OkpController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
 
       //update kalkulasi untuk id okp dan no okp yang baru
@@ -534,7 +583,7 @@ const OkpController = {
           is_io_active: false,
           is_okp_done: true,
         },
-        { where: { id: id_kalkulasi }, transaction: t },
+        { where: { id: id_kalkulasi }, transaction: t }
       );
       await OkpActionUser.create(
         {
@@ -542,7 +591,7 @@ const OkpController = {
           id_user: req.user.id,
           status: "update kalkulasi okp",
         },
-        { transaction: t },
+        { transaction: t }
       );
       await t.commit();
       res
@@ -624,7 +673,7 @@ const OkpController = {
           msg: "Bagian tidak cocok dengan backend",
         });
       }
-      (await OkpProses.update(objProses, {
+      await OkpProses.update(objProses, {
         where: { id: _id },
         transaction: t,
       }),
@@ -635,7 +684,7 @@ const OkpController = {
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Action Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Action Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -715,7 +764,7 @@ const OkpController = {
       }
 
       //update reject proses
-      (await OkpProses.update(objProses, {
+      await OkpProses.update(objProses, {
         where: { id: _id },
         transaction: t,
       }),
@@ -724,16 +773,16 @@ const OkpController = {
           {
             id_okp: checkData.id_okp,
           },
-          { transaction: t },
-        ));
-      (await Okp.update(obj, {
+          { transaction: t }
+        );
+      await Okp.update(obj, {
         where: { id: checkData.id_okp },
         transaction: t,
       }),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Reject Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Reject Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -758,7 +807,7 @@ const OkpController = {
 
       // cek kalkulasi sebelumnya
       const previousKalkulasi = await Kalkulasi.findByPk(
-        checkKalkulasi.id_kalkulasi_previous,
+        checkKalkulasi.id_kalkulasi_previous
       );
 
       if (previousKalkulasi && previousKalkulasi.id_okp) {
@@ -772,12 +821,12 @@ const OkpController = {
             {
               where: { id: checkOkpPrevious.id, is_active: true },
               transaction: t,
-            },
+            }
           );
         }
       }
 
-      (await Okp.update(
+      await Okp.update(
         {
           status: "history",
           status_proses: "done",
@@ -788,16 +837,16 @@ const OkpController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await OkpActionUser.create(
           { id_okp: checkData.id, id_user: req.user.id, status: "approve" },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -825,7 +874,7 @@ const OkpController = {
           msg: "Data tidak ditemukan",
         });
 
-      (await Okp.update(
+      await Okp.update(
         {
           status_proses: "reject kabag",
           posisi_proses: "customer",
@@ -834,7 +883,7 @@ const OkpController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         //   //setelah reject proses pengajuan tanggal di reject juga
         //   await OkpProses.update(
@@ -862,12 +911,12 @@ const OkpController = {
             id_user: req.user.id,
             status: "kabag reject",
           },
-          { transaction: t },
-        ));
-      (await t.commit(),
+          { transaction: t }
+        );
+      await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" }));
+          .json({ succes: true, status_code: 200, msg: "reject Successful" });
     } catch (error) {
       await t.rollback();
       res
@@ -902,13 +951,13 @@ const OkpController = {
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       );
       await Kalkulasi.update(
         {
           status_proses: "cancel okp",
         },
-        { where: { id: checkData.id_kalkulasi }, transaction: t },
+        { where: { id: checkData.id_kalkulasi }, transaction: t }
       );
       await OkpActionUser.create(
         {
@@ -916,7 +965,7 @@ const OkpController = {
           id_user: req.user.id,
           status: "cancel okp",
         },
-        { transaction: t },
+        { transaction: t }
       );
       await t.commit();
       res
@@ -941,17 +990,17 @@ const OkpController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      (await Okp.update(
+      await Okp.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        },
+        }
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
     } catch (error) {
       await t.rollback();
       res

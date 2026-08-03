@@ -6,15 +6,16 @@ router.get("/marketing/okp/:id?", auth, OkpController.getOkp);
 router.get("/marketing/okpJumlahData", auth, OkpController.getOkpJumlahData);
 router.post("/marketing/okp", auth, OkpController.createOkp);
 router.put("/marketing/okp/:id", auth, OkpController.updateOkp);
+router.put("/marketing/noOkpUpdate/:id", auth, OkpController.updateNoOkp);
 router.put(
   "/marketing/okp/proses/action/:id",
   auth,
-  OkpController.actionProsesTanggalOkp,
+  OkpController.actionProsesTanggalOkp
 );
 router.put(
   "/marketing/okp/proses/reject/:id",
   auth,
-  OkpController.rejectProsesTanggalOkp,
+  OkpController.rejectProsesTanggalOkp
 );
 router.put("/marketing/okp/approve/:id", auth, OkpController.approveOkp);
 router.put("/marketing/okp/reject/:id", auth, OkpController.rejectOkp);
@@ -22,7 +23,7 @@ router.put("/marketing/okp/cancel/:id", auth, OkpController.cancelOkp);
 router.put(
   "/marketing/okp/updateKalkulasi/:id",
   auth,
-  OkpController.updateKalkulasiOkp,
+  OkpController.updateKalkulasiOkp
 );
 router.delete("/marketing/okp/:id", auth, OkpController.deleteOkp);
 

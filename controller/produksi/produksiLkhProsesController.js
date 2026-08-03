@@ -678,6 +678,44 @@ const ProduksiLkhProsesController = {
     }
   },
 
+  updateProduksiLkhProses: async (req, res) => {
+    const _id = req.params.id;
+    const { baik, rusak_sebagian, rusak_total, pallet, note } = req.body;
+    const t = await db.transaction();
+    try {
+      const checkData = await ProduksiLkhProses.findByPk(_id, {});
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+
+      await ProduksiLkhProses.update(
+        {
+          baik: baik,
+          rusak_sebagian: rusak_sebagian,
+          rusak_total: rusak_total,
+          pallet: pallet,
+          note: note,
+        },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
+        await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "update Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: true, status_code: 400, msg: error.message });
+    }
+  },
+
   approveSpvProduksiLkhProses: async (req, res) => {
     const _id = req.params.id;
     const { produksi_lkh_proses, produksi_lkh_waste } = req.body;
