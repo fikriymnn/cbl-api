@@ -545,7 +545,9 @@ const hitungLemburBaru = ({
   // MINGGUAN
   // ------------------------------------------------------------
   else if (tipePenggajianKaryawan === "mingguan") {
+    const sabtuShift1 = isSabtu && shift === "Shift 1";
     if (!isLiburHari) {
+      const jamMulaiDapatUangMakanLembur = sabtuShift1 ? 10.5 : 3.5;
       // --- Lembur biasa ---
       rincian.push({
         label: "uangLembur",
@@ -555,7 +557,7 @@ const hitungLemburBaru = ({
       });
       total += jamLembur * uangLemburBiasa;
 
-      if (jamLembur >= 3.5) {
+      if (jamLembur >= jamMulaiDapatUangMakanLembur) {
         rincian.push({
           label: "uangMakanLembur",
           jumlah: 1,
