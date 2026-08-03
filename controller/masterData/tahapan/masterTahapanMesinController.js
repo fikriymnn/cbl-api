@@ -202,10 +202,13 @@ const MastertahapanMesinController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MastertahapanMesin.destroy({
-        where: { id: _id },
-        transaction: t,
-      }),
+      await MastertahapanMesin.update(
+        { is_active: false },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
         await t.commit(),
         res
           .status(200)
