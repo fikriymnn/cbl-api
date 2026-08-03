@@ -840,7 +840,8 @@ const hitungPayroll = async (
         absen.status_absen != "cuti tahunan" &&
         absen.status_absen != "cuti khusus" &&
         absen.status_absen != "izin" &&
-        absen.status_absen != "sakit"
+        absen.status_absen != "sakit" &&
+        absen.status_absen != "Mangkir"
       ) {
         payroll.rincian.push({
           label: "uangHadir",
