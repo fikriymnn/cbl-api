@@ -5,30 +5,36 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/produksi/lkhProses",
   auth,
-  ProduksiLkhProsesController.getProduksiLkhProses,
+  ProduksiLkhProsesController.getProduksiLkhProses
 );
 
 router.get(
   "/produksi/kendalaByJo",
   auth,
-  ProduksiLkhProsesController.getKendalaByJO,
+  ProduksiLkhProsesController.getKendalaByJO
+);
+
+router.put(
+  "/produksi/lkhProses/update/:id",
+  auth,
+  ProduksiLkhProsesController.updateProduksiLkhProses
 );
 
 router.put(
   "/produksi/lkhProses/start",
   auth,
-  ProduksiLkhProsesController.startProduksiLkhProses,
+  ProduksiLkhProsesController.startProduksiLkhProses
 );
 router.put(
   "/produksi/lkhProses/stop/:id",
   auth,
-  ProduksiLkhProsesController.stopProduksiLkhProses,
+  ProduksiLkhProsesController.stopProduksiLkhProses
 );
 
 router.put(
   "/produksi/lkhProses/approveSpv/:id",
   auth,
-  ProduksiLkhProsesController.approveSpvProduksiLkhProses,
+  ProduksiLkhProsesController.approveSpvProduksiLkhProses
 );
 
 module.exports = router;

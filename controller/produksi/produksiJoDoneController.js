@@ -69,6 +69,23 @@ const ProduksiJoDoneController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  updateProduksiJoDone: async (req, res) => {
+    const _id = req.params.id;
+    const { qty_kirim } = req.body;
+
+    try {
+      const kirimData = await ProduksiJoDoneService.updateProduksiJoDoneService(
+        {
+          id: _id,
+          qty_kirim: qty_kirim,
+        }
+      );
+      return res.status(200).json(kirimData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = ProduksiJoDoneController;

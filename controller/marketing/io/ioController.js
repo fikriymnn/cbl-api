@@ -701,6 +701,56 @@ const IoController = {
     }
   },
 
+  updateNoIo: async (req, res) => {
+    const _id = req.params.id;
+    const { no_io, produk } = req.body;
+    const t = await db.transaction();
+
+    try {
+      let obj = {};
+
+      if (no_io) obj.no_io = no_io;
+      if (produk) obj.produk = produk;
+      const checkData = await Io.findByPk(_id);
+      if (!checkData)
+        return res.status(404).json({
+          succes: false,
+          status_code: 404,
+          msg: "Data tidak ditemukan",
+        });
+      await Io.update(obj, {
+        where: { id: _id },
+        transaction: t,
+      });
+
+      if (no_io) {
+        await Kalkulasi.update(
+          { no_io },
+          { where: { id_io: checkData.id }, transaction: t }
+        );
+      }
+      const StatusAction =
+        no_io && produk
+          ? "update no io dan produk"
+          : no_io
+          ? "update no io"
+          : "update produk";
+      await IoUserAction.create(
+        { id_io: checkData.id, id_user: req.user.id, status: StatusAction },
+        { transaction: t }
+      );
+      await t.commit(),
+        res
+          .status(200)
+          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   updateIo: async (req, res) => {
     const _id = req.params.id;
     const { id_okp, no_io, is_revisi, revisi_no_io, status_io } = req.body;

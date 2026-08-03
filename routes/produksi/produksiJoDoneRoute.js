@@ -8,6 +8,11 @@ router.get(
   ProduksiJoDoneController.getProduksiJoDone
 );
 router.put(
+  "/produksi/joDone/:id?",
+  auth,
+  ProduksiJoDoneController.updateProduksiJoDone
+);
+router.put(
   "/produksi/joDone/kirim/:id",
   auth,
   ProduksiJoDoneController.KirimProduksiJoDone

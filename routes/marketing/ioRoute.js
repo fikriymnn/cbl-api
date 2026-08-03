@@ -8,9 +8,10 @@ router.get("/marketing/ioSendProofJo", auth, IoController.getSendProofForJo);
 router.get(
   "/marketing/ioPreviousByOkp/:id",
   auth,
-  IoController.getIoDataPrevious,
+  IoController.getIoDataPrevious
 );
 router.post("/marketing/io", auth, IoController.createIo);
+router.put("/marketing/noIoUpdate/:id", auth, IoController.updateNoIo);
 router.put("/marketing/io/:id", auth, IoController.updateIo);
 router.put("/marketing/io/request/:id", auth, IoController.submitRequestIo);
 router.put("/marketing/io/approve/:id", auth, IoController.approveIo);
@@ -21,7 +22,7 @@ router.put("/marketing/io/mounting/:id", auth, IoController.updateMountingIo);
 router.delete(
   "/marketing/io/mounting/:id",
   auth,
-  IoController.deleteMountingIo,
+  IoController.deleteMountingIo
 );
 router.put("/marketing/io/doneManual/:id", auth, IoController.doneManualIo);
 router.delete("/marketing/io/:id", auth, IoController.deleteIo);
