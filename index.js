@@ -383,6 +383,8 @@ const IncomingBarangJadi = require("./model/finishGood/incomingBarangJadiModel")
 const GudangFinishGood = require("./model/finishGood/gudangFinishGoodModel");
 const MutasiBarangFinishGood = require("./model/finishGood/mutasiBarangFinishGoodModel");
 const AdjustStock = require("./model/finishGood/adjustStockModel");
+const Bap = require("./model/finishGood/bap/bapModel");
+const BapItem = require("./model/finishGood/bap/bapItemModel");
 
 //Purchasing
 const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurchaseModel");
@@ -416,7 +418,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await AdjustStock.sync({
+//   await BapItem.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
@@ -474,7 +476,7 @@ app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
   res.header(
     "Access-Control-Allow-Headers",
-    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept",
+    "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
   );
   next();
 });
@@ -495,7 +497,7 @@ app.use(
   cors({
     credentials: true,
     origin: true,
-  }),
+  })
 );
 
 app.use(bodyParser.urlencoded({ extended: true }));
