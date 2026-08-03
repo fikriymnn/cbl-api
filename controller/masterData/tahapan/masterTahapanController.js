@@ -19,6 +19,7 @@ const MasterTahapanController = {
           ],
         };
       }
+      obj.is_active = true;
       if (is_active) obj.is_active = is_active;
       if (page && limit) {
         const length = await MasterTahapan.count({ where: obj });
@@ -128,10 +129,13 @@ const MasterTahapanController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterTahapan.destroy({
-        where: { id: _id },
-        transaction: t,
-      }),
+      await MasterTahapan.update(
+        { is_active: false },
+        {
+          where: { id: _id },
+          transaction: t,
+        }
+      ),
         await t.commit(),
         res
           .status(200)
