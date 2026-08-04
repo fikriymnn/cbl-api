@@ -222,8 +222,6 @@ const karyawanController = {
                 {
                   model: HistoriPromosi,
                   as: "histori_promosi",
-                  required: false,
-                  where: { status: "approved" },
                 },
                 {
                   model: MasterStatusKaryawan,
