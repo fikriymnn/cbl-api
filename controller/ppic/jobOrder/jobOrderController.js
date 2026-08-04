@@ -62,6 +62,8 @@ const BomController = {
       obj.is_open_label = is_open_label === "true" ? true : false;
     }
 
+    obj.is_active = true;
+
     // Jika ada filter tanggal, order by tgl_kirim, jika tidak order by createdAt
     const orderField = start_date && end_date ? "tgl_kirim" : "createdAt";
     const orderDirection = sort === "oldest" ? "ASC" : "DESC";
