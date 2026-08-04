@@ -220,6 +220,7 @@ const karyawanController = {
               model: PengajuanPromosi,
               as: "promosi_karyawan",
               where: { status: "approved" },
+              required: false,
             },
           ],
         });
