@@ -21,6 +21,7 @@ const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusK
 const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
 const HistoriPromosi = require("../../../model/hr/pengajuanPromosi/pengajuanPromosiHistoryModel");
 const PengajuanCuti = require("../../../model/hr/pengajuanCuti/pengajuanCutiModel");
+const PengajuanPromosi = require("../../../model/hr/pengajuanPromosi/pengajuanPromosiModel");
 const PengajuanIzin = require("../../../model/hr/pengajuanIzin/pengajuanIzinModel");
 const PengajuanLembur = require("../../../model/hr/pengajuanLembur/pengajuanLemburModel");
 const PengajuanMangkir = require("../../../model/hr/pengajuanMangkir/pengajuanMangkirModel");
@@ -64,10 +65,10 @@ const karyawanController = {
     if (id_department) obj2.id_department = id_department;
     if (divisi_bawahan) obj.id_divisi = { [Op.in]: divisi_bawahan };
 
-    try {
-      const startToday = new Date().setHours(0, 0, 0, 0);
-      const endToday = new Date().setHours(23, 59, 59, 999);
+    const startToday = new Date().setHours(0, 0, 0, 0);
+    const endToday = new Date().setHours(23, 59, 59, 999);
 
+    try {
       const karyawanBiodata = await KaryawanBiodata.findAll({
         where: obj,
       });
@@ -121,49 +122,6 @@ const karyawanController = {
                   as: "grade",
                 },
               ],
-            },
-            {
-              model: PinjamanKaryawan,
-              as: "pinjaman_karyawan",
-              where: {
-                status_pinjaman: "belum lunas",
-              },
-              required: false,
-            },
-            {
-              model: DataSP,
-              as: "sp_karyawan",
-              required: false,
-              where: {
-                status: "approved",
-
-                [Op.or]: [
-                  {
-                    dari: {
-                      [Op.between]: [startToday, endToday],
-                    },
-                  }, // `from` berada dalam rentang
-                  {
-                    sampai: {
-                      [Op.between]: [startToday, endToday],
-                    },
-                  }, // `to` berada dalam rentang
-                  {
-                    [Op.and]: [
-                      {
-                        dari: {
-                          [Op.lte]: startToday,
-                        },
-                      }, // Rentang cuti mencakup startDate
-                      {
-                        sampai: {
-                          [Op.gte]: endToday,
-                        },
-                      }, // Rentang cuti mencakup endDate
-                    ],
-                  },
-                ],
-              },
             },
           ],
           offset,
@@ -219,10 +177,7 @@ const karyawanController = {
                     },
                   ],
                 },
-                {
-                  model: HistoriPromosi,
-                  as: "histori_promosi",
-                },
+
                 {
                   model: MasterStatusKaryawan,
                   as: "status",
@@ -252,6 +207,19 @@ const karyawanController = {
                   as: "grade",
                 },
               ],
+            },
+            {
+              model: PinjamanKaryawan,
+              as: "pinjaman_karyawan",
+              where: {
+                status_pinjaman: "belum lunas",
+              },
+              required: false,
+            },
+            {
+              model: PengajuanPromosi,
+              as: "promosi_karyawan",
+              where: { status: "approved" },
             },
           ],
         });
@@ -387,50 +355,50 @@ const karyawanController = {
                 },
               ],
             },
-            {
-              model: PinjamanKaryawan,
-              as: "pinjaman_karyawan",
-              where: {
-                status_pinjaman: "belum lunas",
-              },
-              required: false,
-            },
+            // {
+            //   model: PinjamanKaryawan,
+            //   as: "pinjaman_karyawan",
+            //   where: {
+            //     status_pinjaman: "belum lunas",
+            //   },
+            //   required: false,
+            // },
 
-            {
-              model: DataSP,
-              as: "sp_karyawan",
-              required: false,
-              where: {
-                status: "approved",
+            // {
+            //   model: DataSP,
+            //   as: "sp_karyawan",
+            //   required: false,
+            //   where: {
+            //     status: "approved",
 
-                [Op.or]: [
-                  {
-                    dari: {
-                      [Op.between]: [startToday, endToday],
-                    },
-                  }, // `from` berada dalam rentang
-                  {
-                    sampai: {
-                      [Op.between]: [startToday, endToday],
-                    },
-                  }, // `to` berada dalam rentang
-                  {
-                    [Op.and]: [
-                      {
-                        dari: {
-                          [Op.lte]: startToday,
-                        },
-                      }, // Rentang cuti mencakup startDate
-                      {
-                        sampai: {
-                          [Op.gte]: endToday,
-                        },
-                      }, // Rentang cuti mencakup endDate
-                    ],
-                  },
-                ],
-              },
-            },
+            //     [Op.or]: [
+            //       {
+            //         dari: {
+            //           [Op.between]: [startToday, endToday],
+            //         },
+            //       }, // `from` berada dalam rentang
+            //       {
+            //         sampai: {
+            //           [Op.between]: [startToday, endToday],
+            //         },
+            //       }, // `to` berada dalam rentang
+            //       {
+            //         [Op.and]: [
+            //           {
+            //             dari: {
+            //               [Op.lte]: startToday,
+            //             },
+            //           }, // Rentang cuti mencakup startDate
+            //           {
+            //             sampai: {
+            //               [Op.gte]: endToday,
+            //             },
+            //           }, // Rentang cuti mencakup endDate
+            //         ],
+            //       },
+            //     ],
+            //   },
+            // },
           ],
           where: {
             userid: {
