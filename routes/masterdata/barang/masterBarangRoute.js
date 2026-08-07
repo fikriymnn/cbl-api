@@ -35,4 +35,10 @@ router.put(
   MasterBarangController.updateHargaKertas,
 );
 
+router.put(
+  "/master/updateHargaKertasSatuan",
+  auth,
+  MasterBarangController.updateHargaKertasSatuan,
+);
+
 module.exports = router;

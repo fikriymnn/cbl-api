@@ -7,7 +7,7 @@ const db = require("../../../config/database");
 const MasterBarangController = {
   getMasterBarang: async (req, res) => {
     const _id = req.params.id;
-    const { is_active, page, limit, search, kategori, sub_kategori } =
+    const { is_active, id_brand, page, limit, search, kategori, sub_kategori } =
       req.query;
 
     try {
@@ -26,6 +26,7 @@ const MasterBarangController = {
         };
       }
       if (kategori) obj.kategori = kategori;
+      if (id_brand) obj.id_brand = id_brand;
       if (sub_kategori) obj.sub_kategori = sub_kategori;
       obj.is_active = true;
       if (is_active) obj.is_active = is_active;
@@ -102,20 +103,20 @@ const MasterBarangController = {
     const { id_brand, gramatur_from, gramatur_to } = req.query;
 
     try {
-      if (!id_brand || !gramatur_from || !gramatur_to) {
+      let obj = {};
+      if (!id_brand) {
         return res.status(400).json({
           succes: false,
           status_code: 400,
-          msg: "id_brand, gramatur_from, and gramatur_to are required query parameters",
+          msg: "id_brand are required query parameters",
         });
       }
+
+      if (id_brand) obj.id_brand = id_brand;
+      if (gramatur_from && gramatur_to)
+        obj.gramatur = { [Op.between]: [gramatur_from, gramatur_to] };
       const data = await MasterBarang.findAll({
-        where: {
-          id_brand: id_brand,
-          gramatur: {
-            [Op.between]: [gramatur_from, gramatur_to],
-          },
-        },
+        where: obj,
         include: [
           {
             model: MasterBrand,
@@ -377,6 +378,49 @@ const MasterBarangController = {
           transaction: t,
         },
       );
+
+      await t.commit();
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "Update Successful",
+      });
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  updateHargaKertasSatuan: async (req, res) => {
+    const { data_barang } = req.body;
+    const t = await db.transaction();
+
+    try {
+      if (
+        !data_barang ||
+        !Array.isArray(data_barang) ||
+        data_barang.length === 0
+      ) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "data_barang is required and must be a non-empty array",
+        });
+      }
+
+      for (const item of data_barang) {
+        const { id, harga, persentase } = item;
+
+        await MasterBarang.update(
+          { persentase: persentase, harga: harga },
+          {
+            where: { id: id },
+            transaction: t,
+          },
+        );
+      }
 
       await t.commit();
       return res.status(200).json({
