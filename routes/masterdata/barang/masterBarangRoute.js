@@ -7,19 +7,32 @@ router.post("/master/barang", auth, MasterBarangController.createMasterBarang);
 router.put(
   "/master/barang/:id",
   auth,
-  MasterBarangController.updateMasterBarang
+  MasterBarangController.updateMasterBarang,
 );
 router.delete(
   "/master/barang/:id",
   auth,
-  MasterBarangController.deleteMasterBarang
+  MasterBarangController.deleteMasterBarang,
 );
 
 //get jenios kertas
 router.get(
   "/master/jenisKertasBarang",
   auth,
-  MasterBarangController.getJenisKertas
+  MasterBarangController.getJenisKertas,
+);
+
+//get Barang by gramature
+router.get(
+  "/master/barangByGramature",
+  auth,
+  MasterBarangController.getMasterBarangByGramature,
+);
+
+router.put(
+  "/master/updateHargaKertas",
+  auth,
+  MasterBarangController.updateHargaKertas,
 );
 
 module.exports = router;

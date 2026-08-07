@@ -98,6 +98,43 @@ const MasterBarangController = {
     }
   },
 
+  getMasterBarangByGramature: async (req, res) => {
+    const { id_brand, gramatur_from, gramatur_to } = req.query;
+
+    try {
+      if (!id_brand || !gramatur_from || !gramatur_to) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "id_brand, gramatur_from, and gramatur_to are required query parameters",
+        });
+      }
+      const data = await MasterBarang.findAll({
+        where: {
+          id_brand: id_brand,
+          gramatur: {
+            [Op.between]: [gramatur_from, gramatur_to],
+          },
+        },
+        include: [
+          {
+            model: MasterBrand,
+            as: "brand",
+          },
+        ],
+      });
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: data,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createMasterBarang: async (req, res) => {
     const {
       id_brand,
@@ -202,7 +239,7 @@ const MasterBarangController = {
           keterangan: keterangan || null,
           is_include_tax: is_include_tax || false,
         },
-        { transaction: t }
+        { transaction: t },
       );
       await t.commit();
       return res.status(200).json({
@@ -304,10 +341,49 @@ const MasterBarangController = {
         where: { id: _id },
         transaction: t,
       });
-      await t.commit(),
+      (await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Update Successful" });
+          .json({ succes: true, status_code: 200, msg: "Update Successful" }));
+    } catch (error) {
+      await t.rollback();
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  updateHargaKertas: async (req, res) => {
+    const { id_brand, gramatur_from, gramatur_to, harga } = req.body;
+    const t = await db.transaction();
+
+    try {
+      if (!id_brand || !gramatur_from || !gramatur_to) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "id_brand, gramatur_from, and gramatur_to are required query parameters",
+        });
+      }
+      const data = await MasterBarang.update(
+        { harga: harga },
+        {
+          where: {
+            id_brand: id_brand,
+            gramatur: {
+              [Op.between]: [gramatur_from, gramatur_to],
+            },
+          },
+          transaction: t,
+        },
+      );
+
+      await t.commit();
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        msg: "Update Successful",
+      });
     } catch (error) {
       await t.rollback();
       res
@@ -327,17 +403,17 @@ const MasterBarangController = {
           status_code: 404,
           msg: "Data tidak ditemukan",
         });
-      await MasterBarang.update(
+      (await MasterBarang.update(
         { is_active: false },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Delete Successful" });
+          .json({ succes: true, status_code: 200, msg: "Delete Successful" }));
     } catch (error) {
       res
         .status(400)
