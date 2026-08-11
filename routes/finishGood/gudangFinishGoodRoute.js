@@ -5,31 +5,37 @@ const { auth } = require("../../middlewares/authMiddlewares");
 router.get(
   "/fg/gudangFinishGood/:id?",
   auth,
-  GudangFinishGood.getGudangFinishGood,
+  GudangFinishGood.getGudangFinishGood
 );
 
 router.get(
   "/fg/gudangFinishGoodByIo",
   auth,
-  GudangFinishGood.getGudangFinishGoodByIo,
+  GudangFinishGood.getGudangFinishGoodByIo
+);
+
+router.get(
+  "/fg/gudangFinishGoodByIdIo",
+  auth,
+  GudangFinishGood.getGudangFinishGoodByIdIo
 );
 
 router.get(
   "/fg/gudangFinishGoodByJo",
   auth,
-  GudangFinishGood.getGudangFinishGoodByJo,
+  GudangFinishGood.getGudangFinishGoodByJo
 );
 
 router.post(
   "/fg/gudangFinishGood/sendDo/single",
   auth,
-  GudangFinishGood.sendDoGudangFinishGoodSingle,
+  GudangFinishGood.sendDoGudangFinishGoodSingle
 );
 
 router.post(
   "/fg/gudangFinishGood/sendDo/group",
   auth,
-  GudangFinishGood.sendDoGudangFinishGoodGroup,
+  GudangFinishGood.sendDoGudangFinishGoodGroup
 );
 
 //untuk keperluan booking
@@ -37,19 +43,19 @@ router.post(
 router.get(
   "/fg/getJoNormalBookingFG/:id?",
   auth,
-  GudangFinishGood.getJoBookingNormalFG,
+  GudangFinishGood.getJoBookingNormalFG
 );
 
 router.get(
   "/fg/getJoKanbanBookingFG/:id?",
   auth,
-  GudangFinishGood.getJoBookingKanbanFG,
+  GudangFinishGood.getJoBookingKanbanFG
 );
 
 router.post(
   "/fg/gudangFinishGood/bookingJo",
   auth,
-  GudangFinishGood.bookingDoGudangFinishGood,
+  GudangFinishGood.bookingDoGudangFinishGood
 );
 
 module.exports = router;

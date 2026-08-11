@@ -2,6 +2,7 @@ const db = require("../../../../config/database");
 const { Op, Sequelize } = require("sequelize");
 const AdjustStock = require("../../../../model/finishGood/adjustStockModel");
 const GudangFinishGood = require("../../../../model/finishGood/gudangFinishGoodModel");
+const Users = require("../../../../model/userModel");
 const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
 const IoModel = require("../../../../model/marketing/io/ioModel");
 const SoModel = require("../../../../model/marketing/so/soModel");
@@ -61,6 +62,13 @@ const AdjustStockService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: Users,
+              as: "user",
+              attributes: ["id", "nama", "email"],
+            },
+          ],
         });
         return {
           status: 200,
@@ -115,7 +123,7 @@ const AdjustStockService = {
     try {
       // cek data gudang fg, sisa data (jo, io, so, customer, produk, dll) diambil dari sini
       const dataGudangFg = await GudangFinishGood.findByPk(
-        id_gudang_finish_good,
+        id_gudang_finish_good
       );
       if (!dataGudangFg) {
         if (!transaction) await t.rollback();
@@ -153,7 +161,7 @@ const AdjustStockService = {
           status: status,
           note: note || null,
         },
-        { transaction: t },
+        { transaction: t }
       );
 
       const qtyMutasiBarang =
@@ -193,7 +201,7 @@ const AdjustStockService = {
         {
           where: { id: dataGudangFg.id },
           transaction: t,
-        },
+        }
       );
 
       if (!transaction) await t.commit();
@@ -250,7 +258,7 @@ const AdjustStockService = {
           status: status,
           note: note !== undefined ? note : dataAdjustStock.note,
         },
-        { where: { id: id }, transaction: t },
+        { where: { id: id }, transaction: t }
       );
 
       if (!transaction) await t.commit();

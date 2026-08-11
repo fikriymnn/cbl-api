@@ -24,6 +24,14 @@ const BAP = db.define(
       allowNull: true,
       defaultValue: Sequelize.NOW,
     },
+    file_before: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    file_after: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

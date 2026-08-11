@@ -15,6 +15,7 @@ const GudangFinishGoodController = {
       id_so,
       id_customer,
       id_produk,
+      status,
     } = req.query;
 
     try {
@@ -30,6 +31,7 @@ const GudangFinishGoodController = {
         id_so: id_so,
         id_customer: id_customer,
         id_produk: id_produk,
+        status: status,
       });
       return res.status(200).json(getData);
     } catch (error) {
@@ -39,7 +41,7 @@ const GudangFinishGoodController = {
 
   getGudangFinishGoodByIo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search } = req.query;
+    const { page, limit, start_date, end_date, search, status } = req.query;
 
     try {
       const getData =
@@ -50,7 +52,25 @@ const GudangFinishGoodController = {
           start_date: start_date,
           end_date: end_date,
           search: search,
+          status: status,
         });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getGudangFinishGoodByIdIo: async (req, res) => {
+    const { id_io } = req.query;
+
+    try {
+      if (!id_io)
+        return res
+          .status(404)
+          .json({ status_code: 404, success: false, msg: "id_io wajib" });
+      const getData = await GudangFinishGoodService.getGudangFinishGoodByIdIo({
+        id_io: id_io,
+      });
       return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -59,7 +79,8 @@ const GudangFinishGoodController = {
 
   getGudangFinishGoodByJo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, id_io } = req.query;
+    const { page, limit, start_date, end_date, search, id_io, status } =
+      req.query;
 
     try {
       const getData =
@@ -71,6 +92,7 @@ const GudangFinishGoodController = {
           end_date: end_date,
           search: search,
           id_io: id_io,
+          status: status,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -101,7 +123,7 @@ const GudangFinishGoodController = {
         {
           data_barang: data_barang,
           id_user: req.user.id,
-        },
+        }
       );
       return res.status(200).json(getData);
     } catch (error) {
@@ -138,7 +160,7 @@ const GudangFinishGoodController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
-        },
+        }
       );
       return res.status(200).json(getData);
     } catch (error) {
@@ -175,7 +197,7 @@ const GudangFinishGoodController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
-        },
+        }
       );
       return res.status(200).json(getData);
     } catch (error) {
