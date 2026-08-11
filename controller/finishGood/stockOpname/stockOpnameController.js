@@ -1,4 +1,4 @@
-const StockOpnameService = require("./service/StockOpnameService");
+const StockOpnameService = require("./service/stockOpnameService");
 
 const StockOpnameController = {
   getStockOpname: async (req, res) => {
