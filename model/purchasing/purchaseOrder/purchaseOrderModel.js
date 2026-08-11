@@ -125,6 +125,10 @@ const PurchaseOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    purchase_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

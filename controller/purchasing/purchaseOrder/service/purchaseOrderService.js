@@ -203,6 +203,7 @@ const PurchaseOrderService = {
     discount = 0,
     note_internal,
     note_supplier,
+    purchase_name,
     items = [],
     request_purchase_data = [],
     transaction = null,
@@ -247,6 +248,7 @@ const PurchaseOrderService = {
           id_brand: item.id_brand || null,
           nama_item: item.nama_item || null,
           nama_brand: item.nama_brand || null,
+          purchase_name: purchase_name || null,
           qty: item.qty || 0,
           qty_beli,
           tipe_barang: item.tipe_barang || null,
@@ -320,6 +322,7 @@ const PurchaseOrderService = {
     discount,
     note_internal,
     note_supplier,
+    purchase_name,
     items = [],
     transaction = null,
   }) => {
@@ -408,6 +411,7 @@ const PurchaseOrderService = {
           total,
           note_internal: note_internal ?? dataPo.note_internal,
           note_supplier: note_supplier ?? dataPo.note_supplier,
+          purchase_name: purchase_name ?? dataPo.purchase_name,
         },
         { where: { id }, transaction: t }
       );

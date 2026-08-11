@@ -78,6 +78,14 @@ const BAPItem = db.define(
         key: "id",
       },
     },
+    id_user_approve_marketing: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     id_user_approve: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -230,6 +238,14 @@ BAPItem.belongsTo(Users, {
   as: "user_create",
 });
 
+Users.hasMany(BAPItem, {
+  foreignKey: "id_user_approve_marketing",
+  as: "bap_item_approve_marketing",
+});
+BAPItem.belongsTo(Users, {
+  foreignKey: "id_user_approve_marketing",
+  as: "user_approve_marketing",
+});
 Users.hasMany(BAPItem, {
   foreignKey: "id_user_approve",
   as: "bap_item_approve",

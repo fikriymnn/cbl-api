@@ -3,6 +3,8 @@ const { Op } = require("sequelize");
 const BAP = require("../../../../model/finishGood/bap/bapModel");
 const BAPItem = require("../../../../model/finishGood/bap/bapItemModel");
 const GudangFinishGood = require("../../../../model/finishGood/gudangFinishGoodModel");
+const SoModel = require("../../../../model/marketing/so/soModel");
+const KalkulasiModel = require("../../../../model/marketing/kalkulasi/kalkulasiModel");
 const MutasiBarangFinishGoodService = require("../../mutasiBarangFinishGood/service/mutasiBarangFinishGoodService");
 const Users = require("../../../../model/userModel");
 
@@ -42,6 +44,18 @@ const BapService = {
               model: BAPItem,
               as: "bap_item",
               include: [
+                {
+                  model: SoModel,
+                  as: "so",
+                  attributes: ["id", "harga_jual"],
+                  include: [
+                    {
+                      model: KalkulasiModel,
+                      as: "kalkulasi",
+                      attributes: ["id", "id_marketing"],
+                    },
+                  ],
+                },
                 { model: Users, as: "user_create" },
                 { model: Users, as: "user_approve" },
                 { model: Users, as: "user_reject" },
@@ -256,27 +270,32 @@ const BapService = {
     }
   },
 
-  doneBapService: async ({ id }) => {
+  approveMarketingBapItemService: async ({ id, note, id_user }) => {
     const t = await db.transaction();
 
     try {
-      const dataBap = await BAP.findByPk(id, { transaction: t });
-      if (!dataBap) {
+      const dataBapItem = await BAPItem.findByPk(id, { transaction: t });
+      if (!dataBapItem) {
         await t.rollback();
         return {
           status_code: 404,
           success: false,
-          message: "Data BAP Tidak Ditemukan",
+          message: "Data BAP Item Tidak Ditemukan",
         };
       }
 
-      await BAP.update(
-        { status: "history" },
+      await BAPItem.update(
+        {
+          status: "approve marketing",
+          note: note || null,
+          tgl_respon: new Date(),
+          id_user_approve_marketing: id_user,
+        },
         { where: { id }, transaction: t }
       );
 
       await t.commit();
-      return { status_code: 200, success: true, message: "bap done success" };
+      return { status_code: 200, success: true, message: "approve success" };
     } catch (error) {
       await t.rollback();
       throw { success: false, message: error.message };
@@ -301,7 +320,6 @@ const BapService = {
         {
           status: "approve",
           note: note || null,
-          tgl_respon: new Date(),
           id_user_approve: id_user,
         },
         { where: { id }, transaction: t }
@@ -381,6 +399,63 @@ const BapService = {
 
       await t.commit();
       return { status_code: 200, success: true, message: "reject success" };
+    } catch (error) {
+      await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+  doneBapService: async ({ id }) => {
+    const t = await db.transaction();
+
+    try {
+      const dataBap = await BAP.findByPk(id, { transaction: t });
+      if (!dataBap) {
+        await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data BAP Tidak Ditemukan",
+        };
+      }
+
+      await BAP.update(
+        { status: "history" },
+        { where: { id }, transaction: t }
+      );
+
+      await t.commit();
+      return { status_code: 200, success: true, message: "bap done success" };
+    } catch (error) {
+      await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+
+  updateFileBapService: async ({ id, file_before, file_after }) => {
+    const t = await db.transaction();
+
+    try {
+      const dataBap = await BAP.findByPk(id, { transaction: t });
+      if (!dataBap) {
+        await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data BAP Tidak Ditemukan",
+        };
+      }
+
+      await BAP.update(
+        { file_before: file_before, file_after: file_after },
+        { where: { id }, transaction: t }
+      );
+
+      await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "bap update file success",
+      };
     } catch (error) {
       await t.rollback();
       throw { success: false, message: error.message };

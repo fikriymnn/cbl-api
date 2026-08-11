@@ -77,11 +77,16 @@ const BapController = {
     }
   },
 
-  doneBap: async (req, res) => {
+  approveMarketingBapItem: async (req, res) => {
     const _id = req.params.id;
+    const { note } = req.body;
 
     try {
-      const getData = await BapService.doneBapService({ id: _id });
+      const getData = await BapService.approveMarketingBapItemService({
+        id: _id,
+        note,
+        id_user: req.user.id,
+      });
       return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -113,6 +118,33 @@ const BapController = {
         id: _id,
         note,
         id_user: req.user.id,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  doneBap: async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+      const getData = await BapService.doneBapService({ id: _id });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  updateFileBap: async (req, res) => {
+    const _id = req.params.id;
+    const { file_before, file_after } = req.body;
+
+    try {
+      const getData = await BapService.updateFileBapService({
+        id: _id,
+        file_before: file_before,
+        file_after: file_after,
       });
       return res.status(200).json(getData);
     } catch (error) {
