@@ -527,8 +527,8 @@ const PurchaseOrderService = {
       await PurchaseOrder.update(
         {
           id_approve_finance,
-          status: "proses",
-          status_tiket: "proses",
+          status: "approve finance",
+          status_tiket: "history",
         },
         { where: { id }, transaction: t }
       );
