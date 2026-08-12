@@ -420,7 +420,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await StockOpnameItem.sync({
+//   await karyawanBiodata.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

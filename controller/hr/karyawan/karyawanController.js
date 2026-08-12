@@ -889,6 +889,7 @@ const karyawanController = {
       status_karyawan,
       status_pajak,
       level,
+      tahun_mulai_tmk,
       sub_level,
       gaji,
       kontrak_dari,
@@ -950,6 +951,7 @@ const karyawanController = {
           status_karyawan,
           status_pajak,
           level,
+          tahun_mulai_tmk,
           sub_level,
           sisa_cuti: jumlah_cuti,
           gaji,
@@ -1015,6 +1017,7 @@ const karyawanController = {
       status_karyawan,
       status_pajak,
       level,
+      tahun_mulai_tmk,
       sub_level,
       gaji,
       bagian_mesin,
@@ -1039,6 +1042,7 @@ const karyawanController = {
       if (status_karyawan) obj.status_karyawan = status_karyawan;
       if (status_pajak) obj.status_pajak = status_pajak;
       if (level) obj.level = level;
+      if (tahun_mulai_tmk) obj.tahun_mulai_tmk = tahun_mulai_tmk;
       if (sub_level) obj.sub_level = sub_level;
       if (gaji) obj.gaji = gaji;
       if (foto_karyawan) obj.foto_karyawan = foto_karyawan;
