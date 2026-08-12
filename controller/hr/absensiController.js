@@ -62,8 +62,10 @@ const AbsensiController = {
           true,
         );
 
-        const absenResultYesterdayShift2 = absenResultYesterday.filter(
-          (data) => data.shift == "Shift 2",
+        const absenResultYesterdayShift2OrIzin = absenResultYesterday.filter(
+          (data) =>
+            data.shift == "Shift 2" ||
+            data.status_absen?.toLowerCase().trim() === "izin",
         );
 
         const absenResult = await getAbsensiFunction(
@@ -72,11 +74,12 @@ const AbsensiController = {
           obj,
           true,
         );
+
         const aaa = absenResultYesterday.find((d) => d.userid == 44);
         const bbb = absenResult.find((d) => d.userid == 44);
 
         // Buat array userid yang shift 2 kemarin dan tidak hadir hari ini
-        const excludeUserIds = absenResultYesterdayShift2
+        const excludeUserIds = absenResultYesterdayShift2OrIzin
           .filter(
             (y) => !absenResult.some((today) => today.userid === y.userid),
           )
@@ -86,7 +89,7 @@ const AbsensiController = {
         const filteredToday = absenResult.filter((entry) => {
           const isBelumMasuk =
             entry.status_absen?.toLowerCase().trim() === "belum masuk";
-          const wasInShift2Yesterday = absenResultYesterdayShift2.some(
+          const wasInShift2Yesterday = absenResultYesterdayShift2OrIzin.some(
             (y) => String(y.userid) === String(entry.userid),
           );
           // Jika belum masuk dan kemarin shift 2, hapus (return false)
