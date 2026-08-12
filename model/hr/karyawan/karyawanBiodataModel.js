@@ -106,6 +106,10 @@ const KaryawanBiodataModel = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tahun_mulai_tmk: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     level: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -154,7 +158,7 @@ const KaryawanBiodataModel = db.define(
   },
   {
     freezeTableName: true,
-  },
+  }
 );
 
 //relasi karyawan
