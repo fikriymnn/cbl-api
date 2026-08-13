@@ -11,7 +11,7 @@ router.get("/fg/bapItem/:id?", auth, BapController.getBapItem);
 router.put(
   "/fg/bapItemMarketing/approve/:id",
   auth,
-  BapController.approveBapItem
+  BapController.approveMarketingBapItem,
 );
 router.put("/fg/bapItem/approve/:id", auth, BapController.approveBapItem);
 router.put("/fg/bapItem/reject/:id", auth, BapController.rejectBapItem);
