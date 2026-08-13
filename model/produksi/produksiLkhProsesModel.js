@@ -228,6 +228,15 @@ ProduksiLkhProses.belongsTo(produksiLkhTahapan, {
   as: "produksi_lkh_tahapan",
 });
 
+produksiLkhTahapan.hasMany(ProduksiLkhProses, {
+  foreignKey: "id_produksi_lkh_tahapan",
+  as: "produksi_lkh_proses_last",
+});
+ProduksiLkhProses.belongsTo(produksiLkhTahapan, {
+  foreignKey: "id_produksi_lkh_tahapan",
+  as: "produksi_lkh_tahapan_last",
+});
+
 MasterTahapan.hasMany(ProduksiLkhProses, {
   foreignKey: "id_tahapan",
   as: "produksi_lkh_proses_tahapan",

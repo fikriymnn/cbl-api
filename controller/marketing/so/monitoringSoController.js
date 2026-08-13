@@ -209,10 +209,31 @@ const MonitoringSoController = {
                   { model: Users, as: "operator" },
                 ],
               },
+              {
+                model: ProduksiLkhProses,
+                as: "produksi_lkh_proses_last",
+                attributes: [
+                  "id",
+                  "id_mesin",
+                  "id_tahapan",
+                  "id_operator",
+                  "kode",
+                  "deskripsi",
+                  "proses",
+                  "waktu_mulai",
+                  "baik",
+                  "rusak_sebagian",
+                  "rusak_total",
+                ],
+                limit: 1,
+                separate: true,
+                order: [["createdAt", "ASC"]],
+              },
             ],
           },
         ],
       });
+      console.log(1);
 
       // ─── Konversi ke plain object ─────────────────────────────────────────────
       data = data.map((item) => item.toJSON());
