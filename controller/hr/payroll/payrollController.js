@@ -974,7 +974,11 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
   const hasilLamaKerja = hitungTahunDari(dataKaryawan.tahun_mulai_tmk);
 
   const lamaKerja =
-    hasilLamaKerja == null || Number.isNaN(hasilLamaKerja) ? 0 : hasilLamaKerja;
+    dataKaryawan.tahun_mulai_tmk == null ||
+    dataKaryawan.tahun_mulai_tmk == "" ||
+    dataKaryawan.tahun_mulai_tmk == undefinedup
+      ? 0
+      : hasilLamaKerja;
 
   let summaryPayroll = {
     nama_karyawan: dataKaryawan.karyawan.name,
