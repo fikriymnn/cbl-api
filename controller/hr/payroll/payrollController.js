@@ -976,7 +976,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
   const lamaKerja =
     dataKaryawan.tahun_mulai_tmk == null ||
     dataKaryawan.tahun_mulai_tmk == "" ||
-    dataKaryawan.tahun_mulai_tmk == undefinedup
+    dataKaryawan.tahun_mulai_tmk == undefined
       ? 0
       : hasilLamaKerja;
 
