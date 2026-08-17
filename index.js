@@ -399,6 +399,11 @@ const TambahBahanPersiapanDefect = require("./model/gudangRM/tambahBahanPersiapa
 const TambahBahanPemakaian = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPemakaianDefect = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
 
+//estimasi kurang qty
+const EstimasiKurangQtyQc = require("./model/qc/estimasiKurangQty/estimasiKurangQtyModel");
+const EstimasiKurangQtyPpic = require("./model/ppic/estimasiKurangQty/estimasiKurangQtyModel");
+const EstimasiKurangQtyProduksi = require("./model/produksi/estimasiKurangQtyModel");
+
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
 const MasterRole = require("./model/masterData/menu/masterRoleModel");
@@ -420,7 +425,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await karyawanBiodata.sync({
+//   await EstimasiKurangQtyProduksi.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

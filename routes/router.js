@@ -372,6 +372,11 @@ router.use(
   require("./gudangRM/tambahBahanPemakaian/tambahBahanPemakaianRoute"),
 );
 
+//estimasi lurang qty
+router.use("/", require("./qc/estimasiKurangQty/estimasiKurangQtyRoute"));
+router.use("/", require("./ppic/estimasiKurangQty/estimasiKurangQtyRoute"));
+router.use("/", require("./produksi/estimasiKurangQtyRoute"));
+
 //menu
 router.use("/", require("./masterdata/menu/masterMenuRoute"));
 router.use("/", require("./masterdata/menu/masterRoleMenuRoute"));
