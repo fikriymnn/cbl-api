@@ -27,6 +27,7 @@ const GudangFinishGoodService = {
     id_customer,
     id_produk,
     status,
+    is_more_than_90_days = false,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -52,6 +53,13 @@ const GudangFinishGoodService = {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.createdAt = { [Op.between]: [startDate, endDate] };
+    }
+
+    if (is_more_than_90_days) {
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setHours(0, 0, 0, 0);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
     }
 
     obj.is_active = true;
@@ -123,6 +131,7 @@ const GudangFinishGoodService = {
     end_date,
     search,
     status,
+    is_more_than_90_days = false,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let whereObj = {};
@@ -144,6 +153,12 @@ const GudangFinishGoodService = {
     }
 
     if (status) whereObj.status = status;
+    if (is_more_than_90_days) {
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setHours(0, 0, 0, 0);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
+    }
 
     whereObj.is_active = true;
 
@@ -200,7 +215,7 @@ const GudangFinishGoodService = {
         ...new Set(
           detailData
             .map((d) => d.id_jo_booking)
-            .filter((id) => id !== null && id !== undefined)
+            .filter((id) => id !== null && id !== undefined),
         ),
       ];
 
@@ -272,6 +287,7 @@ const GudangFinishGoodService = {
     search,
     id_io,
     status,
+    is_more_than_90_day = false,
   }) => {
     let whereObj = {
       is_active: true,
@@ -294,6 +310,12 @@ const GudangFinishGoodService = {
 
     if (id_io) whereObj.id_io = id_io;
     if (status) whereObj.status = status;
+    if (is_more_than_90_days) {
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setHours(0, 0, 0, 0);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
+    }
     whereObj.is_active = true;
 
     const usePagination = page && limit;
@@ -359,7 +381,7 @@ const GudangFinishGoodService = {
         ...new Set(
           groupedData
             .map((g) => g.id_jo_booking)
-            .filter((id) => id !== null && id !== undefined)
+            .filter((id) => id !== null && id !== undefined),
         ),
       ];
 
@@ -553,7 +575,7 @@ const GudangFinishGoodService = {
           tgl_masuk: new Date(),
           status: "keep",
         },
-        { transaction: t }
+        { transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -584,7 +606,7 @@ const GudangFinishGoodService = {
         {
           jumlah_qty: jumlah_qty,
         },
-        { where: { id: id }, transaction: t }
+        { where: { id: id }, transaction: t },
       );
       if (!transaction) await t.commit();
       return {
@@ -649,7 +671,7 @@ const GudangFinishGoodService = {
               type_mutasi: "keluar",
               type_mutasi_keluar: "single",
               transaction: t,
-            }
+            },
           );
 
         if (createMutasiBarang.success === false) {
@@ -667,7 +689,7 @@ const GudangFinishGoodService = {
             jumlah_qty_keluar: getDatabarang.jumlah_qty_keluar + e.jumlah_kirim,
             is_active: false,
           },
-          { where: { id: e.id }, transaction: t }
+          { where: { id: e.id }, transaction: t },
         );
 
         if (getDatabarang.jumlah_qty - e.jumlah_kirim > 0) {
@@ -692,7 +714,7 @@ const GudangFinishGoodService = {
               toleransi_pengiriman: getDatabarang.toleransi_pengiriman,
               note: getDatabarang.note,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }
@@ -724,7 +746,7 @@ const GudangFinishGoodService = {
         };
       }
       const mainJo = data_barang.find(
-        (item) => item.is_main_jo == true || item.is_main_jo === "true"
+        (item) => item.is_main_jo == true || item.is_main_jo === "true",
       );
 
       const getDatabarangMain = await GudangFinishGood.findByPk(mainJo.id);
@@ -765,7 +787,7 @@ const GudangFinishGoodService = {
               type_mutasi_keluar: "group",
               main_jo_mutasi_keluar: getDatabarangMain.no_jo,
               transaction: t,
-            }
+            },
           );
 
         if (createMutasiBarang.success === false) {
@@ -783,7 +805,7 @@ const GudangFinishGoodService = {
             jumlah_qty_keluar: getDatabarang.jumlah_qty_keluar + e.jumlah_kirim,
             is_active: false,
           },
-          { where: { id: e.id }, transaction: t }
+          { where: { id: e.id }, transaction: t },
         );
         if (getDatabarang.jumlah_qty - e.jumlah_kirim > 0) {
           await GudangFinishGood.create(
@@ -807,7 +829,7 @@ const GudangFinishGoodService = {
               toleransi_pengiriman: getDatabarang.toleransi_pengiriman,
               note: getDatabarang.note,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }
@@ -1029,7 +1051,7 @@ const GudangFinishGoodService = {
       const dataJo = await JobOrder.findByPk(id_jo_booking);
       await JobOrder.update(
         { is_booking_done: true },
-        { where: { id: id_jo_booking }, transaction: t }
+        { where: { id: id_jo_booking }, transaction: t },
       );
       for (let i = 0; i < data_barang.length; i++) {
         const e = data_barang[i];
@@ -1050,14 +1072,14 @@ const GudangFinishGoodService = {
                   ? dataJo.no_so
                   : getDataBarang.no_so,
             },
-            { where: { id: e.id }, transaction: t }
+            { where: { id: e.id }, transaction: t },
           );
         } else {
           await GudangFinishGood.update(
             {
               jumlah_qty: getDataBarang.jumlah_qty - e.jumlah_qty,
             },
-            { where: { id: e.id }, transaction: t }
+            { where: { id: e.id }, transaction: t },
           );
 
           await GudangFinishGood.create(
@@ -1089,7 +1111,7 @@ const GudangFinishGoodService = {
               toleransi_pengiriman: getDataBarang.toleransi_pengiriman,
               note: getDataBarang.note,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }
