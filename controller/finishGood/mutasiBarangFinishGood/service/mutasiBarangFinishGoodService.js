@@ -23,6 +23,8 @@ const MutasiBarangFinishGoodService = {
     id_so,
     id_customer,
     id_produk,
+    sumber_mutasi,
+    type_mutasi,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -42,6 +44,8 @@ const MutasiBarangFinishGoodService = {
     if (id_so) obj.id_so = id_so;
     if (id_customer) obj.id_customer = id_customer;
     if (id_produk) obj.id_produk = id_produk;
+    if (sumber_mutasi) obj.sumber_mutasi = sumber_mutasi;
+    if (type_mutasi) obj.type_mutasi = type_mutasi;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -115,6 +119,8 @@ const MutasiBarangFinishGoodService = {
     start_date,
     end_date,
     search,
+    sumber_mutasi,
+    type_mutasi,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let whereObj = {};
@@ -136,6 +142,10 @@ const MutasiBarangFinishGoodService = {
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       whereObj.createdAt = { [Op.between]: [startDate, endDate] };
     }
+
+    if (sumber_mutasi) whereObj.sumber_mutasi = sumber_mutasi;
+
+    if (type_mutasi) whereObj.type_mutasi = type_mutasi;
 
     try {
       // Hitung total distinct id_jo untuk pagination
@@ -257,6 +267,7 @@ const MutasiBarangFinishGoodService = {
     main_jo_mutasi_keluar = null,
     sumber_mutasi = "normal",
     note = null,
+    tgl_mutasi = null,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -329,6 +340,7 @@ const MutasiBarangFinishGoodService = {
           type_mutasi_keluar: type_mutasi_keluar,
           main_jo_mutasi_keluar: main_jo_mutasi_keluar,
           sumber_mutasi: sumber_mutasi,
+          tgl_mutasi: tgl_mutasi || new Date(),
           note: note || null,
         },
         { transaction: t },

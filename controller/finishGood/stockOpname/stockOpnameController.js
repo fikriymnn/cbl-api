@@ -98,10 +98,13 @@ const StockOpnameController = {
 
   approveStockOpname: async (req, res) => {
     const _id = req.params.id;
+    const { tgl_mutasi } = req.body;
 
     try {
       const getData = await StockOpnameService.approveStockOpnameService({
         id: _id,
+        id_user: req.user.id,
+        tgl_mutasi: tgl_mutasi || new Date(),
       });
       return res.status(200).json(getData);
     } catch (error) {
