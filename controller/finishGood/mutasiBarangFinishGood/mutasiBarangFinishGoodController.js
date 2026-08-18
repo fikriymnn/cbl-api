@@ -15,6 +15,8 @@ const MutasiBarangFinishGoodController = {
       id_so,
       id_customer,
       id_produk,
+      sumber_mutasi,
+      type_mutasi,
     } = req.query;
 
     try {
@@ -31,6 +33,8 @@ const MutasiBarangFinishGoodController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
+          sumber_mutasi: sumber_mutasi,
+          type_mutasi: type_mutasi,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -40,7 +44,15 @@ const MutasiBarangFinishGoodController = {
 
   getMutasiBarangFinishGoodByJo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search } = req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      sumber_mutasi,
+      type_mutasi,
+    } = req.query;
 
     try {
       const getData =
@@ -51,6 +63,8 @@ const MutasiBarangFinishGoodController = {
           start_date: start_date,
           end_date: end_date,
           search: search,
+          sumber_mutasi: sumber_mutasi,
+          type_mutasi: type_mutasi,
         });
       return res.status(200).json(getData);
     } catch (error) {

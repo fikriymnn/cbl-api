@@ -41,7 +41,15 @@ const GudangFinishGoodController = {
 
   getGudangFinishGoodByIo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, status } = req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      status,
+      is_more_than_90_days,
+    } = req.query;
 
     try {
       const getData =
@@ -53,6 +61,7 @@ const GudangFinishGoodController = {
           end_date: end_date,
           search: search,
           status: status,
+          is_more_than_90_days: is_more_than_90_days === "true" ? true : false,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -123,7 +132,7 @@ const GudangFinishGoodController = {
         {
           data_barang: data_barang,
           id_user: req.user.id,
-        }
+        },
       );
       return res.status(200).json(getData);
     } catch (error) {
@@ -160,7 +169,7 @@ const GudangFinishGoodController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
-        }
+        },
       );
       return res.status(200).json(getData);
     } catch (error) {
@@ -197,7 +206,7 @@ const GudangFinishGoodController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
-        }
+        },
       );
       return res.status(200).json(getData);
     } catch (error) {

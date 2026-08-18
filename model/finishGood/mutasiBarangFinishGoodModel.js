@@ -117,6 +117,11 @@ const MutasiBarangFinishGood = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    tgl_mutasi: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: Sequelize.NOW,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

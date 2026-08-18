@@ -328,7 +328,7 @@ const StockOpnameService = {
     }
   },
 
-  approveStockOpnameService: async ({ id, id_user }) => {
+  approveStockOpnameService: async ({ id, id_user, tgl_mutasi }) => {
     const t = await db.transaction();
 
     try {
@@ -397,6 +397,7 @@ const StockOpnameService = {
               type_mutasi: item.type_opname === "kurang" ? "keluar" : "masuk",
               sumber_mutasi: "stock opname",
               note: item.note || null,
+              tgl_mutasi: tgl_mutasi || new Date(),
               transaction: t,
             },
           );
