@@ -14,6 +14,7 @@ const db = require("../../../config/database");
 const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPersiapan = require("../../../model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
+const EstimasiKurangQtyQc = require("../../../model/qc/estimasiKurangQty/estimasiKurangQtyModel");
 
 const MonitoringSoController = {
   getSoMonitoring: async (req, res) => {
@@ -172,6 +173,14 @@ const MonitoringSoController = {
                   "status_tiket",
                   "qty_pakai_tambah_bahan_druk",
                 ],
+              },
+              {
+                model: EstimasiKurangQtyQc,
+                as: "estimasi_kurang_qty_qc",
+                required: false,
+                where: {
+                  status: "approved",
+                },
               },
             ],
           },
