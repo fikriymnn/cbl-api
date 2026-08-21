@@ -63,9 +63,7 @@ const AbsensiController = {
         );
 
         const absenResultYesterdayShift2OrIzin = absenResultYesterday.filter(
-          (data) =>
-            data.shift == "Shift 2" ||
-            data.status_absen?.toLowerCase().trim() === "izin",
+          (data) => data.shift == "Shift 2",
         );
 
         const absenResult = await getAbsensiFunction(
