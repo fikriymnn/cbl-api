@@ -297,7 +297,10 @@ const EstimasiKurangQtyService = {
         await EstimasiKurangQtyProduksiService.createEstimasiKurangQtyService({
           id_produksi_lkh_tahapan: checkData.id_produksi_lkh_tahapan,
           qty_kurang_qty: checkData.qty_kurang_qty,
-          id_user: id_user,
+          id_user_request: checkData.id_request,
+          id_user_approve: checkData.id_approve,
+          tgl_request: checkData.tgl_request,
+          tgl_approve: checkData.tgl_approve,
           transaction: t,
         });
 

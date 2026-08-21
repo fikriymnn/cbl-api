@@ -44,7 +44,8 @@ const jadwalProduksiController = {
         end_date_cancel,
         type,
         is_send_again,
-        sort_cancel = "newest",
+        sort_cancel,
+        sort_tgl_kirim,
       } = req.query;
       const { id } = req.params;
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -72,9 +73,22 @@ const jadwalProduksiController = {
           ],
         };
       }
+      let orderCancelClause = null;
 
-      const orderCancelDirection = sort_cancel === "oldest" ? "ASC" : "DESC";
-      const orderCancelClause = [["tgl_cancel", orderCancelDirection]];
+      if (sort_cancel) {
+        const orderCancelDirection = sort_cancel === "oldest" ? "ASC" : "DESC";
+        orderCancelClause = [["tgl_cancel", orderCancelDirection]];
+      }
+
+      if (sort_tgl_kirim) {
+        const orderKirimDirection =
+          sort_tgl_kirim === "oldest" ? "ASC" : "DESC";
+        orderCancelClause = [["tgl_kirim_date", orderKirimDirection]];
+      }
+
+      if (!sort_cancel && !sort_tgl_kirim) {
+        orderCancelClause = [["createdAt", "DESC"]];
+      }
 
       if (start_date_cancel && end_date_cancel) {
         obj.tgl_cancel = {

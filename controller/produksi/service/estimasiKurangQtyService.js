@@ -137,7 +137,10 @@ const EstimasiKurangQtyService = {
   createEstimasiKurangQtyService: async ({
     id_produksi_lkh_tahapan,
     qty_kurang_qty,
-    id_user,
+    id_user_request,
+    id_user_approve,
+    tgl_request,
+    tgl_approve,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -165,7 +168,8 @@ const EstimasiKurangQtyService = {
           id_customer: dataLkhTahapan.id_customer,
           id_produk: dataLkhTahapan.id_produk,
           id_tahapan: dataLkhTahapan.id_tahapan,
-          id_request: id_user,
+          id_request: id_user_request,
+          id_approve: id_user_approve,
           no_jo: dataLkhTahapan.no_jo || null,
           no_io: dataLkhTahapan.no_io || null,
           no_so: dataLkhTahapan.no_so || null,
@@ -174,8 +178,9 @@ const EstimasiKurangQtyService = {
           qty_jo: dataLkhTahapan.qty_jo || null,
           qty_kurang_qty: qty_kurang_qty,
           spesifikasi: dataLkhTahapan.spesifikasi || null,
-          tgl_request: new Date(),
-          status: "requested",
+          tgl_request: tgl_request || new Date(),
+          tgl_approve: tgl_approve || new Date(),
+          status: "approved",
           is_active: true,
         },
         { transaction: t },
