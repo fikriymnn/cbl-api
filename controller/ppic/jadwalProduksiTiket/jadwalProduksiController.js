@@ -572,6 +572,24 @@ const jadwalProduksiController = {
         return formatter.format(date);
       };
 
+      // Helper: jam:menit sebagai angka HHMM, konsisten pakai zona Asia/Jakarta.
+      // Pakai ini kalau server TIDAK jalan dengan TZ=Asia/Jakarta - ganti semua
+      // pemakaian date.getHours()*100+date.getMinutes() di bawah dengan
+      // toHourMinuteJakarta(date) supaya jam selalu benar apapun timezone server.
+      const toHourMinuteJakarta = (date) => {
+        const options = {
+          timeZone: "Asia/Jakarta",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        };
+        const formatter = new Intl.DateTimeFormat("en-GB", options);
+        const parts = formatter.formatToParts(date);
+        const hour = parts.find((p) => p.type === "hour").value;
+        const minute = parts.find((p) => p.type === "minute").value;
+        return parseInt(hour) * 100 + parseInt(minute);
+      };
+
       // override global lewat query ?is_lembur=true (behavior lama: semua tanggal jadi lembur)
       const isLemburGlobal = is_lembur === true || is_lembur === "true";
 
@@ -610,22 +628,6 @@ const jadwalProduksiController = {
         });
       }
 
-      //console.log("uniqueMesinList", uniqueMesinList);
-      // console.log(
-      //   "stage.mesin per tahap:",
-      //   dataById.tahap.map((t) => `"${t.mesin}"`),
-      // );
-      // console.log(
-      //   "dataLembur raw",
-      //   dataLembur.map((r) => ({
-      //     mesin: r.mesin,
-      //     tanggal_lembur: r.tanggal_lembur,
-      //     tanggal_lembur_jakarta: toDateOnlyJakarta(new Date(r.tanggal_lembur)),
-      //     shift_1: r.shift_1,
-      //     shift_2: r.shift_2,
-      //   })),
-      // );
-
       // map: "mesin(lowercase)|YYYY-MM-DD" -> { shift_1, shift_2 }
       const lemburMap = {};
       dataLembur.forEach((row) => {
@@ -640,19 +642,6 @@ const jadwalProduksiController = {
         });
       });
 
-      // console.log("lemburMap", lemburMap);
-      // console.log("tgl_kirim tiket:", dataById.tgl_kirim);
-      // console.log(
-      //   "isLemburGlobal:",
-      //   isLemburGlobal,
-      //   "| is_lembur query:",
-      //   is_lembur,
-      // );
-      // console.log(
-      //   "tahap.from per tahap:",
-      //   dataById.tahap.map((t) => t.from),
-      // );
-
       // dipanggil per-mesin per-jam untuk cek apakah tanggal itu lembur
       const getLemburInfo = (mesin, date) => {
         if (isLemburGlobal) return { shift_1: true, shift_2: true };
@@ -660,12 +649,11 @@ const jadwalProduksiController = {
         const dateStr = toDateOnlyJakarta(date);
         const key = `${mesin.toLowerCase()}|${dateStr}`;
         const found = lemburMap[key];
-        //console.log("cek lembur", key, "->", found);
         return found || { shift_1: false, shift_2: false };
       };
 
       // jadwalLibur selalu di-set; override lembur ditangani per-tanggal
-      // di dalam isWithinShiftHours / isWithinShift1Hours lewat getLemburInfo
+      // di dalam isWithinShiftHours lewat getLemburInfo
       let jadwalLibur = [];
       dataJadwal.map((jadwal) => {
         const date = new Date(jadwal.tanggal);
@@ -692,79 +680,154 @@ const jadwalProduksiController = {
         return newDate;
       };
 
-      const isValidShiftTime = (date, jadwalLiburSet, dataShift, getLembur) => {
-        const dayOfWeek = date.getDay();
-        const isSaturday = dayOfWeek === 6;
-
-        if (isSaturday) {
-          return isWithinShift1Hours(
-            date,
-            jadwalLiburSet,
-            dataShift,
-            getLembur,
-          );
+      // Cek apakah jam saat ini masuk waktu istirahat (dibandingkan sebagai HHMM)
+      const isInIstirahat = (currentTime, istirahat) => {
+        if (!istirahat || istirahat.length === 0) return false;
+        for (const ist of istirahat) {
+          if (!ist.jam_mulai || !ist.jam_selesai) continue;
+          const start = parseInt(ist.jam_mulai.replace(":", ""));
+          const end = parseInt(ist.jam_selesai.replace(":", ""));
+          if (currentTime >= start && currentTime < end) return true;
         }
-
-        return isWithinShiftHours(date, jadwalLiburSet, dataShift, getLembur);
+        return false;
       };
 
-      const isWithinShift1Hours = (
+      // Senin(1) - Jumat(5) = hari yang normalnya punya shift 2.
+      // Sabtu(6) & Minggu(0) TIDAK punya shift 2 sendiri, kecuali lembur.
+      const dayNormallyHasShift2 = (dayOfWeek) =>
+        dayOfWeek >= 1 && dayOfWeek <= 5;
+
+      // Aturan lengkap:
+      // - Senin-Jumat  : shift 1 + shift 2 (shift 2 normal s/d 04:00, lembur s/d 07:00)
+      // - Sabtu        : shift 1 saja s/d jam 13:00. Kalau ada lembur di hari itu:
+      //                  shift 1 jadi 08:00-19:00, shift 2 jadi 20:00-07:00 (seperti weekday lembur)
+      // - Minggu       : libur total, kecuali ada lembur di hari itu
+      // - Shift 2 yang lintas tengah malam SELALU dicek carry-over ke hari
+      //   berikutnya terlebih dahulu, sebelum aturan libur/Minggu diterapkan,
+      //   supaya sisa shift semalam tidak ke-block oleh aturan hari ini.
+      const isWithinShiftHours = (
         date,
         jadwalLiburSet,
         dataShift,
         getLembur,
       ) => {
         const formattedDate = toDateOnlyJakarta(date);
+        const dayOfWeek = date.getDay(); // 0 = Minggu, 6 = Sabtu
+        const isSaturday = dayOfWeek === 6;
+        const isSunday = dayOfWeek === 0;
+
         const lembur = getLembur
           ? getLembur(date)
           : { shift_1: false, shift_2: false };
         const isLemburDay = lembur.shift_1 || lembur.shift_2;
 
-        if (jadwalLiburSet.has(formattedDate) && !isLemburDay) return false;
-
-        const dayOfWeek = date.getDay();
-        const isSaturday = dayOfWeek === 6;
         const currentTime = date.getHours() * 100 + date.getMinutes();
 
-        if (isSaturday && currentTime >= 1300 && !lembur.shift_1) return false;
+        // ---- Carryover shift 2 dari hari sebelumnya (lintas tengah malam) ----
+        const prevDate = new Date(date);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const prevDayOfWeek = prevDate.getDay();
+        const prevLembur = getLembur
+          ? getLembur(prevDate)
+          : { shift_1: false, shift_2: false };
+        const prevDayHasShift2 =
+          dayNormallyHasShift2(prevDayOfWeek) || prevLembur.shift_2;
 
-        for (const shift of dataShift) {
-          const shift1MasukStr = lembur.shift_1 ? "08:00" : shift.shift_1_masuk;
-          const shift1KeluarStr = lembur.shift_1
-            ? "19:00"
-            : shift.shift_1_keluar;
+        if (prevDayHasShift2) {
+          for (const shift of dataShift) {
+            const shift2MasukStr = prevLembur.shift_2
+              ? "20:00"
+              : shift.shift_2_masuk;
+            const shift2KeluarStr = prevLembur.shift_2
+              ? "07:00"
+              : shift.shift_2_keluar;
 
-          if (!shift1MasukStr || !shift1KeluarStr) continue;
+            if (shift2MasukStr && shift2KeluarStr) {
+              const shift2Start = parseInt(shift2MasukStr.replace(":", ""));
+              const shift2End = parseInt(shift2KeluarStr.replace(":", ""));
 
-          const shift1Start = parseInt(shift1MasukStr.replace(":", ""));
-          const shift1End = parseInt(shift1KeluarStr.replace(":", ""));
+              if (shift2Start > shift2End && currentTime < shift2End) {
+                if (isInIstirahat(currentTime, shift.istirahat)) return false;
+                return true;
+              }
+            }
+          }
+        }
 
-          if (shift1Start <= shift1End) {
-            if (currentTime >= shift1Start && currentTime < shift1End) {
-              if (shift.istirahat && shift.istirahat.length > 0) {
-                for (const istirahat of shift.istirahat) {
-                  if (!istirahat.jam_mulai || !istirahat.jam_selesai) continue;
-                  const istirahatStart = parseInt(
-                    istirahat.jam_mulai.replace(":", ""),
-                  );
-                  const istirahatEnd = parseInt(
-                    istirahat.jam_selesai.replace(":", ""),
-                  );
-                  if (
-                    currentTime >= istirahatStart &&
-                    currentTime < istirahatEnd
-                  ) {
-                    return false;
-                  }
+        // ---- Minggu: libur total kecuali hari itu sendiri ada lembur ----
+        if (isSunday && !isLemburDay) return false;
+
+        // ---- Hari libur eksplisit (jadwal karyawan) - kecuali lembur ----
+        if (jadwalLiburSet.has(formattedDate) && !isLemburDay) return false;
+
+        // ---- Shift 1 hari ini (Sabtu dibatasi sampai jam 13:00, kecuali lembur) ----
+        const shift1Blocked =
+          isSaturday && currentTime >= 1300 && !lembur.shift_1;
+
+        if (!shift1Blocked) {
+          for (const shift of dataShift) {
+            const shift1MasukStr = lembur.shift_1
+              ? "08:00"
+              : shift.shift_1_masuk;
+            const shift1KeluarStr = lembur.shift_1
+              ? "19:00"
+              : shift.shift_1_keluar;
+
+            if (shift1MasukStr && shift1KeluarStr) {
+              const shift1Start = parseInt(shift1MasukStr.replace(":", ""));
+              const shift1End = parseInt(shift1KeluarStr.replace(":", ""));
+
+              if (
+                shift1Start <= shift1End &&
+                currentTime >= shift1Start &&
+                currentTime < shift1End
+              ) {
+                if (isInIstirahat(currentTime, shift.istirahat)) return false;
+                return true;
+              }
+            }
+          }
+        }
+
+        // ---- Shift 2 hari ini (Senin-Jumat selalu, Sabtu/Minggu hanya kalau lembur) ----
+        const todayHasShift2 =
+          dayNormallyHasShift2(dayOfWeek) || lembur.shift_2;
+
+        if (todayHasShift2) {
+          for (const shift of dataShift) {
+            const shift2MasukStr = lembur.shift_2
+              ? "20:00"
+              : shift.shift_2_masuk;
+            const shift2KeluarStr = lembur.shift_2
+              ? "07:00"
+              : shift.shift_2_keluar;
+
+            if (shift2MasukStr && shift2KeluarStr) {
+              const shift2Start = parseInt(shift2MasukStr.replace(":", ""));
+              const shift2End = parseInt(shift2KeluarStr.replace(":", ""));
+
+              if (shift2Start > shift2End) {
+                if (currentTime >= shift2Start) {
+                  if (isInIstirahat(currentTime, shift.istirahat)) return false;
+                  return true;
+                }
+              } else {
+                if (currentTime >= shift2Start && currentTime < shift2End) {
+                  if (isInIstirahat(currentTime, shift.istirahat)) return false;
+                  return true;
                 }
               }
-              return true;
             }
           }
         }
 
         return false;
       };
+
+      // isValidShiftTime cukup jadi alias - semua logika per-hari sudah
+      // ditangani di dalam isWithinShiftHours
+      const isValidShiftTime = (date, jadwalLiburSet, dataShift, getLembur) =>
+        isWithinShiftHours(date, jadwalLiburSet, dataShift, getLembur);
 
       const findNextAvailableShiftTime = (
         date,
@@ -905,39 +968,6 @@ const jadwalProduksiController = {
           stage.tgl_from = formatDateNow(currentDate);
         }
       }
-
-      // aktifkan ini jika ingin melakukan pengecekan ke data yg sudah terjadwal
-      // const existingSchedule = await JadwalProduksi.findAll({
-      //   where: {
-      //     tanggal: {
-      //       [Op.between]: [
-      //         new Date(dataById.tahap[0].tgl_from).setHours(0, 0, 0, 0),
-      //         new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-      //       ],
-      //     },
-      //     ...(dataById.no_jo && { no_jo: { [Op.ne]: dataById.no_jo } }),
-      //     ...(dataById.no_booking && {
-      //       no_booking: { [Op.ne]: dataById.no_booking },
-      //     }),
-      //   },
-      //   attributes: ["mesin", "tanggal", "jam"],
-      // });
-
-      // const dataTerjadwalExisting = existingSchedule.map((item) => ({
-      //   mesin: item.mesin,
-      //   tanggal: formatNowDateOnly(new Date(item.tanggal)),
-      //   jam: item.jam,
-      // }));
-
-      // const dataTerjadwal = req.body.dataTerjadwal || [];
-      // const allExistingSchedule = [...dataTerjadwal, ...dataTerjadwalExisting];
-
-      // listJadwalPerJam = resolveScheduleConflicts(
-      //   listJadwalPerJam,
-      //   allExistingSchedule,
-      //   jadwalLiburSet,
-      //   dataShift,
-      // );
 
       dataById.tahap.map((stage) => {
         stage.listJadwalPerJam = listJadwalPerJam.filter(
