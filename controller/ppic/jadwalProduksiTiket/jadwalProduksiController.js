@@ -613,13 +613,19 @@ const jadwalProduksiController = {
 
       let dataLembur = [];
       if (!isLemburGlobal && uniqueMesinList.length > 0) {
+        //ambil dari 1 bulan ke belakan sampai tgl kirim
+        const tanggalMulai = new Date();
+        tanggalMulai.setMonth(tanggalMulai.getMonth() - 1);
+        tanggalMulai.setHours(0, 0, 0, 0);
+
+        const tanggalSelesai = new Date(dataById.tgl_kirim);
+        tanggalSelesai.setHours(23, 59, 59, 999);
+
         dataLembur = await JadwalLemburProduksi.findAll({
           where: {
             tanggal_lembur: {
-              [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)),
-              [Op.lte]: new Date(
-                new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-              ),
+              [Op.gte]: tanggalMulai,
+              [Op.lte]: tanggalSelesai,
             },
             [Op.or]: uniqueMesinList.map((m) => ({
               mesin: { [Op.like]: `%${m}%` },
