@@ -392,12 +392,18 @@ const StockOpnameItem = require("./model/finishGood/stockOpname/stockOpnameItemM
 const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurchaseModel");
 const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
+const PurchaseOrderItemJo = require("./model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
 
 //Gudang RM
 const TambahBahanPersiapan = require("./model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
 const TambahBahanPersiapanDefect = require("./model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanDefectModel");
 const TambahBahanPemakaian = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPemakaianDefect = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
+const MutasiBarangRawMaterial = require("./model/gudangRM/mutasiBarangRawMaterialModel");
+const GudangRawMaterialBooking = require("./model/gudangRM/gudangRawMaterialBookingModel");
+
+//incoming raw material
+const IncomingRawMaterial = require("./model/qc/incomingRawMaterial/incomingRawMaterialModel");
 
 //estimasi kurang qty
 const EstimasiKurangQtyQc = require("./model/qc/estimasiKurangQty/estimasiKurangQtyModel");
@@ -425,7 +431,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MutasiBarangFinishGood.sync({
+//   await GudangRawMaterialBooking.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
