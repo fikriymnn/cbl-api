@@ -58,6 +58,7 @@ const PurchaseOrderController = {
       note_supplier,
       purchase_name,
       items,
+      items_jo,
       request_purchase_data,
     } = req.body;
 
@@ -73,6 +74,7 @@ const PurchaseOrderController = {
         note_supplier,
         purchase_name,
         items,
+        items_jo,
         request_purchase_data,
       });
       return res.status(200).json(getData);

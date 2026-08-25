@@ -2,6 +2,7 @@ const db = require("../../../../config/database");
 const { Op, Sequelize, literal } = require("sequelize");
 const PurchaseOrder = require("../../../../model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemModel");
+const PurchaseOrderItemJo = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
 const IoModel = require("../../../../model/marketing/io/ioModel");
 const SoModel = require("../../../../model/marketing/so/soModel");
 const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
@@ -25,7 +26,7 @@ const PurchaseOrderService = {
       order: [
         [
           literal(
-            `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`
+            `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`,
           ),
           "DESC",
         ],
@@ -144,6 +145,18 @@ const PurchaseOrderService = {
               ],
             },
             {
+              model: PurchaseOrderItemJo,
+              as: "items_jo",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterBarang,
+                  as: "master_barang",
+                },
+              ],
+            },
+            {
               model: Users,
               as: "user_request",
             },
@@ -205,6 +218,7 @@ const PurchaseOrderService = {
     note_supplier,
     purchase_name,
     items = [],
+    items_jo = [],
     request_purchase_data = [],
     transaction = null,
   }) => {
@@ -261,6 +275,31 @@ const PurchaseOrderService = {
         };
       });
 
+      const itemsJoPayload = items_jo.map((item) => {
+        let qtyLebih = 0;
+
+        if (item.qty_po > item.qty_bom) {
+          qtyLebih = tem.qty_po - item.qty_bom;
+        }
+        return {
+          id_jo: item.id_jo || null,
+          id_item: item.id_item || null,
+          id_brand: item.id_brand || null,
+          no_jo: item.no_jo || null,
+          nama_item: item.nama_item || null,
+          nama_brand: item.nama_brand || null,
+          qty_bom: item.qty_bom || 0,
+          qty_po: item.qty_po,
+          qty_lebih: qtyLebih,
+          qty_sisa: item.qty_po,
+          tipe_barang: item.tipe_barang || null,
+          satuan: item.satuan || null,
+          tgl_kirim: item.tgl_kirim || null,
+          rencana_cetak: item.rencana_cetak || null,
+          is_active: true,
+        };
+      });
+
       const total = sub_total + total_ppn - (discount || 0);
 
       const newPo = await PurchaseOrder.create(
@@ -281,7 +320,7 @@ const PurchaseOrderService = {
           status_tiket: "draft",
           is_active: true,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       const itemsWithPoId = itemsPayload.map((item) => ({
@@ -289,13 +328,19 @@ const PurchaseOrderService = {
         id_purchase_order: newPo.id,
       }));
 
+      const itemsJoWithPoId = itemsJoPayload.map((item) => ({
+        ...item,
+        id_purchase_order: newPo.id,
+      }));
+
       await PurchaseOrderItem.bulkCreate(itemsWithPoId, { transaction: t });
+      await PurchaseOrderItemJo.bulkCreate(itemsJoWithPoId, { transaction: t });
 
       for (let i = 0; i < request_purchase_data.length; i++) {
         const element = request_purchase_data[i];
         await RequestPurchase.update(
           { id_purchase_order: newPo.id, status: "history" },
-          { where: { id: element.id }, transaction: t }
+          { where: { id: element.id }, transaction: t },
         );
       }
 
@@ -324,6 +369,7 @@ const PurchaseOrderService = {
     note_supplier,
     purchase_name,
     items = [],
+    items_jo = [],
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -342,7 +388,9 @@ const PurchaseOrderService = {
       let sub_total = 0;
       let total_ppn = 0;
       const itemIdsToKeep = [];
+      const itemJoIdsToKeep = [];
 
+      //untuk item
       for (const item of items) {
         const qty_beli = item.qty_beli || item.qty || 0;
         const harga = item.harga || 0;
@@ -385,6 +433,47 @@ const PurchaseOrderService = {
         }
       }
 
+      // untuk item jo
+      for (const item of items_jo) {
+        let qtyLebih = 0;
+
+        if (item.qty_po > item.qty_bom) {
+          qtyLebih = tem.qty_po - item.qty_bom;
+        }
+        const itemJoPayload = {
+          id_jo: item.id_jo || null,
+          id_item: item.id_item || null,
+          id_brand: item.id_brand || null,
+          no_jo: item.no_jo || null,
+          nama_item: item.nama_item || null,
+          nama_brand: item.nama_brand || null,
+          qty_bom: item.qty_bom || 0,
+          qty_po: item.qty_po,
+          qty_lebih: qtyLebih,
+          qty_sisa: item.qty_po,
+          tipe_barang: item.tipe_barang || null,
+          satuan: item.satuan || null,
+          tgl_kirim: item.tgl_kirim || null,
+          rencana_cetak: item.rencana_cetak || null,
+          is_active: true,
+        };
+
+        if (item.id) {
+          // update item lama
+          await PurchaseOrderItemJo.update(itemJoPayload, {
+            where: { id: item.id, id_purchase_order: id },
+            transaction: t,
+          });
+          itemIdsToKeep.push(item.id);
+        } else {
+          // item baru
+          const newItem = await PurchaseOrderItemJo.create(itemJoPayload, {
+            transaction: t,
+          });
+          itemIdsToKeep.push(newItem.id);
+        }
+      }
+
       // nonaktifkan item lama yang sudah tidak ada di payload
       await PurchaseOrderItem.update(
         { is_active: false },
@@ -394,7 +483,19 @@ const PurchaseOrderService = {
             id: { [Op.notIn]: itemIdsToKeep.length ? itemIdsToKeep : [0] },
           },
           transaction: t,
-        }
+        },
+      );
+
+      // nonaktifkan item jo lama yang sudah tidak ada di payload
+      await PurchaseOrderItemJo.update(
+        { is_active: false },
+        {
+          where: {
+            id_purchase_order: id,
+            id: { [Op.notIn]: itemJoIdsToKeep.length ? itemJoIdsToKeep : [0] },
+          },
+          transaction: t,
+        },
       );
 
       const total = sub_total + total_ppn - (discount ?? dataPo.discount ?? 0);
@@ -413,7 +514,7 @@ const PurchaseOrderService = {
           note_supplier: note_supplier ?? dataPo.note_supplier,
           purchase_name: purchase_name ?? dataPo.purchase_name,
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -452,7 +553,7 @@ const PurchaseOrderService = {
           status: "request kabag",
           status_tiket: "request kabag",
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -491,7 +592,7 @@ const PurchaseOrderService = {
           status: "request finance",
           status_tiket: "request finance",
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -530,7 +631,7 @@ const PurchaseOrderService = {
           status: "approve finance",
           status_tiket: "history",
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -569,7 +670,7 @@ const PurchaseOrderService = {
           status: "reject kabag",
           status_tiket: "draft",
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
@@ -608,7 +709,7 @@ const PurchaseOrderService = {
           status: "reject finance",
           status_tiket: "draft",
         },
-        { where: { id }, transaction: t }
+        { where: { id }, transaction: t },
       );
 
       if (!transaction) await t.commit();
