@@ -1,15 +1,24 @@
 const { Sequelize } = require("sequelize");
-const db = require("../../config/database");
-const MasterBarang = require("../masterData/barang/masterBarangModel");
-const JoModel = require("../ppic/jobOrder/jobOrderModel");
-const Users = require("../userModel");
+const db = require("../../../config/database");
+const MasterBarang = require("../../masterData/barang/masterBarangModel");
+const GudangRawMaterialStock = require("./gudangRawMaterialStockModel");
+const JoModel = require("../../ppic/jobOrder/jobOrderModel");
+const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-//mutasi untuk gudang booking dan gudang stock
-const MutasiBarangRawMaterial = db.define(
-  "mutasi_barang_raw_material",
+//mutasi khusus gudang stock
+const GudangRawMaterialStockMutasi = db.define(
+  "gudang_raw_material_stock_mutasi",
   {
+    id_gudang_raw_material_stock: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: GudangRawMaterialStock,
+        key: "id",
+      },
+    },
     id_item: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -81,30 +90,39 @@ const MutasiBarangRawMaterial = db.define(
   },
 );
 
-JoModel.hasMany(MutasiBarangRawMaterial, {
-  foreignKey: "id_jo_booking",
-  as: "mutasi_barang_raw_material",
+GudangRawMaterialStock.hasMany(GudangRawMaterialStockMutasi, {
+  foreignKey: "id_gudang_raw_material_stock",
+  as: "gudang_raw_material_stock_mutasi",
 });
-MutasiBarangRawMaterial.belongsTo(JoModel, {
+GudangRawMaterialStockMutasi.belongsTo(GudangRawMaterialStock, {
+  foreignKey: "id_gudang_raw_material_stock",
+  as: "gudang_raw_material_stock",
+});
+
+JoModel.hasMany(GudangRawMaterialStockMutasi, {
+  foreignKey: "id_jo_booking",
+  as: "gudang_raw_material_stock_mutasi",
+});
+GudangRawMaterialStockMutasi.belongsTo(JoModel, {
   foreignKey: "id_jo_booking",
   as: "jo_booking",
 });
 
-MasterBarang.hasMany(MutasiBarangRawMaterial, {
+MasterBarang.hasMany(GudangRawMaterialStockMutasi, {
   foreignKey: "id_item",
-  as: "mutasi_barang_raw_material",
+  as: "gudang_raw_material_stock_mutasi",
 });
-MutasiBarangRawMaterial.belongsTo(MasterBarang, {
+GudangRawMaterialStockMutasi.belongsTo(MasterBarang, {
   foreignKey: "id_item",
   as: "master_barang",
 });
 
-Users.hasMany(MutasiBarangRawMaterial, {
+Users.hasMany(GudangRawMaterialStockMutasi, {
   foreignKey: "id_user",
-  as: "mutasi_barang_raw_material",
+  as: "gudang_raw_material_stock_mutasi",
 });
-MutasiBarangRawMaterial.belongsTo(Users, {
+GudangRawMaterialStockMutasi.belongsTo(Users, {
   foreignKey: "id_user",
   as: "user",
 });
-module.exports = MutasiBarangRawMaterial;
+module.exports = GudangRawMaterialStockMutasi;

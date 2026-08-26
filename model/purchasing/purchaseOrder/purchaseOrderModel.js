@@ -118,7 +118,7 @@ const PurchaseOrder = db.define(
       },
     },
     note_internal: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     note_supplier: {
@@ -147,7 +147,7 @@ const PurchaseOrder = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 MasterVendor.hasMany(PurchaseOrder, {

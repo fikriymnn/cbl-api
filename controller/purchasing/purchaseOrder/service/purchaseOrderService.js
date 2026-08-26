@@ -279,7 +279,7 @@ const PurchaseOrderService = {
         let qtyLebih = 0;
 
         if (item.qty_po > item.qty_bom) {
-          qtyLebih = tem.qty_po - item.qty_bom;
+          qtyLebih = item.qty_po - item.qty_bom;
         }
         return {
           id_jo: item.id_jo || null,
