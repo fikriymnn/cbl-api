@@ -284,6 +284,7 @@ const MasterBarangController = {
     const t = await db.transaction();
 
     try {
+      console.log(req.body);
       let obj = { persentase: persentase, pajak: pajak, harga: harga };
       if (kode_barang) obj.kode_barang = kode_barang;
       if (nama_barang) obj.nama_barang = nama_barang;
@@ -297,7 +298,7 @@ const MasterBarangController = {
       if (inventory_convert) obj.inventory_convert = inventory_convert;
       if (warehouse) obj.warehouse = warehouse;
       if (keterangan) obj.keterangan = keterangan;
-      if (is_include_tax) obj.is_include_tax = is_include_tax;
+      if (is_include_tax != undefined) obj.is_include_tax = is_include_tax;
       if (is_active) obj.is_active = is_active;
       if (id_brand) {
         const checkBrand = await MasterBrand.findByPk(id_brand);
