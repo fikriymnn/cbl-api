@@ -26,7 +26,7 @@ const GudangRawMaterialStockController = {
 
   // body: { id_item, qty, tipe_barang, satuan }
   createGudangRawMaterialStock: async (req, res) => {
-    const { id_item, qty, tipe_barang, satuan } = req.body;
+    const { id_item, qty, tipe_barang, satuan, sumber_mutasi } = req.body;
 
     try {
       const getData =
@@ -37,6 +37,7 @@ const GudangRawMaterialStockController = {
             tipe_barang,
             satuan,
             id_user: req.user.id,
+            sumber_mutasi: sumber_mutasi,
           },
         );
       return res.status(200).json(getData);

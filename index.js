@@ -401,6 +401,8 @@ const TambahBahanPemakaian = require("./model/gudangRM/tambahBahanPemakaian/tamb
 const TambahBahanPemakaianDefect = require("./model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
 const MutasiBarangRawMaterial = require("./model/gudangRM/mutasiBarangRawMaterialModel");
 const GudangRawMaterialBooking = require("./model/gudangRM/gudangRawMaterialBookingModel");
+const GudangRawMaterialStock = require("./model/gudangRM/gudangRawMaterialStock/gudangRawMaterialStockModel");
+const GudangRawMaterialStockMutasi = require("./model/gudangRM/gudangRawMaterialStock/gudangRawMaterialStockMutasiModel");
 
 //incoming raw material
 const IncomingRawMaterial = require("./model/qc/incomingRawMaterial/incomingRawMaterialModel");
@@ -431,7 +433,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await PurchaseOrder.sync({
+//   await GudangRawMaterialStockMutasi.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

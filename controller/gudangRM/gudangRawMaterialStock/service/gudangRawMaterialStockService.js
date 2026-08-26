@@ -125,6 +125,7 @@ const GudangRawMaterialStockService = {
     tipe_barang,
     satuan,
     id_user,
+    sumber_mutasi,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -202,7 +203,7 @@ const GudangRawMaterialStockService = {
           nama_barang: dataItem?.nama_barang || null,
           jumlah_qty: qty || 0,
           type_mutasi: "masuk",
-          sumber_mutasi: "normal",
+          sumber_mutasi: sumber_mutasi,
           tgl_mutasi: new Date(),
           is_active: true,
         },
