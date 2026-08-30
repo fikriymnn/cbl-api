@@ -1,19 +1,4 @@
-const { Op, fn, col, literal } = require("sequelize");
-const BomModel = require("../../../model/ppic/bom/bomModel");
-const BomPpicModel = require("../../../model/ppic/bomPpic/bomPpicModel");
-const BomPpicKertasModel = require("../../../model/ppic/bomPpic/bomPpicKertasModel");
-const BomPpicTintaModel = require("../../../model/ppic/bomPpic/bomPpicTintaModel");
-const BomPpicTintaDetailModel = require("../../../model/ppic/bomPpic/bomPpicTintaDetailModel");
-const BomPpicCorrugatedModel = require("../../../model/ppic/bomPpic/bomPpicCorrugatedModel");
-const BomPpicPolibanModel = require("../../../model/ppic/bomPpic/bomPpicPolibanModel");
-const BomPpicCoatingModel = require("../../../model/ppic/bomPpic/bomPpicCoatingModel");
-const BomPpicLemModel = require("../../../model/ppic/bomPpic/bomPpicLemModel");
-const BomPpicUserAction = require("../../../model/ppic/bomPpic/bomPpicUserActionModel");
-const BomPpicLainLain = require("../../../model/ppic/bomPpic/bomPpicLainLainModel");
-const JobOrder = require("../../../model/ppic/jobOrder/jobOrderModel");
-const Users = require("../../../model/userModel");
-const db = require("../../../config/database");
-const soModel = require("../../../model/marketing/so/soModel");
+const BomPpicService = require("./service/bomPpicService");
 
 const BomPpicController = {
   getBomPpicModel: async (req, res) => {
@@ -28,113 +13,20 @@ const BomPpicController = {
       search,
       is_request_purchase,
     } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    let obj = {};
-    if (search) {
-      obj = {
-        [Op.or]: [
-          { no_bom_ppic_ppic: { [Op.like]: `%${search}%` } },
-          { no_io: { [Op.like]: `%${search}%` } },
-          { no_so: { [Op.like]: `%${search}%` } },
-          { no_bom: { [Op.like]: `%${search}%` } },
-          { customer: { [Op.like]: `%${search}%` } },
-          { produk: { [Op.like]: `%${search}%` } },
-          { status_bom_ppic: { [Op.like]: `%${search}%` } },
-        ],
-      };
-    }
-    if (status_proses) obj.status_tiket = status_tiket;
-    if (status) obj.status = status;
-    if (is_request_purchase)
-      obj.is_request_purchase = is_request_purchase == "true" ? true : false;
-    if (start_date && end_date) {
-      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
-      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      obj.tgl_pembuatan_bom_ppic = { [Op.between]: [startDate, endDate] };
-    }
-    try {
-      if (page && limit) {
-        const length = await BomPpicModel.count({ where: obj });
-        const data = await BomPpicModel.findAll({
-          order: [["tgl_pembuatan_bom_ppic", "DESC"]],
-          limit: parseInt(limit),
-          include: [
-            {
-              model: BomPpicKertasModel,
-              as: "bom_ppic_kertas",
-            },
-          ],
-          offset,
-          where: obj,
-        });
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (_id) {
-        const data = await BomPpicModel.findByPk(_id, {
-          include: [
-            {
-              model: soModel,
-              as: "so",
-            },
-            {
-              model: BomPpicKertasModel,
-              as: "bom_ppic_kertas",
-            },
-            {
-              model: BomPpicTintaModel,
-              as: "bom_ppic_tinta",
-              include: [
-                {
-                  model: BomPpicTintaDetailModel,
-                  as: "tinta_detail",
-                },
-              ],
-            },
-            {
-              model: BomPpicCorrugatedModel,
-              as: "bom_ppic_corrugated",
-            },
 
-            {
-              model: BomPpicPolibanModel,
-              as: "bom_ppic_poliban",
-            },
-            {
-              model: BomPpicCoatingModel,
-              as: "bom_ppic_coating",
-            },
-            {
-              model: BomPpicLemModel,
-              as: "bom_ppic_lem",
-            },
-            {
-              model: BomPpicLainLain,
-              as: "lain_lain",
-            },
-            {
-              model: Users,
-              as: "user_create",
-            },
-            {
-              model: Users,
-              as: "user_approve",
-            },
-          ],
-        });
-        return res.status(200).json({
-          data: data,
-        });
-      } else {
-        const data = await BomPpicModel.findAll({
-          order: [["tgl_pembuatan_bom_ppic", "DESC"]],
-          where: obj,
-        });
-        return res.status(200).json({
-          data: data,
-        });
-      }
+    try {
+      const getData = await BomPpicService.getBomPpicModelService({
+        id: _id,
+        page,
+        limit,
+        start_date,
+        end_date,
+        status,
+        status_proses,
+        search,
+        is_request_purchase,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -142,22 +34,8 @@ const BomPpicController = {
 
   getBomPpicJumlahData: async (req, res) => {
     try {
-      const now = new Date();
-      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
-      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
-      const length = await BomPpicModel.count({
-        where: {
-          createdAt: {
-            [Op.between]: [startOfYear, endOfYear],
-          },
-        },
-      });
-
-      return res.status(200).json({
-        succes: true,
-        status_code: 200,
-        total_data: length,
-      });
+      const getData = await BomPpicService.getBomPpicJumlahDataService();
+      return res.status(200).json(getData);
     } catch (error) {
       res
         .status(400)
@@ -189,264 +67,40 @@ const BomPpicController = {
       qty_po,
       qty_fg,
     } = req.body;
-    const t = await db.transaction();
 
     try {
-      //get data terakhir
-      const now = new Date();
-      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
-      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
-
-      //get data untuk no bom
-      const lastdataBomPpic = await BomPpicModel.findOne({
-        where: {
-          createdAt: {
-            [Op.between]: [startOfYear, endOfYear],
-          },
-        },
-        order: [
-          // extract nomor urut pada format SDP00001/12/25
-          [
-            literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_bom_ppic, 4), '/', 1) AS UNSIGNED)`
-            ),
-            "DESC",
-          ],
-          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
-        ],
+      const getData = await BomPpicService.createBomPpicModelService({
+        id_io,
+        id_so,
+        id_bom,
+        no_bom_ppic,
+        no_io,
+        no_so,
+        no_bom,
+        no_jo,
+        customer,
+        produk,
+        tgl_rencana_cetak,
+        tgl_kirim_customer,
+        bom_ppic_kertas,
+        bom_ppic_tinta,
+        bom_ppic_corrugated,
+        bom_ppic_poliban,
+        bom_ppic_coating,
+        bom_ppic_lem,
+        lain_lain,
+        qty_po,
+        qty_fg,
+        id_user: req.user.id,
       });
-
-      //tentukan no_do type tax dan non tax selanjutnya
-      const currentYear = new Date().getFullYear();
-      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
-      const shortYear = String(currentYear).slice(2); // 2025 => "25"
-      // 2. Tentukan nomor urut berikutnya
-      let nextNumberBom = 1;
-      if (lastdataBomPpic) {
-        const lastNo = lastdataBomPpic.no_bom_ppic; // contoh: "BP-00001/09/25"
-
-        // Ambil "00001" → ubah ke integer
-        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
-
-        nextNumberBom = lastSeq + 1;
-      }
-      const paddedNumberBomPpic = String(nextNumberBom).padStart(4, "0");
-      const newBomPpicNumber = `BP-${paddedNumberBomPpic}/${currentMonth}/${shortYear}`;
-
-      //cek apakah sudah punya jo
-      let idJo = null;
-      let noJo = null;
-      let checkJo = null;
-      if (id_so) {
-        checkJo = await JobOrder.findOne({
-          where: { id_so: id_so, is_active: true },
-        });
-      } else {
-        checkJo = await JobOrder.findOne({
-          where: { id_io: id_io, is_active: true },
-        });
-      }
-
-      if (checkJo) {
-        idJo = checkJo.id;
-        noJo = checkJo.no_jo;
-      }
-
-      const dataBomPpicModel = await BomPpicModel.create(
-        {
-          id_jo: idJo,
-          id_io,
-          id_so,
-          id_bom,
-          id_create_bom_ppic: req.user.id,
-          no_jo: noJo,
-          no_bom_ppic: newBomPpicNumber,
-          no_io,
-          no_so,
-          no_bom,
-          customer,
-          produk,
-          tgl_rencana_cetak: tgl_rencana_cetak || null,
-          tgl_kirim_customer: tgl_kirim_customer || null,
-          qty_fg,
-          qty_po,
-        },
-        { transaction: t }
-      );
-
-      if (bom_ppic_kertas && bom_ppic_kertas.length > 0) {
-        let dataPpicBomKertas = [];
-        for (let iKertas = 0; iKertas < bom_ppic_kertas.length; iKertas++) {
-          const e = bom_ppic_kertas[iKertas];
-          dataPpicBomKertas.push({
-            id_bom_ppic: dataBomPpicModel.id,
-            id_kertas: e.id_kertas,
-            nama_kertas: e.nama_kertas,
-            qty_lembar_plano: e.qty_lembar_plano,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicKertasModel.bulkCreate(dataPpicBomKertas, {
-          transaction: t,
-        });
-      }
-
-      if (bom_ppic_tinta && bom_ppic_tinta.length > 0) {
-        for (let iTinta = 0; iTinta < bom_ppic_tinta.length; iTinta++) {
-          const e = bom_ppic_tinta[iTinta];
-          const dataBomTinta = await BomPpicTintaModel.create(
-            {
-              id_bom_ppic: dataBomPpicModel.id,
-              warna_tinta: e.warna_tinta,
-              id_jenis_tinta: e.id_jenis_tinta,
-              id_jenis_kertas: e.id_jenis_kertas,
-              id_jenis_warna_tinta: e.id_jenis_warna_tinta,
-              jenis_mesin_cetak: e.jenis_mesin_cetak,
-              area_cetak: e.area_cetak,
-              qty_tinta: e.qty_tinta,
-            },
-            { transaction: t }
-          );
-
-          for (
-            let iTintaDetail = 0;
-            iTintaDetail < bom_ppic_tinta[iTinta].tinta_detail.length;
-            iTintaDetail++
-          ) {
-            const e = bom_ppic_tinta[iTinta].tinta_detail[iTintaDetail];
-            await BomPpicTintaDetailModel.create(
-              {
-                id_bom_ppic_tinta: dataBomTinta.id,
-                id_item_tinta: e.id_item_tinta,
-                nama_item_tinta: e.nama_item_tinta,
-                persentase_tinta: e.persentase_tinta,
-                qty_tinta: e.qty_tinta,
-                qty_beli: e.qty_beli,
-                qty_stok: e.qty_stok,
-              },
-              { transaction: t }
-            );
-          }
-        }
-      }
-
-      if (bom_ppic_corrugated && bom_ppic_corrugated.length > 0) {
-        let dataBomPpicCorrugated = [];
-        for (
-          let iCorrugated = 0;
-          iCorrugated < bom_ppic_corrugated.length;
-          iCorrugated++
-        ) {
-          const e = bom_ppic_corrugated[iCorrugated];
-          dataBomPpicCorrugated.push({
-            id_bom_ppic: dataBomPpicModel.id,
-            id_corrugated: e.id_corrugated,
-            nama_corrugated: e.nama_corrugated,
-            isi_per_pack: e.isi_per_pack,
-            qty_corrugated: e.qty_corrugated,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicCorrugatedModel.bulkCreate(dataBomPpicCorrugated, {
-          transaction: t,
-        });
-      }
-
-      if (bom_ppic_poliban && bom_ppic_poliban.length > 0) {
-        let dataBomPpicPoliban = [];
-        for (let iPoliban = 0; iPoliban < bom_ppic_poliban.length; iPoliban++) {
-          const e = bom_ppic_poliban[iPoliban];
-          dataBomPpicPoliban.push({
-            id_bom_ppic: dataBomPpicModel.id,
-            id_item_poliban: e.id_item_poliban,
-            nama_item_poliban: e.nama_item_poliban,
-            item_poliban: e.item_poliban,
-            isi_satu_ikat: e.isi_satu_ikat,
-            lembar_poliban: e.lembar_poliban,
-            qty_poliban: e.qty_poliban,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicPolibanModel.bulkCreate(dataBomPpicPoliban, {
-          transaction: t,
-        });
-      }
-
-      if (bom_ppic_coating && bom_ppic_coating.length > 0) {
-        let dataBomPpicCoating = [];
-        for (let iCoating = 0; iCoating < bom_ppic_coating.length; iCoating++) {
-          const e = bom_ppic_coating[iCoating];
-          dataBomPpicCoating.push({
-            id_bom_ppic: dataBomPpicModel.id,
-            id_coating: e.id_coating,
-            id_brand: e.id_brand,
-            nama_coating: e.nama_coating,
-            nama_brand: e.nama_brand,
-            qty_coating: e.qty_coating,
-            uv_wb: e.uv_wb,
-            varnish_doff: e.varnish_doff,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicCoatingModel.bulkCreate(dataBomPpicCoating, {
-          transaction: t,
-        });
-      }
-
-      if (bom_ppic_lem && bom_ppic_lem.length > 0) {
-        let dataBomPpicLem = [];
-        for (let iLem = 0; iLem < bom_ppic_lem.length; iLem++) {
-          const e = bom_ppic_lem[iLem];
-          dataBomPpicLem.push({
-            id_bom_ppic: dataBomPpicModel.id,
-            id_lem: e.id_lem,
-            nama_lem: e.nama_lem,
-            rumus_lem: e.rumus_lem,
-            qty_konstanta: e.qty_konstanta,
-            qty_lem: e.qty_lem,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicLemModel.bulkCreate(dataBomPpicLem, {
-          transaction: t,
-        });
-      }
-
-      if (lain_lain && lain_lain.length > 0) {
-        let dataBomPpicLainLain = [];
-        for (let i = 0; i < lain_lain.length; i++) {
-          const e = lain_lain[i];
-          dataBomPpicLainLain.push({
-            id_bom: dataBomPpicModel.id,
-            nama_item: e.nama_item,
-            harga: e.harga,
-            qty_beli: e.qty_beli,
-            qty_stok: e.qty_stok,
-          });
-        }
-        await BomPpicLainLain.bulkCreate(dataBomPpicLainLain, {
-          transaction: t,
-        });
-      }
-
-      await t.commit();
-      res.status(200).json({
-        msg: "Create Successfully",
-        data: dataBomPpicModel,
-      });
+      return res.status(200).json(getData);
     } catch (error) {
-      await t.rollback();
       res.status(500).json({ msg: error.message });
     }
   },
 
   updateBomPpicModel: async (req, res) => {
-    const { id } = req.params; // id bom utama
+    const { id } = req.params;
     const {
       id_io,
       id_so,
@@ -464,376 +118,101 @@ const BomPpicController = {
       bom_ppic_coating,
       bom_ppic_lem,
       lain_lain,
+      tgl_rencana_cetak,
+      tgl_kirim_customer,
     } = req.body;
 
-    const t = await db.transaction();
     try {
-      // Update BOM utama
-      const dataBom = await BomPpicModel.findByPk(id);
-      if (!dataBom)
-        return res.status(404).json({ msg: "Data BOM PPIC tidak ditemukan" });
-
-      await dataBom.update(
-        {
-          id_io,
-          id_so,
-          id_io_mounting,
-          nama_mounting,
-          no_bom,
-          no_io,
-          no_so,
-          customer,
-          produk,
-        },
-        { transaction: t }
-      );
-
-      // === Fungsi util untuk update child ===
-      async function syncChild(
-        model,
-        tableName,
-        foreignKey,
-        newData,
-        idField = "id"
-      ) {
-        const existing = await model.findAll({
-          where: { [foreignKey]: id },
-          transaction: t,
-        });
-        const existingIds = existing.map((e) => e[idField]);
-        const incomingIds = newData
-          .filter((d) => d[idField])
-          .map((d) => d[idField]);
-
-        // 🔸 Hapus data yang tidak ada lagi di frontend
-        const deletedIds = existingIds.filter(
-          (eid) => !incomingIds.includes(eid)
-        );
-        if (deletedIds.length > 0) {
-          await model.destroy({
-            where: { [idField]: deletedIds },
-            transaction: t,
-          });
-        }
-
-        // 🔸 Update & Insert
-        for (const item of newData) {
-          if (item[idField]) {
-            await model.update(item, {
-              where: { [idField]: item[idField] },
-              transaction: t,
-            });
-          } else {
-            item[foreignKey] = id;
-            await model.create(item, { transaction: t });
-          }
-        }
-      }
-
-      // === Sinkronisasi setiap bagian ===
-      if (bom_ppic_kertas) {
-        await syncChild(
-          BomPpicKertasModel,
-          "bom_ppic_kertas",
-          "id_bom_ppic",
-          bom_ppic_kertas
-        );
-      }
-
-      if (bom_ppic_corrugated) {
-        await syncChild(
-          BomPpicCorrugatedModel,
-          "bom_ppic_corrugated",
-          "id_bom_ppic",
-          bom_ppic_corrugated
-        );
-      }
-
-      if (bom_ppic_poliban) {
-        await syncChild(
-          BomPpicPolibanModel,
-          "bom_ppic_poliban",
-          "id_bom_ppic",
-          bom_ppic_poliban
-        );
-      }
-
-      if (bom_ppic_coating) {
-        await syncChild(
-          BomPpicCoatingModel,
-          "bom_ppic_coating",
-          "id_bom_ppic",
-          bom_ppic_coating
-        );
-      }
-
-      if (bom_ppic_lem) {
-        await syncChild(
-          BomPpicLemModel,
-          "bom_ppic_lem",
-          "id_bom_ppic",
-          bom_ppic_lem
-        );
-      }
-
-      if (lain_lain) {
-        await syncChild(BomPpicLainLain, "lain_lain", "id_bom_ppic", lain_lain);
-      }
-
-      // === Khusus bom_ppic_tinta karena ada child tinta_detail ===
-      if (bom_ppic_tinta) {
-        // Ambil data tinta lama
-        const existingTinta = await BomPpicTintaModel.findAll({
-          where: { id_bom_ppic: id },
-          include: [{ model: BomPpicTintaDetailModel, as: "tinta_detail" }],
-          transaction: t,
-        });
-
-        const existingTintaIds = existingTinta.map((e) => e.id);
-        const incomingTintaIds = bom_ppic_tinta
-          .filter((e) => e.id)
-          .map((e) => e.id);
-
-        // Hapus tinta yang dihapus
-        const deletedTintaIds = existingTintaIds.filter(
-          (eid) => !incomingTintaIds.includes(eid)
-        );
-        if (deletedTintaIds.length > 0) {
-          await BomPpicTintaDetailModel.destroy({
-            where: { id_bom_ppic_tinta: deletedTintaIds },
-            transaction: t,
-          });
-          await BomPpicTintaModel.destroy({
-            where: { id: deletedTintaIds },
-            transaction: t,
-          });
-        }
-
-        // Update / Insert tinta baru
-        for (const tinta of bom_ppic_tinta) {
-          let tintaModel;
-          if (tinta.id) {
-            tintaModel = await BomPpicTintaModel.findByPk(tinta.id, {
-              transaction: t,
-            });
-            await tintaModel.update(tinta, { transaction: t });
-          } else {
-            tintaModel = await BomPpicTintaModel.create(
-              { ...tinta, id_bom: id },
-              { transaction: t }
-            );
-          }
-
-          // Sinkronisasi tinta_detail
-          const detail = tinta.tinta_detail || [];
-          const existingDetail = await BomPpicTintaDetailModel.findAll({
-            where: { id_bom_ppic_tinta: tintaModel.id },
-            transaction: t,
-          });
-
-          const existingDetailIds = existingDetail.map((d) => d.id);
-          const incomingDetailIds = detail.filter((d) => d.id).map((d) => d.id);
-          const deletedDetailIds = existingDetailIds.filter(
-            (eid) => !incomingDetailIds.includes(eid)
-          );
-
-          if (deletedDetailIds.length > 0) {
-            await BomPpicTintaDetailModel.destroy({
-              where: { id: deletedDetailIds },
-              transaction: t,
-            });
-          }
-
-          for (const d of detail) {
-            if (d.id) {
-              await BomPpicTintaDetailModel.update(d, {
-                where: { id: d.id },
-                transaction: t,
-              });
-            } else {
-              await BomPpicTintaDetailModel.create(
-                { ...d, id_bom_ppic_tinta: tintaModel.id },
-                { transaction: t }
-              );
-            }
-          }
-        }
-      }
-
-      await t.commit();
-      res.status(200).json({ msg: "Update BOM berhasil" });
+      const getData = await BomPpicService.updateBomPpicModelService({
+        id,
+        id_io,
+        id_so,
+        id_io_mounting,
+        nama_mounting,
+        no_bom,
+        no_io,
+        no_so,
+        customer,
+        produk,
+        bom_ppic_kertas,
+        bom_ppic_tinta,
+        bom_ppic_corrugated,
+        bom_ppic_poliban,
+        bom_ppic_coating,
+        bom_ppic_lem,
+        lain_lain,
+        tgl_rencana_cetak,
+        tgl_kirim_customer,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
-      await t.rollback();
       res.status(500).json({ msg: error.message });
     }
   },
 
   submitRequestBomPpic: async (req, res) => {
     const _id = req.params.id;
-    const t = await db.transaction();
+
     try {
-      const checkData = await BomPpicModel.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-      await BomPpicModel.update(
-        {
-          status: "requested",
-          status_proses: "request to kabag",
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      ),
-        await BomPpicUserAction.create(
-          { id_bom: checkData.id, id_user: req.user.id, status: "requested" },
-          { transaction: t }
-        );
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "Request Successful" });
+      const getData = await BomPpicService.submitRequestBomPpicService({
+        id: _id,
+        id_user: req.user.id,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
       res
         .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
   approveBomPpic: async (req, res) => {
     const _id = req.params.id;
-    const t = await db.transaction();
-    try {
-      const checkData = await BomPpicModel.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-      await BomPpicModel.update(
-        {
-          status: "history",
-          status_proses: "done",
-          id_approve_bom_ppic: req.user.id,
-          tgl_approve_bom_ppic: new Date(),
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      ),
-        await BomModel.update(
-          { is_bom_ppic_done: true },
-          { where: { id: checkData.id_bom }, transaction: t }
-        );
-      await BomPpicUserAction.create(
-        {
-          id_bom_ppic: checkData.id,
-          id_user: req.user.id,
-          status: "approve",
-        },
-        { transaction: t }
-      );
 
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+    try {
+      const getData = await BomPpicService.approveBomPpicService({
+        id: _id,
+        id_user: req.user.id,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
       res
         .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
   rejectBomPpic: async (req, res) => {
     const _id = req.params.id;
     const { note_reject } = req.body;
-    const t = await db.transaction();
+
     try {
-      const checkData = await BomPpicModel.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-      await BomPpicModel.update(
-        {
-          status_proses: "reject kabag",
-          status: "draft",
-          note_reject: note_reject,
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      ),
-        await BomPpicUserAction.create(
-          {
-            id_bom: checkData.id,
-            id_user: req.user.id,
-            status: "kabag reject",
-          },
-          { transaction: t }
-        );
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+      const getData = await BomPpicService.rejectBomPpicService({
+        id: _id,
+        id_user: req.user.id,
+        note_reject,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
       res
         .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 
   backToProcessBom: async (req, res) => {
     const _id = req.params.id;
-    const t = await db.transaction();
+
     try {
-      const checkData = await BomPpicModel.findByPk(_id);
-      if (!checkData)
-        return res.status(404).json({
-          succes: false,
-          status_code: 404,
-          msg: "Data tidak ditemukan",
-        });
-      await BomPpicModel.update(
-        {
-          status_proses: "kembali ke BOM",
-          status: "draft",
-        },
-        {
-          where: { id: _id },
-          transaction: t,
-        }
-      ),
-        await BomModel.update(
-          { status_proses: "kembali dari BOM PPIC", status: "draft" },
-          { where: { id: checkData.id_bom }, transaction: t }
-        ),
-        await BomPpicUserAction.create(
-          {
-            id_bom: checkData.id,
-            id_user: req.user.id,
-            status: "kembali ke BOM",
-          },
-          { transaction: t }
-        );
-      await t.commit(),
-        res
-          .status(200)
-          .json({ succes: true, status_code: 200, msg: "reject Successful" });
+      const getData = await BomPpicService.backToProcessBomService({
+        id: _id,
+        id_user: req.user.id,
+      });
+      return res.status(200).json(getData);
     } catch (error) {
       res
         .status(400)
-        .json({ succes: true, status_code: 400, msg: error.message });
+        .json({ succes: false, status_code: 400, msg: error.message });
     }
   },
 };
