@@ -376,6 +376,9 @@ router.use("/", require("./gudangRM/gudangRawMaterialBookingRoute"));
 router.use("/", require("./gudangRM/mutasiBarangRawMaterialRoute"));
 router.use("/", require("./gudangRM/gudangRawMaterialStockRoute"));
 router.use("/", require("./gudangRM/outstandingStockRawMaterialRoute"));
+router.use("/", require("./gudangRM/adjustStockGudangBookingRoute"));
+router.use("/", require("./gudangRM/adjustStockGudangStockRoute"));
+router.use("/", require("./gudangRM/stockOpnameRawMaterialRoute"));
 
 //incoming raw masterial
 router.use("/", require("./qc/incomingRawMaterial/incomingRawMaterialRoute"));
