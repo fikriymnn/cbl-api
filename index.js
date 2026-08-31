@@ -404,6 +404,8 @@ const GudangRawMaterialBooking = require("./model/gudangRM/gudangRawMaterialBook
 const GudangRawMaterialStock = require("./model/gudangRM/gudangRawMaterialStock/gudangRawMaterialStockModel");
 const GudangRawMaterialStockMutasi = require("./model/gudangRM/gudangRawMaterialStock/gudangRawMaterialStockMutasiModel");
 const OutstandingStockRawMaterial = require("./model/gudangRM/outstandingStockRawMaterialModel");
+const AdjustStockRawMaterialBooking = require("./model/gudangRM/adjustStockGudangBookingModel");
+const AdjustStockRawMaterialStock = require("./model/gudangRM/adjustStockGudangStockModel");
 
 //incoming raw material
 const IncomingRawMaterial = require("./model/qc/incomingRawMaterial/incomingRawMaterialModel");
@@ -434,7 +436,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await OutstandingStockRawMaterial.sync({
+//   await AdjustStockRawMaterialStock.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

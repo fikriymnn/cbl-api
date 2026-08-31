@@ -327,6 +327,99 @@ const GudangRawMaterialStockService = {
       throw { success: false, message: error.message };
     }
   },
+
+  // buat record mutasi saja (tanpa mengubah qty di GudangRawMaterialStock)
+  // dipakai internal oleh createGudangRawMaterialStockService & useGudangRawMaterialStockService,
+  // dan bisa juga dipanggil langsung dari service lain (mis. adjust stock) yang sudah handle
+  // perubahan qty-nya sendiri tapi tetap butuh jejak mutasi
+  createMutasiGudangRawMaterialStockService: async ({
+    id_gudang_raw_material_stock,
+    id_item,
+    id_user,
+    jumlah_qty,
+    type_mutasi,
+    sumber_mutasi,
+    id_jo_booking,
+    no_jo_booking,
+    note,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      if (!id_gudang_raw_material_stock || !id_item) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message:
+            "id_gudang_raw_material_stock dan id_item tidak boleh kosong",
+        };
+      }
+
+      if (!jumlah_qty || jumlah_qty <= 0) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message:
+            "jumlah_qty tidak boleh kosong atau kurang dari sama dengan 0",
+        };
+      }
+
+      if (!["masuk", "keluar"].includes(type_mutasi)) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: "type_mutasi harus 'masuk' atau 'keluar'",
+        };
+      }
+
+      const dataGudangStock = await GudangRawMaterialStock.findByPk(
+        id_gudang_raw_material_stock,
+        { transaction: t },
+      );
+      if (!dataGudangStock) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Gudang Raw Material Stock Tidak Ditemukan",
+        };
+      }
+
+      const dataMutasi = await GudangRawMaterialStockMutasi.create(
+        {
+          id_gudang_raw_material_stock,
+          id_item,
+          id_jo_booking: id_jo_booking || null,
+          no_jo_booking: no_jo_booking || null,
+          id_user: id_user || null,
+          kode_barang: dataGudangStock?.kode_item || null,
+          nama_barang: dataGudangStock?.nama_item || null,
+          jumlah_qty,
+          type_mutasi,
+          sumber_mutasi,
+          note: note || null,
+          tgl_mutasi: new Date(),
+          is_active: true,
+        },
+        { transaction: t },
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "create mutasi success",
+        data: dataMutasi,
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
 };
 
 module.exports = GudangRawMaterialStockService;
