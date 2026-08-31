@@ -6,7 +6,7 @@ const PurchaseOrderItemJo = require("../../../../model/purchasing/purchaseOrder/
 const Users = require("../../../../model/userModel");
 const MutasiBarangRawMaterialService = require("../../../gudangRM/mutasiBarangRawMaterial/service/mutasiBarangRawMaterialService");
 const GudangRawMaterialBookingService = require("../../../gudangRM/gudangRawMaterialBooking/service/gudangRawMaterialBookingService");
-
+const GudangRawMaterialStockService = require("../../../gudangRM/gudangRawMaterialStock/service/gudangRawMaterialStockService");
 // NOTE: sesuaikan path require di atas dengan lokasi file model/service kamu yang sebenarnya.
 
 const IncomingRawMaterialService = {
@@ -245,13 +245,16 @@ const IncomingRawMaterialService = {
 
       if (itemJo) {
         const qtyIncoming = dataIrm.qty_incoming || 0;
+        const qtyIdle = dataIrm.qty_idle || 0;
         const qty_terkirim = (itemJo.qty_terkirim || 0) + qtyIncoming;
         const qty_sisa = (itemJo.qty_sisa || 0) - qtyIncoming;
+        const qty_idle = (itemJo.qty_idle || 0) + qtyIdle;
 
         const itemJoPayload = {
           status_qc: "approve qc",
           qty_terkirim,
           qty_sisa,
+          qty_idle,
         };
 
         if (qty_terkirim >= itemJo.qty_po) {
@@ -312,7 +315,28 @@ const IncomingRawMaterialService = {
         }
       }
 
-      if (dataIrm.qty_idle) {
+      if (dataIrm.qty_idle > 0) {
+        //masuk gudang Stock
+        const createGudangStock =
+          await GudangRawMaterialStockService.createGudangRawMaterialStockService(
+            {
+              id_item: dataIrm.purchase_order_item_jo.id_item,
+              qty: dataIrm.qty_idle,
+              tipe_barang: dataIrm.purchase_order_item_jo.tipe_barang,
+              satuan: dataIrm.purchase_order_item_jo.satuan,
+              id_user: id_approve,
+              sumber_mutasi: "idle",
+              transaction: t,
+            },
+          );
+
+        if (createGudangStock.success === false) {
+          throw {
+            success: false,
+            status_code: 400,
+            message: createGudangStock.message,
+          };
+        }
         const createMutasiBarang =
           await MutasiBarangRawMaterialService.creteMutasiBarangRawMaterialService(
             {

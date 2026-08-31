@@ -284,7 +284,6 @@ const MasterBarangController = {
     const t = await db.transaction();
 
     try {
-      console.log(req.body);
       let obj = { persentase: persentase, pajak: pajak, harga: harga };
       if (kode_barang) obj.kode_barang = kode_barang;
       if (nama_barang) obj.nama_barang = nama_barang;

@@ -125,6 +125,7 @@ const GudangRawMaterialStockService = {
     tipe_barang,
     satuan,
     id_user,
+    sumber_mutasi,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -202,7 +203,7 @@ const GudangRawMaterialStockService = {
           nama_barang: dataItem?.nama_barang || null,
           jumlah_qty: qty || 0,
           type_mutasi: "masuk",
-          sumber_mutasi: "normal",
+          sumber_mutasi: sumber_mutasi,
           tgl_mutasi: new Date(),
           is_active: true,
         },
@@ -215,6 +216,111 @@ const GudangRawMaterialStockService = {
         success: true,
         message: existingData ? "update success" : "create success",
         data: { id: idGudangStock },
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+
+  // pakai/keluarkan stock
+  // cari data existing berdasarkan id_item (is_active true) -> wajib sudah ada
+  // qty dikurangi, tidak boleh sampai minus (kalau qty diminta > qty tersedia -> error)
+  // setelah itu selalu buat mutasi dengan type_mutasi "keluar"
+  useGudangRawMaterialStockService: async ({
+    id_item,
+    qty,
+    id_user,
+    sumber_mutasi,
+    id_jo_booking,
+    no_jo_booking,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      if (!id_item) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: "id_item tidak boleh kosong",
+        };
+      }
+
+      if (!qty || qty <= 0) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: "qty tidak boleh kosong atau kurang dari sama dengan 0",
+        };
+      }
+
+      // cek data existing berdasarkan id_item
+      // pakai lock update biar aman kalau ada request use bersamaan
+      const existingData = await GudangRawMaterialStock.findOne({
+        where: {
+          id_item,
+          is_active: true,
+        },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!existingData) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Stock Barang Tidak Ditemukan",
+        };
+      }
+
+      const currentQty = existingData.qty || 0;
+      if (currentQty < qty) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: `Stock tidak mencukupi. Stock tersedia: ${currentQty}, diminta: ${qty}`,
+        };
+      }
+
+      const newQty = currentQty - qty;
+
+      await GudangRawMaterialStock.update(
+        {
+          qty: newQty,
+        },
+        { where: { id: existingData.id }, transaction: t },
+      );
+
+      // buat mutasi keluar
+      await GudangRawMaterialStockMutasi.create(
+        {
+          id_gudang_raw_material_stock: existingData.id,
+          id_item,
+          id_jo_booking: id_jo_booking,
+          id_user: id_user || null,
+          no_jo_booking: no_jo_booking,
+          kode_barang: existingData?.kode_item || null,
+          nama_barang: existingData?.nama_item || null,
+          jumlah_qty: qty,
+          type_mutasi: "keluar",
+          sumber_mutasi: sumber_mutasi,
+          tgl_mutasi: new Date(),
+          is_active: true,
+        },
+        { transaction: t },
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "use success",
+        data: { id: existingData.id, qty_sisa: newQty },
       };
     } catch (error) {
       if (!transaction) await t.rollback();
