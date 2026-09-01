@@ -55,5 +55,16 @@ router.put(
   auth,
   PurchaseOrder.rejectFinancePurchaseOrder,
 );
+router.put(
+  "/purchasing/purchaseOrder/close/:id",
+  auth,
+  PurchaseOrder.closePurchaseOrder,
+);
+
+router.put(
+  "/purchasing/purchaseOrder/sendBack/:idItemJo",
+  auth,
+  PurchaseOrder.sendBackToRequest,
+);
 
 module.exports = router;

@@ -69,6 +69,14 @@ const PurchaseOrder = db.define(
         key: "id",
       },
     },
+    id_close_po: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     no_purchase_order: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -138,6 +146,11 @@ const PurchaseOrder = db.define(
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: "draft",
+    },
+    status_po: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "progress",
     },
     is_active: {
       type: DataTypes.BOOLEAN,
@@ -211,6 +224,15 @@ Users.hasMany(PurchaseOrder, {
 PurchaseOrder.belongsTo(Users, {
   foreignKey: "id_reject_finance",
   as: "user_reject_finance",
+});
+
+Users.hasMany(PurchaseOrder, {
+  foreignKey: "id_close_po",
+  as: "purchase_orders_close_po",
+});
+PurchaseOrder.belongsTo(Users, {
+  foreignKey: "id_close_po",
+  as: "user_close_po",
 });
 
 module.exports = PurchaseOrder;
