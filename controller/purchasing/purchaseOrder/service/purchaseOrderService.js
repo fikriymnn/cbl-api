@@ -723,6 +723,123 @@ const PurchaseOrderService = {
       throw { success: false, message: error.message };
     }
   },
+
+  closePurchaseOrderService: async ({
+    id,
+    id_close_po,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+    try {
+      const dataPo = await PurchaseOrder.findByPk(id);
+      if (!dataPo) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Purchase Order Tidak Ditemukan",
+        };
+      }
+
+      await PurchaseOrder.update(
+        {
+          id_close_po,
+          status_po: "done",
+        },
+        { where: { id }, transaction: t },
+      );
+
+      await PurchaseOrderItemJo.update(
+        { status: "done" },
+        { where: { id_purchase_order: id }, transaction: t },
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "close po success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
+
+  sendBackToRequestService: async ({
+    id_item_jo,
+    id_item,
+    id_brand,
+    nama_item,
+    nama_brand,
+    qty_sendback,
+    id_user_sendback,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+    try {
+      const dataPoItemJo = await PurchaseOrderItemJo.findByPk(id_item_jo, {
+        include: [
+          {
+            model: JobOrder,
+            as: "job_order",
+            include: [
+              {
+                model: BomPpicModel,
+                as: "bom_ppic",
+              },
+            ],
+          },
+        ],
+      });
+      if (!dataPoItemJo) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 404,
+          success: false,
+          message: "Data Purchase Order Item JO Tidak Ditemukan",
+        };
+      }
+
+      await RequestPurchase.create(
+        {
+          id_jo: dataPoItemJo.id_jo,
+          id_io: dataPoItemJo.job_order.id_io,
+          id_so: dataPoItemJo.job_order.id_so,
+          id_bom_ppic: dataPoItemJo.job_order.bom_ppic.id,
+          id_item: id_item,
+          id_brand: id_brand,
+          id_request: id_user_sendback,
+          no_bom_ppic: dataPoItemJo.job_order.bom_ppic.no_bom_ppic,
+          no_jo: dataPoItemJo.no_jo,
+          no_so: dataPoItemJo.job_order.no_so,
+          no_io: dataPoItemJo.job_order.no_io,
+          customer: dataPoItemJo.job_order.customer,
+          product: dataPoItemJo.job_order.product,
+          nama_item: nama_item,
+          nama_brand: nama_brand,
+          qty: qty_sendback,
+          tipe_barang: dataPoItemJo.tipe_barang,
+          satuan: dataPoItemJo.satuan,
+          tgl_kirim: dataPoItemJo.job_order.tgl_kirim,
+          rencana_cetak: dataPoItemJo.rencana_cetak,
+          tgl_request: new Date(),
+          is_active: true,
+        },
+        { transaction: t },
+      );
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "send back to request success",
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw { success: false, message: error.message };
+    }
+  },
 };
 
 module.exports = PurchaseOrderService;
