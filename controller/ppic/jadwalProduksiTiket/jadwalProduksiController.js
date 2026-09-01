@@ -14,21 +14,6 @@ const db = require("../../../config/database");
 const moment = require("moment");
 
 const jadwalProduksiController = {
-  // getTiketJadwalProduksi: async (req, res) => {
-  //   try {
-  //     const { status, tgl, mesin, page, limit, search } = req.query;
-  //     const { id } = req.params;
-  //     const offset = (parseInt(page) - 1) * parseInt(limit);
-  //     if (id) {
-  //       const dataById = dataDumyJo.find((data) => data.id == id);
-  //       res.status(200).json({ data: dataById });
-  //     } else {
-  //       res.status(200).json({ data: dataDumyJo });
-  //     }
-  //   } catch (err) {
-  //     res.status(500).json({ msg: err.message });
-  //   }
-  // },
   getTiketJadwalProduksi: async (req, res) => {
     try {
       const {
@@ -703,14 +688,28 @@ const jadwalProduksiController = {
       const dayNormallyHasShift2 = (dayOfWeek) =>
         dayOfWeek >= 1 && dayOfWeek <= 5;
 
+      // Cek apakah sebuah tanggal adalah hari libur "penuh": Minggu, atau
+      // hari yang eksplisit ditandai libur di jadwal karyawan. Dipakai untuk
+      // memaksa shift 1 / shift 2 di hari itu HANYA buka kalau shift yang
+      // bersangkutan memang di-lemburkan (bukan otomatis buka gara-gara
+      // hari itu weekday / gara-gara shift lain di-lemburkan).
+      const isDayOff = (dateToCheck, formattedDateToCheck) => {
+        const dow = dateToCheck.getDay();
+        return dow === 0 || jadwalLiburSet.has(formattedDateToCheck);
+      };
+
       // Aturan lengkap:
       // - Senin-Jumat  : shift 1 + shift 2 (shift 2 normal s/d 04:00, lembur s/d 07:00)
       // - Sabtu        : shift 1 saja s/d jam 13:00. Kalau ada lembur di hari itu:
       //                  shift 1 jadi 08:00-19:00, shift 2 jadi 20:00-07:00 (seperti weekday lembur)
-      // - Minggu       : libur total, kecuali ada lembur di hari itu
+      // - Minggu / hari libur eksplisit : libur total, kecuali ada lembur di
+      //   hari itu - dan kalau lembur, shift 1 & shift 2 masing-masing HANYA
+      //   buka kalau memang shift itu sendiri yang di-flag lembur (tidak lagi
+      //   otomatis ikut buka gara-gara shift lainnya lembur / gara-gara hari
+      //   itu weekday).
       // - Shift 2 yang lintas tengah malam SELALU dicek carry-over ke hari
-      //   berikutnya terlebih dahulu, sebelum aturan libur/Minggu diterapkan,
-      //   supaya sisa shift semalam tidak ke-block oleh aturan hari ini.
+      //   berikutnya terlebih dahulu, dengan aturan "hanya buka kalau memang
+      //   di-lemburkan" yang sama kalau hari sebelumnya adalah hari libur.
       const isWithinShiftHours = (
         date,
         jadwalLiburSet,
@@ -720,24 +719,27 @@ const jadwalProduksiController = {
         const formattedDate = toDateOnlyJakarta(date);
         const dayOfWeek = date.getDay(); // 0 = Minggu, 6 = Sabtu
         const isSaturday = dayOfWeek === 6;
-        const isSunday = dayOfWeek === 0;
 
         const lembur = getLembur
           ? getLembur(date)
           : { shift_1: false, shift_2: false };
         const isLemburDay = lembur.shift_1 || lembur.shift_2;
+        const todayOff = isDayOff(date, formattedDate);
 
         const currentTime = date.getHours() * 100 + date.getMinutes();
 
         // ---- Carryover shift 2 dari hari sebelumnya (lintas tengah malam) ----
         const prevDate = new Date(date);
         prevDate.setDate(prevDate.getDate() - 1);
+        const prevFormattedDate = toDateOnlyJakarta(prevDate);
         const prevDayOfWeek = prevDate.getDay();
         const prevLembur = getLembur
           ? getLembur(prevDate)
           : { shift_1: false, shift_2: false };
-        const prevDayHasShift2 =
-          dayNormallyHasShift2(prevDayOfWeek) || prevLembur.shift_2;
+        const prevDayOff = isDayOff(prevDate, prevFormattedDate);
+        const prevDayHasShift2 = prevDayOff
+          ? prevLembur.shift_2
+          : dayNormallyHasShift2(prevDayOfWeek) || prevLembur.shift_2;
 
         if (prevDayHasShift2) {
           for (const shift of dataShift) {
@@ -760,15 +762,15 @@ const jadwalProduksiController = {
           }
         }
 
-        // ---- Minggu: libur total kecuali hari itu sendiri ada lembur ----
-        if (isSunday && !isLemburDay) return false;
+        // ---- Hari libur (Minggu atau jadwal karyawan eksplisit) - kecuali lembur ----
+        if (todayOff && !isLemburDay) return false;
 
-        // ---- Hari libur eksplisit (jadwal karyawan) - kecuali lembur ----
-        if (jadwalLiburSet.has(formattedDate) && !isLemburDay) return false;
-
-        // ---- Shift 1 hari ini (Sabtu dibatasi sampai jam 13:00, kecuali lembur) ----
+        // ---- Shift 1 hari ini ----
+        // Diblok kalau: hari ini libur DAN shift_1 tidak dilemburkan,
+        // atau Sabtu lewat jam 13:00 tanpa lembur shift_1.
         const shift1Blocked =
-          isSaturday && currentTime >= 1300 && !lembur.shift_1;
+          (todayOff && !lembur.shift_1) ||
+          (isSaturday && currentTime >= 1300 && !lembur.shift_1);
 
         if (!shift1Blocked) {
           for (const shift of dataShift) {
@@ -795,9 +797,13 @@ const jadwalProduksiController = {
           }
         }
 
-        // ---- Shift 2 hari ini (Senin-Jumat selalu, Sabtu/Minggu hanya kalau lembur) ----
-        const todayHasShift2 =
-          dayNormallyHasShift2(dayOfWeek) || lembur.shift_2;
+        // ---- Shift 2 hari ini ----
+        // Kalau hari ini libur, shift 2 HANYA buka kalau memang dilemburkan.
+        // Kalau bukan hari libur, pakai aturan normal (Senin-Jumat selalu ada,
+        // atau lembur di hari lain seperti Sabtu).
+        const todayHasShift2 = todayOff
+          ? lembur.shift_2
+          : dayNormallyHasShift2(dayOfWeek) || lembur.shift_2;
 
         if (todayHasShift2) {
           for (const shift of dataShift) {
@@ -1733,45 +1739,7 @@ const jadwalProduksiController = {
       res.status(500).json({ msg: err.message });
     }
   },
-
-  // simapanCalculateTiketJadwalProduksi: async (req, res) => {
-  //   const { id } = req.params;
-  //   const { tahap } = req.body;
-  //   const t = await db.transaction();
-  //   try {
-  //     for (let i = 0; i < tahap.length; i++) {
-  //       const data = tahap[i];
-  //       await TiketJadwalProduksiTahapan.update(data, {
-  //         where: { id: data.id },
-  //         transaction: t,
-  //       });
-
-  //       await TiketJadwalProduksiPerJam.bulkCreate(
-  //         {
-  //           ...data,
-  //           id_tiket_jadwal_produksi: id,
-  //           id_tiket_jadwal_produksi_tahapan: data.id,
-  //         },
-  //         { transaction: t }
-  //       );
-  //     }
-  //     await t.commit();
-
-  //     res.status(200).json({ msg: "simpan succes" });
-  //   } catch (err) {
-  //     await t.rollback;
-  //     res.status(500).json({ msg: err.message });
-  //   }
-  // },
 };
-
-// function formatDateNow(date) {
-//   return (
-//     date.toISOString().split("T")[0] +
-//     " " +
-//     date.toISOString().split("T")[1].split(".")[0]
-//   );
-// }
 
 const formatDateNow = (date) => {
   const options = {
@@ -1843,6 +1811,11 @@ const isBreakTime = (date, schedule) => {
 };
 
 // Enhanced helper to check if time is within shift hours, considering holidays
+// NOTE: fungsi module-level ini (dipakai findNextAvailableSlot /
+// resolveScheduleConflicts) punya potensi bug yang sama seperti versi lama
+// di dalam calculateTiketJadwalProduksi. Tidak diubah di sini karena kedua
+// fungsi tersebut tampaknya tidak dipanggil dari controller manapun di file
+// ini - kemungkinan kode lama yang belum dipakai lagi.
 const isWithinShiftHours = (date, holidaySet, shift, getLembur) => {
   const schedule = getShiftSchedule(date, shift);
   if (!schedule) return false;
