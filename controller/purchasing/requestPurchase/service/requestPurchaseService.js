@@ -150,6 +150,7 @@ const RequestPurchaseService = {
     id_produk,
     status,
     tipe_barang,
+    id_item,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -179,6 +180,36 @@ const RequestPurchaseService = {
       obj.tipe_barang = {
         [Op.in]: tipe_barang,
       };
+
+    if (id_item) {
+      let idItemArray;
+
+      if (Array.isArray(id_item)) {
+        idItemArray = id_item;
+      } else if (
+        typeof id_item === "string" &&
+        id_item.trim().startsWith("[")
+      ) {
+        // handle string seperti "[220,14]"
+        try {
+          idItemArray = JSON.parse(id_item);
+        } catch {
+          idItemArray = id_item
+            .replace(/[[\]]/g, "") // buang kurung siku
+            .split(",")
+            .map((v) => v.trim());
+        }
+      } else {
+        // handle string comma-separated biasa "220,14"
+        idItemArray = String(id_item)
+          .split(",")
+          .map((v) => v.trim());
+      }
+
+      idItemArray = idItemArray.map(Number).filter((v) => !isNaN(v));
+
+      obj.id_item = { [Op.in]: idItemArray };
+    }
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
@@ -360,7 +391,7 @@ const RequestPurchaseService = {
       // 🔧 generate payload request purchase (filter qty_beli > 0)
       const payloadRequestPurchase = buildRequestPurchasePayload(
         plainBomPpic,
-        id_user_request
+        id_user_request,
       );
 
       if (payloadRequestPurchase.length === 0) {
@@ -375,12 +406,12 @@ const RequestPurchaseService = {
       //📝 insert semua item request purchase
       const createdRequestPurchase = await RequestPurchaseModel.bulkCreate(
         payloadRequestPurchase,
-        { transaction: t }
+        { transaction: t },
       );
 
       await BomPpicModel.update(
         { is_request_purchase: true },
-        { where: { id: id_bom_ppic }, transaction: t }
+        { where: { id: id_bom_ppic }, transaction: t },
       );
 
       if (!transaction) await t.commit();

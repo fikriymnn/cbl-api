@@ -581,9 +581,9 @@ const jadwalProduksiController = {
       if (isLemburGlobal) {
         dataShift.forEach((shift) => {
           shift.shift_1_masuk = "08:00:00";
-          shift.shift_1_keluar = "19:00:00";
+          shift.shift_1_keluar = "20:00:00";
           shift.shift_2_masuk = "20:00:00";
-          shift.shift_2_keluar = "07:00:00";
+          shift.shift_2_keluar = "08:00:00";
         });
       }
 
@@ -672,12 +672,16 @@ const jadwalProduksiController = {
       };
 
       // Cek apakah jam saat ini masuk waktu istirahat (dibandingkan sebagai HHMM)
+      // NOTE: field dari masterIstirahat itu `dari` / `sampai`, bukan
+      // `jam_mulai` / `jam_selesai` - sebelumnya salah nama field jadi
+      // fungsi ini selalu return false (istirahat lembur tidak pernah
+      // kepakai).
       const isInIstirahat = (currentTime, istirahat) => {
         if (!istirahat || istirahat.length === 0) return false;
         for (const ist of istirahat) {
-          if (!ist.jam_mulai || !ist.jam_selesai) continue;
-          const start = parseInt(ist.jam_mulai.replace(":", ""));
-          const end = parseInt(ist.jam_selesai.replace(":", ""));
+          if (!ist.dari || !ist.sampai) continue;
+          const start = parseInt(ist.dari.replace(":", ""));
+          const end = parseInt(ist.sampai.replace(":", ""));
           if (currentTime >= start && currentTime < end) return true;
         }
         return false;
@@ -747,7 +751,7 @@ const jadwalProduksiController = {
               ? "20:00"
               : shift.shift_2_masuk;
             const shift2KeluarStr = prevLembur.shift_2
-              ? "07:00"
+              ? "08:00"
               : shift.shift_2_keluar;
 
             if (shift2MasukStr && shift2KeluarStr) {
@@ -778,7 +782,7 @@ const jadwalProduksiController = {
               ? "08:00"
               : shift.shift_1_masuk;
             const shift1KeluarStr = lembur.shift_1
-              ? "19:00"
+              ? "20:00"
               : shift.shift_1_keluar;
 
             if (shift1MasukStr && shift1KeluarStr) {
@@ -811,7 +815,7 @@ const jadwalProduksiController = {
               ? "20:00"
               : shift.shift_2_masuk;
             const shift2KeluarStr = lembur.shift_2
-              ? "07:00"
+              ? "08:00"
               : shift.shift_2_keluar;
 
             if (shift2MasukStr && shift2KeluarStr) {
@@ -1071,9 +1075,9 @@ const jadwalProduksiController = {
       if (data_jadwal.is_lembur === true || data_jadwal.is_lembur === "true") {
         dataShift.forEach((shift) => {
           shift.shift_1_masuk = "08:00:00";
-          shift.shift_1_keluar = "19:00:00";
+          shift.shift_1_keluar = "20:00:00";
           shift.shift_2_masuk = "20:00:00";
-          shift.shift_2_keluar = "07:00:00";
+          shift.shift_2_keluar = "08:00:00";
         });
       }
 

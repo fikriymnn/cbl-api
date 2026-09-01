@@ -21,6 +21,7 @@ const RequestPurchasingController = {
       id_produk,
       status,
       tipe_barang,
+      id_item,
     } = req.query;
 
     try {
@@ -42,6 +43,7 @@ const RequestPurchasingController = {
         id_produk: id_produk,
         status: status,
         tipe_barang: tipe_barang,
+        id_item: id_item,
       });
       return res.status(200).json(getData);
     } catch (error) {
