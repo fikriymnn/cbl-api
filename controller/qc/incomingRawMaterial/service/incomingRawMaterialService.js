@@ -1,5 +1,5 @@
 const db = require("../../../../config/database");
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
 const IncomingRawMaterial = require("../../../../model/qc/incomingRawMaterial/incomingRawMaterialModel");
 const PurchaseOrder = require("../../../../model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItemJo = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
@@ -111,6 +111,67 @@ const IncomingRawMaterialService = {
           data: data,
         };
       }
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
+  getNoSuratJalanService: async () => {
+    try {
+      //get data terakhir
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
+      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+
+      const lastSuratJalan = await IncomingRawMaterial.findOne({
+        where: {
+          createdAt: {
+            [Op.between]: [startOfYear, endOfYear],
+          },
+        },
+        order: [
+          // extract nomor urut pada format SI00001/CBL/12/25
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_surat_jalan, 5), '/', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+        ],
+      });
+
+      //tentukan no selanjutnya
+      const currentYear = new Date().getFullYear();
+      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+      const shortYear = String(currentYear).slice(2); // 2025 => "25"
+      // 2. Tentukan nomor urut berikutnya
+      let nextNumber = 1;
+
+      if (lastSuratJalan) {
+        const lastNo = lastSuratJalan.no_surat_jalan; // contoh: SJB00005/12/25
+
+        // Ambil "00005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(4, lastNo.indexOf("/")), 10);
+
+        nextNumber = lastSeq + 1;
+      }
+
+      // 3. Buat nomor urut padded 5 digit
+      const paddedNumber = String(nextNumber).padStart(5, "0");
+
+      // 4. Susun format akhir
+      const newInvoiceNumber = `SJB-${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
+      return {
+        status: 200,
+        success: true,
+        no_surat_jalan: lastSuratJalan?.no_surat_jalan,
+        new_no_surat_jalan: newInvoiceNumber,
+      };
     } catch (error) {
       return {
         status: 500,
@@ -302,6 +363,7 @@ const IncomingRawMaterialService = {
               sumber_mutasi: "normal",
               note: note || null,
               tgl_mutasi: new Date(),
+              no_surat_jalan: dataIrm.no_surat_jalan || null,
               transaction: t,
             },
           );
@@ -326,6 +388,7 @@ const IncomingRawMaterialService = {
               satuan: dataIrm.purchase_order_item_jo.satuan,
               id_user: id_approve,
               sumber_mutasi: "idle",
+              no_surat_jalan: dataIrm.no_surat_jalan || null,
               transaction: t,
             },
           );
@@ -348,6 +411,7 @@ const IncomingRawMaterialService = {
               sumber_mutasi: "idle",
               note: note || null,
               tgl_mutasi: new Date(),
+              no_surat_jalan: dataIrm.no_surat_jalan || null,
               transaction: t,
             },
           );

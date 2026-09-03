@@ -126,6 +126,7 @@ const GudangRawMaterialStockService = {
     satuan,
     id_user,
     sumber_mutasi,
+    no_surat_jalan = null,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -205,6 +206,7 @@ const GudangRawMaterialStockService = {
           type_mutasi: "masuk",
           sumber_mutasi: sumber_mutasi,
           tgl_mutasi: new Date(),
+          no_surat_jalan: no_surat_jalan || null,
           is_active: true,
         },
         { transaction: t },

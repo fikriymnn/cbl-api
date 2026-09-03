@@ -8,6 +8,12 @@ router.get(
   IncomingRawMaterial.getIncomingRawMaterial,
 );
 
+router.get(
+  "/qc/incomingRawMaterialNoSuratJalan",
+  auth,
+  IncomingRawMaterial.getnoSuratJalan,
+);
+
 router.post(
   "/qc/incomingRawMaterial",
   auth,
