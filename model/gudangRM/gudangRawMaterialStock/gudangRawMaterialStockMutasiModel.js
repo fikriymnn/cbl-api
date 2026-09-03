@@ -59,6 +59,10 @@ const GudangRawMaterialStockMutasi = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    no_surat_jalan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     //type mutasi untuk keluar dan masuk
     type_mutasi: {
       type: DataTypes.STRING,
