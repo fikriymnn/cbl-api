@@ -78,39 +78,54 @@ const PurchaseOrderService = {
     id,
     page,
     limit,
-    start_date,
-    end_date,
+    start_date_po,
+    end_date_po,
+    start_date_kirim,
+    end_date_kirim,
     search,
     id_jo,
     id_io,
     id_so,
+    id_vendor,
     id_bom_ppic,
     status,
     status_tiket,
+    status_po,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+    let orderFilter = [["createdAt", "DESC"]];
     if (search) {
       obj = {
         [Op.or]: [
           { no_purchase_order: { [Op.like]: `%${search}%` } },
           { nama_vendor: { [Op.like]: `%${search}%` } },
-          { note_internal: { [Op.like]: `%${search}%` } },
-          { note_supplier: { [Op.like]: `%${search}%` } },
+          // { note_internal: { [Op.like]: `%${search}%` } },
+          // { note_supplier: { [Op.like]: `%${search}%` } },
         ],
       };
     }
     if (id_jo) obj.id_jo = id_jo;
     if (id_io) obj.id_io = id_io;
     if (id_so) obj.id_so = id_so;
+    if (id_vendor) obj.id_vendor = id_vendor;
     if (id_bom_ppic) obj.id_bom_ppic = id_bom_ppic;
     if (status) obj.status = status;
     if (status_tiket) obj.status_tiket = status_tiket;
+    if (status_po) obj.status_po = status_po;
 
-    if (start_date && end_date) {
-      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
-      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      obj.createdAt = { [Op.between]: [startDate, endDate] };
+    if (start_date_po && end_date_po) {
+      const startDate = new Date(start_date_po).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date_po).setHours(23, 59, 59, 999);
+      obj.tgl_po = { [Op.between]: [startDate, endDate] };
+      orderFilter = [["tgl_po", "DESC"]];
+    }
+
+    if (start_date_kirim && end_date_kirim) {
+      const startDate = new Date(start_date_kirim).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date_kirim).setHours(23, 59, 59, 999);
+      obj.tgl_kirim = { [Op.between]: [startDate, endDate] };
+      orderFilter = [["tgl_kirim", "DESC"]];
     }
 
     obj.is_active = true;
@@ -118,7 +133,7 @@ const PurchaseOrderService = {
       if (page && limit) {
         const length = await PurchaseOrder.count({ where: obj });
         const data = await PurchaseOrder.findAll({
-          order: [["createdAt", "DESC"]],
+          order: orderFilter,
           limit: parseInt(limit),
           offset,
           where: obj,

@@ -24,6 +24,30 @@ const GudangRawMaterialStockController = {
     }
   },
 
+  getGudangRawMaterialStockMutasi: async (req, res) => {
+    const _id = req.params.id;
+    const { page, limit, start_date, end_date, search, type_mutasi } =
+      req.query;
+
+    try {
+      const getData =
+        await GudangRawMaterialStockService.getGudangRawMaterialStockMutasiService(
+          {
+            id: _id,
+            page,
+            limit,
+            start_date,
+            end_date,
+            search,
+            type_mutasi,
+          },
+        );
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   // body: { id_item, qty, tipe_barang, satuan }
   createGudangRawMaterialStock: async (req, res) => {
     const { id_item, qty, tipe_barang, satuan, sumber_mutasi } = req.body;

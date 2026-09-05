@@ -16,6 +16,7 @@ const MasterGradeHr = require("../../../model/masterData/hr/masterGradeModel");
 const DataSP = require("../../../model/hr/pengajuanSP/pengajuanSPModel");
 const PinjamanKaryawan = require("../../../model/hr/pengajuanPinjaman/pengajuanPinjamanModel");
 const KaryawanPotongan = require("../../../model/hr/karyawan/karyawanPotonganModel");
+const KaryawanTambahan = require("../../../model/hr/karyawan/karyawanTambahanModel");
 const KaryawanBagianMesin = require("../../../model/hr/karyawan/karyawanBagianMesinModel");
 const MasterStatusKaryawan = require("../../../model/masterData/hr/masterStatusKaryawanModel");
 const HistoriPromosiStatusKaryawan = require("../../../model/hr/pengajuanPromosiStatusKaryawan/hisroryPromosiStatusKaryawanModel");
@@ -145,6 +146,10 @@ const karyawanController = {
                 {
                   model: KaryawanPotongan,
                   as: "potongan_karyawan",
+                },
+                {
+                  model: KaryawanTambahan,
+                  as: "tambahan_karyawan",
                 },
                 {
                   model: KaryawanDetailInformasi,
@@ -506,7 +511,7 @@ const karyawanController = {
             id: department.id,
             nama: department.nama_department,
             jumlah: karyawanBiodata.filter(
-              (d) => d.id_department === department.id
+              (d) => d.id_department === department.id,
             ).length,
           };
         }),
@@ -525,7 +530,7 @@ const karyawanController = {
             id: status.id,
             nama: status.nama_status,
             jumlah: karyawanBiodata.filter(
-              (d) => d.id_status_karyawan === status.id
+              (d) => d.id_status_karyawan === status.id,
             ).length,
           };
         }),
@@ -548,7 +553,7 @@ const karyawanController = {
           {
             nama: "produksi",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_karyawan === "produksi"
+              (d) => d.tipe_karyawan === "produksi",
             ).length,
           },
         ],
@@ -557,13 +562,13 @@ const karyawanController = {
           {
             nama: "Bulanan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_penggajian === "bulanan"
+              (d) => d.tipe_penggajian === "bulanan",
             ).length,
           },
           {
             nama: "Mingguan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.tipe_penggajian === "mingguan"
+              (d) => d.tipe_penggajian === "mingguan",
             ).length,
           },
         ],
@@ -572,13 +577,13 @@ const karyawanController = {
           {
             nama: "Laki - Laki",
             jumlah: karyawanBiodata.filter(
-              (d) => d.jenis_kelamin === "Laki-Laki"
+              (d) => d.jenis_kelamin === "Laki-Laki",
             ).length,
           },
           {
             nama: "Perempuan",
             jumlah: karyawanBiodata.filter(
-              (d) => d.jenis_kelamin === "Perempuan"
+              (d) => d.jenis_kelamin === "Perempuan",
             ).length,
           },
         ],
@@ -842,7 +847,7 @@ const karyawanController = {
       const absenResult = await getAbsensiFunction(start_date, end_date, obj);
 
       const dataTerlambat = absenResult.filter(
-        (absen) => absen.menit_terlambat > 0
+        (absen) => absen.menit_terlambat > 0,
       );
       const hariTerlambat = dataTerlambat?.length;
       const jamTerlambat = dataTerlambat.reduce((total, absen) => {
@@ -919,7 +924,7 @@ const karyawanController = {
         {
           name: nama_karyawan,
         },
-        { transaction: t }
+        { transaction: t },
       );
       // Setelah entitas dibuat, kita set badgenumber secara manual
       const formattedBadgeNumber = String(dataKaryawan.userid).padStart(9, "0");
@@ -930,7 +935,7 @@ const karyawanController = {
         {
           badgenumber: formattedBadgeNumber,
         },
-        { where: { userid: dataKaryawan.userid }, transaction: t }
+        { where: { userid: dataKaryawan.userid }, transaction: t },
       );
       const dataBiodata = await KaryawanBiodata.create(
         {
@@ -961,7 +966,7 @@ const karyawanController = {
         },
         {
           transaction: t,
-        }
+        },
       );
 
       for (let i = 0; i < bagian_mesin.length; i++) {
@@ -973,7 +978,7 @@ const karyawanController = {
             id_bagian_mesin: data.id_bagian_mesin,
             nama_bagian_mesin: data.nama_bagian_mesin,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
 
@@ -985,7 +990,7 @@ const karyawanController = {
           email: email,
           password: hasPassword,
         },
-        { transaction: t }
+        { transaction: t },
       );
 
       await t.commit();
@@ -1064,7 +1069,7 @@ const karyawanController = {
             userid: _id,
           },
           transaction: t,
-        }
+        },
       );
       await KaryawanBiodata.update(obj, {
         where: {
@@ -1081,7 +1086,7 @@ const karyawanController = {
               id_bagian_mesin: data.id_bagian_mesin,
               nama_bagian_mesin: data.nama_bagian_mesin,
             },
-            { where: { id: data.id }, transaction: t }
+            { where: { id: data.id }, transaction: t },
           );
         }
       }
@@ -1111,7 +1116,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1139,7 +1144,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1167,7 +1172,7 @@ const karyawanController = {
             id_karyawan: _id,
           },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
@@ -1205,7 +1210,7 @@ const karyawanController = {
           nik: item.biodata_karyawan[0].nik,
           password: await bcrypt.hash("123456", 10),
           email: generateEmail(item),
-        }))
+        })),
       );
 
       for (let i = 0; i < result.length; i++) {
@@ -1223,7 +1228,7 @@ const karyawanController = {
               email: e.email,
               password: e.password,
             },
-            { transaction: t }
+            { transaction: t },
           );
         }
       }

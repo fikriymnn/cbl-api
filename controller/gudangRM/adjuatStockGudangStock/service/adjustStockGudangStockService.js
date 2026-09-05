@@ -191,15 +191,16 @@ const AdjustStockRawMaterialStockService = {
         };
       }
 
-      await GudangRawmaterialStock.update(
-        {
-          qty: jumlah_qty_adjust,
-        },
-        {
-          where: { id: dataGudangRmStock.id },
-          transaction: t,
-        },
-      );
+      let objUpdate = {
+        qty: jumlah_qty_adjust,
+      };
+
+      if (status === "penambahan") objUpdate.tgl_masuk = new Date();
+
+      await GudangRawmaterialStock.update(objUpdate, {
+        where: { id: dataGudangRmStock.id },
+        transaction: t,
+      });
 
       if (!transaction) await t.commit();
       return {

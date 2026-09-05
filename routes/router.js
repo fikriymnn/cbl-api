@@ -204,6 +204,7 @@ router.use("/", require("./hr/absenCheckInOutRoute"));
 router.use("/", require("./hr/absenPayrollRoute"));
 router.use("/", require("./hr/karyawan/karyawanRoute"));
 router.use("/", require("./hr/karyawan/karyawanPotonganRoute"));
+router.use("/", require("./hr/karyawan/karyawanTambahanRoute"));
 router.use("/", require("./hr/karyawan/karyawanDetailInformasiRoute"));
 router.use("/", require("./hr/karyawan/karyawanDetailKeluargaRoute"));
 router.use("/", require("./hr/karyawan/karyawanRiwayatPendidikanRoute"));
@@ -361,6 +362,7 @@ router.use("/", require("./masterdata/marketing/masterVendorRoute"));
 //Purchasing
 router.use("/", require("./purchasing/requestPurchasingRoutes"));
 router.use("/", require("./purchasing/purchaseOrderRoute"));
+router.use("/", require("./purchasing/requestCancelPurchaseOrderRoute"));
 
 //gudang RM
 router.use(

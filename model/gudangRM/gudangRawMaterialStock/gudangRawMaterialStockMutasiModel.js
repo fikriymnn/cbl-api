@@ -59,7 +59,15 @@ const GudangRawMaterialStockMutasi = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    jumlah_qty_awal: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     no_surat_jalan: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    no_good_receipt: {
       type: DataTypes.STRING,
       allowNull: true,
     },

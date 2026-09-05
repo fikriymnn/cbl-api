@@ -16,6 +16,8 @@ const GudangFinishGoodController = {
       id_customer,
       id_produk,
       status,
+      aging_category,
+      is_more_than_90_days,
     } = req.query;
 
     try {
@@ -32,6 +34,8 @@ const GudangFinishGoodController = {
         id_customer: id_customer,
         id_produk: id_produk,
         status: status,
+        aging_category: aging_category,
+        is_more_than_90_days: is_more_than_90_days === "true" ? true : false,
       });
       return res.status(200).json(getData);
     } catch (error) {
@@ -48,6 +52,7 @@ const GudangFinishGoodController = {
       end_date,
       search,
       status,
+      aging_category,
       is_more_than_90_days,
     } = req.query;
 
@@ -61,6 +66,7 @@ const GudangFinishGoodController = {
           end_date: end_date,
           search: search,
           status: status,
+          aging_category: aging_category,
           is_more_than_90_days: is_more_than_90_days === "true" ? true : false,
         });
       return res.status(200).json(getData);
@@ -88,8 +94,16 @@ const GudangFinishGoodController = {
 
   getGudangFinishGoodByJo: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, id_io, status } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      id_io,
+      status,
+      aging_category,
+    } = req.query;
 
     try {
       const getData =
@@ -102,7 +116,18 @@ const GudangFinishGoodController = {
           search: search,
           id_io: id_io,
           status: status,
+          aging_category: aging_category,
         });
+      return res.status(200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAgingInventoryRecap: async (req, res) => {
+    try {
+      const getData =
+        await GudangFinishGoodService.getAgingInventoryRecapService({});
       return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });

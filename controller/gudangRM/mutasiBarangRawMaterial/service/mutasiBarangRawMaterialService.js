@@ -238,6 +238,7 @@ const MutasiBarangRawMaterialService = {
     note = null,
     tgl_mutasi = null,
     no_surat_jalan = null,
+    no_good_receipt = null,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -280,6 +281,7 @@ const MutasiBarangRawMaterialService = {
           tgl_mutasi: tgl_mutasi || new Date(),
           note: note || null,
           no_surat_jalan: no_surat_jalan || null,
+          no_good_receipt: no_good_receipt || null,
         },
         { transaction: t },
       );

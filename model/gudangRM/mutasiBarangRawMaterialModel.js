@@ -54,6 +54,10 @@ const MutasiBarangRawMaterial = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_good_receipt: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     //type mutasi untuk keluar dan masuk
     type_mutasi: {
       type: DataTypes.STRING,

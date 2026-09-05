@@ -53,6 +53,10 @@ const IncomingRawMaterial = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    no_good_receipt: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     qty_incoming: {
       type: DataTypes.DOUBLE,
       allowNull: true,
