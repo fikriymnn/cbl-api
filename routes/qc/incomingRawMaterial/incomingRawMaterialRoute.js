@@ -9,9 +9,9 @@ router.get(
 );
 
 router.get(
-  "/qc/incomingRawMaterialNoSuratJalan",
+  "/qc/incomingRawMaterialNoGoodReceipt",
   auth,
-  IncomingRawMaterial.getnoSuratJalan,
+  IncomingRawMaterial.getnoGoodReceipt,
 );
 
 router.post(

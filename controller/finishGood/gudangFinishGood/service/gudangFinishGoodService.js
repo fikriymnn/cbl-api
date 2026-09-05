@@ -27,6 +27,7 @@ const GudangFinishGoodService = {
     id_customer,
     id_produk,
     status,
+    aging_category,
     is_more_than_90_days = false,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -60,6 +61,21 @@ const GudangFinishGoodService = {
       ninetyDaysAgo.setHours(0, 0, 0, 0);
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
+    }
+
+    if (aging_category) {
+      const agingCaseSql = `
+      CASE
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 1 AND 30 THEN '1-30'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 31 AND 60 THEN '31-60'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 61 AND 90 THEN '61-90'
+        ELSE '>90'
+      END
+    `;
+      whereObj[Op.and] = [
+        ...(whereObj[Op.and] || []),
+        where(Sequelize.literal(agingCaseSql), aging_category),
+      ];
     }
 
     obj.is_active = true;
@@ -131,6 +147,7 @@ const GudangFinishGoodService = {
     end_date,
     search,
     status,
+    aging_category,
     is_more_than_90_days = false,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -158,6 +175,21 @@ const GudangFinishGoodService = {
       ninetyDaysAgo.setHours(0, 0, 0, 0);
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
+    }
+
+    if (aging_category) {
+      const agingCaseSql = `
+      CASE
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 1 AND 30 THEN '1-30'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 31 AND 60 THEN '31-60'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 61 AND 90 THEN '61-90'
+        ELSE '>90'
+      END
+    `;
+      whereObj[Op.and] = [
+        ...(whereObj[Op.and] || []),
+        where(Sequelize.literal(agingCaseSql), aging_category),
+      ];
     }
 
     whereObj.is_active = true;
@@ -287,6 +319,7 @@ const GudangFinishGoodService = {
     search,
     id_io,
     status,
+    aging_category,
     is_more_than_90_day = false,
   }) => {
     let whereObj = {
@@ -315,6 +348,20 @@ const GudangFinishGoodService = {
       ninetyDaysAgo.setHours(0, 0, 0, 0);
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       whereObj.tgl_masuk = { [Op.lte]: ninetyDaysAgo };
+    }
+    if (aging_category) {
+      const agingCaseSql = `
+      CASE
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 1 AND 30 THEN '1-30'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 31 AND 60 THEN '31-60'
+        WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 61 AND 90 THEN '61-90'
+        ELSE '>90'
+      END
+    `;
+      whereObj[Op.and] = [
+        ...(whereObj[Op.and] || []),
+        where(Sequelize.literal(agingCaseSql), aging_category),
+      ];
     }
     whereObj.is_active = true;
 
@@ -469,6 +516,84 @@ const GudangFinishGoodService = {
         success: true,
         data,
         total_qty: Number(totalResult.total_qty) || 0,
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
+  getAgingInventoryRecapService: async ({
+    start_date,
+    end_date,
+    id_customer,
+    id_produk,
+    id_io,
+    id_jo,
+  } = {}) => {
+    let whereObj = { is_active: true };
+
+    if (id_customer) whereObj.id_customer = id_customer;
+    if (id_produk) whereObj.id_produk = id_produk;
+    if (id_io) whereObj.id_io = id_io;
+    if (id_jo) whereObj.id_jo = id_jo;
+
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      whereObj.tgl_masuk = { [Op.between]: [startDate, endDate] };
+    }
+
+    // CASE aging berdasarkan selisih hari dari tgl_masuk sampai sekarang
+    const agingCaseSql = `
+    CASE
+      WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 1 AND 30 THEN '1-30'
+      WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 31 AND 60 THEN '31-60'
+      WHEN DATEDIFF(NOW(), tgl_masuk) BETWEEN 61 AND 90 THEN '61-90'
+      ELSE '>90'
+    END
+  `;
+
+    try {
+      const rawData = await GudangFinishGood.findAll({
+        attributes: [
+          [Sequelize.literal(agingCaseSql), "aging_category"],
+          "status",
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "jumlah_item"],
+          [Sequelize.fn("SUM", Sequelize.col("jumlah_qty")), "jumlah_qty"],
+        ],
+        where: whereObj,
+        group: [Sequelize.literal(agingCaseSql), "status"],
+        raw: true,
+      });
+
+      // urutan tetap: aging_category x status, walau datanya 0 tetap muncul
+      const agingCategories = ["1-30", "31-60", "61-90", ">90"];
+      const statusList = ["keep", "booking", "bap"]; // sesuaikan dengan enum status yang berlaku
+
+      const result = [];
+      agingCategories.forEach((aging) => {
+        statusList.forEach((status) => {
+          const found = rawData.find(
+            (item) => item.aging_category === aging && item.status === status,
+          );
+
+          result.push({
+            aging_category: aging,
+            status: status,
+            jumlah_item: found ? parseInt(found.jumlah_item) || 0 : 0,
+            jumlah_qty: found ? parseFloat(found.jumlah_qty) || 0 : 0,
+          });
+        });
+      });
+
+      return {
+        status: 200,
+        success: true,
+        data: result,
       };
     } catch (error) {
       return {

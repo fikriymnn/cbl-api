@@ -35,16 +35,17 @@ const IncomingRawMaterialController = {
     }
   },
 
-  getnoSuratJalan: async (req, res) => {
+  getnoGoodReceipt: async (req, res) => {
     try {
-      const getData = await IncomingRawMaterialService.getNoSuratJalanService();
+      const getData =
+        await IncomingRawMaterialService.getNoGoodReceiptService();
       return res.status(200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
   },
 
-  // body: { items: [{ id_purchase_order, id_purchase_order_item_jo, no_surat_jalan, qty_incoming, qty_idle, qty_pallet }, ...] }
+  // body: { items: [{ id_purchase_order, id_purchase_order_item_jo, no_surat_jalan,no_good_receipt, qty_incoming, qty_idle, qty_pallet }, ...] }
   createIncomingRawMaterial: async (req, res) => {
     const { items } = req.body;
 

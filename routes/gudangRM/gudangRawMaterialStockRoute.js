@@ -8,6 +8,12 @@ router.get(
   GudangRawMaterialStockController.getGudangRawMaterialStock,
 );
 
+router.get(
+  "/rm/gudangStockMutasi/:id?",
+  auth,
+  GudangRawMaterialStockController.getGudangRawMaterialStockMutasi,
+);
+
 router.post(
   "/rm/gudangStock",
   auth,

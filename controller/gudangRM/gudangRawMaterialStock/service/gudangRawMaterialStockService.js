@@ -52,16 +52,16 @@ const GudangRawMaterialStockService = {
               model: MasterBarang,
               as: "master_barang",
             },
-            {
-              model: GudangRawMaterialStockMutasi,
-              as: "gudang_raw_material_stock_mutasi",
-              include: [
-                {
-                  model: Users,
-                  as: "user",
-                },
-              ],
-            },
+            // {
+            //   model: GudangRawMaterialStockMutasi,
+            //   as: "gudang_raw_material_stock_mutasi",
+            //   include: [
+            //     {
+            //       model: Users,
+            //       as: "user",
+            //     },
+            //   ],
+            // },
           ],
         });
         return {
@@ -115,6 +115,84 @@ const GudangRawMaterialStockService = {
     }
   },
 
+  //get mutasi stock by id gudang stock
+  getGudangRawMaterialStockMutasiService: async ({
+    id,
+    page,
+    limit,
+    start_date,
+    end_date,
+    search,
+    type_mutasi,
+  }) => {
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    let obj = {};
+
+    if (search) {
+      obj = {
+        [Op.or]: [
+          { kode_item: { [Op.like]: `%${search}%` } },
+          { nama_item: { [Op.like]: `%${search}%` } },
+        ],
+      };
+    }
+    if (type_mutasi) obj.type_mutasi = type_mutasi;
+
+    if (start_date && end_date) {
+      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
+      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
+      obj.tgl_mutasi = { [Op.between]: [startDate, endDate] };
+    }
+
+    obj.is_active = true;
+
+    try {
+      if (page && limit) {
+        const length = await GudangRawMaterialStockMutasi.count({ where: obj });
+        const data = await GudangRawMaterialStockMutasi.findAll({
+          order: [["tgl_mutasi", "DESC"]],
+          limit: parseInt(limit),
+          offset,
+          where: obj,
+          include: [
+            {
+              model: Users,
+              as: "user",
+            },
+          ],
+        });
+        return {
+          status: 200,
+          success: true,
+          data: data,
+          total_page: Math.ceil(length / parseInt(limit)),
+        };
+      } else {
+        const data = await GudangRawMaterialStockMutasi.findAll({
+          order: [["tgl_mutasi", "DESC"]],
+          where: obj,
+          include: [
+            {
+              model: Users,
+              as: "user",
+            },
+          ],
+        });
+        return {
+          status: 200,
+          success: true,
+          data: data,
+        };
+      }
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
   // create stock
   // jika sudah ada data dengan id_item (is_active true) -> update saja (qty ditambah, tgl_masuk diperbarui)
   // jika belum ada -> create baru
@@ -127,6 +205,7 @@ const GudangRawMaterialStockService = {
     id_user,
     sumber_mutasi,
     no_surat_jalan = null,
+    no_good_receipt = null,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -163,9 +242,11 @@ const GudangRawMaterialStockService = {
       });
 
       let idGudangStock;
+      let jumlahQtyAwal = 0;
 
       if (existingData) {
         const newQty = (existingData.qty || 0) + (qty || 0);
+        jumlahQtyAwal = existingData.qty || 0;
 
         await GudangRawMaterialStock.update(
           {
@@ -203,10 +284,12 @@ const GudangRawMaterialStockService = {
           kode_barang: dataItem?.kode_barang || null,
           nama_barang: dataItem?.nama_barang || null,
           jumlah_qty: qty || 0,
+          jumlah_qty_awal: jumlahQtyAwal,
           type_mutasi: "masuk",
           sumber_mutasi: sumber_mutasi,
           tgl_mutasi: new Date(),
           no_surat_jalan: no_surat_jalan || null,
+          no_good_receipt: no_good_receipt || null,
           is_active: true,
         },
         { transaction: t },
@@ -309,6 +392,7 @@ const GudangRawMaterialStockService = {
           kode_barang: existingData?.kode_item || null,
           nama_barang: existingData?.nama_item || null,
           jumlah_qty: qty,
+          jumlah_qty_awal: currentQty,
           type_mutasi: "keluar",
           sumber_mutasi: sumber_mutasi,
           tgl_mutasi: new Date(),
@@ -401,6 +485,7 @@ const GudangRawMaterialStockService = {
           kode_barang: dataGudangStock?.kode_item || null,
           nama_barang: dataGudangStock?.nama_item || null,
           jumlah_qty,
+          jumlah_qty_awal: dataGudangStock?.qty || 0,
           type_mutasi,
           sumber_mutasi,
           note: note || null,

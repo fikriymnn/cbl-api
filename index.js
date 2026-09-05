@@ -195,6 +195,7 @@ const outstandingKaryawan = require("./model/hr/outstanding/outstandingKaryawan/
 //karyawan
 const karyawanBiodata = require("./model/hr/karyawan/karyawanBiodataModel");
 const karyawanPotongan = require("./model/hr/karyawan/karyawanPotonganModel");
+const karyawanTambahan = require("./model/hr/karyawan/karyawanTambahanModel");
 const KaryawanBagianMesin = require("./model/hr/karyawan/karyawanBagianMesinModel");
 const karyawanDetailInformasi = require("./model/hr/karyawan/karyawanDetailInformasiModel");
 const karyawanDetailKeluarga = require("./model/hr/karyawan/karyawanDetailKeluargaModel");
@@ -393,6 +394,7 @@ const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurch
 const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
 const PurchaseOrderItemJo = require("./model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
+const RequestCancelPurchaseOrder = require("./model/purchasing/requestCancelPurchaseOrder/requestCancelPurchaseOrderModel");
 
 //Gudang RM
 const TambahBahanPersiapan = require("./model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
@@ -438,7 +440,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await GudangRawMaterialStockMutasi.sync({
+//   await karyawanTambahan.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

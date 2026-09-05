@@ -498,10 +498,17 @@ const StockOpnameRawMaterialService = {
             };
           }
 
-          await GudangRawMaterialStock.update(
-            { qty: jumlahQtyAktual },
-            { where: { id: dataStock.id }, transaction: t },
-          );
+          let objUpdate = {
+            qty: jumlahQtyAktual,
+          };
+
+          if (item.type_opname == "lebih")
+            objUpdate.tgl_masuk = tgl_mutasi || new Date();
+
+          await GudangRawMaterialStock.update(objUpdate, {
+            where: { id: dataStock.id },
+            transaction: t,
+          });
         }
       }
 

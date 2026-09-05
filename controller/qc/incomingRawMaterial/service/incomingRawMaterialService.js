@@ -120,14 +120,14 @@ const IncomingRawMaterialService = {
     }
   },
 
-  getNoSuratJalanService: async () => {
+  getNoGoodReceiptService: async () => {
     try {
       //get data terakhir
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
       const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
 
-      const lastSuratJalan = await IncomingRawMaterial.findOne({
+      const lastGoodReceipt = await IncomingRawMaterial.findOne({
         where: {
           createdAt: {
             [Op.between]: [startOfYear, endOfYear],
@@ -137,7 +137,7 @@ const IncomingRawMaterialService = {
           // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_surat_jalan, 5), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_good_receipt, 5), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -152,8 +152,8 @@ const IncomingRawMaterialService = {
       // 2. Tentukan nomor urut berikutnya
       let nextNumber = 1;
 
-      if (lastSuratJalan) {
-        const lastNo = lastSuratJalan.no_surat_jalan; // contoh: SJB00005/12/25
+      if (lastGoodReceipt) {
+        const lastNo = lastGoodReceipt.no_good_receipt; // contoh: SJB00005/12/25
 
         // Ambil "00005" → ubah ke integer
         const lastSeq = parseInt(lastNo.substring(4, lastNo.indexOf("/")), 10);
@@ -165,12 +165,12 @@ const IncomingRawMaterialService = {
       const paddedNumber = String(nextNumber).padStart(5, "0");
 
       // 4. Susun format akhir
-      const newInvoiceNumber = `SJB-${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
+      const newInvoiceNumber = `GRM-${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
       return {
         status: 200,
         success: true,
-        no_surat_jalan: lastSuratJalan?.no_surat_jalan,
-        new_no_surat_jalan: newInvoiceNumber,
+        no_good_receipt: lastGoodReceipt?.no_good_receipt,
+        new_no_good_receipt: newInvoiceNumber,
       };
     } catch (error) {
       return {
@@ -228,6 +228,7 @@ const IncomingRawMaterialService = {
         id_purchase_order_item_jo: item.id_purchase_order_item_jo,
         id_request,
         no_surat_jalan: item.no_surat_jalan || null,
+        no_good_receipt: item.no_good_receipt || null,
         qty_incoming: item.qty_incoming || 0,
         qty_idle: item.qty_idle || 0,
         qty_pallet: item.qty_pallet || 0,
@@ -364,6 +365,7 @@ const IncomingRawMaterialService = {
               note: note || null,
               tgl_mutasi: new Date(),
               no_surat_jalan: dataIrm.no_surat_jalan || null,
+              no_good_receipt: dataIrm.no_good_receipt || null,
               transaction: t,
             },
           );
@@ -389,6 +391,7 @@ const IncomingRawMaterialService = {
               id_user: id_approve,
               sumber_mutasi: "idle",
               no_surat_jalan: dataIrm.no_surat_jalan || null,
+              no_good_receipt: dataIrm.no_good_receipt || null,
               transaction: t,
             },
           );
@@ -412,6 +415,7 @@ const IncomingRawMaterialService = {
               note: note || null,
               tgl_mutasi: new Date(),
               no_surat_jalan: dataIrm.no_surat_jalan || null,
+              no_good_receipt: dataIrm.no_good_receipt || null,
               transaction: t,
             },
           );

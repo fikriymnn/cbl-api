@@ -6,15 +6,19 @@ const PurchaseOrderController = {
     const {
       page,
       limit,
-      start_date,
-      end_date,
+      start_date_po,
+      end_date_po,
+      start_date_kirim,
+      end_date_kirim,
       search,
       id_jo,
       id_io,
       id_so,
+      id_vendor,
       id_bom_ppic,
       status,
       status_tiket,
+      status_po,
     } = req.query;
 
     try {
@@ -22,15 +26,19 @@ const PurchaseOrderController = {
         id: _id,
         page,
         limit,
-        start_date,
-        end_date,
+        start_date_po,
+        end_date_po,
+        start_date_kirim,
+        end_date_kirim,
         search,
         id_jo,
         id_io,
         id_so,
+        id_vendor,
         id_bom_ppic,
         status,
         status_tiket,
+        status_po,
       });
       return res.status(200).json(getData);
     } catch (error) {
