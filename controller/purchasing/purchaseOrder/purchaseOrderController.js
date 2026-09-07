@@ -71,6 +71,7 @@ const PurchaseOrderController = {
     } = req.body;
 
     try {
+      console.log("req.body", req.body);
       const getData = await PurchaseOrderService.createPurchaseOrderService({
         id_create: req.user.id,
         id_vendor,
@@ -103,9 +104,12 @@ const PurchaseOrderController = {
       note_supplier,
       purchase_name,
       items,
+      items_jo,
     } = req.body;
 
     try {
+      console.log("id", _id);
+
       const getData = await PurchaseOrderService.updatePurchaseOrderService({
         id: _id,
         id_vendor,
@@ -117,6 +121,7 @@ const PurchaseOrderController = {
         note_supplier,
         purchase_name,
         items,
+        items_jo,
       });
       return res.status(200).json(getData);
     } catch (error) {

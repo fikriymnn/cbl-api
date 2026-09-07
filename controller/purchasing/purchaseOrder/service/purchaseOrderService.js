@@ -137,6 +137,56 @@ const PurchaseOrderService = {
           limit: parseInt(limit),
           offset,
           where: obj,
+          include: [
+            {
+              model: PurchaseOrderItem,
+              as: "items",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterBarang,
+                  as: "master_barang",
+                },
+              ],
+            },
+            {
+              model: PurchaseOrderItemJo,
+              as: "items_jo",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterBarang,
+                  as: "master_barang",
+                },
+              ],
+            },
+            {
+              model: Users,
+              as: "user_request",
+            },
+            {
+              model: Users,
+              as: "user_create",
+            },
+            {
+              model: Users,
+              as: "user_approve_kabag",
+            },
+            {
+              model: Users,
+              as: "user_approve_finance",
+            },
+            {
+              model: Users,
+              as: "user_reject_kabag",
+            },
+            {
+              model: Users,
+              as: "user_reject_finance",
+            },
+          ],
         });
         return {
           status: 200,
@@ -286,7 +336,6 @@ const PurchaseOrderService = {
           total: totalItem,
           ppn: ppnItem,
           is_ppn: item.is_ppn || false,
-          is_active: true,
         };
       });
 
@@ -311,7 +360,6 @@ const PurchaseOrderService = {
           satuan: item.satuan || null,
           tgl_kirim: item.tgl_kirim || null,
           rencana_cetak: item.rencana_cetak || null,
-          is_active: true,
         };
       });
 
@@ -333,7 +381,6 @@ const PurchaseOrderService = {
           note_supplier: note_supplier || null,
           status: "draft",
           status_tiket: "draft",
-          is_active: true,
         },
         { transaction: t },
       );
@@ -405,7 +452,7 @@ const PurchaseOrderService = {
       const itemIdsToKeep = [];
       const itemJoIdsToKeep = [];
 
-      //untuk item
+      // untuk item
       for (const item of items) {
         const qty_beli = item.qty_beli || item.qty || 0;
         const harga = item.harga || 0;
@@ -429,7 +476,6 @@ const PurchaseOrderService = {
           total: totalItem,
           ppn: ppnItem,
           is_ppn: item.is_ppn || false,
-          is_active: true,
         };
 
         if (item.id) {
@@ -453,7 +499,7 @@ const PurchaseOrderService = {
         let qtyLebih = 0;
 
         if (item.qty_po > item.qty_bom) {
-          qtyLebih = tem.qty_po - item.qty_bom;
+          qtyLebih = item.qty_po - item.qty_bom; // fix: "tem" -> "item"
         }
         const itemJoPayload = {
           id_jo: item.id_jo || null,
@@ -470,7 +516,6 @@ const PurchaseOrderService = {
           satuan: item.satuan || null,
           tgl_kirim: item.tgl_kirim || null,
           rencana_cetak: item.rencana_cetak || null,
-          is_active: true,
         };
 
         if (item.id) {
@@ -479,13 +524,13 @@ const PurchaseOrderService = {
             where: { id: item.id, id_purchase_order: id },
             transaction: t,
           });
-          itemIdsToKeep.push(item.id);
+          itemJoIdsToKeep.push(item.id); // fix: push ke array yang benar
         } else {
           // item baru
           const newItem = await PurchaseOrderItemJo.create(itemJoPayload, {
             transaction: t,
           });
-          itemIdsToKeep.push(newItem.id);
+          itemJoIdsToKeep.push(newItem.id); // fix: push ke array yang benar
         }
       }
 
@@ -543,7 +588,6 @@ const PurchaseOrderService = {
       throw { success: false, message: error.message };
     }
   },
-
   // ubah status & status_tiket jadi "request kabag"
   requestPurchaseOrderService: async ({
     id,
@@ -839,7 +883,6 @@ const PurchaseOrderService = {
           tgl_kirim: dataPoItemJo.job_order.tgl_kirim,
           rencana_cetak: dataPoItemJo.rencana_cetak,
           tgl_request: new Date(),
-          is_active: true,
         },
         { transaction: t },
       );
