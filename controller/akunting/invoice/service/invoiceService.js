@@ -126,14 +126,13 @@ const InvoiceService = {
           },
         },
         order: [
-          // extract nomor urut pada format SI00001/CBL/12/25
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 5), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 4), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
-          ["createdAt", "DESC"], // jika nomor urut sama, ambil yang terbaru
+          ["createdAt", "DESC"],
         ],
       });
 

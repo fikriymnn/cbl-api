@@ -440,7 +440,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await karyawanTambahan.sync({
+//   await RequestCancelPurchaseOrder.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
