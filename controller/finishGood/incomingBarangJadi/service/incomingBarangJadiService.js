@@ -66,6 +66,11 @@ const IncomingBarangJadiService = {
           where: obj,
           include: [
             {
+              model: SoModel,
+              as: "so",
+              attributes: ["no_so", "tgl_pengiriman"],
+            },
+            {
               model: MasterCustomer,
               as: "detail_customer",
             },
@@ -301,15 +306,31 @@ const IncomingBarangJadiService = {
     const t = transaction || (await db.transaction());
 
     try {
-      //cek data jo
-      const dataIncomingBarangJadi = await IncomingBarangJadi.findByPk(id);
+      // cek data jo + LOCK baris ini sampai transaksi selesai
+      const dataIncomingBarangJadi = await IncomingBarangJadi.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE, // SELECT ... FOR UPDATE
+      });
+
       if (!dataIncomingBarangJadi) {
+        if (!transaction) await t.rollback();
         return {
           status_code: 404,
           success: false,
           message: "Data Tidak Ditemukan",
         };
       }
+
+      // guard: kalau sudah approved, request kedua berhenti di sini
+      if (dataIncomingBarangJadi.status === "approved") {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 409,
+          success: false,
+          message: "Data sudah diapprove sebelumnya",
+        };
+      }
+
       await IncomingBarangJadi.update(
         {
           note_user: note_user,
@@ -332,8 +353,7 @@ const IncomingBarangJadiService = {
         });
 
       if (createGudangFG.success === false) {
-        await t.rollback();
-
+        if (!transaction) await t.rollback();
         throw {
           succes: false,
           status_code: 400,
@@ -355,8 +375,7 @@ const IncomingBarangJadiService = {
         });
 
       if (createMutasiBarang.success === false) {
-        await t.rollback();
-
+        if (!transaction) await t.rollback();
         throw {
           succes: false,
           status_code: 400,

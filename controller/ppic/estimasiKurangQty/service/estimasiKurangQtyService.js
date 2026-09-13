@@ -117,6 +117,10 @@ const EstimasiKurangQtyService = {
   createEstimasiKurangQtyService: async ({
     id_produksi_lkh_tahapan,
     qty_kurang_qty,
+    qty_baik,
+    qty_rusak_sebagian,
+    qty_rusak_total,
+    qty_total,
     id_user,
     transaction = null,
   }) => {
@@ -153,6 +157,10 @@ const EstimasiKurangQtyService = {
           produk: dataLkhTahapan.produk || null,
           qty_jo: dataLkhTahapan.qty_jo || null,
           qty_kurang_qty: qty_kurang_qty,
+          qty_baik: qty_baik || null,
+          qty_rusak_sebagian: qty_rusak_sebagian || null,
+          qty_rusak_total: qty_rusak_total || null,
+          qty_total: qty_total || null,
           spesifikasi: dataLkhTahapan.spesifikasi || null,
           tgl_request: new Date(),
           status: "requested",

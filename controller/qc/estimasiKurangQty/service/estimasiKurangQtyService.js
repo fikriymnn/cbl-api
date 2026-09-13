@@ -119,6 +119,10 @@ const EstimasiKurangQtyService = {
   createEstimasiKurangQtyService: async ({
     id_produksi_lkh_tahapan,
     qty_kurang_qty,
+    qty_baik,
+    qty_rusak_sebagian,
+    qty_rusak_total,
+    qty_total,
     id_user,
     transaction = null,
   }) => {
@@ -155,6 +159,10 @@ const EstimasiKurangQtyService = {
           produk: dataLkhTahapan.produk || null,
           qty_jo: dataLkhTahapan.qty_jo || null,
           qty_kurang_qty: qty_kurang_qty,
+          qty_baik: qty_baik || null,
+          qty_rusak_sebagian: qty_rusak_sebagian || null,
+          qty_rusak_total: qty_rusak_total || null,
+          qty_total: qty_total || null,
           spesifikasi: dataLkhTahapan.spesifikasi || null,
           tgl_request: new Date(),
           status: "requested",
@@ -279,6 +287,10 @@ const EstimasiKurangQtyService = {
         await EstimasiKurangQtyPpicService.createEstimasiKurangQtyService({
           id_produksi_lkh_tahapan: checkData.id_produksi_lkh_tahapan,
           qty_kurang_qty: checkData.qty_kurang_qty,
+          qty_baik: checkData.qty_baik,
+          qty_rusak_sebagian: checkData.qty_rusak_sebagian,
+          qty_rusak_total: checkData.qty_rusak_total,
+          qty_total: checkData.qty_total,
           id_user: id_user,
           transaction: t,
         });
@@ -297,6 +309,10 @@ const EstimasiKurangQtyService = {
         await EstimasiKurangQtyProduksiService.createEstimasiKurangQtyService({
           id_produksi_lkh_tahapan: checkData.id_produksi_lkh_tahapan,
           qty_kurang_qty: checkData.qty_kurang_qty,
+          qty_baik: checkData.qty_baik,
+          qty_rusak_sebagian: checkData.qty_rusak_sebagian,
+          qty_rusak_total: checkData.qty_rusak_total,
+          qty_total: checkData.qty_total,
           id_user_request: checkData.id_request,
           id_user_approve: checkData.id_approve,
           tgl_request: checkData.tgl_request,

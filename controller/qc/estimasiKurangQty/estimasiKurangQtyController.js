@@ -44,13 +44,24 @@ const EstimasiKurangQtyController = {
   },
 
   createEstimasiKurangQty: async (req, res) => {
-    const { id_produksi_lkh_tahapan, qty_kurang_qty } = req.body;
+    const {
+      id_produksi_lkh_tahapan,
+      qty_kurang_qty,
+      qty_baik,
+      qty_rusak_sebagian,
+      qty_rusak_total,
+      qty_total,
+    } = req.body;
 
     try {
       const createData =
         await EstimasiKurangQtyService.createEstimasiKurangQtyService({
           id_produksi_lkh_tahapan: id_produksi_lkh_tahapan,
           qty_kurang_qty: qty_kurang_qty,
+          qty_baik: qty_baik,
+          qty_rusak_sebagian: qty_rusak_sebagian,
+          qty_rusak_total: qty_rusak_total,
+          qty_total: qty_total,
           id_user: req.user.id,
         });
       return res.status(createData.status_code || 200).json(createData);
