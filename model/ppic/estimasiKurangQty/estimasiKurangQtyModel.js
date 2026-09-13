@@ -115,6 +115,22 @@ const EstimasiKurangQty = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    qty_baik: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    qty_rusak_sebagian: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    qty_rusak_total: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    qty_total: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     spesifikasi: {
       type: DataTypes.STRING,
       allowNull: true,

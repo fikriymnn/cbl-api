@@ -19,6 +19,8 @@ const PurchaseOrderController = {
       status,
       status_tiket,
       status_po,
+      sort_by,
+      sort_order,
     } = req.query;
 
     try {
@@ -39,8 +41,10 @@ const PurchaseOrderController = {
         status,
         status_tiket,
         status_po,
+        sort_by,
+        sort_order,
       });
-      return res.status(200).json(getData);
+      return res.status(getData.status || 200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

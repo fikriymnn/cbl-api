@@ -17,6 +17,7 @@ const ProduksiLkhWaste = require("../../../model/produksi/produksiLkhWasteModel"
 const MasterKodeProduksi = require("../../../model/masterData/kodeProduksi/masterKodeProduksiModel");
 const MasterMesinTahapan = require("../../../model/masterData/tahapan/masterMesinTahapanModel");
 const MasterKategoriKendala = require("../../../model/masterData/kodeProduksi/masterKategoriKendalaModel");
+const ReportWasteService = require("./service/reportWasteService");
 const axios = require("axios");
 
 const ReportWasterQc = {
@@ -428,6 +429,196 @@ const ReportWasterQc = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  getReportWasteByJo: async (req, res) => {
+    const {
+      no_jo,
+      id_jo,
+      data_waste_master = [],
+      data_waste_p1 = [],
+    } = req.body;
+
+    try {
+      const result = await ReportWasteService.reportWasteByJo({
+        no_jo,
+        id_jo,
+      });
+
+      if (!result.success) {
+        return res.status(result.status).json(result);
+      }
+
+      const report = buildReportWasteResult({
+        ...result.data,
+        data_waste_master,
+        data_waste_p1: data_waste_p1.filter((item) => item.no_jo === no_jo),
+      });
+
+      return res.status(200).json(report);
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+};
+
+const buildReportWasteResult = ({
+  dataTiketMaintenance,
+  dataBarangRS,
+  dataRabut,
+  dataAmparLem,
+  dataKendalaLkh,
+  data_waste_master,
+  data_waste_p1,
+}) => {
+  const resultTiketMaintenance = [];
+
+  dataTiketMaintenance.forEach((dataMaintenance) => {
+    dataMaintenance.proses_mtcs.forEach((dataProses) => {
+      resultTiketMaintenance.push({
+        no_jo: dataMaintenance.no_jo,
+        operator: dataMaintenance.operator,
+        kode_lkh: dataMaintenance.kode_lkh,
+        nama_kendala: dataMaintenance.nama_kendala,
+        inspektor_mtc: dataProses.user_eksekutor?.nama,
+        verifikator_qc: dataProses.user_qc?.nama,
+        mesin: dataMaintenance.mesin,
+        tanggal_tiket: dataMaintenance.createdAt,
+        kode_mr: dataMaintenance.kode_ticket,
+      });
+    });
+  });
+
+  const resultBarangRS = dataBarangRS.flatMap((result) => {
+    const data = result.get({ plain: true });
+    return data.inspeksi_barang_rusak_defect_v2.map((defect) => ({
+      temuan: "sortir_RS",
+      no_jo: data.no_jo,
+      no_io: data.no_io,
+      customer: data.customer,
+      nama_produk: data.nama_produk,
+      tanggal: defect.inspeksi_barang_rusak_point_v2.waktu_mulai,
+      inspektor: defect.inspeksi_barang_rusak_point_v2.inspektor.nama,
+      total_defect: defect.jumlah_defect == null ? 0 : defect.jumlah_defect,
+      ...defect,
+    }));
+  });
+
+  const resultRabut = dataRabut.flatMap((result) => {
+    const data = result.get({ plain: true });
+    return data.inspeksi_defect.map((defect) => ({
+      temuan: "sampling_rabut",
+      no_jo: data.no_jo,
+      no_io: data.no_io,
+      customer: data.customer,
+      nama_produk: data.nama_produk,
+      tanggal: defect.inspeksi_rabut_point.waktu_mulai,
+      inspektor: defect.inspeksi_rabut_point.inspektor.nama,
+      total_defect: defect.hasil == null ? 0 : defect.hasil,
+      ...defect,
+    }));
+  });
+
+  const resultAmparLem = dataAmparLem.flatMap((result) => {
+    const data = result.get({ plain: true });
+    return data.inspeksi_defect.map((defect) => ({
+      temuan: "ampar_lem",
+      no_jo: data.no_jo,
+      no_io: data.no_io,
+      customer: data.customer,
+      nama_produk: data.nama_produk,
+      inspektor: defect.inspeksi_ampar_lem_point.inspektor.nama,
+      total_defect: defect.hasil == null ? 0 : defect.hasil,
+      ...defect,
+    }));
+  });
+
+  const grupByJo = groupedDataBerdasarkanJO([
+    ...resultBarangRS,
+    ...resultRabut,
+    ...resultAmparLem,
+  ]);
+
+  const updatedDataP1 = data_waste_p1.map((item) => ({
+    ...item,
+    inspeksi_defect: item.waste.map((defect) => ({
+      ...defect,
+      temuan: "helper",
+      total_defect: defect.total,
+      kode: defect.kode_waste,
+      masalah: defect.desc_waste,
+      kode_lkh: defect.kode_kendala,
+      masalah_lkh: defect.desc_kendala,
+      tgl: item.tgl,
+    })),
+    waste: undefined,
+  }));
+
+  const resultKendalaLkh = formatWasteData(
+    dataKendalaLkh.map((item) => item.toJSON()),
+  );
+  const mergedDataWaste = Object.values(
+    [...updatedDataP1, ...grupByJo, ...resultKendalaLkh].reduce((acc, item) => {
+      if (!acc[item.no_jo]) {
+        acc[item.no_jo] = {
+          ...item,
+          inspeksi_defect: [...item.inspeksi_defect],
+        };
+      } else {
+        acc[item.no_jo].inspeksi_defect.push(...item.inspeksi_defect);
+      }
+      return acc;
+    }, {}),
+  );
+
+  const dataMasterWasteUniq = Array.from(
+    data_waste_master
+      .reduce((map, item) => {
+        const existing = map.get(item.kode_waste);
+        if (!existing || item.waste.length > existing.waste.length) {
+          map.set(item.kode_waste, item);
+        }
+        return map;
+      }, new Map())
+      .values(),
+  );
+  const datamasterReplace = transformDataMaster(dataMasterWasteUniq);
+  const grupJoinWithMaster = mapKodeToProduksi(
+    mergedDataWaste,
+    dataMasterWasteUniq,
+    resultTiketMaintenance,
+  );
+  const grupJoinWithMasterReplace = mapKodeToProduksiReplace(
+    mergedDataWaste,
+    datamasterReplace,
+    grupJoinWithMaster,
+    resultTiketMaintenance,
+  );
+  const jumlahAllData = aggregateByKodeProduksiWithWaste(
+    mergedDataWaste,
+    dataMasterWasteUniq,
+  );
+
+  const resultGrupJoinWithMaster = grupJoinWithMaster
+    .filter((item) => item.total_defect > 0)
+    .sort((a, b) => b.total_defect - a.total_defect);
+  const resultGrupJoinWithMasterReplace = grupJoinWithMasterReplace
+    .filter((item) => item.total_defect > 0)
+    .sort((a, b) => b.total_defect - a.total_defect);
+  const resultJumlahAllData = jumlahAllData
+    .filter((item) => item.total_defect > 0)
+    .sort((a, b) => b.total_defect - a.total_defect);
+  const resultJumlahAllDataReplace = replaceKodeProduksiWithWaste(
+    resultJumlahAllData,
+  ).filter((item) => item.total_defect > 0);
+
+  return {
+    test: updatedDataP1,
+    dataWasteAllReplace: resultJumlahAllDataReplace,
+    dataWasteAll: resultJumlahAllData,
+    dataWasteByJo: resultGrupJoinWithMaster,
+    dataWasteByJoReplace: resultGrupJoinWithMasterReplace,
+    dataByKategori: getDataByKategoriAll(grupJoinWithMasterReplace),
+  };
 };
 
 const groupedDataBerdasarkanJO = (data) => {

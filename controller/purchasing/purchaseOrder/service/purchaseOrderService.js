@@ -91,17 +91,41 @@ const PurchaseOrderService = {
     status,
     status_tiket,
     status_po,
+    sort_by, // <-- baru: nama kolom, mis. "tgl_kirim", "tgl_po", "createdAt"
+    sort_order, // <-- baru: "ASC" | "DESC", default DESC
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
+
+    const hasPagination = Boolean(page && limit);
+    const hasId = Boolean(id);
+    const hasPoDateRange = Boolean(start_date_po && end_date_po);
+    const hasKirimDateRange = Boolean(start_date_kirim && end_date_kirim);
+    const hasIncompletePagination = Boolean(page || limit) && !hasPagination;
+    const hasIncompletePoDate =
+      Boolean(start_date_po || end_date_po) && !hasPoDateRange;
+    const hasIncompleteKirimDate =
+      Boolean(start_date_kirim || end_date_kirim) && !hasKirimDateRange;
+
+    // whitelist kolom yang boleh disort, hindari SQL injection lewat orderFilter
+    const ALLOWED_SORT_COLUMNS = [
+      "createdAt",
+      "tgl_po",
+      "tgl_kirim",
+      "no_purchase_order",
+    ];
+
+    const direction =
+      String(sort_order).toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    // default order, bisa ditimpa oleh filter tanggal di bawah
     let orderFilter = [["createdAt", "DESC"]];
+
     if (search) {
       obj = {
         [Op.or]: [
           { no_purchase_order: { [Op.like]: `%${search}%` } },
           { nama_vendor: { [Op.like]: `%${search}%` } },
-          // { note_internal: { [Op.like]: `%${search}%` } },
-          // { note_supplier: { [Op.like]: `%${search}%` } },
         ],
       };
     }
@@ -128,8 +152,39 @@ const PurchaseOrderService = {
       orderFilter = [["tgl_kirim", "DESC"]];
     }
 
+    // sort_by eksplisit selalu menang, terlepas dari ada/tidaknya filter tanggal
+    if (sort_by && ALLOWED_SORT_COLUMNS.includes(sort_by)) {
+      orderFilter = [[sort_by, direction]];
+    }
+
     obj.is_active = true;
     try {
+      if (hasIncompletePagination) {
+        return {
+          status: 400,
+          success: false,
+          message: "page dan limit harus diisi bersamaan",
+        };
+      }
+
+      if (hasIncompletePoDate || hasIncompleteKirimDate) {
+        return {
+          status: 400,
+          success: false,
+          message:
+            "Tanggal harus diisi berpasangan: start_date_po dan end_date_po, atau start_date_kirim dan end_date_kirim",
+        };
+      }
+
+      if (!hasPagination && !hasId && !hasPoDateRange && !hasKirimDateRange) {
+        return {
+          status: 400,
+          success: false,
+          message:
+            "Get semua Purchase Order wajib mengisi range tanggal PO atau range tanggal kirim",
+        };
+      }
+
       if (page && limit) {
         const length = await PurchaseOrder.count({ where: obj });
         const data = await PurchaseOrder.findAll({
@@ -254,13 +309,67 @@ const PurchaseOrderService = {
         };
       } else {
         const data = await PurchaseOrder.findAll({
-          order: [["createdAt", "DESC"]],
+          order: orderFilter,
           where: obj,
+          include: [
+            {
+              model: PurchaseOrderItem,
+              as: "items",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterBarang,
+                  as: "master_barang",
+                },
+              ],
+            },
+            {
+              model: PurchaseOrderItemJo,
+              as: "items_jo",
+              where: { is_active: true },
+              required: false,
+              include: [
+                {
+                  model: MasterBarang,
+                  as: "master_barang",
+                },
+              ],
+            },
+            {
+              model: Users,
+              as: "user_request",
+            },
+            {
+              model: Users,
+              as: "user_create",
+            },
+            {
+              model: Users,
+              as: "user_approve_kabag",
+            },
+            {
+              model: Users,
+              as: "user_approve_finance",
+            },
+            {
+              model: Users,
+              as: "user_reject_kabag",
+            },
+            {
+              model: Users,
+              as: "user_reject_finance",
+            },
+          ],
         });
+
+        const rekap = calculatePurchaseOrderRecap(data);
+
         return {
           status: 200,
           success: true,
           data: data,
+          rekap,
         };
       }
     } catch (error) {
@@ -809,7 +918,7 @@ const PurchaseOrderService = {
       );
 
       await PurchaseOrderItemJo.update(
-        { status: "done" },
+        { status_po: "done" },
         { where: { id_purchase_order: id }, transaction: t },
       );
 
@@ -898,6 +1007,74 @@ const PurchaseOrderService = {
       throw { success: false, message: error.message };
     }
   },
+};
+
+/**
+ * Aturan rekap Purchase Order:
+ * 1. Hanya PurchaseOrderItemJo berstatus "progress" dan "done" yang dihitung.
+ * 2. Status "progress": total qty menggunakan qty_po.
+ * 3. Status "done": total qty menggunakan qty_terkirim dan OTS menjadi 0.
+ * 4. Terkirim qty selalu menggunakan qty_terkirim.
+ * 5. OTS qty = total qty - terkirim qty.
+ * 6. Harga diambil dari PurchaseOrderItem pada PO yang sama dan dicocokkan
+ *    berdasarkan id_item.
+ * 7. Total rupiah = total qty * harga.
+ * 8. OTS rupiah = OTS qty * harga.
+ * 9. Terkirim rupiah = terkirim qty * harga.
+ *
+ * Dengan aturan tersebut:
+ * total qty = OTS qty + terkirim qty
+ * total rupiah = OTS rupiah + terkirim rupiah
+ */
+const calculatePurchaseOrderRecap = (purchaseOrders) => {
+  const rekap = {
+    total_qty: 0,
+    total_rupiah: 0,
+    ots_qty: 0,
+    ots_rupiah: 0,
+    terkirim_qty: 0,
+    terkirim_rupiah: 0,
+  };
+
+  purchaseOrders.forEach((purchaseOrder) => {
+    const hargaByItem = new Map();
+
+    (purchaseOrder.items || []).forEach((item) => {
+      if (item.id_item != null) {
+        hargaByItem.set(String(item.id_item), Number(item.harga) || 0);
+      }
+    });
+
+    (purchaseOrder.items_jo || []).forEach((itemJo) => {
+      const qtyPo = Number(itemJo.qty_po) || 0;
+      const qtyTerkirim = Number(itemJo.qty_terkirim) || 0;
+      const statusPo = String(itemJo.status_po).toLowerCase();
+
+      if (statusPo !== "progress" && statusPo !== "done") return;
+
+      // Saat done, qty_po tidak lagi menjadi acuan karena total akhirnya
+      // mengikuti jumlah yang benar-benar terkirim.
+      const isDone = statusPo === "done";
+      const totalQty = isDone ? qtyTerkirim : qtyPo;
+      const otsQty = totalQty - qtyTerkirim;
+
+      // Pencocokan harga dibatasi pada item yang berada di PO yang sedang
+      // diproses, sehingga id_item yang sama dari PO lain tidak tercampur.
+      const harga =
+        itemJo.id_item == null
+          ? 0
+          : hargaByItem.get(String(itemJo.id_item)) || 0;
+
+      rekap.total_qty += totalQty;
+      rekap.total_rupiah += totalQty * harga;
+      rekap.ots_qty += otsQty;
+      rekap.ots_rupiah += otsQty * harga;
+      rekap.terkirim_qty += qtyTerkirim;
+      rekap.terkirim_rupiah += qtyTerkirim * harga;
+    });
+  });
+
+  return rekap;
 };
 
 module.exports = PurchaseOrderService;
