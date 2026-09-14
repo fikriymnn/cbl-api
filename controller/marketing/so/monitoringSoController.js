@@ -134,7 +134,7 @@ const MonitoringSoController = {
           {
             model: JoModel,
             as: "job_order",
-            attributes: ["no_jo", "qty_lp", "qty_druk", "status_jo"],
+            attributes: ["no_jo", "qty_lp", "qty_druk", "status_jo", "stok_fg"],
             include: [
               {
                 model: JobOrderMounting,
