@@ -63,7 +63,7 @@ const InspeksiFinal = db.define(
       allowNull: true,
     },
     catatan: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     no_barcode: {
@@ -109,7 +109,7 @@ const InspeksiFinal = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 Users.hasMany(InspeksiFinal, {
