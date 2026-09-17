@@ -314,7 +314,11 @@ const payrollController = {
     try {
       // 1. Ambil semua data karyawan + data yang diperlukan dalam satu query
       const dataKaryawan = await BiodataKaryawan.findAll({
-        where: { id_grade: { [Op.ne]: null }, tipe_penggajian: "bulanan" },
+        where: {
+          id_grade: { [Op.ne]: null },
+          tipe_penggajian: "bulanan",
+          is_active: true,
+        },
         include: [
           {
             model: KaryawanPotongan,
@@ -1009,7 +1013,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
     total_potongan: 0,
     tmk: lamaKerja * 10000,
     sub_total: gajiBulanan + lamaKerja * 10000,
-    total: gajiBulanan + lamaKerja * 10000,
+    total: gajiBulanan,
     pembulatan: false,
     pengurangan_penambahan: 0,
     note_pengurangan_penambahan: null,
@@ -1075,7 +1079,7 @@ const hitungPayrollBulanan = async (data, dataKaryawan) => {
       }
 
       // Perhitungan izin
-      if (absen.status_absen === "mangkir") {
+      if (absen.status_absen?.toLowerCase() == "mangkir") {
         summaryPayroll.potonganMangkir.push({
           label: "potonganMangkir",
           jumlah: 1,

@@ -206,7 +206,7 @@ const PengajuanCutiController = {
           sisa_cuti,
           file,
         },
-        { transaction: t }
+        { transaction: t },
       );
       await t.commit();
       res.status(200).json({
@@ -221,44 +221,91 @@ const PengajuanCutiController = {
   approvePengajuanCuti: async (req, res) => {
     const _id = req.params.id;
     const { catatan_hr } = req.body;
+
     const t = await db.transaction();
 
     try {
-      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
-      if (!dataPengajuanCuti)
-        return res.status(404).json({ msg: "data tidak di temukan" });
+      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!dataPengajuanCuti) {
+        await t.rollback();
+
+        return res.status(404).json({
+          msg: "Data tidak ditemukan",
+        });
+      }
+
+      // Cegah approve 2x
+      if (dataPengajuanCuti.status === "approved") {
+        await t.rollback();
+
+        return res.status(400).json({
+          msg: "Pengajuan cuti sudah di-approve sebelumnya",
+        });
+      }
 
       await PengajuanCuti.update(
         {
           status: "approved",
           status_tiket: "history",
           id_hr: req.user.id_karyawan,
-          catatan_hr: catatan_hr,
+          catatan_hr,
         },
         {
-          where: { id: _id },
+          where: {
+            id: _id,
+          },
           transaction: t,
-        }
+        },
       );
 
-      if (dataPengajuanCuti.tipe_cuti == "tahunan") {
-        await KaryawanBiodata.update(
+      if (dataPengajuanCuti.tipe_cuti?.toLowerCase() === "tahunan") {
+        const dataKaryawan = await KaryawanBiodata.findOne({
+          where: {
+            id_karyawan: dataPengajuanCuti.id_karyawan,
+          },
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!dataKaryawan) {
+          throw new Error("Data biodata karyawan tidak ditemukan");
+        }
+
+        const sisaCutiBaru =
+          Number(dataKaryawan.sisa_cuti || 0) -
+          Number(dataPengajuanCuti.jumlah_hari || 0);
+
+        if (sisaCutiBaru < 0) {
+          throw new Error("Sisa cuti tidak mencukupi");
+        }
+
+        await dataKaryawan.update(
           {
-            sisa_cuti:
-              dataPengajuanCuti.sisa_cuti - dataPengajuanCuti.jumlah_hari,
+            sisa_cuti: sisaCutiBaru,
           },
           {
-            where: { id_karyawan: dataPengajuanCuti.id_karyawan },
             transaction: t,
-          }
+          },
         );
       }
+
       await t.commit();
 
-      res.status(200).json({ msg: "Approve Successfully" });
+      return res.status(200).json({
+        msg: "Approve Successfully",
+      });
     } catch (error) {
-      await t.rollback();
-      res.status(500).json({ msg: error.message });
+      if (!t.finished) {
+        await t.rollback();
+      }
+
+      return res.status(500).json({
+        msg: error.message,
+      });
     }
   },
 
@@ -282,7 +329,7 @@ const PengajuanCutiController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       );
 
       await t.commit();
