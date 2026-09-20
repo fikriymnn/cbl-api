@@ -108,6 +108,11 @@ const InvoiceModel = db.define(
       type: DataTypes.DECIMAL(18, 0),
       allowNull: true,
     },
+    paid_amount: {
+      type: DataTypes.DECIMAL(18, 0),
+      allowNull: false,
+      defaultValue: 0,
+    },
     note: {
       type: DataTypes.STRING,
       allowNull: true,
