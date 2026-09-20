@@ -2,6 +2,88 @@ const { Op, Sequelize, where } = require("sequelize");
 const InvoiceService = require("./service/invoiceService");
 
 const InvoiceController = {
+  getInvoicePayment: async (req, res) => {
+    const _id = req.params.id;
+    const { page, limit, start_date, end_date, search, customer_id } = req.query;
+
+    try {
+      const getData = await InvoiceService.getInvoicePaymentService({
+        id: _id,
+        page,
+        limit,
+        start_date,
+        end_date,
+        search,
+        customer_id,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getNoInvoicePayment: async (req, res) => {
+    try {
+      const getData = await InvoiceService.getNoInvoicePaymentService();
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  createInvoicePayment: async (req, res) => {
+    const {
+      customer_id,
+      payment_amount,
+      payment_proof,
+      payment_date,
+      payment_method,
+      bank,
+      account_number,
+      note,
+      invoices,
+    } = req.body;
+
+    try {
+      const getData = await InvoiceService.createInvoicePaymentService({
+        customer_id,
+        created_by: req.user.id,
+        payment_amount,
+        payment_proof,
+        payment_date,
+        payment_method,
+        bank,
+        account_number,
+        note,
+        invoices,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+      });
+    }
+  },
+
+  getAccountReceivable: async (req, res) => {
+    const { start_date, end_date, search, id_customer, waktu } = req.query;
+
+    try {
+      const getData = await InvoiceService.getAccountReceivableService({
+        start_date,
+        end_date,
+        search,
+        id_customer,
+        waktu,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   getInvoice: async (req, res) => {
     const _id = req.params.id;
     const {
@@ -13,6 +95,7 @@ const InvoiceController = {
       id_customer,
       status,
       status_proses,
+      waktu,
     } = req.query;
 
     try {
@@ -26,8 +109,9 @@ const InvoiceController = {
         id_customer: id_customer,
         status: status,
         status_proses: status_proses,
+        waktu: waktu,
       });
-      return res.status(200).json(getData);
+      return res.status(getData.status || 200).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

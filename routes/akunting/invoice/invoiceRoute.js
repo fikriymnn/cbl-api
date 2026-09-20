@@ -2,6 +2,22 @@ const router = require("express").Router();
 const InvoiceController = require("../../../controller/akunting/invoice/invoiceController");
 const { auth } = require("../../../middlewares/authMiddlewares");
 
+router.get(
+  "/invoice/payment/number",
+  auth,
+  InvoiceController.getNoInvoicePayment,
+);
+router.get(
+  "/invoice/payment/:id?",
+  auth,
+  InvoiceController.getInvoicePayment,
+);
+router.post(
+  "/invoice/payment",
+  auth,
+  InvoiceController.createInvoicePayment,
+);
+router.get("/invoice/ar", auth, InvoiceController.getAccountReceivable);
 router.get("/invoice/:id?", auth, InvoiceController.getInvoice);
 router.get("/invoiceNomor", auth, InvoiceController.getNoInvoice);
 router.post("/invoice", auth, InvoiceController.createInvoice);

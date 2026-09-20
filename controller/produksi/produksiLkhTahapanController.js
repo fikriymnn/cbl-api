@@ -350,6 +350,23 @@ const ProduksiLkhTahapanController = {
         },
       });
 
+      let isTahapanKeduaTerakhir = false;
+      if (checkDataLkhtahapanNext) {
+        const checkDataLkhtahapanAfterNext =
+          await ProduksiLkhTahapan.findOne({
+            attributes: ["id"],
+            where: {
+              id_jo: checkData.id_jo,
+              index: checkData.index + 2,
+              is_active: true,
+            },
+          });
+
+        isTahapanKeduaTerakhir = !checkDataLkhtahapanAfterNext;
+      }
+
+      const isTahapanTerakhir = !checkDataLkhtahapanNext;
+
       if (checkDataLkhtahapanNext) {
         if (checkDataLkhtahapanNext.status == "nonactive") {
           //buat tahapan selanjutnya active
@@ -371,12 +388,15 @@ const ProduksiLkhTahapanController = {
             { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
           );
         }
-      } else {
+      }
+
+      //Sumber tiket dapat berasal dari tahapan kedua terakhir atau terakhir,
+      //sedangkan tujuan tiket tetap mengikuti tipe JO seperti alur sebelumnya.
+      if (isTahapanKeduaTerakhir || isTahapanTerakhir) {
         if (
           checkDataJo.tipe_jo == "JO PROOF" ||
           checkDataJo.tipe_jo == "JO PROFF"
         ) {
-          //jika tidak ada maka kirim tiket ke list pembuatan standar warna
           const createStandarWarna = await createPembuatanStandarWarnaService({
             id_jo: checkData.id_jo,
             id_io: checkData.id_io,
@@ -395,7 +415,6 @@ const ProduksiLkhTahapanController = {
             });
           }
         } else {
-          //jika tidak ada maka kirim tiket ke list produksi jo selesai
           const createProduksiLkhProsesDone = await creteProduksiJoDoneService({
             id_jo: checkData.id_jo,
             id_io: checkData.id_io,

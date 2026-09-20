@@ -15,6 +15,9 @@ const Kalkulasi = require("../../../model/marketing/kalkulasi/kalkulasiModel");
 const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPersiapan = require("../../../model/gudangRM/tambahBahanPersiapan/tambahBahanPersiapanModel");
 const EstimasiKurangQtyQc = require("../../../model/qc/estimasiKurangQty/estimasiKurangQtyModel");
+const CsSortirRs = require("../../../model/qc/inspeksi/barangRusakV2/inspeksiBarangRusakV2Model");
+const CsSamplingHasilRabut = require("../../../model/qc/inspeksi/rabut/inspeksiRabutModel");
+const CsFinalInspection = require("../../../model/qc/inspeksi/final/inspeksiFinalModel");
 
 const MonitoringSoController = {
   getSoMonitoring: async (req, res) => {
@@ -246,6 +249,7 @@ const MonitoringSoController = {
 
       // ─── Konversi ke plain object ─────────────────────────────────────────────
       data = data.map((item) => item.toJSON());
+      data = await replaceLastProcessWithQcChecksheet(data);
 
       // ─── Fetch DO group manual per SO ─────────────────────────────────────────
       // Mencari DO group via delivery_order.id_so — bukan via delivery_order_group.id_so
@@ -333,6 +337,81 @@ const MonitoringSoController = {
 
 // ─── hitungRekapan ────────────────────────────────────────────────────────────
 // ─── hitungRekapan ────────────────────────────────────────────────────────────
+/**
+ * Tiga tahapan QC menyimpan hasil akhirnya di tabel checksheet, bukan di LKH.
+ * Bentuk `produksi_lkh_proses_last` tetap array agar kontrak response lama
+ * tidak berubah. Urutan ASC mengikuti query LKH sebelumnya (record pertama).
+ */
+async function replaceLastProcessWithQcChecksheet(data) {
+  const qcSources = {
+    "sortir rs": {
+      model: CsSortirRs,
+      historyWhere: { status: "history" },
+    },
+    "sampling hasil rabut": {
+      model: CsSamplingHasilRabut,
+      historyWhere: { status: "history" },
+    },
+    "final inspection": {
+      model: CsFinalInspection,
+      historyWhere: { bagian_tiket: "history" },
+    },
+  };
+
+  const targetsBySource = new Map();
+
+  data.forEach((item) => {
+    const noJo = item.job_order?.no_jo;
+    if (!noJo) return;
+
+    (item.produksi_lkh_tahapan || []).forEach((tahapan) => {
+      const namaTahapan = tahapan.tahapan?.nama_tahapan
+        ?.trim()
+        .toLowerCase();
+
+      if (!qcSources[namaTahapan]) return;
+
+      if (!targetsBySource.has(namaTahapan)) {
+        targetsBySource.set(namaTahapan, new Map());
+      }
+
+      const targetsByNoJo = targetsBySource.get(namaTahapan);
+      if (!targetsByNoJo.has(noJo)) targetsByNoJo.set(noJo, []);
+      targetsByNoJo.get(noJo).push(tahapan);
+    });
+  });
+
+  await Promise.all(
+    [...targetsBySource.entries()].map(async ([namaTahapan, targetsByNoJo]) => {
+      const { model, historyWhere } = qcSources[namaTahapan];
+      const checksheets = await model.findAll({
+        where: {
+          no_jo: { [Op.in]: [...targetsByNoJo.keys()] },
+          ...historyWhere,
+        },
+        order: [["createdAt", "ASC"]],
+        raw: true,
+      });
+
+      const firstChecksheetByNoJo = new Map();
+      checksheets.forEach((checksheet) => {
+        if (!firstChecksheetByNoJo.has(checksheet.no_jo)) {
+          firstChecksheetByNoJo.set(checksheet.no_jo, checksheet);
+        }
+      });
+
+      targetsByNoJo.forEach((targets, noJo) => {
+        const checksheet = firstChecksheetByNoJo.get(noJo);
+        targets.forEach((tahapan) => {
+          tahapan.produksi_lkh_proses_last = checksheet ? [checksheet] : [];
+        });
+      });
+    }),
+  );
+
+  return data;
+}
+
 function hitungRekapan(data) {
   let otsQty = 0;
   let qtyTerkirim = 0;
