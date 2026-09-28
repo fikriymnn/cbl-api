@@ -376,6 +376,7 @@ const Invoice = require("./model/akunting/invoice/invoiceModel");
 const InvoiceProduk = require("./model/akunting/invoice/invoiceProdukModel");
 const InvoicePayment = require("./model/akunting/invoice/invoicePaymentModel");
 const InvoicePaymentDetail = require("./model/akunting/invoice/invoicePaymentDetailModel");
+const InvoicePaymentAdditionalCost = require("./model/akunting/invoice/invoicePaymentAdditionalCostModel");
 const Retur = require("./model/akunting/retur/returModel");
 const ReturProduk = require("./model/akunting/retur/returProdukModel");
 const PerubahanInvoice = require("./model/akunting/perubahanInvoice/perubahanInvoiceModel");
@@ -442,7 +443,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await InvoicePayment.sync({
+//   await Invoice.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

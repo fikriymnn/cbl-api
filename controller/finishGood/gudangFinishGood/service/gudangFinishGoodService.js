@@ -753,17 +753,13 @@ const GudangFinishGoodService = {
     const t = transaction || (await db.transaction());
 
     try {
-      if (data_barang.length == 0) {
-        return {
-          status_code: 404,
-          success: false,
-          message: "Data Barang tidak boleh kosong",
-        };
-      }
+      const items = await lockAndValidateSendDoItems({
+        data_barang,
+        transaction: t,
+      });
 
-      for (let i = 0; i < data_barang.length; i++) {
-        const e = data_barang[i];
-        const getDatabarang = await GudangFinishGood.findByPk(e.id);
+      for (const item of items) {
+        const getDatabarang = item.stock;
         const sendToDo = await DeliveryOrderService.creteDeliveryOrderService({
           id_customer: getDatabarang.id_customer,
           id_io: getDatabarang.id_io,
@@ -774,8 +770,6 @@ const GudangFinishGoodService = {
         });
 
         if (sendToDo.success === false) {
-          await t.rollback();
-
           throw {
             succes: false,
             status_code: 400,
@@ -792,7 +786,7 @@ const GudangFinishGoodService = {
               id_produk: getDatabarang.id_produk,
               id_so: getDatabarang.id_so,
               id_user: id_user,
-              jumlah_qty: e.jumlah_kirim,
+              jumlah_qty: item.sendQty,
               type_mutasi: "keluar",
               type_mutasi_keluar: "single",
               transaction: t,
@@ -800,8 +794,6 @@ const GudangFinishGoodService = {
           );
 
         if (createMutasiBarang.success === false) {
-          await t.rollback();
-
           throw {
             succes: false,
             status_code: 400,
@@ -809,36 +801,18 @@ const GudangFinishGoodService = {
           };
         }
 
-        await GudangFinishGood.update(
+        await getDatabarang.update(
           {
-            jumlah_qty_keluar: getDatabarang.jumlah_qty_keluar + e.jumlah_kirim,
+            jumlah_qty_keluar:
+              Number(getDatabarang.jumlah_qty_keluar || 0) + item.sendQty,
             is_active: false,
           },
-          { where: { id: e.id }, transaction: t },
+          { transaction: t },
         );
 
-        if (getDatabarang.jumlah_qty - e.jumlah_kirim > 0) {
+        if (item.remainingQty > 0) {
           await GudangFinishGood.create(
-            {
-              id_jo: getDatabarang.id_jo,
-              id_io: getDatabarang.id_io,
-              id_so: getDatabarang.id_so,
-              id_customer: getDatabarang.id_customer,
-              id_produk: getDatabarang.id_produk,
-              no_jo: getDatabarang.no_jo,
-              no_io: getDatabarang.no_io,
-              no_so: getDatabarang.no_so,
-              no_po_customer: getDatabarang.no_po_customer,
-              customer: getDatabarang.customer,
-              produk: getDatabarang.produk,
-              po_qty: getDatabarang.po_qty,
-              jumlah_qty: getDatabarang.jumlah_qty - e.jumlah_kirim,
-              jumlah_qty_keluar: 0,
-              tgl_masuk: getDatabarang.tgl_masuk,
-              status: "keep",
-              toleransi_pengiriman: getDatabarang.toleransi_pengiriman,
-              note: getDatabarang.note,
-            },
+            buildRemainingFinishGood(getDatabarang, item.remainingQty),
             { transaction: t },
           );
         }
@@ -851,7 +825,11 @@ const GudangFinishGoodService = {
       };
     } catch (error) {
       if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
+      throw {
+        status_code: error.status_code || 500,
+        success: false,
+        message: error.message,
+      };
     }
   },
 
@@ -863,18 +841,23 @@ const GudangFinishGoodService = {
     const t = transaction || (await db.transaction());
 
     try {
-      if (data_barang.length == 0) {
-        return {
-          status_code: 404,
-          success: false,
-          message: "Data Barang tidak boleh kosong",
-        };
-      }
+      const items = await lockAndValidateSendDoItems({
+        data_barang,
+        transaction: t,
+      });
       const mainJo = data_barang.find(
         (item) => item.is_main_jo == true || item.is_main_jo === "true",
       );
+      if (!mainJo) {
+        throw {
+          status_code: 400,
+          message: "Main JO wajib dipilih untuk pengiriman group",
+        };
+      }
 
-      const getDatabarangMain = await GudangFinishGood.findByPk(mainJo.id);
+      const getDatabarangMain = items.find(
+        (item) => String(item.stock.id) === String(mainJo.id),
+      ).stock;
       const sendToDo = await DeliveryOrderService.creteDeliveryOrderService({
         id_customer: getDatabarangMain.id_customer,
         id_io: getDatabarangMain.id_io,
@@ -885,8 +868,6 @@ const GudangFinishGoodService = {
       });
 
       if (sendToDo.success === false) {
-        await t.rollback();
-
         throw {
           succes: false,
           status_code: 400,
@@ -894,9 +875,8 @@ const GudangFinishGoodService = {
         };
       }
 
-      for (let i = 0; i < data_barang.length; i++) {
-        const e = data_barang[i];
-        const getDatabarang = await GudangFinishGood.findByPk(e.id);
+      for (const item of items) {
+        const getDatabarang = item.stock;
 
         const createMutasiBarang =
           await MutasiBarangFinishGoodService.creteMutasiBarangFinishGoodService(
@@ -907,7 +887,7 @@ const GudangFinishGoodService = {
               id_produk: getDatabarang.id_produk,
               id_so: getDatabarang.id_so,
               id_user: id_user,
-              jumlah_qty: e.jumlah_kirim,
+              jumlah_qty: item.sendQty,
               type_mutasi: "keluar",
               type_mutasi_keluar: "group",
               main_jo_mutasi_keluar: getDatabarangMain.no_jo,
@@ -916,8 +896,6 @@ const GudangFinishGoodService = {
           );
 
         if (createMutasiBarang.success === false) {
-          await t.rollback();
-
           throw {
             succes: false,
             status_code: 400,
@@ -925,35 +903,17 @@ const GudangFinishGoodService = {
           };
         }
 
-        await GudangFinishGood.update(
+        await getDatabarang.update(
           {
-            jumlah_qty_keluar: getDatabarang.jumlah_qty_keluar + e.jumlah_kirim,
+            jumlah_qty_keluar:
+              Number(getDatabarang.jumlah_qty_keluar || 0) + item.sendQty,
             is_active: false,
           },
-          { where: { id: e.id }, transaction: t },
+          { transaction: t },
         );
-        if (getDatabarang.jumlah_qty - e.jumlah_kirim > 0) {
+        if (item.remainingQty > 0) {
           await GudangFinishGood.create(
-            {
-              id_jo: getDatabarang.id_jo,
-              id_io: getDatabarang.id_io,
-              id_so: getDatabarang.id_so,
-              id_customer: getDatabarang.id_customer,
-              id_produk: getDatabarang.id_produk,
-              no_jo: getDatabarang.no_jo,
-              no_io: getDatabarang.no_io,
-              no_so: getDatabarang.no_so,
-              no_po_customer: getDatabarang.no_po_customer,
-              customer: getDatabarang.customer,
-              produk: getDatabarang.produk,
-              po_qty: getDatabarang.po_qty,
-              jumlah_qty: getDatabarang.jumlah_qty - e.jumlah_kirim,
-              jumlah_qty_keluar: 0,
-              tgl_masuk: getDatabarang.tgl_masuk,
-              status: "keep",
-              toleransi_pengiriman: getDatabarang.toleransi_pengiriman,
-              note: getDatabarang.note,
-            },
+            buildRemainingFinishGood(getDatabarang, item.remainingQty),
             { transaction: t },
           );
         }
@@ -966,7 +926,11 @@ const GudangFinishGoodService = {
       };
     } catch (error) {
       if (!transaction) await t.rollback();
-      throw { success: false, message: error.message };
+      throw {
+        status_code: error.status_code || 500,
+        success: false,
+        message: error.message,
+      };
     }
   },
 
@@ -1252,5 +1216,96 @@ const GudangFinishGoodService = {
     }
   },
 };
+
+async function lockAndValidateSendDoItems({ data_barang, transaction }) {
+  if (!Array.isArray(data_barang) || data_barang.length === 0) {
+    throw {
+      status_code: 400,
+      message: "Data Barang tidak boleh kosong",
+    };
+  }
+
+  const ids = data_barang.map((item) => item.id);
+  if (ids.some((id) => !id)) {
+    throw { status_code: 400, message: "ID barang wajib diisi" };
+  }
+  if (new Set(ids.map(String)).size !== ids.length) {
+    throw {
+      status_code: 400,
+      message: "Data barang yang sama tidak boleh dikirim dua kali",
+    };
+  }
+
+  const stocks = await GudangFinishGood.findAll({
+    where: { id: { [Op.in]: ids } },
+    order: [["id", "ASC"]],
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  if (stocks.length !== ids.length) {
+    throw {
+      status_code: 404,
+      message: "Salah satu data Gudang Finish Good tidak ditemukan",
+    };
+  }
+
+  const stockById = new Map(stocks.map((stock) => [String(stock.id), stock]));
+  return data_barang.map((item) => {
+    const stock = stockById.get(String(item.id));
+    if (!stock.is_active) {
+      throw {
+        status_code: 409,
+        message: `Data Gudang Finish Good ${stock.no_jo || stock.id} sudah pernah diproses`,
+      };
+    }
+
+    const sendQty = Number(item.jumlah_kirim);
+    const availableQty =
+      Number(stock.jumlah_qty || 0) - Number(stock.jumlah_qty_keluar || 0);
+    if (!Number.isFinite(sendQty) || sendQty <= 0) {
+      throw {
+        status_code: 400,
+        message: `Jumlah kirim ${stock.no_jo || stock.id} harus lebih besar dari 0`,
+      };
+    }
+    if (sendQty > availableQty) {
+      throw {
+        status_code: 400,
+        message: `Jumlah kirim ${stock.no_jo || stock.id} melebihi stok tersedia`,
+      };
+    }
+
+    return {
+      request: item,
+      stock,
+      sendQty,
+      remainingQty: availableQty - sendQty,
+    };
+  });
+}
+
+function buildRemainingFinishGood(stock, remainingQty) {
+  return {
+    id_jo: stock.id_jo,
+    id_jo_booking: stock.id_jo_booking,
+    id_io: stock.id_io,
+    id_so: stock.id_so,
+    id_customer: stock.id_customer,
+    id_produk: stock.id_produk,
+    no_jo: stock.no_jo,
+    no_io: stock.no_io,
+    no_so: stock.no_so,
+    no_po_customer: stock.no_po_customer,
+    customer: stock.customer,
+    produk: stock.produk,
+    po_qty: stock.po_qty,
+    jumlah_qty: remainingQty,
+    jumlah_qty_keluar: 0,
+    tgl_masuk: stock.tgl_masuk,
+    status: "keep",
+    toleransi_pengiriman: stock.toleransi_pengiriman,
+    note: stock.note,
+  };
+}
 
 module.exports = GudangFinishGoodService;

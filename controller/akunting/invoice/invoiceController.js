@@ -1,13 +1,15 @@
 const { Op, Sequelize, where } = require("sequelize");
 const InvoiceService = require("./service/invoiceService");
+const InvoicePaymentService = require("./service/invoicePaymentService");
 
 const InvoiceController = {
   getInvoicePayment: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, customer_id } = req.query;
+    const { page, limit, start_date, end_date, search, customer_id, status } =
+      req.query;
 
     try {
-      const getData = await InvoiceService.getInvoicePaymentService({
+      const getData = await InvoicePaymentService.getInvoicePaymentService({
         id: _id,
         page,
         limit,
@@ -15,6 +17,7 @@ const InvoiceController = {
         end_date,
         search,
         customer_id,
+        status,
       });
       return res.status(getData.status).json(getData);
     } catch (error) {
@@ -24,7 +27,7 @@ const InvoiceController = {
 
   getNoInvoicePayment: async (req, res) => {
     try {
-      const getData = await InvoiceService.getNoInvoicePaymentService();
+      const getData = await InvoicePaymentService.getNoInvoicePaymentService();
       return res.status(getData.status).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -45,7 +48,7 @@ const InvoiceController = {
     } = req.body;
 
     try {
-      const getData = await InvoiceService.createInvoicePaymentService({
+      const getData = await InvoicePaymentService.createInvoicePaymentService({
         customer_id,
         created_by: req.user.id,
         payment_amount,
@@ -60,6 +63,22 @@ const InvoiceController = {
       return res.status(getData.status).json(getData);
     } catch (error) {
       res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+      });
+    }
+  },
+
+  approveInvoicePayment: async (req, res) => {
+    try {
+      const getData = await InvoicePaymentService.approveInvoicePaymentService({
+        id: req.params.id,
+        id_approve: req.user.id,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      return res.status(error.status_code || 500).json({
         success: false,
         status_code: error.status_code || 500,
         msg: error.message,
@@ -84,6 +103,26 @@ const InvoiceController = {
     }
   },
 
+  getInvoiceRecapByCustomer: async (req, res) => {
+    const { start_date, end_date, id_customer, search } = req.query;
+
+    try {
+      const getData = await InvoiceService.getInvoiceRecapByCustomerService({
+        start_date,
+        end_date,
+        id_customer,
+        search,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        status: 500,
+        message: error.message,
+      });
+    }
+  },
+
   getInvoice: async (req, res) => {
     const _id = req.params.id;
     const {
@@ -91,10 +130,15 @@ const InvoiceController = {
       limit,
       start_date,
       end_date,
+      start_date_faktur,
+      end_date_faktur,
+      start_date_jatuh_tempo,
+      end_date_jatuh_tempo,
       search,
       id_customer,
       status,
       status_proses,
+      status_payment,
       waktu,
     } = req.query;
 
@@ -105,10 +149,15 @@ const InvoiceController = {
         limit: limit,
         start_date: start_date,
         end_date: end_date,
+        start_date_faktur,
+        end_date_faktur,
+        start_date_jatuh_tempo,
+        end_date_jatuh_tempo,
         search: search,
         id_customer: id_customer,
         status: status,
         status_proses: status_proses,
+        status_payment,
         waktu: waktu,
       });
       return res.status(getData.status || 200).json(getData);

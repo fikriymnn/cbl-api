@@ -136,6 +136,10 @@ const InvoiceModel = db.define(
       allowNull: true,
       defaultValue: "belum lunas",
     },
+    tgl_pelunasan: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
