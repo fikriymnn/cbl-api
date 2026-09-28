@@ -145,7 +145,11 @@ const GudangFinishGoodController = {
         });
       return res.status(200).json(getData);
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+      });
     }
   },
 
@@ -161,7 +165,11 @@ const GudangFinishGoodController = {
       );
       return res.status(200).json(getData);
     } catch (error) {
-      res.status(500).json({ msg: error.message });
+      res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+      });
     }
   },
 

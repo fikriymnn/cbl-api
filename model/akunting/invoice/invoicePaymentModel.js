@@ -24,6 +24,14 @@ const InvoicePayment = db.define(
         key: "id",
       },
     },
+    id_approve: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Users,
+        key: "id",
+      },
+    },
     receipt_number: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -62,6 +70,11 @@ const InvoicePayment = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "requested",
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -73,6 +86,7 @@ const InvoicePayment = db.define(
     indexes: [
       { name: "idx_invoice_payment_customer", fields: ["customer_id"] },
       { name: "idx_invoice_payment_date", fields: ["payment_date"] },
+      { name: "idx_invoice_payment_status", fields: ["status"] },
     ],
   },
 );
@@ -93,6 +107,15 @@ Users.hasMany(InvoicePayment, {
 InvoicePayment.belongsTo(Users, {
   foreignKey: "created_by",
   as: "created_user",
+});
+
+Users.hasMany(InvoicePayment, {
+  foreignKey: "id_approve",
+  as: "approved_invoice_payments",
+});
+InvoicePayment.belongsTo(Users, {
+  foreignKey: "id_approve",
+  as: "approved_user",
 });
 
 module.exports = InvoicePayment;

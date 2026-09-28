@@ -17,7 +17,17 @@ router.post(
   auth,
   InvoiceController.createInvoicePayment,
 );
+router.put(
+  "/invoice/payment/approve/:id",
+  auth,
+  InvoiceController.approveInvoicePayment,
+);
 router.get("/invoice/ar", auth, InvoiceController.getAccountReceivable);
+router.get(
+  "/invoice/recap/customer",
+  auth,
+  InvoiceController.getInvoiceRecapByCustomer,
+);
 router.get("/invoice/:id?", auth, InvoiceController.getInvoice);
 router.get("/invoiceNomor", auth, InvoiceController.getNoInvoice);
 router.post("/invoice", auth, InvoiceController.createInvoice);

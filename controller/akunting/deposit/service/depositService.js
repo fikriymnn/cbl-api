@@ -212,6 +212,78 @@ const DepositService = {
     }
   },
 
+  createApprovedDepositFromInvoicePaymentService: async ({
+    customer_id,
+    id_create,
+    id_approve,
+    nominal,
+    payment_method,
+    payment_date,
+    receipt_number,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const amount = Number(nominal);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw {
+          status_code: 400,
+          message: "nominal deposit harus lebih besar dari 0",
+        };
+      }
+
+      const customer = await MasterCustomer.findByPk(customer_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+      if (!customer) {
+        throw {
+          status_code: 404,
+          message: "data customer tidak ditemukan",
+        };
+      }
+
+      const depositNumber = await generateDepositNumber(t);
+      const deposit = await DepositModel.create(
+        {
+          id_customer: customer_id,
+          id_create,
+          id_approve,
+          no_deposit: depositNumber.nextNumber,
+          cara_bayar: payment_method,
+          tgl_faktur: payment_date,
+          nominal: amount,
+          note: `Sisa invoice payment ${receipt_number}`,
+          status: "approved",
+          status_proses: "done",
+        },
+        { transaction: t },
+      );
+
+      await customer.increment("saldo", { by: amount, transaction: t });
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        data: {
+          id: deposit.id,
+          no_deposit: deposit.no_deposit,
+          nominal: deposit.nominal,
+          status: deposit.status,
+        },
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw {
+        status_code: error.status_code || 500,
+        success: false,
+        message: error.message || "gagal membuat deposit",
+      };
+    }
+  },
+
   updateDepositService: async ({
     id,
     id_customer,
@@ -373,5 +445,43 @@ const DepositService = {
     }
   },
 };
+
+async function generateDepositNumber(transaction = null) {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+  const options = {
+    attributes: ["no_deposit"],
+    where: { createdAt: { [Op.between]: [startOfYear, endOfYear] } },
+    order: [
+      [
+        literal(
+          "CAST(SUBSTRING_INDEX(SUBSTRING(no_deposit, 4), '/', 1) AS UNSIGNED)",
+        ),
+        "DESC",
+      ],
+      ["createdAt", "DESC"],
+    ],
+  };
+
+  if (transaction) {
+    options.transaction = transaction;
+    options.lock = transaction.LOCK.UPDATE;
+  }
+
+  const lastDeposit = await DepositModel.findOne(options);
+  const lastNumber = lastDeposit?.no_deposit || null;
+  const lastSequence = lastNumber
+    ? parseInt(lastNumber.slice(3, lastNumber.indexOf("/")), 10) || 0
+    : 0;
+  const nextSequence = String(lastSequence + 1).padStart(5, "0");
+  const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+  const shortYear = String(now.getFullYear()).slice(2);
+
+  return {
+    lastNumber,
+    nextNumber: `SDP${nextSequence}/${currentMonth}/${shortYear}`,
+  };
+}
 
 module.exports = DepositService;

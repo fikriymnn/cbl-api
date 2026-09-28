@@ -9,340 +9,9 @@ const DeliveryOrderGroupModel = require("../../../../model/deliveryOrder/deliver
 const Users = require("../../../../model/userModel");
 const InvoicePayment = require("../../../../model/akunting/invoice/invoicePaymentModel");
 const InvoicePaymentDetail = require("../../../../model/akunting/invoice/invoicePaymentDetailModel");
+const InvoicePaymentAdditionalCost = require("../../../../model/akunting/invoice/invoicePaymentAdditionalCostModel");
 
 const InvoiceService = {
-  getInvoicePaymentService: async ({
-    id,
-    page,
-    limit,
-    start_date,
-    end_date,
-    search,
-    customer_id,
-  }) => {
-    const where = { is_active: true };
-
-    if (search) {
-      where[Op.or] = [
-        { receipt_number: { [Op.like]: `%${search}%` } },
-        { payment_method: { [Op.like]: `%${search}%` } },
-        { bank: { [Op.like]: `%${search}%` } },
-        { account_number: { [Op.like]: `%${search}%` } },
-      ];
-    }
-    if (customer_id) where.customer_id = customer_id;
-
-    if (start_date || end_date) {
-      const dateFilter = {};
-      if (start_date) {
-        const startDate = new Date(start_date);
-        startDate.setHours(0, 0, 0, 0);
-        dateFilter[Op.gte] = startDate;
-      }
-      if (end_date) {
-        const endDate = new Date(end_date);
-        endDate.setHours(23, 59, 59, 999);
-        dateFilter[Op.lte] = endDate;
-      }
-      where.payment_date = dateFilter;
-    }
-
-    const options = {
-      where,
-      order: [["createdAt", "DESC"]],
-      include: [
-        { model: Users, as: "created_user", attributes: ["id", "nama"] },
-        {
-          model: InvoicePaymentDetail,
-          as: "payment_details",
-          include: [
-            {
-              model: InvoiceModel,
-              as: "invoice",
-              attributes: [
-                "id",
-                "no_invoice",
-                "nama_customer",
-                "total",
-                "balance_due",
-                "paid_amount",
-                "status_payment",
-              ],
-            },
-          ],
-        },
-      ],
-    };
-
-    try {
-      if (id) {
-        const data = await InvoicePayment.findOne({
-          ...options,
-          where: { ...where, id },
-        });
-
-        return {
-          status: 200,
-          success: true,
-          data,
-        };
-      }
-
-      if ((page && !limit) || (!page && limit)) {
-        return {
-          status: 400,
-          success: false,
-          message: "page dan limit harus diisi bersamaan",
-        };
-      }
-
-      if (page && limit) {
-        const parsedPage = Number(page);
-        const parsedLimit = Number(limit);
-        if (
-          !Number.isInteger(parsedPage) ||
-          parsedPage < 1 ||
-          !Number.isInteger(parsedLimit) ||
-          parsedLimit < 1
-        ) {
-          return {
-            status: 400,
-            success: false,
-            message: "page dan limit harus berupa angka lebih besar dari 0",
-          };
-        }
-
-        const totalData = await InvoicePayment.count({ where });
-        const data = await InvoicePayment.findAll({
-          ...options,
-          limit: parsedLimit,
-          offset: (parsedPage - 1) * parsedLimit,
-        });
-
-        return {
-          status: 200,
-          success: true,
-          data,
-          total_data: totalData,
-          total_page: Math.ceil(totalData / parsedLimit),
-        };
-      }
-
-      const data = await InvoicePayment.findAll(options);
-
-      return {
-        status: 200,
-        success: true,
-        data,
-      };
-    } catch (error) {
-      return {
-        status: 500,
-        success: false,
-        message: error.message,
-      };
-    }
-  },
-
-  getNoInvoicePaymentService: async () => {
-    try {
-      const paymentNumber = await generateInvoicePaymentNumber();
-      return {
-        status: 200,
-        success: true,
-        receipt_number: paymentNumber.lastNumber,
-        new_receipt_number: paymentNumber.nextNumber,
-      };
-    } catch (error) {
-      return {
-        status: 500,
-        success: false,
-        message: error.message,
-      };
-    }
-  },
-
-  createInvoicePaymentService: async ({
-    customer_id,
-    created_by,
-    payment_amount,
-    payment_proof,
-    payment_date,
-    payment_method,
-    bank,
-    account_number,
-    note,
-    invoices,
-    transaction = null,
-  }) => {
-    const t = transaction || (await db.transaction());
-
-    try {
-      if (!customer_id) {
-        throwPaymentError(400, "customer wajib diisi");
-      }
-      if (!payment_date) {
-        throwPaymentError(400, "tanggal bayar wajib diisi");
-      }
-      if (!payment_proof || !String(payment_proof).trim()) {
-        throwPaymentError(400, "bukti pembayaran wajib diisi");
-      }
-      if (Number.isNaN(new Date(payment_date).getTime())) {
-        throwPaymentError(400, "tanggal bayar tidak valid");
-      }
-      if (!payment_method) {
-        throwPaymentError(400, "cara bayar wajib diisi");
-      }
-      if (!Array.isArray(invoices) || invoices.length === 0) {
-        throwPaymentError(400, "invoice yang dibayar tidak boleh kosong");
-      }
-
-      const totalPayment = parsePaymentAmount(payment_amount, "jumlah bayar");
-      const invoiceIds = invoices.map((item) => item.invoice_id);
-      if (invoiceIds.some((id) => !id)) {
-        throwPaymentError(400, "id invoice wajib diisi");
-      }
-      if (new Set(invoiceIds.map(String)).size !== invoiceIds.length) {
-        throwPaymentError(400, "invoice tidak boleh duplikat");
-      }
-
-      const allocations = invoices.map((item) => ({
-        invoice_id: item.invoice_id,
-        payment_amount: parsePaymentAmount(
-          item.payment_amount,
-          `jumlah bayar invoice ${item.invoice_id}`,
-        ),
-      }));
-      const totalAllocation = allocations.reduce(
-        (total, item) => total + item.payment_amount,
-        0n,
-      );
-
-      if (totalAllocation > totalPayment) {
-        throwPaymentError(
-          400,
-          "total pembayaran yang digunakan tidak boleh melebihi jumlah bayar bukti penerimaan",
-        );
-      }
-
-      const invoiceData = await InvoiceModel.findAll({
-        where: { id: { [Op.in]: invoiceIds } },
-        transaction: t,
-        lock: t.LOCK.UPDATE,
-      });
-
-      if (invoiceData.length !== invoiceIds.length) {
-        throwPaymentError(404, "salah satu invoice tidak ditemukan");
-      }
-
-      const invoiceById = new Map(
-        invoiceData.map((item) => [String(item.id), item]),
-      );
-
-      allocations.forEach((allocation) => {
-        const selectedInvoice = invoiceById.get(String(allocation.invoice_id));
-
-        if (String(selectedInvoice.id_customer) !== String(customer_id)) {
-          throwPaymentError(
-            400,
-            `invoice ${selectedInvoice.no_invoice} bukan milik customer yang dipilih`,
-          );
-        }
-        if (
-          !selectedInvoice.is_active ||
-          selectedInvoice.status !== "approved" ||
-          selectedInvoice.status_proses !== "done"
-        ) {
-          throwPaymentError(
-            400,
-            `invoice ${selectedInvoice.no_invoice} belum dapat dibayar`,
-          );
-        }
-
-        const remainingAmount =
-          toBigInt(selectedInvoice.balance_due) -
-          toBigInt(selectedInvoice.paid_amount);
-        if (
-          remainingAmount <= 0n ||
-          selectedInvoice.status_payment === "lunas"
-        ) {
-          throwPaymentError(
-            400,
-            `invoice ${selectedInvoice.no_invoice} sudah lunas`,
-          );
-        }
-        if (allocation.payment_amount > remainingAmount) {
-          throwPaymentError(
-            400,
-            `jumlah bayar invoice ${selectedInvoice.no_invoice} melebihi sisa tagihan`,
-          );
-        }
-      });
-
-      const paymentNumber = await generateInvoicePaymentNumber(t);
-      const payment = await InvoicePayment.create(
-        {
-          customer_id,
-          created_by,
-          receipt_number: paymentNumber.nextNumber,
-          payment_amount: totalPayment.toString(),
-          payment_amount_use: totalAllocation.toString(),
-          payment_proof,
-          payment_date,
-          payment_method,
-          bank,
-          account_number,
-          note,
-        },
-        { transaction: t },
-      );
-
-      await InvoicePaymentDetail.bulkCreate(
-        allocations.map((allocation) => ({
-          invoice_payment_id: payment.id,
-          invoice_id: allocation.invoice_id,
-          payment_amount: allocation.payment_amount.toString(),
-        })),
-        { transaction: t },
-      );
-
-      for (const allocation of allocations) {
-        const selectedInvoice = invoiceById.get(String(allocation.invoice_id));
-        const newPaidAmount =
-          toBigInt(selectedInvoice.paid_amount) + allocation.payment_amount;
-        const isPaid = newPaidAmount === toBigInt(selectedInvoice.balance_due);
-
-        await selectedInvoice.update(
-          {
-            paid_amount: newPaidAmount.toString(),
-            status_payment: isPaid ? "lunas" : "belum lunas",
-          },
-          { transaction: t },
-        );
-      }
-
-      if (!transaction) await t.commit();
-      return {
-        status: 200,
-        success: true,
-        message: "pembayaran invoice berhasil",
-        data: {
-          id: payment.id,
-          receipt_number: payment.receipt_number,
-          payment_amount: payment.payment_amount,
-          payment_amount_use: payment.payment_amount_use,
-        },
-      };
-    } catch (error) {
-      if (!transaction) await t.rollback();
-      throw {
-        status_code: error.status_code || 500,
-        success: false,
-        message: error.message || "pembayaran invoice gagal",
-      };
-    }
-  },
-
   getAccountReceivableService: async ({
     start_date,
     end_date,
@@ -413,6 +82,7 @@ const InvoiceService = {
           "balance_due",
           "paid_amount",
           "status_payment",
+          "tgl_pelunasan",
         ],
         where,
         order: [
@@ -532,20 +202,219 @@ const InvoiceService = {
     }
   },
 
+  getInvoiceRecapByCustomerService: async ({
+    start_date,
+    end_date,
+    id_customer,
+    search,
+  }) => {
+    if (!start_date || !end_date) {
+      return {
+        status: 400,
+        success: false,
+        message: "start_date dan end_date wajib diisi",
+      };
+    }
+
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+    if (
+      Number.isNaN(startDate.getTime()) ||
+      Number.isNaN(endDate.getTime())
+    ) {
+      return {
+        status: 400,
+        success: false,
+        message: "range tanggal faktur tidak valid",
+      };
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    if (startDate > endDate) {
+      return {
+        status: 400,
+        success: false,
+        message: "start_date tidak boleh lebih besar dari end_date",
+      };
+    }
+
+    const where = {
+      is_active: true,
+      status: "approved",
+      status_proses: "done",
+      tgl_faktur: { [Op.between]: [startDate, endDate] },
+    };
+    if (id_customer) where.id_customer = id_customer;
+    if (search) {
+      where.nama_customer = { [Op.like]: `%${search}%` };
+    }
+
+    try {
+      const invoices = await InvoiceModel.findAll({
+        attributes: [
+          "id",
+          "id_customer",
+          "nama_customer",
+          "no_invoice",
+          "tgl_faktur",
+          "tgl_jatuh_tempo",
+          "tgl_pelunasan",
+          "total",
+          "balance_due",
+          "paid_amount",
+          "status_payment",
+        ],
+        where,
+        order: [
+          ["nama_customer", "ASC"],
+          ["tgl_faktur", "ASC"],
+        ],
+        raw: true,
+      });
+
+      const paidInvoiceWithoutSettlementDate = invoices.filter(
+        (invoice) =>
+          invoice.status_payment === "lunas" && !invoice.tgl_pelunasan,
+      );
+      if (paidInvoiceWithoutSettlementDate.length > 0) {
+        const paymentDetails = await InvoicePaymentDetail.findAll({
+          attributes: ["invoice_id"],
+          where: {
+            invoice_id: {
+              [Op.in]: paidInvoiceWithoutSettlementDate.map(
+                (invoice) => invoice.id,
+              ),
+            },
+          },
+          include: [
+            {
+              model: InvoicePayment,
+              as: "payment",
+              attributes: ["payment_date"],
+              where: { status: "approved", is_active: true },
+              required: true,
+            },
+          ],
+        });
+
+        const lastPaymentDateByInvoice = new Map();
+        paymentDetails.forEach((detail) => {
+          const paymentDate = detail.payment?.payment_date;
+          const currentDate = lastPaymentDateByInvoice.get(
+            String(detail.invoice_id),
+          );
+          if (
+            paymentDate &&
+            (!currentDate || new Date(paymentDate) > new Date(currentDate))
+          ) {
+            lastPaymentDateByInvoice.set(
+              String(detail.invoice_id),
+              paymentDate,
+            );
+          }
+        });
+
+        paidInvoiceWithoutSettlementDate.forEach((invoice) => {
+          invoice.tgl_pelunasan = lastPaymentDateByInvoice.get(
+            String(invoice.id),
+          );
+        });
+      }
+
+      const recapByCustomer = new Map();
+      const totalRecap = createInvoiceRecap();
+
+      invoices.forEach((invoice) => {
+        const customerKey = getInvoiceCustomerKey(invoice);
+        if (!recapByCustomer.has(customerKey)) {
+          recapByCustomer.set(customerKey, {
+            id_customer: invoice.id_customer,
+            nama_customer: invoice.nama_customer,
+            ...createInvoiceRecap(),
+            ...(id_customer ? { invoice: [] } : {}),
+          });
+        }
+
+        const customerRecap = recapByCustomer.get(customerKey);
+        addInvoiceToRecap(customerRecap, invoice);
+        if (id_customer) {
+          customerRecap.invoice.push(formatInvoiceRecapDetail(invoice));
+        }
+        addInvoiceToRecap(totalRecap, invoice);
+      });
+
+      return {
+        status: 200,
+        success: true,
+        range_tgl_faktur: {
+          start_date,
+          end_date,
+        },
+        data_rekap: {
+          total_customer: recapByCustomer.size,
+          ...serializeInvoiceRecap(totalRecap),
+        },
+        data: [...recapByCustomer.values()].map(serializeInvoiceRecap),
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
   getInvoiceService: async ({
     id,
     page,
     limit,
     start_date,
     end_date,
+    start_date_faktur,
+    end_date_faktur,
+    start_date_jatuh_tempo,
+    end_date_jatuh_tempo,
     search,
     id_customer,
     status,
     status_proses,
+    status_payment,
     waktu,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const commonWhere = {};
+
+    const dateFilters = [
+      {
+        field: "createdAt",
+        label: "createdAt",
+        start: start_date,
+        end: end_date,
+      },
+      {
+        field: "tgl_faktur",
+        label: "tanggal faktur",
+        start: start_date_faktur,
+        end: end_date_faktur,
+      },
+      {
+        field: "tgl_jatuh_tempo",
+        label: "tanggal jatuh tempo",
+        start: start_date_jatuh_tempo,
+        end: end_date_jatuh_tempo,
+      },
+    ];
+
+    for (const filter of dateFilters) {
+      const range = buildDateRangeFilter(filter.start, filter.end, filter.label);
+      if (range.error) {
+        return { status: 400, success: false, message: range.error };
+      }
+      if (range.value) commonWhere[filter.field] = range.value;
+    }
+
     if (search) {
       commonWhere[Op.or] = [
         { nama_customer: { [Op.like]: `%${search}%` } },
@@ -556,15 +425,10 @@ const InvoiceService = {
     }
     if (id_customer) commonWhere.id_customer = id_customer;
 
-    if (start_date && end_date) {
-      const startDate = new Date(start_date).setHours(0, 0, 0, 0);
-      const endDate = new Date(end_date).setHours(23, 59, 59, 999);
-      commonWhere.createdAt = { [Op.between]: [startDate, endDate] };
-    }
-
     const obj = { ...commonWhere };
     if (status) obj.status = status;
     if (status_proses) obj.status_proses = status_proses;
+    if (status_payment) obj.status_payment = status_payment;
 
     const recapWhere = { ...obj };
     const dueDateFilter = getDueTimeDatabaseFilter(waktu);
@@ -577,7 +441,17 @@ const InvoiceService = {
       };
     }
     if (dueDateFilter.where !== undefined) {
-      obj.tgl_jatuh_tempo = dueDateFilter.where;
+      if (obj.tgl_jatuh_tempo !== undefined) {
+        const selectedDueDateRange = obj.tgl_jatuh_tempo;
+        delete obj.tgl_jatuh_tempo;
+        obj[Op.and] = [
+          ...(obj[Op.and] || []),
+          { tgl_jatuh_tempo: selectedDueDateRange },
+          { tgl_jatuh_tempo: dueDateFilter.where },
+        ];
+      } else {
+        obj.tgl_jatuh_tempo = dueDateFilter.where;
+      }
     }
 
     try {
@@ -589,6 +463,22 @@ const InvoiceService = {
             limit: parseInt(limit),
             offset,
             where: obj,
+            include: [
+              {
+                model: InvoicePaymentDetail,
+                as: "payment_details",
+                include: [
+                  {
+                    model: InvoicePayment,
+                    as: "payment",
+                  },
+                  {
+                    model: InvoicePaymentAdditionalCost,
+                    as: "additional_costs",
+                  },
+                ],
+              },
+            ],
           }),
           getInvoiceDueRecap(recapWhere),
         ]);
@@ -636,6 +526,10 @@ const InvoiceService = {
                 {
                   model: InvoicePayment,
                   as: "payment",
+                },
+                {
+                  model: InvoicePaymentAdditionalCost,
+                  as: "additional_costs",
                 },
               ],
             },
@@ -1058,56 +952,113 @@ function toBigInt(value) {
   return BigInt(String(value).split(".")[0]);
 }
 
-function parsePaymentAmount(value, fieldName) {
-  const normalizedValue = String(value ?? "").trim();
-  if (!/^\d+$/.test(normalizedValue) || BigInt(normalizedValue) <= 0n) {
-    throwPaymentError(400, `${fieldName} harus lebih besar dari 0`);
-  }
-  return BigInt(normalizedValue);
-}
-
-function throwPaymentError(statusCode, message) {
-  throw { status_code: statusCode, success: false, message };
-}
-
-async function generateInvoicePaymentNumber(transaction = null) {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-
-  const options = {
-    attributes: ["receipt_number"],
-    where: {
-      createdAt: { [Op.between]: [startOfYear, endOfYear] },
-    },
-    order: [
-      [
-        literal(
-          "CAST(SUBSTRING_INDEX(SUBSTRING(receipt_number, 3), '/', 1) AS UNSIGNED)",
-        ),
-        "DESC",
-      ],
-      ["createdAt", "DESC"],
-    ],
+function createInvoiceRecap() {
+  return {
+    total_invoice: 0,
+    total_invoice_lunas: 0,
+    total_invoice_belum_lunas: 0,
+    total_rupiah: 0n,
+    total_rupiah_lunas: 0n,
+    total_rupiah_belum_lunas: 0n,
+    total_invoice_dibayar_tepat_waktu: 0,
+    total_invoice_dibayar_telat: 0,
   };
+}
 
-  if (transaction) {
-    options.transaction = transaction;
-    options.lock = transaction.LOCK.UPDATE;
+function addInvoiceToRecap(recap, invoice) {
+  const invoiceAmount = toBigInt(invoice.total ?? invoice.balance_due);
+  const isPaid = invoice.status_payment === "lunas";
+
+  recap.total_invoice += 1;
+  recap.total_rupiah += invoiceAmount;
+
+  if (!isPaid) {
+    recap.total_invoice_belum_lunas += 1;
+    recap.total_rupiah_belum_lunas += invoiceAmount;
+    return;
   }
 
-  const lastPayment = await InvoicePayment.findOne(options);
-  const lastNumber = lastPayment?.receipt_number || null;
-  const lastSequence = lastNumber
-    ? parseInt(lastNumber.slice(2, lastNumber.indexOf("/")), 10) || 0
-    : 0;
-  const nextSequence = String(lastSequence + 1).padStart(5, "0");
-  const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
-  const shortYear = String(now.getFullYear()).slice(2);
+  recap.total_invoice_lunas += 1;
+  recap.total_rupiah_lunas += invoiceAmount;
+
+  const dueDate = normalizeDate(invoice.tgl_jatuh_tempo);
+  const paidDate = normalizeDate(invoice.tgl_pelunasan);
+  if (!dueDate || !paidDate) return;
+
+  if (paidDate <= dueDate) {
+    recap.total_invoice_dibayar_tepat_waktu += 1;
+  } else {
+    recap.total_invoice_dibayar_telat += 1;
+  }
+}
+
+function serializeInvoiceRecap(recap) {
+  return {
+    ...recap,
+    total_rupiah: recap.total_rupiah.toString(),
+    total_rupiah_lunas: recap.total_rupiah_lunas.toString(),
+    total_rupiah_belum_lunas: recap.total_rupiah_belum_lunas.toString(),
+  };
+}
+
+function normalizeDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function buildDateRangeFilter(startValue, endValue, label) {
+  if (!startValue && !endValue) return { value: undefined };
+  if (!startValue || !endValue) {
+    return { error: `tanggal awal dan akhir ${label} harus diisi bersamaan` };
+  }
+
+  const startDate = new Date(startValue);
+  const endDate = new Date(endValue);
+  if (
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime())
+  ) {
+    return { error: `range ${label} tidak valid` };
+  }
+
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+  if (startDate > endDate) {
+    return { error: `tanggal awal ${label} tidak boleh melebihi tanggal akhir` };
+  }
+
+  return { value: { [Op.between]: [startDate, endDate] } };
+}
+
+function formatInvoiceRecapDetail(invoice) {
+  const balanceDue = toBigInt(invoice.balance_due);
+  const paidAmount = toBigInt(invoice.paid_amount);
+  const outstandingAmount = balanceDue - paidAmount;
+  const dueDate = normalizeDate(invoice.tgl_jatuh_tempo);
+  const paidDate = normalizeDate(invoice.tgl_pelunasan);
+  let paymentTimeliness = null;
+
+  if (invoice.status_payment === "lunas" && dueDate && paidDate) {
+    paymentTimeliness = paidDate <= dueDate ? "tepat waktu" : "terlambat";
+  }
 
   return {
-    lastNumber,
-    nextNumber: `BB${nextSequence}/CBL/${currentMonth}/${shortYear}`,
+    id: invoice.id,
+    no_invoice: invoice.no_invoice,
+    tgl_faktur: invoice.tgl_faktur,
+    tgl_jatuh_tempo: invoice.tgl_jatuh_tempo,
+    tgl_pelunasan: invoice.tgl_pelunasan || null,
+    total: invoice.total,
+    balance_due: invoice.balance_due,
+    paid_amount: invoice.paid_amount,
+    outstanding_amount: (
+      outstandingAmount > 0n ? outstandingAmount : 0n
+    ).toString(),
+    status_payment: invoice.status_payment,
+    payment_timeliness: paymentTimeliness,
   };
 }
 
