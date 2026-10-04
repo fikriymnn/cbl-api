@@ -167,9 +167,11 @@ const InvoiceController = {
   },
 
   getNoInvoice: async (req, res) => {
+    const { tgl_kirim } = req.query;
+
     try {
-      const getData = await InvoiceService.getNoInvoiceService();
-      return res.status(200).json(getData);
+      const getData = await InvoiceService.getNoInvoiceService({ tgl_kirim });
+      return res.status(getData.status).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }

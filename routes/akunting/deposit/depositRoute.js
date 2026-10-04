@@ -4,6 +4,7 @@ const { auth } = require("../../../middlewares/authMiddlewares");
 
 router.get("/deposit/:id?", auth, DepositController.getDeposit);
 router.get("/depositNomor", auth, DepositController.getNoDeposit);
+router.get("/depositSaldo", auth, DepositController.getSaldoCustomer);
 router.post("/deposit", auth, DepositController.createDeposit);
 router.put("/deposit/:id", auth, DepositController.updateDeposit);
 router.put("/deposit/request/:id", auth, DepositController.requestDeposit);

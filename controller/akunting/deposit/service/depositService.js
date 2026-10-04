@@ -112,6 +112,34 @@ const DepositService = {
     }
   },
 
+  getSaldoCustomerService: async ({ id_customer }) => {
+    try {
+      if (id_customer) {
+        const data = await MasterCustomer.findByPk(id_customer, {
+          attributes: ["id", "nama_customer", "saldo"],
+        });
+        if (!data) {
+          return {
+            status: 404,
+            success: false,
+            message: "data customer tidak ditemukan",
+          };
+        }
+        return { status: 200, success: true, data };
+      }
+
+      // tanpa id_customer: list customer yang saldonya masih ada
+      const data = await MasterCustomer.findAll({
+        attributes: ["id", "nama_customer", "saldo"],
+        where: { saldo: { [Op.gt]: 0 } },
+        order: [["saldo", "DESC"]],
+      });
+      return { status: 200, success: true, data };
+    } catch (error) {
+      return { status: 500, success: false, message: error.message };
+    }
+  },
+
   getNoDepositService: async () => {
     try {
       //get data terakhir
@@ -261,7 +289,11 @@ const DepositService = {
         { transaction: t },
       );
 
-      await customer.increment("saldo", { by: amount, transaction: t });
+      // jangan pakai increment: di SQL NULL + x = NULL, saldo customer lama masih NULL
+      await customer.update(
+        { saldo: Number(customer.saldo || 0) + amount },
+        { transaction: t },
+      );
 
       if (!transaction) await t.commit();
       return {
@@ -351,7 +383,10 @@ const DepositService = {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataDeposit = await DepositModel.findByPk(id);
+      const getDataDeposit = await DepositModel.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       if (!getDataDeposit)
         throw {
           success: false,
@@ -359,8 +394,17 @@ const DepositService = {
           message: "data deposit tidak di temukan",
         };
 
+      // cegah approve 2x yang membuat saldo bertambah dobel
+      if (getDataDeposit.status === "approved")
+        throw {
+          success: false,
+          status_code: 400,
+          message: "deposit sudah di-approve sebelumnya",
+        };
+
       const getDataCustomer = await MasterCustomer.findByPk(
-        getDataDeposit.id_customer
+        getDataDeposit.id_customer,
+        { transaction: t, lock: t.LOCK.UPDATE }
       );
       if (!getDataCustomer)
         throw {
@@ -378,7 +422,11 @@ const DepositService = {
       );
 
       await MasterCustomer.update(
-        { saldo: getDataCustomer.saldo || 0 + getDataDeposit.nominal },
+        {
+          saldo:
+            Number(getDataCustomer.saldo || 0) +
+            Number(getDataDeposit.nominal || 0),
+        },
         { where: { id: getDataCustomer.id }, transaction: t }
       );
       if (!transaction) await t.commit();

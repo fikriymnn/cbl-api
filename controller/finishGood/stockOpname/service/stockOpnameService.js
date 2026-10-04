@@ -410,8 +410,12 @@ const StockOpnameService = {
           };
         }
 
+        // jika stock habis, nonaktifkan data gudang fg
+        const updateGudangFg = { jumlah_qty: jumlahQtyAktual };
+        if (jumlahQtyAktual <= 0) updateGudangFg.is_active = false;
+
         await GudangFinishGood.update(
-          { jumlah_qty: jumlahQtyAktual },
+          updateGudangFg,
           { where: { id: dataGudangFg.id }, transaction: t },
         );
       }

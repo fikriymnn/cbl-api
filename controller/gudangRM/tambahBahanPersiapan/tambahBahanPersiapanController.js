@@ -13,6 +13,16 @@ const TambahBahanPersiapanController = {
       search,
       id_jo,
       id_kertas,
+      start_tgl_request,
+      end_tgl_request,
+      start_tgl_qc,
+      end_tgl_qc,
+      start_tgl_gudang,
+      end_tgl_gudang,
+      start_tgl_qc_pemakaian,
+      end_tgl_qc_pemakaian,
+      start_tgl_pakai,
+      end_tgl_pakai,
     } = req.query;
 
     try {
@@ -28,6 +38,13 @@ const TambahBahanPersiapanController = {
           search,
           id_jo,
           id_kertas,
+          tgl_filter: {
+            tgl_request: [start_tgl_request, end_tgl_request],
+            tgl_qc: [start_tgl_qc, end_tgl_qc],
+            tgl_gudang: [start_tgl_gudang, end_tgl_gudang],
+            tgl_qc_pemakaian: [start_tgl_qc_pemakaian, end_tgl_qc_pemakaian],
+            tgl_pakai: [start_tgl_pakai, end_tgl_pakai],
+          },
         });
       return res.status(200).json(getData);
     } catch (error) {

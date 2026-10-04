@@ -13,6 +13,12 @@ const TambahBahanPemakaianController = {
       search,
       id_jo,
       id_kertas,
+      start_tgl_request,
+      end_tgl_request,
+      start_tgl_qc,
+      end_tgl_qc,
+      start_tgl_gudang,
+      end_tgl_gudang,
     } = req.query;
 
     try {
@@ -28,6 +34,11 @@ const TambahBahanPemakaianController = {
           search,
           id_jo,
           id_kertas,
+          tgl_filter: {
+            tgl_request: [start_tgl_request, end_tgl_request],
+            tgl_qc: [start_tgl_qc, end_tgl_qc],
+            tgl_gudang: [start_tgl_gudang, end_tgl_gudang],
+          },
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -132,7 +143,7 @@ const TambahBahanPemakaianController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-          }
+          },
         );
       return res.status(200).json(getData);
     } catch (error) {
@@ -168,7 +179,7 @@ const TambahBahanPemakaianController = {
             id: _id,
             id_user_gudang: req.user.id,
             note_gudang,
-          }
+          },
         );
       return res.status(200).json(getData);
     } catch (error) {

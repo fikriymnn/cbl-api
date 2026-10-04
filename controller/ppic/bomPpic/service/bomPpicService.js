@@ -130,6 +130,7 @@ const BomPpicService = {
     status_proses,
     search,
     is_request_purchase,
+    tgl_filter = {},
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -161,6 +162,15 @@ const BomPpicService = {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_pembuatan_bom_ppic = { [Op.between]: [startDate, endDate] };
+    }
+
+    // filter per field tgl, format: { nama_field: [start, end] }
+    for (const [field, [start, end]] of Object.entries(tgl_filter)) {
+      if (start && end) {
+        const startDate = new Date(start).setHours(0, 0, 0, 0);
+        const endDate = new Date(end).setHours(23, 59, 59, 999);
+        obj[field] = { [Op.between]: [startDate, endDate] };
+      }
     }
 
     try {

@@ -33,6 +33,17 @@ const DepositController = {
     }
   },
 
+  getSaldoCustomer: async (req, res) => {
+    const { id_customer } = req.query;
+
+    try {
+      const getData = await Deposit.getSaldoCustomerService({ id_customer });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   getNoDeposit: async (req, res) => {
     try {
       const getData = await Deposit.getNoDepositService();

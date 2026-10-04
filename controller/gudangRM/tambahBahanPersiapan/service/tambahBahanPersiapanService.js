@@ -18,6 +18,7 @@ const TambahBahanPersiapanService = {
     search,
     id_jo,
     id_kertas,
+    tgl_filter = {},
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = { is_active: true };
@@ -40,6 +41,15 @@ const TambahBahanPersiapanService = {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);
       const endDate = new Date(end_date).setHours(23, 59, 59, 999);
       obj.tgl_request = { [Op.between]: [startDate, endDate] };
+    }
+
+    // filter per field tgl, format: { nama_field: [start, end] }
+    for (const [field, [start, end]] of Object.entries(tgl_filter)) {
+      if (start && end) {
+        const startDate = new Date(start).setHours(0, 0, 0, 0);
+        const endDate = new Date(end).setHours(23, 59, 59, 999);
+        obj[field] = { [Op.between]: [startDate, endDate] };
+      }
     }
 
     const include = [

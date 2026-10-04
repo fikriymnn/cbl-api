@@ -10,6 +10,7 @@ const Users = require("../../../../model/userModel");
 const InvoicePayment = require("../../../../model/akunting/invoice/invoicePaymentModel");
 const InvoicePaymentDetail = require("../../../../model/akunting/invoice/invoicePaymentDetailModel");
 const InvoicePaymentAdditionalCost = require("../../../../model/akunting/invoice/invoicePaymentAdditionalCostModel");
+const MasterCustomer = require("../../../../model/masterData/marketing/masterCustomerModel");
 
 const InvoiceService = {
   getAccountReceivableService: async ({
@@ -564,23 +565,27 @@ const InvoiceService = {
     }
   },
 
-  getNoInvoiceService: async () => {
+  getNoInvoiceService: async ({ tgl_kirim } = {}) => {
     try {
-      //get data terakhir
-      const now = new Date();
-      const startOfYear = new Date(now.getFullYear(), 0, 1); // 1 Jan tahun ini
-      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59); // 31 Des tahun ini
+      // patokan bulan & tahun dari tgl_kirim, default hari ini
+      const patokan = tgl_kirim ? new Date(tgl_kirim) : new Date();
+      if (isNaN(patokan.getTime())) {
+        return { status: 400, success: false, message: "tgl_kirim tidak valid" };
+      }
 
+      const currentMonth = String(patokan.getMonth() + 1).padStart(2, "0");
+      const shortYear = String(patokan.getFullYear()).slice(2); // 2025 => "25"
+
+      // nomor urut reset per tahun, ambil terakhir dari no_invoice dengan tahun yang sama
+      // format: SI00001/CBL/08/25
       const lastInvoice = await InvoiceModel.findOne({
         where: {
-          createdAt: {
-            [Op.between]: [startOfYear, endOfYear],
-          },
+          no_invoice: { [Op.like]: `SI%/${shortYear}` },
         },
         order: [
           [
             literal(
-              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 4), '/', 1) AS UNSIGNED)`,
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 3), '/', 1) AS UNSIGNED)`,
             ),
             "DESC",
           ],
@@ -588,20 +593,16 @@ const InvoiceService = {
         ],
       });
 
-      //tentukan no selanjutnya
-      const currentYear = new Date().getFullYear();
-      const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
-      const shortYear = String(currentYear).slice(2); // 2025 => "25"
       // 2. Tentukan nomor urut berikutnya
       let nextNumber = 1;
 
       if (lastInvoice) {
-        const lastNo = lastInvoice.no_invoice; // contoh: SDP00005/12/25
+        const lastNo = lastInvoice.no_invoice; // contoh: SI00005/CBL/12/25
 
         // Ambil "00005" → ubah ke integer
-        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("/")), 10);
+        const lastSeq = parseInt(lastNo.substring(2, lastNo.indexOf("/")), 10);
 
-        nextNumber = lastSeq + 1;
+        nextNumber = (lastSeq || 0) + 1;
       }
 
       // 3. Buat nomor urut padded 5 digit
@@ -659,6 +660,15 @@ const InvoiceService = {
           success: false,
           message: "data produk tidak boleh kosong",
         };
+
+      const nominalDeposit = toNominal(dp);
+      if (nominalDeposit < 0) {
+        throw { status_code: 400, message: "dp tidak boleh minus" };
+      }
+
+      // dp diambil dari saldo deposit customer, kurangi saldonya
+      await adjustSaldoCustomer(id_customer, -nominalDeposit, t);
+
       const dataInvoice = await InvoiceModel.create(
         {
           id_customer: id_customer,
@@ -678,7 +688,7 @@ const InvoiceService = {
           diskon: diskon,
           ppn: ppn,
           total: total,
-          dp: dp,
+          dp: nominalDeposit,
           balance_due: balance_due,
           note: note,
           is_show_dpp: is_show_dpp,
@@ -766,6 +776,37 @@ const InvoiceService = {
           success: false,
           message: "data produk tidak boleh kosong",
         };
+
+      // lock invoice agar edit dp bersamaan tidak dobel mengubah saldo
+      const getDataInvoice = await InvoiceModel.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+      if (!getDataInvoice)
+        throw { status_code: 404, message: "data invoice tidak di temukan" };
+
+      const depositLama = toNominal(getDataInvoice.dp);
+      // dp tidak dikirim = tidak berubah
+      const depositBaru =
+        dp === undefined || dp === null
+          ? depositLama
+          : toNominal(dp);
+      if (depositBaru < 0) {
+        throw { status_code: 400, message: "dp tidak boleh minus" };
+      }
+
+      const customerLama = getDataInvoice.id_customer;
+      const customerBaru = id_customer || customerLama;
+
+      if (String(customerLama) !== String(customerBaru)) {
+        // customer diganti: kembalikan dp ke customer lama, potong customer baru
+        await adjustSaldoCustomer(customerLama, depositLama, t);
+        await adjustSaldoCustomer(customerBaru, -depositBaru, t);
+      } else {
+        // customer sama: cukup sesuaikan selisihnya
+        await adjustSaldoCustomer(customerBaru, depositLama - depositBaru, t);
+      }
+
       const dataInvoice = await InvoiceModel.update(
         {
           id_customer: id_customer,
@@ -784,7 +825,7 @@ const InvoiceService = {
           diskon: diskon,
           ppn: ppn,
           total: total,
-          dp: dp,
+          dp: depositBaru,
           balance_due: balance_due,
           note: note,
           is_show_dpp: is_show_dpp,
@@ -921,13 +962,26 @@ const InvoiceService = {
     const t = transaction || (await db.transaction());
 
     try {
-      const getDataInvoice = await InvoiceModel.findByPk(id);
+      const getDataInvoice = await InvoiceModel.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       if (!getDataInvoice)
         throw {
           success: false,
           status_code: 404,
           message: "data invoice tidak di temukan",
         };
+
+      // kembalikan dp ke saldo customer (hanya jika invoice masih aktif)
+      if (getDataInvoice.is_active) {
+        await adjustSaldoCustomer(
+          getDataInvoice.id_customer,
+          toNominal(getDataInvoice.dp),
+          t,
+        );
+      }
+
       await InvoiceModel.update(
         {
           is_active: false,
@@ -946,6 +1000,37 @@ const InvoiceService = {
     }
   },
 };
+
+function toNominal(value) {
+  const nominal = Number(value || 0);
+  if (!Number.isFinite(nominal)) {
+    throw { status_code: 400, message: "dp harus berupa angka" };
+  }
+  return nominal;
+}
+
+// amount positif = tambah saldo, negatif = kurangi saldo
+async function adjustSaldoCustomer(id_customer, amount, transaction) {
+  if (!amount) return;
+
+  const customer = await MasterCustomer.findByPk(id_customer, {
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  if (!customer) {
+    throw { status_code: 404, message: "data customer tidak ditemukan" };
+  }
+
+  const saldoBaru = Number(customer.saldo || 0) + amount;
+  if (saldoBaru < 0) {
+    throw {
+      status_code: 400,
+      message: `saldo deposit customer tidak mencukupi, sisa saldo ${Number(customer.saldo || 0)}`,
+    };
+  }
+
+  await customer.update({ saldo: saldoBaru }, { transaction });
+}
 
 function toBigInt(value) {
   if (value === null || value === undefined || value === "") return 0n;

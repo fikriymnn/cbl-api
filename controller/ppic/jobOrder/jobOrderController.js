@@ -389,6 +389,70 @@ const BomController = {
     }
   },
 
+  getNextJobOrder: async (req, res) => {
+    const { id_io, tgl_kirim } = req.query;
+
+    try {
+      if (!id_io || !tgl_kirim) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "id_io dan tgl_kirim wajib diisi",
+        });
+      }
+
+      const startTglKirim = new Date(tgl_kirim).setHours(0, 0, 0, 0);
+
+      // list jo dengan tgl_kirim mulai dari request tgl_kirim ke depan
+      const data = await JobOrder.findAll({
+        where: {
+          id_io,
+          is_active: true,
+          tgl_kirim: { [Op.gte]: startTglKirim },
+        },
+        attributes: ["id", "no_jo", "tgl_kirim"],
+        order: [["tgl_kirim", "ASC"]],
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: data,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getFrekuensiJobOrder: async (req, res) => {
+    const { id_io } = req.query;
+
+    try {
+      if (!id_io) {
+        return res
+          .status(400)
+          .json({ succes: false, status_code: 400, msg: "id_io wajib diisi" });
+      }
+
+      const jumlahJo = await JobOrder.count({
+        where: { id_io, is_active: true },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        jumlah_jo: jumlahJo,
+        frekuensi: jumlahJo + 1,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createJobOrder: async (req, res) => {
     const {
       id_io,
@@ -413,6 +477,8 @@ const BomController = {
       standar_warna,
       tipe_jo,
       jo_mounting,
+      next_jo,
+      frekuensi,
     } = req.body;
     const t = await db.transaction();
 
@@ -489,6 +555,8 @@ const BomController = {
           standar_warna,
           tipe_jo,
           label: checkData.label,
+          next_jo: next_jo || null,
+          frekuensi: frekuensi || null,
         },
         { transaction: t },
       );
@@ -710,6 +778,8 @@ const BomController = {
           standar_warna,
           tipe_jo,
           jo_mounting,
+          next_jo,
+          frekuensi,
         } = job_orders[idx];
 
         const isKanban = tipe_jo === "JO KANBAN";
@@ -802,6 +872,8 @@ const BomController = {
             standar_warna,
             tipe_jo,
             label: checkData.label,
+            next_jo: next_jo || null,
+            frekuensi: frekuensi || null,
             status: status,
             status_proses: statusProses,
           },
