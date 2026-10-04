@@ -8,6 +8,13 @@ router.get(
   auth,
   JobOrderController.getJobOrderJumlahData,
 );
+router.get("/ppic/joNext", auth, JobOrderController.getNextJobOrder);
+router.get(
+  "/ppic/joMonitoringKurangQty",
+  auth,
+  JobOrderController.getMonitoringJoKurangQty,
+);
+router.get("/ppic/joFrekuensi", auth, JobOrderController.getFrekuensiJobOrder);
 router.post("/ppic/jo", auth, JobOrderController.createJobOrder);
 router.post("/ppic/joKanban", auth, JobOrderController.createJobOrderKanban);
 router.put("/ppic/jo/:id", auth, JobOrderController.updateJobOrder);

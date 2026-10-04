@@ -184,6 +184,14 @@ const JobOrder = db.define(
       allowNull: true,
       defaultValue: false,
     },
+    next_jo: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    frekuensi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
 
     is_active: {
       type: DataTypes.BOOLEAN,

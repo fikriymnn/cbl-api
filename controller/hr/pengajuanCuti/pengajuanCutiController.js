@@ -225,6 +225,7 @@ const PengajuanCutiController = {
     const t = await db.transaction();
 
     try {
+      // lock row agar request approve yang masuk bersamaan menunggu
       const dataPengajuanCuti = await PengajuanCuti.findByPk(_id, {
         transaction: t,
         lock: t.LOCK.UPDATE,
@@ -232,22 +233,19 @@ const PengajuanCutiController = {
 
       if (!dataPengajuanCuti) {
         await t.rollback();
-
-        return res.status(404).json({
-          msg: "Data tidak ditemukan",
-        });
+        return res.status(404).json({ msg: "Data tidak ditemukan" });
       }
 
-      // Cegah approve 2x
-      if (dataPengajuanCuti.status === "approved") {
+      // approve hanya boleh dari status incoming
+      if (dataPengajuanCuti.status !== "incoming") {
         await t.rollback();
-
         return res.status(400).json({
-          msg: "Pengajuan cuti sudah di-approve sebelumnya",
+          msg: `Pengajuan cuti tidak bisa di-approve, status saat ini ${dataPengajuanCuti.status}`,
         });
       }
 
-      await PengajuanCuti.update(
+      // update bersyarat status, jika 0 row berarti sudah diproses request lain
+      const [affectedRows] = await PengajuanCuti.update(
         {
           status: "approved",
           status_tiket: "history",
@@ -255,18 +253,21 @@ const PengajuanCutiController = {
           catatan_hr,
         },
         {
-          where: {
-            id: _id,
-          },
+          where: { id: _id, status: "incoming" },
           transaction: t,
         },
       );
 
+      if (affectedRows === 0) {
+        await t.rollback();
+        return res
+          .status(409)
+          .json({ msg: "Pengajuan cuti sudah diproses sebelumnya" });
+      }
+
       if (dataPengajuanCuti.tipe_cuti?.toLowerCase() === "tahunan") {
         const dataKaryawan = await KaryawanBiodata.findOne({
-          where: {
-            id_karyawan: dataPengajuanCuti.id_karyawan,
-          },
+          where: { id_karyawan: dataPengajuanCuti.id_karyawan },
           transaction: t,
           lock: t.LOCK.UPDATE,
         });
@@ -284,28 +285,16 @@ const PengajuanCutiController = {
         }
 
         await dataKaryawan.update(
-          {
-            sisa_cuti: sisaCutiBaru,
-          },
-          {
-            transaction: t,
-          },
+          { sisa_cuti: sisaCutiBaru },
+          { transaction: t },
         );
       }
 
       await t.commit();
-
-      return res.status(200).json({
-        msg: "Approve Successfully",
-      });
+      return res.status(200).json({ msg: "Approve Successfully" });
     } catch (error) {
-      if (!t.finished) {
-        await t.rollback();
-      }
-
-      return res.status(500).json({
-        msg: error.message,
-      });
+      if (!t.finished) await t.rollback();
+      return res.status(500).json({ msg: error.message });
     }
   },
 
@@ -315,11 +304,28 @@ const PengajuanCutiController = {
     const t = await db.transaction();
 
     try {
-      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id);
-      if (!dataPengajuanCuti)
-        return res.status(404).json({ msg: "data tidak di temukan" });
+      // lock row agar request reject / approve yang bersamaan menunggu
+      const dataPengajuanCuti = await PengajuanCuti.findByPk(_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
 
-      await PengajuanCuti.update(
+      if (!dataPengajuanCuti) {
+        await t.rollback();
+        return res.status(404).json({ msg: "data tidak di temukan" });
+      }
+
+      const statusAwal = dataPengajuanCuti.status;
+
+      // reject boleh dari incoming atau approved
+      if (statusAwal !== "incoming" && statusAwal !== "approved") {
+        await t.rollback();
+        return res.status(400).json({
+          msg: `Pengajuan cuti tidak bisa di-reject, status saat ini ${statusAwal}`,
+        });
+      }
+
+      const [affectedRows] = await PengajuanCuti.update(
         {
           status: "rejected",
           status_tiket: "history",
@@ -327,17 +333,48 @@ const PengajuanCutiController = {
           catatan_hr: catatan_hr,
         },
         {
-          where: { id: _id },
+          where: { id: _id, status: statusAwal },
           transaction: t,
         },
       );
 
-      await t.commit();
+      if (affectedRows === 0) {
+        await t.rollback();
+        return res
+          .status(409)
+          .json({ msg: "Pengajuan cuti sudah diproses sebelumnya" });
+      }
 
-      res.status(200).json({ msg: "Reject Successfully" });
+      // jika sebelumnya sudah approved & cuti tahunan, kembalikan sisa cuti
+      if (
+        statusAwal === "approved" &&
+        dataPengajuanCuti.tipe_cuti?.toLowerCase() === "tahunan"
+      ) {
+        const dataKaryawan = await KaryawanBiodata.findOne({
+          where: { id_karyawan: dataPengajuanCuti.id_karyawan },
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!dataKaryawan) {
+          throw new Error("Data biodata karyawan tidak ditemukan");
+        }
+
+        await dataKaryawan.update(
+          {
+            sisa_cuti:
+              Number(dataKaryawan.sisa_cuti || 0) +
+              Number(dataPengajuanCuti.jumlah_hari || 0),
+          },
+          { transaction: t },
+        );
+      }
+
+      await t.commit();
+      return res.status(200).json({ msg: "Reject Successfully" });
     } catch (error) {
-      await t.rollback();
-      res.status(500).json({ msg: error.message });
+      if (!t.finished) await t.rollback();
+      return res.status(500).json({ msg: error.message });
     }
   },
 };

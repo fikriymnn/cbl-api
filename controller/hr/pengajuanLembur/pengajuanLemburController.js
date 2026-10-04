@@ -21,6 +21,7 @@ const PengajuanLemburController = {
       status_tiket,
       status_ketidaksesuaian,
       id_department,
+      divisi_bawahan,
     } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -40,6 +41,17 @@ const PengajuanLemburController = {
       obj.dari = { [Op.between]: [startDate, endDate] };
     }
     try {
+      // pengajuan lembur tidak punya id_divisi, ambil id_karyawan dari biodata
+      if (divisi_bawahan) {
+        const karyawanBiodata = await KaryawanBiodata.findAll({
+          where: { id_divisi: { [Op.in]: divisi_bawahan } },
+          attributes: ["id_karyawan"],
+        });
+        const karyawanIds = karyawanBiodata.map((biodata) => biodata.id_karyawan);
+        obj.id_karyawan = { [Op.in]: karyawanIds };
+        if (id_karyawan) obj.id_karyawan[Op.eq] = id_karyawan;
+      }
+
       if (page && limit) {
         const length = await PengajuanLembur.count({ where: obj });
         const data = await PengajuanLembur.findAll({

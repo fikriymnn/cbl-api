@@ -12,6 +12,10 @@ const BomPpicController = {
       status_proses,
       search,
       is_request_purchase,
+      start_tgl_kirim_customer,
+      end_tgl_kirim_customer,
+      start_tgl_rencana_cetak,
+      end_tgl_rencana_cetak,
     } = req.query;
 
     try {
@@ -25,6 +29,10 @@ const BomPpicController = {
         status_proses,
         search,
         is_request_purchase,
+        tgl_filter: {
+          tgl_kirim_customer: [start_tgl_kirim_customer, end_tgl_kirim_customer],
+          tgl_rencana_cetak: [start_tgl_rencana_cetak, end_tgl_rencana_cetak],
+        },
       });
       return res.status(200).json(getData);
     } catch (error) {

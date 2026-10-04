@@ -389,6 +389,156 @@ const BomController = {
     }
   },
 
+  // monitoring jo kurang qty: qty jo (qty - total_insheet x isi) dibanding
+  // total quantity_kirim_fg final inspection (bisa kirim & fg approved)
+  getMonitoringJoKurangQty: async (req, res) => {
+    const { page = 1, limit = 10, search } = req.query;
+    const pageInt = Math.max(parseInt(page) || 1, 1);
+    const limitInt = Math.max(parseInt(limit) || 10, 1);
+    const offset = (pageInt - 1) * limitInt;
+
+    const replacements = {};
+    let whereSearch = "";
+    if (search) {
+      whereSearch = `AND (j.no_jo LIKE :search OR j.no_io LIKE :search OR j.customer LIKE :search OR j.produk LIKE :search)`;
+      replacements.search = `%${search}%`;
+    }
+
+    const baseQuery = `
+      SELECT
+        j.id, j.no_jo, j.no_io, j.no_so, j.customer, j.produk, j.tgl_kirim,
+        j.qty, j.createdAt,
+        COALESCE(m.total_insheet, 0) AS total_insheet,
+        COALESCE(m.isi, 0) AS isi,
+        j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) AS qty_jo,
+        f.quantity_kirim_fg,
+        j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) - f.quantity_kirim_fg AS kurang_qty
+      FROM jo_new j
+      INNER JOIN (
+        SELECT no_jo, SUM(COALESCE(quantity_kirim_fg, 0)) AS quantity_kirim_fg
+        FROM cs_inspeksi_final
+        WHERE status = 'bisa kirim' AND status_fg = 'approved'
+        GROUP BY no_jo
+      ) f ON f.no_jo = j.no_jo
+      LEFT JOIN (
+        SELECT id_jo, MAX(total_insheet) AS total_insheet,
+          MAX(COALESCE(ukuran_cetak_isi_1, 0) + COALESCE(ukuran_cetak_isi_2, 0)) AS isi
+        FROM jo_mounting_new
+        WHERE is_selected = true AND (is_active = true OR is_active IS NULL)
+        GROUP BY id_jo
+      ) m ON m.id_jo = j.id
+      WHERE j.is_active = true AND j.status = 'history' ${whereSearch}
+    `;
+
+    try {
+      const [countResult] = await db.query(
+        `SELECT COUNT(*) AS total FROM (${baseQuery}) x WHERE x.kurang_qty > 0`,
+        { replacements, type: db.QueryTypes.SELECT },
+      );
+      const total = parseInt(countResult.total) || 0;
+
+      const data = await db.query(
+        `SELECT * FROM (${baseQuery}) x WHERE x.kurang_qty > 0
+         ORDER BY x.createdAt DESC LIMIT :limit OFFSET :offset`,
+        {
+          replacements: { ...replacements, limit: limitInt, offset },
+          type: db.QueryTypes.SELECT,
+        },
+      );
+
+      // hasil SUM dari mysql berupa string (bigNumberStrings), ubah ke angka
+      const numberFields = [
+        "qty",
+        "total_insheet",
+        "isi",
+        "qty_jo",
+        "quantity_kirim_fg",
+        "kurang_qty",
+      ];
+      const result = data.map((item) => {
+        const row = { ...item };
+        numberFields.forEach((key) => (row[key] = Number(row[key] || 0)));
+        return row;
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: result,
+        total_data: total,
+        total_page: Math.ceil(total / limitInt),
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getNextJobOrder: async (req, res) => {
+    const { id_io, tgl_kirim } = req.query;
+
+    try {
+      if (!id_io || !tgl_kirim) {
+        return res.status(400).json({
+          succes: false,
+          status_code: 400,
+          msg: "id_io dan tgl_kirim wajib diisi",
+        });
+      }
+
+      const startTglKirim = new Date(tgl_kirim).setHours(0, 0, 0, 0);
+
+      // list jo dengan tgl_kirim mulai dari request tgl_kirim ke depan
+      const data = await JobOrder.findAll({
+        where: {
+          id_io,
+          is_active: true,
+          tgl_kirim: { [Op.gte]: startTglKirim },
+        },
+        attributes: ["id", "no_jo", "tgl_kirim"],
+        order: [["tgl_kirim", "ASC"]],
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        data: data,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
+  getFrekuensiJobOrder: async (req, res) => {
+    const { id_io } = req.query;
+
+    try {
+      if (!id_io) {
+        return res
+          .status(400)
+          .json({ succes: false, status_code: 400, msg: "id_io wajib diisi" });
+      }
+
+      const jumlahJo = await JobOrder.count({
+        where: { id_io, is_active: true },
+      });
+
+      return res.status(200).json({
+        succes: true,
+        status_code: 200,
+        jumlah_jo: jumlahJo,
+        frekuensi: jumlahJo + 1,
+      });
+    } catch (error) {
+      res
+        .status(400)
+        .json({ succes: false, status_code: 400, msg: error.message });
+    }
+  },
+
   createJobOrder: async (req, res) => {
     const {
       id_io,
@@ -413,6 +563,8 @@ const BomController = {
       standar_warna,
       tipe_jo,
       jo_mounting,
+      next_jo,
+      frekuensi,
     } = req.body;
     const t = await db.transaction();
 
@@ -489,6 +641,8 @@ const BomController = {
           standar_warna,
           tipe_jo,
           label: checkData.label,
+          next_jo: next_jo || null,
+          frekuensi: frekuensi || null,
         },
         { transaction: t },
       );
@@ -710,6 +864,8 @@ const BomController = {
           standar_warna,
           tipe_jo,
           jo_mounting,
+          next_jo,
+          frekuensi,
         } = job_orders[idx];
 
         const isKanban = tipe_jo === "JO KANBAN";
@@ -802,6 +958,8 @@ const BomController = {
             standar_warna,
             tipe_jo,
             label: checkData.label,
+            next_jo: next_jo || null,
+            frekuensi: frekuensi || null,
             status: status,
             status_proses: statusProses,
           },
