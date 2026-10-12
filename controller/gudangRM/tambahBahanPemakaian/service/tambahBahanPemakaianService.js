@@ -19,9 +19,19 @@ const TambahBahanPemakaianService = {
     id_jo,
     id_kertas,
     tgl_filter = {},
+    sort_qty,
+    sort_qty_field,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = { is_active: true };
+
+    // sort qty asc/desc, field: lp (default) atau druk
+    const qtyField =
+      sort_qty_field === "druk" ? "qty_tambah_bahan_druk" : "qty_tambah_bahan_lp";
+    const sortDir = String(sort_qty || "").toUpperCase();
+    const order = ["ASC", "DESC"].includes(sortDir)
+      ? [[qtyField, sortDir], ["createdAt", "DESC"]]
+      : [["createdAt", "DESC"]];
 
     if (search) {
       obj = {
@@ -70,7 +80,7 @@ const TambahBahanPemakaianService = {
       if (page && limit) {
         const length = await TambahBahanPemakaian.count({ where: obj });
         const data = await TambahBahanPemakaian.findAll({
-          order: [["createdAt", "DESC"]],
+          order,
           limit: parseInt(limit),
           offset,
           where: obj,
@@ -93,7 +103,7 @@ const TambahBahanPemakaianService = {
         };
       } else {
         const data = await TambahBahanPemakaian.findAll({
-          order: [["createdAt", "DESC"]],
+          order,
           where: obj,
         });
         return {

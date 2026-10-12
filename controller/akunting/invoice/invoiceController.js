@@ -198,6 +198,7 @@ const InvoiceController = {
       balance_due,
       note,
       is_show_dpp,
+      is_tax,
       invoice_produk,
       delivery_order_group,
     } = req.body;
@@ -225,6 +226,7 @@ const InvoiceController = {
         balance_due: balance_due,
         note: note,
         is_show_dpp: is_show_dpp,
+        is_tax: is_tax,
         invoice_produk: invoice_produk,
         note: note,
         delivery_order_group: delivery_order_group,
@@ -258,6 +260,7 @@ const InvoiceController = {
       balance_due,
       note,
       is_show_dpp,
+      is_tax,
       invoice_produk,
     } = req.body;
 
@@ -285,6 +288,7 @@ const InvoiceController = {
         balance_due: balance_due,
         note: note,
         is_show_dpp: is_show_dpp,
+        is_tax: is_tax,
         invoice_produk: invoice_produk,
         note: note,
       });
