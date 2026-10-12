@@ -11,6 +11,9 @@ const IncomingRawMaterialController = {
       search,
       id_purchase_order,
       id_purchase_order_item_jo,
+      id_purchase_order_booking,
+      id_purchase_order_booking_item,
+      is_booking,
       status,
       status_ticket,
     } = req.query;
@@ -26,6 +29,9 @@ const IncomingRawMaterialController = {
           search,
           id_purchase_order,
           id_purchase_order_item_jo,
+          id_purchase_order_booking,
+          id_purchase_order_booking_item,
+          is_booking,
           status,
           status_ticket,
         });
@@ -46,6 +52,7 @@ const IncomingRawMaterialController = {
   },
 
   // body: { items: [{ id_purchase_order, id_purchase_order_item_jo, no_surat_jalan,no_good_receipt, qty_incoming, qty_idle, qty_pallet }, ...] }
+  // untuk PO booking: { items: [{ id_purchase_order_booking_item, no_surat_jalan, no_good_receipt, qty_incoming, qty_pallet }, ...] }
   createIncomingRawMaterial: async (req, res) => {
     const { items } = req.body;
 

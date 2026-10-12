@@ -397,6 +397,8 @@ const RequestPurchase = require("./model/purchasing/requestPurchase/requestPurch
 const PurchaseOrder = require("./model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("./model/purchasing/purchaseOrder/purchaseOrderItemModel");
 const PurchaseOrderItemJo = require("./model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
+const PurchaseOrderBooking = require("./model/purchasing/purchaseOrderBooking/purchaseOrderBookingModel");
+const PurchaseOrderBookingItem = require("./model/purchasing/purchaseOrderBooking/purchaseOrderBookingItemModel");
 const RequestCancelPurchaseOrder = require("./model/purchasing/requestCancelPurchaseOrder/requestCancelPurchaseOrderModel");
 
 //Gudang RM
@@ -443,7 +445,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await Invoice.sync({
+//   await IncomingRawMaterial.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
