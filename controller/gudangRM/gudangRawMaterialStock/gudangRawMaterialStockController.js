@@ -26,7 +26,7 @@ const GudangRawMaterialStockController = {
 
   getGudangRawMaterialStockMutasi: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, type_mutasi } =
+    const { page, limit, start_date, end_date, search, type_mutasi, id_item } =
       req.query;
 
     try {
@@ -40,6 +40,7 @@ const GudangRawMaterialStockController = {
             end_date,
             search,
             type_mutasi,
+            id_item,
           },
         );
       return res.status(200).json(getData);

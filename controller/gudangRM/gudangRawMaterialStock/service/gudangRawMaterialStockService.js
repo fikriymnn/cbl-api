@@ -124,6 +124,7 @@ const GudangRawMaterialStockService = {
     end_date,
     search,
     type_mutasi,
+    id_item,
   }) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let obj = {};
@@ -131,12 +132,15 @@ const GudangRawMaterialStockService = {
     if (search) {
       obj = {
         [Op.or]: [
-          { kode_item: { [Op.like]: `%${search}%` } },
-          { nama_item: { [Op.like]: `%${search}%` } },
+          { kode_barang: { [Op.like]: `%${search}%` } },
+          { nama_barang: { [Op.like]: `%${search}%` } },
         ],
       };
     }
     if (type_mutasi) obj.type_mutasi = type_mutasi;
+    // :id = id gudang stock, id_item = filter per item
+    if (id) obj.id_gudang_raw_material_stock = id;
+    if (id_item) obj.id_item = id_item;
 
     if (start_date && end_date) {
       const startDate = new Date(start_date).setHours(0, 0, 0, 0);

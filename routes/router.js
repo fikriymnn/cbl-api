@@ -362,6 +362,7 @@ router.use("/", require("./masterdata/marketing/masterVendorRoute"));
 //Purchasing
 router.use("/", require("./purchasing/requestPurchasingRoutes"));
 router.use("/", require("./purchasing/purchaseOrderRoute"));
+router.use("/", require("./purchasing/purchaseOrderBookingRoute"));
 router.use("/", require("./purchasing/requestCancelPurchaseOrderRoute"));
 
 //gudang RM

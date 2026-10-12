@@ -2,6 +2,8 @@ const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const PurchaseOrder = require("../../purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItemJo = require("../../purchasing/purchaseOrder/purchaseOrderItemJoModel");
+const PurchaseOrderBooking = require("../../purchasing/purchaseOrderBooking/purchaseOrderBookingModel");
+const PurchaseOrderBookingItem = require("../../purchasing/purchaseOrderBooking/purchaseOrderBookingItemModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -22,6 +24,23 @@ const IncomingRawMaterial = db.define(
       allowNull: true,
       references: {
         model: PurchaseOrderItemJo,
+        key: "id",
+      },
+    },
+    // diisi kalau incoming dari PO booking (semua qty masuk gudang stock)
+    id_purchase_order_booking: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PurchaseOrderBooking,
+        key: "id",
+      },
+    },
+    id_purchase_order_booking_item: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PurchaseOrderBookingItem,
         key: "id",
       },
     },
@@ -122,6 +141,24 @@ PurchaseOrderItemJo.hasMany(IncomingRawMaterial, {
 IncomingRawMaterial.belongsTo(PurchaseOrderItemJo, {
   foreignKey: "id_purchase_order_item_jo",
   as: "purchase_order_item_jo",
+});
+
+PurchaseOrderBooking.hasMany(IncomingRawMaterial, {
+  foreignKey: "id_purchase_order_booking",
+  as: "incoming_raw_material",
+});
+IncomingRawMaterial.belongsTo(PurchaseOrderBooking, {
+  foreignKey: "id_purchase_order_booking",
+  as: "purchase_order_booking",
+});
+
+PurchaseOrderBookingItem.hasMany(IncomingRawMaterial, {
+  foreignKey: "id_purchase_order_booking_item",
+  as: "incoming_raw_material",
+});
+IncomingRawMaterial.belongsTo(PurchaseOrderBookingItem, {
+  foreignKey: "id_purchase_order_booking_item",
+  as: "purchase_order_booking_item",
 });
 
 Users.hasMany(IncomingRawMaterial, {

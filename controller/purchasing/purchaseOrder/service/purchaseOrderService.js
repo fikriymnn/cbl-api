@@ -3,6 +3,7 @@ const { Op, Sequelize, literal } = require("sequelize");
 const PurchaseOrder = require("../../../../model/purchasing/purchaseOrder/purchaseOrderModel");
 const PurchaseOrderItem = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemModel");
 const PurchaseOrderItemJo = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
+const PurchaseOrderBooking = require("../../../../model/purchasing/purchaseOrderBooking/purchaseOrderBookingModel");
 const IoModel = require("../../../../model/marketing/io/ioModel");
 const SoModel = require("../../../../model/marketing/so/soModel");
 const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
@@ -14,36 +15,46 @@ const RequestPurchase = require("../../../../model/purchasing/requestPurchase/re
 
 const PurchaseOrderService = {
   // 🔢 generate nomor PO berikutnya, format: 0713/CBL/072026
+  // nomor urut dipakai bersama PO biasa & PO booking, jadi ambil yang terbesar dari kedua tabel
   generateNoPurchaseOrder: async (transaction = null) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
 
-    const lastData = await PurchaseOrder.findOne({
-      where: {
-        createdAt: { [Op.between]: [startOfYear, endOfYear] },
-      },
-      order: [
-        [
-          literal(
-            `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`,
-          ),
-          "DESC",
+    const findLast = (Model) =>
+      Model.findOne({
+        where: {
+          createdAt: { [Op.between]: [startOfYear, endOfYear] },
+        },
+        order: [
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(no_purchase_order, '/', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"],
         ],
-        ["createdAt", "DESC"],
-      ],
-      transaction,
-    });
+        transaction,
+      });
+
+    // contoh: "0713/CBL/072026" -> 713
+    const getSeq = (data) => {
+      const lastNo = data?.no_purchase_order;
+      if (!lastNo) return 0;
+      return parseInt(lastNo.substring(0, lastNo.indexOf("/")), 10) || 0;
+    };
+
+    const [lastPo, lastPoBooking] = await Promise.all([
+      findLast(PurchaseOrder),
+      findLast(PurchaseOrderBooking),
+    ]);
+    const lastData = getSeq(lastPoBooking) > getSeq(lastPo) ? lastPoBooking : lastPo;
 
     const currentYear = now.getFullYear();
     const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
 
-    let nextNumber = 1;
-    if (lastData) {
-      const lastNo = lastData.no_purchase_order; // contoh: "0713/CBL/072026"
-      const lastSeq = parseInt(lastNo.substring(0, lastNo.indexOf("/")), 10);
-      nextNumber = lastSeq + 1;
-    }
+    const nextNumber = getSeq(lastData) + 1;
 
     const paddedNumber = String(nextNumber).padStart(4, "0");
     const newNo = `${paddedNumber}/CBL/${currentMonth}${currentYear}`;
