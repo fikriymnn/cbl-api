@@ -119,7 +119,7 @@ const TambahBahanPemakaianService = {
         const data = await TambahBahanPemakaian.findAll({
           order,
           where: obj,
-          includeGetAll,
+          include: includeGetAll,
         });
         return {
           status: 200,
