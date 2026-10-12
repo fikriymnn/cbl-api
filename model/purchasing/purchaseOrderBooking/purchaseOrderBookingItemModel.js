@@ -63,6 +63,12 @@ const PurchaseOrderBookingItem = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    // qty yang sudah dipakai items_jo PO biasa, sisa bisa dipakai = qty_terkirim - qty_pakai
+    qty_pakai: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
     tipe_barang: {
       type: DataTypes.STRING,
       allowNull: true,

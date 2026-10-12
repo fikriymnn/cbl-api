@@ -14,6 +14,12 @@ router.get(
   PurchaseOrderBooking.getNoPurchaseOrderBooking,
 );
 
+router.get(
+  "/purchasing/purchaseOrderBookingItem/available",
+  auth,
+  PurchaseOrderBooking.getAvailablePurchaseOrderBookingItem,
+);
+
 router.post(
   "/purchasing/purchaseOrderBooking",
   auth,

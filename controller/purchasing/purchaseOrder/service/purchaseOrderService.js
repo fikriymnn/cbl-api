@@ -4,6 +4,9 @@ const PurchaseOrder = require("../../../../model/purchasing/purchaseOrder/purcha
 const PurchaseOrderItem = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemModel");
 const PurchaseOrderItemJo = require("../../../../model/purchasing/purchaseOrder/purchaseOrderItemJoModel");
 const PurchaseOrderBooking = require("../../../../model/purchasing/purchaseOrderBooking/purchaseOrderBookingModel");
+const PurchaseOrderBookingItem = require("../../../../model/purchasing/purchaseOrderBooking/purchaseOrderBookingItemModel");
+const GudangRawMaterialBookingService = require("../../../gudangRM/gudangRawMaterialBooking/service/gudangRawMaterialBookingService");
+const GudangRawMaterialStockService = require("../../../gudangRM/gudangRawMaterialStock/service/gudangRawMaterialStockService");
 const IoModel = require("../../../../model/marketing/io/ioModel");
 const SoModel = require("../../../../model/marketing/so/soModel");
 const JobOrder = require("../../../../model/ppic/jobOrder/jobOrderModel");
@@ -223,6 +226,11 @@ const PurchaseOrderService = {
               required: false,
               include: [
                 {
+                  model: PurchaseOrderBooking,
+                  as: "purchase_order_booking",
+                  attributes: ["id", "no_purchase_order", "nama_vendor"],
+                },
+                {
                   model: MasterBarang,
                   as: "master_barang",
                 },
@@ -281,6 +289,11 @@ const PurchaseOrderService = {
               where: { is_active: true },
               required: false,
               include: [
+                {
+                  model: PurchaseOrderBooking,
+                  as: "purchase_order_booking",
+                  attributes: ["id", "no_purchase_order", "nama_vendor"],
+                },
                 {
                   model: MasterBarang,
                   as: "master_barang",
@@ -341,6 +354,11 @@ const PurchaseOrderService = {
               where: { is_active: true },
               required: false,
               include: [
+                {
+                  model: PurchaseOrderBooking,
+                  as: "purchase_order_booking",
+                  attributes: ["id", "no_purchase_order", "nama_vendor"],
+                },
                 {
                   model: MasterBarang,
                   as: "master_barang",
@@ -459,29 +477,12 @@ const PurchaseOrderService = {
         };
       });
 
-      const itemsJoPayload = items_jo.map((item) => {
-        let qtyLebih = 0;
-
-        if (item.qty_po > item.qty_bom) {
-          qtyLebih = item.qty_po - item.qty_bom;
-        }
-        return {
-          id_jo: item.id_jo || null,
-          id_item: item.id_item || null,
-          id_brand: item.id_brand || null,
-          no_jo: item.no_jo || null,
-          nama_item: item.nama_item || null,
-          nama_brand: item.nama_brand || null,
-          qty_bom: item.qty_bom || 0,
-          qty_po: item.qty_po,
-          qty_lebih: qtyLebih,
-          qty_sisa: item.qty_po,
-          tipe_barang: item.tipe_barang || null,
-          satuan: item.satuan || null,
-          tgl_kirim: item.tgl_kirim || null,
-          rencana_cetak: item.rencana_cetak || null,
-        };
-      });
+      // item jo bisa ambil sebagian qty dari PO booking (qty_booking), langsung di-reserve ke qty_pakai
+      const itemsJoPayload = [];
+      for (const item of items_jo) {
+        const booking = await reserveBookingQty(item, t);
+        itemsJoPayload.push({ ...buildItemJoPayload(item), ...booking });
+      }
 
       const total = sub_total + total_ppn - (discount || 0);
 
@@ -615,28 +616,59 @@ const PurchaseOrderService = {
       }
 
       // untuk item jo
-      for (const item of items_jo) {
-        let qtyLebih = 0;
+      // reserve qty booking lama dilepas dulu, lalu di-reserve ulang sesuai payload.
+      // item jo yang qty booking-nya sudah dipindah ke gudang (approve finance) tidak boleh diubah / dihapus
+      const existingItemJo = await PurchaseOrderItemJo.findAll({
+        where: { id_purchase_order: id, is_active: true },
+        transaction: t,
+      });
+      const existingItemJoById = new Map(
+        existingItemJo.map((itemJo) => [String(itemJo.id), itemJo]),
+      );
+      const payloadItemJoIds = new Set(
+        items_jo.filter((item) => item.id).map((item) => String(item.id)),
+      );
 
-        if (item.qty_po > item.qty_bom) {
-          qtyLebih = item.qty_po - item.qty_bom; // fix: "tem" -> "item"
+      for (const itemJo of existingItemJo) {
+        if (itemJo.is_booking_moved) {
+          if (!payloadItemJoIds.has(String(itemJo.id))) {
+            throw {
+              message: `item jo ${itemJo.no_jo} - ${itemJo.nama_item} sudah ambil qty dari PO booking dan sudah masuk gudang, tidak bisa dihapus`,
+            };
+          }
+          continue;
         }
-        const itemJoPayload = {
-          id_jo: item.id_jo || null,
-          id_item: item.id_item || null,
-          id_brand: item.id_brand || null,
-          no_jo: item.no_jo || null,
-          nama_item: item.nama_item || null,
-          nama_brand: item.nama_brand || null,
-          qty_bom: item.qty_bom || 0,
-          qty_po: item.qty_po,
-          qty_lebih: qtyLebih,
-          qty_sisa: item.qty_po,
-          tipe_barang: item.tipe_barang || null,
-          satuan: item.satuan || null,
-          tgl_kirim: item.tgl_kirim || null,
-          rencana_cetak: item.rencana_cetak || null,
-        };
+        await releaseBookingQty(itemJo, t);
+      }
+
+      for (const item of items_jo) {
+        const existing = item.id
+          ? existingItemJoById.get(String(item.id))
+          : null;
+
+        let booking;
+        if (existing?.is_booking_moved) {
+          const isBookingChanged =
+            String(item.id_purchase_order_booking_item || "") !==
+              String(existing.id_purchase_order_booking_item || "") ||
+            (Number(item.qty_booking) || 0) !==
+              (Number(existing.qty_booking) || 0);
+          if (isBookingChanged) {
+            throw {
+              message: `qty booking item jo ${existing.no_jo} - ${existing.nama_item} sudah masuk gudang, tidak bisa diubah`,
+            };
+          }
+          booking = {
+            id_purchase_order_booking: existing.id_purchase_order_booking,
+            id_purchase_order_booking_item:
+              existing.id_purchase_order_booking_item,
+            qty_booking: existing.qty_booking,
+          };
+        } else {
+          booking = await reserveBookingQty(item, t);
+        }
+
+        const itemJoPayload = { ...buildItemJoPayload(item), ...booking };
 
         if (item.id) {
           // update item lama
@@ -811,6 +843,68 @@ const PurchaseOrderService = {
           status_tiket: "history",
         },
         { where: { id }, transaction: t },
+      );
+
+      // qty yang diambil dari PO booking: pindah dari gudang stock ke gudang booking jo
+      const itemJoBooking = await PurchaseOrderItemJo.findAll({
+        where: {
+          id_purchase_order: id,
+          is_active: true,
+          is_booking_moved: { [Op.not]: true },
+          qty_booking: { [Op.gt]: 0 },
+        },
+        transaction: t,
+      });
+
+      for (const itemJo of itemJoBooking) {
+        const createGudangBooking =
+          await GudangRawMaterialBookingService.createGudangRawMaterialBookingService(
+            {
+              id_jo: itemJo.id_jo,
+              id_item: itemJo.id_item,
+              qty: itemJo.qty_booking,
+              rencana_cetak: itemJo.rencana_cetak,
+              tipe_barang: itemJo.tipe_barang,
+              satuan: itemJo.satuan,
+              transaction: t,
+            },
+          );
+        if (createGudangBooking.success === false) {
+          throw { message: createGudangBooking.message };
+        }
+
+        const useGudangStock =
+          await GudangRawMaterialStockService.useGudangRawMaterialStockService({
+            id_item: itemJo.id_item,
+            qty: itemJo.qty_booking,
+            sumber_mutasi: "booking jo",
+            id_user: id_approve_finance,
+            id_jo_booking: itemJo.id_jo,
+            no_jo_booking: itemJo.no_jo,
+            transaction: t,
+          });
+        if (useGudangStock.success === false) {
+          throw { message: useGudangStock.message };
+        }
+
+        await PurchaseOrderItemJo.update(
+          { is_booking_moved: true },
+          { where: { id: itemJo.id }, transaction: t },
+        );
+      }
+
+      // item jo dengan qty_po 0 tidak ada yang dipesan ke vendor (tidak akan ada incoming),
+      // jadi langsung done
+      await PurchaseOrderItemJo.update(
+        { status_po: "done" },
+        {
+          where: {
+            id_purchase_order: id,
+            is_active: true,
+            [Op.or]: [{ qty_po: { [Op.lte]: 0 } }, { qty_po: null }],
+          },
+          transaction: t,
+        },
       );
 
       if (!transaction) await t.commit();
@@ -1018,6 +1112,103 @@ const PurchaseOrderService = {
       throw { success: false, message: error.message };
     }
   },
+};
+
+// payload item jo, qty_lebih dihitung dari total qty_po + qty_booking dibanding qty_bom
+const buildItemJoPayload = (item) => {
+  const qtyPo = Number(item.qty_po) || 0;
+  const qtyBom = Number(item.qty_bom) || 0;
+  const qtyBooking = Number(item.qty_booking) || 0;
+  const qtyLebih = Math.max(qtyPo + qtyBooking - qtyBom, 0);
+
+  return {
+    id_jo: item.id_jo || null,
+    id_item: item.id_item || null,
+    id_brand: item.id_brand || null,
+    no_jo: item.no_jo || null,
+    nama_item: item.nama_item || null,
+    nama_brand: item.nama_brand || null,
+    qty_bom: qtyBom,
+    qty_po: item.qty_po,
+    qty_lebih: qtyLebih,
+    qty_sisa: item.qty_po,
+    tipe_barang: item.tipe_barang || null,
+    satuan: item.satuan || null,
+    tgl_kirim: item.tgl_kirim || null,
+    rencana_cetak: item.rencana_cetak || null,
+  };
+};
+
+// pakai qty dari PO booking item (qty_pakai += qty_booking)
+// syarat: PO booking sudah approve finance & qty_terkirim - qty_pakai masih cukup
+const reserveBookingQty = async (item, t) => {
+  const qtyBooking = Number(item.qty_booking) || 0;
+  if (!item.id_purchase_order_booking_item || qtyBooking <= 0) {
+    return {
+      id_purchase_order_booking: null,
+      id_purchase_order_booking_item: null,
+      qty_booking: 0,
+    };
+  }
+
+  const bookingItem = await PurchaseOrderBookingItem.findOne({
+    where: { id: item.id_purchase_order_booking_item, is_active: true },
+    transaction: t,
+    lock: t.LOCK.UPDATE,
+  });
+  if (!bookingItem) {
+    throw { message: "Data Purchase Order Booking Item Tidak Ditemukan" };
+  }
+
+  const bookingPo = await PurchaseOrderBooking.findOne({
+    where: { id: bookingItem.id_purchase_order_booking, is_active: true },
+    transaction: t,
+  });
+  if (!bookingPo || bookingPo.status !== "approve finance") {
+    throw { message: "PO booking belum approve finance" };
+  }
+
+  if (item.id_item && String(item.id_item) !== String(bookingItem.id_item)) {
+    throw {
+      message: `item PO booking (${bookingItem.nama_item}) tidak sama dengan item jo (${item.nama_item})`,
+    };
+  }
+
+  const qtyTersedia =
+    (bookingItem.qty_terkirim || 0) - (bookingItem.qty_pakai || 0);
+  if (qtyBooking > qtyTersedia) {
+    throw {
+      message: `qty booking ${bookingItem.nama_item} dari PO ${bookingPo.no_purchase_order} melebihi qty tersedia (${qtyTersedia})`,
+    };
+  }
+
+  await PurchaseOrderBookingItem.update(
+    { qty_pakai: (bookingItem.qty_pakai || 0) + qtyBooking },
+    { where: { id: bookingItem.id }, transaction: t },
+  );
+
+  return {
+    id_purchase_order_booking: bookingItem.id_purchase_order_booking,
+    id_purchase_order_booking_item: bookingItem.id,
+    qty_booking: qtyBooking,
+  };
+};
+
+// kembalikan qty_pakai PO booking item dari item jo (dipakai saat update PO)
+const releaseBookingQty = async (itemJo, t) => {
+  const qtyBooking = Number(itemJo.qty_booking) || 0;
+  if (!itemJo.id_purchase_order_booking_item || qtyBooking <= 0) return;
+
+  const bookingItem = await PurchaseOrderBookingItem.findByPk(
+    itemJo.id_purchase_order_booking_item,
+    { transaction: t, lock: t.LOCK.UPDATE },
+  );
+  if (!bookingItem) return;
+
+  await PurchaseOrderBookingItem.update(
+    { qty_pakai: Math.max((bookingItem.qty_pakai || 0) - qtyBooking, 0) },
+    { where: { id: bookingItem.id }, transaction: t },
+  );
 };
 
 /**

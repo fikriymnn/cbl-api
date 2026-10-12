@@ -7,6 +7,8 @@ const SoModel = require("../../marketing/so/soModel");
 const JobOrder = require("../../ppic/jobOrder/jobOrderModel");
 const MasterBarang = require("../../masterData/barang/masterBarangModel");
 const MasterBrand = require("../../masterData/barang/masterBrandModel");
+const PurchaseOrderBooking = require("../purchaseOrderBooking/purchaseOrderBookingModel");
+const PurchaseOrderBookingItem = require("../purchaseOrderBooking/purchaseOrderBookingItemModel");
 const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
@@ -88,6 +90,33 @@ const PurchaseOrderItemJo = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    // diisi kalau sebagian qty diambil dari PO booking (stock yang sudah datang)
+    // qty_booking terpisah dari qty_po (qty_po = yang dipesan ke vendor)
+    id_purchase_order_booking: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: PurchaseOrderBooking,
+        key: "id",
+      },
+    },
+    // tanpa foreign key constraint di db: nama constraint otomatis
+    // (purchase_order_item_jo_id_purchase_order_booking_item_foreign_idx) > 64 karakter, batas mysql
+    id_purchase_order_booking_item: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    qty_booking: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    // true kalau qty_booking sudah dipindah dari gudang stock ke gudang booking jo (saat approve finance)
+    is_booking_moved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     tipe_barang: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -150,4 +179,24 @@ PurchaseOrderItemJo.belongsTo(MasterBarang, {
   foreignKey: "id_item",
   as: "master_barang",
 });
+PurchaseOrderBookingItem.hasMany(PurchaseOrderItemJo, {
+  foreignKey: "id_purchase_order_booking_item",
+  as: "po_item_jo",
+  constraints: false,
+});
+PurchaseOrderItemJo.belongsTo(PurchaseOrderBookingItem, {
+  foreignKey: "id_purchase_order_booking_item",
+  as: "purchase_order_booking_item",
+  constraints: false,
+});
+
+PurchaseOrderBooking.hasMany(PurchaseOrderItemJo, {
+  foreignKey: "id_purchase_order_booking",
+  as: "po_item_jo",
+});
+PurchaseOrderItemJo.belongsTo(PurchaseOrderBooking, {
+  foreignKey: "id_purchase_order_booking",
+  as: "purchase_order_booking",
+});
+
 module.exports = PurchaseOrderItemJo;

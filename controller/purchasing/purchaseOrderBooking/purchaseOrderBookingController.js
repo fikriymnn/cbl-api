@@ -53,6 +53,20 @@ const PurchaseOrderBookingController = {
     }
   },
 
+  getAvailablePurchaseOrderBookingItem: async (req, res) => {
+    const { id_item, search } = req.query;
+
+    try {
+      const getData =
+        await PurchaseOrderBookingService.getAvailablePurchaseOrderBookingItemService(
+          { id_item, search },
+        );
+      return res.status(getData.status || 200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   createPurchaseOrderBooking: async (req, res) => {
     const {
       id_vendor,

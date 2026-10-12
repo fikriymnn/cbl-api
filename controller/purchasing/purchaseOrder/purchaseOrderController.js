@@ -75,7 +75,6 @@ const PurchaseOrderController = {
     } = req.body;
 
     try {
-      console.log("req.body", req.body);
       const getData = await PurchaseOrderService.createPurchaseOrderService({
         id_create: req.user.id,
         id_vendor,
