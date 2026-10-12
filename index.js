@@ -445,7 +445,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await IncomingRawMaterial.sync({
+//   await PurchaseOrderItemJo.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

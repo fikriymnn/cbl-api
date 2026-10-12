@@ -1,5 +1,5 @@
 const db = require("../../../../config/database");
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 const PurchaseOrderBooking = require("../../../../model/purchasing/purchaseOrderBooking/purchaseOrderBookingModel");
 const PurchaseOrderBookingItem = require("../../../../model/purchasing/purchaseOrderBooking/purchaseOrderBookingItemModel");
 const MasterBarang = require("../../../../model/masterData/barang/masterBarangModel");
@@ -241,6 +241,67 @@ const PurchaseOrderBookingService = {
     }
   },
 
+  // list item PO booking yang masih bisa dipakai di items_jo PO biasa:
+  // PO booking sudah approve finance & qty_terkirim - qty_pakai > 0
+  getAvailablePurchaseOrderBookingItemService: async ({ id_item, search }) => {
+    try {
+      const where = {
+        is_active: true,
+        [Op.and]: [
+          literal(
+            "COALESCE(`purchase_order_booking_item`.`qty_terkirim`, 0) - COALESCE(`purchase_order_booking_item`.`qty_pakai`, 0) > 0",
+          ),
+        ],
+      };
+      if (id_item) where.id_item = id_item;
+      if (search) {
+        where[Op.or] = [
+          { nama_item: { [Op.like]: `%${search}%` } },
+          {
+            "$purchase_order_booking.no_purchase_order$": {
+              [Op.like]: `%${search}%`,
+            },
+          },
+        ];
+      }
+
+      const data = await PurchaseOrderBookingItem.findAll({
+        where,
+        include: [
+          {
+            model: PurchaseOrderBooking,
+            as: "purchase_order_booking",
+            where: { is_active: true, status: "approve finance" },
+            required: true,
+            attributes: [
+              "id",
+              "no_purchase_order",
+              "nama_vendor",
+              "tgl_po",
+              "tgl_kirim",
+            ],
+          },
+        ],
+        order: [["createdAt", "ASC"]],
+      });
+
+      return {
+        status: 200,
+        success: true,
+        data: data.map((item) => ({
+          ...item.toJSON(),
+          qty_tersedia: (item.qty_terkirim || 0) - (item.qty_pakai || 0),
+        })),
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        success: false,
+        message: error.message,
+      };
+    }
+  },
+
   createPurchaseOrderBookingService: async ({
     id_create,
     id_vendor,
@@ -401,6 +462,22 @@ const PurchaseOrderBookingService = {
           );
           itemIdsToKeep.push(newItem.id);
         }
+      }
+
+      // item yang qty-nya sudah dipakai PO biasa tidak boleh dihapus
+      const itemTerpakai = await PurchaseOrderBookingItem.findOne({
+        where: {
+          id_purchase_order_booking: id,
+          is_active: true,
+          id: { [Op.notIn]: itemIdsToKeep.length ? itemIdsToKeep : [0] },
+          qty_pakai: { [Op.gt]: 0 },
+        },
+        transaction: t,
+      });
+      if (itemTerpakai) {
+        throw {
+          message: `item ${itemTerpakai.nama_item} sudah dipakai di PO, tidak bisa dihapus`,
+        };
       }
 
       // nonaktifkan item lama yang sudah tidak ada di payload
