@@ -443,7 +443,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await JobOrderModel.sync({
+//   await Invoice.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

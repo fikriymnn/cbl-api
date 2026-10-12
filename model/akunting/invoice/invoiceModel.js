@@ -121,6 +121,11 @@ const InvoiceModel = db.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    is_tax: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -148,7 +153,7 @@ const InvoiceModel = db.define(
   },
   {
     freezeTableName: true,
-  }
+  },
 );
 
 MasterCustomer.hasMany(InvoiceModel, {

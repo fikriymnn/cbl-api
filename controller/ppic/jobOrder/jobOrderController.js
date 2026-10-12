@@ -392,7 +392,7 @@ const BomController = {
   // monitoring jo kurang qty: qty jo (qty - total_insheet x isi) dibanding
   // total quantity_kirim_fg final inspection (bisa kirim & fg approved)
   getMonitoringJoKurangQty: async (req, res) => {
-    const { page = 1, limit = 10, search } = req.query;
+    const { page = 1, limit = 10, search, start_date, end_date } = req.query;
     const pageInt = Math.max(parseInt(page) || 1, 1);
     const limitInt = Math.max(parseInt(limit) || 10, 1);
     const offset = (pageInt - 1) * limitInt;
@@ -404,6 +404,13 @@ const BomController = {
       replacements.search = `%${search}%`;
     }
 
+    // filter tgl_kirim
+    if (start_date && end_date) {
+      whereSearch += ` AND j.tgl_kirim BETWEEN :start_date AND :end_date`;
+      replacements.start_date = new Date(new Date(start_date).setHours(0, 0, 0, 0));
+      replacements.end_date = new Date(new Date(end_date).setHours(23, 59, 59, 999));
+    }
+
     const baseQuery = `
       SELECT
         j.id, j.no_jo, j.no_io, j.no_so, j.customer, j.produk, j.tgl_kirim,
@@ -412,7 +419,9 @@ const BomController = {
         COALESCE(m.isi, 0) AS isi,
         j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) AS qty_jo,
         f.quantity_kirim_fg,
-        j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) - f.quantity_kirim_fg AS kurang_qty
+        j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) - f.quantity_kirim_fg AS kurang_qty,
+        COALESCE(tb.qty_tambah_bahan_lp, 0) AS qty_tambah_bahan_lp,
+        COALESCE(tb.qty_tambah_bahan_druk, 0) AS qty_tambah_bahan_druk
       FROM jo_new j
       INNER JOIN (
         SELECT no_jo, SUM(COALESCE(quantity_kirim_fg, 0)) AS quantity_kirim_fg
@@ -427,6 +436,14 @@ const BomController = {
         WHERE is_selected = true AND (is_active = true OR is_active IS NULL)
         GROUP BY id_jo
       ) m ON m.id_jo = j.id
+      LEFT JOIN (
+        SELECT no_jo,
+          SUM(COALESCE(qty_tambah_bahan_lp, 0)) AS qty_tambah_bahan_lp,
+          SUM(COALESCE(qty_tambah_bahan_druk, 0)) AS qty_tambah_bahan_druk
+        FROM tambah_bahan_pemakaian
+        WHERE is_active = true AND status NOT IN ('reject qc', 'reject gudang')
+        GROUP BY no_jo
+      ) tb ON tb.no_jo = j.no_jo
       WHERE j.is_active = true AND j.status = 'history' ${whereSearch}
     `;
 
@@ -454,6 +471,8 @@ const BomController = {
         "qty_jo",
         "quantity_kirim_fg",
         "kurang_qty",
+        "qty_tambah_bahan_lp",
+        "qty_tambah_bahan_druk",
       ];
       const result = data.map((item) => {
         const row = { ...item };

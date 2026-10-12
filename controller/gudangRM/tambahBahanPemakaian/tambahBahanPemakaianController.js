@@ -19,6 +19,8 @@ const TambahBahanPemakaianController = {
       end_tgl_qc,
       start_tgl_gudang,
       end_tgl_gudang,
+      sort_qty,
+      sort_qty_field,
     } = req.query;
 
     try {
@@ -39,6 +41,8 @@ const TambahBahanPemakaianController = {
             tgl_qc: [start_tgl_qc, end_tgl_qc],
             tgl_gudang: [start_tgl_gudang, end_tgl_gudang],
           },
+          sort_qty,
+          sort_qty_field,
         });
       return res.status(200).json(getData);
     } catch (error) {

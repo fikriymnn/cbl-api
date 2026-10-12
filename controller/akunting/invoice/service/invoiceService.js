@@ -577,7 +577,7 @@ const InvoiceService = {
       const shortYear = String(patokan.getFullYear()).slice(2); // 2025 => "25"
 
       // nomor urut reset per tahun, ambil terakhir dari no_invoice dengan tahun yang sama
-      // format: SI00001/CBL/08/25
+      // type pajak (ppn) format: SI00001/CBL/08/25
       const lastInvoice = await InvoiceModel.findOne({
         where: {
           no_invoice: { [Op.like]: `SI%/${shortYear}` },
@@ -605,16 +605,47 @@ const InvoiceService = {
         nextNumber = (lastSeq || 0) + 1;
       }
 
-      // 3. Buat nomor urut padded 5 digit
+      // type non pajak (non ppn) format: SI50001-0825
+      const lastInvoiceNonTax = await InvoiceModel.findOne({
+        where: {
+          no_invoice: { [Op.like]: `SI5%-__${shortYear}` },
+        },
+        order: [
+          [
+            literal(
+              `CAST(SUBSTRING_INDEX(SUBSTRING(no_invoice, 4), '-', 1) AS UNSIGNED)`,
+            ),
+            "DESC",
+          ],
+          ["createdAt", "DESC"],
+        ],
+      });
+
+      let nextNumberNonTax = 1;
+
+      if (lastInvoiceNonTax) {
+        const lastNo = lastInvoiceNonTax.no_invoice; // contoh: SI50005-1225
+
+        // Ambil "0005" → ubah ke integer
+        const lastSeq = parseInt(lastNo.substring(3, lastNo.indexOf("-")), 10);
+
+        nextNumberNonTax = (lastSeq || 0) + 1;
+      }
+
+      // 3. Buat nomor urut padded 5 digit (ppn) dan 4 digit (non ppn)
       const paddedNumber = String(nextNumber).padStart(5, "0");
+      const paddedNumberNonTax = String(nextNumberNonTax).padStart(4, "0");
 
       // 4. Susun format akhir
       const newInvoiceNumber = `SI${paddedNumber}/CBL/${currentMonth}/${shortYear}`;
+      const newInvoiceNumberNonTax = `SI5${paddedNumberNonTax}-${currentMonth}${shortYear}`;
       return {
         status: 200,
         success: true,
-        no_invoice: lastInvoice?.no_invoice,
-        new_no_invoice: newInvoiceNumber,
+        no_invoice_tax: lastInvoice?.no_invoice,
+        no_invoice_tax_new: newInvoiceNumber,
+        no_invoice_non_tax: lastInvoiceNonTax?.no_invoice,
+        no_invoice_non_tax_new: newInvoiceNumberNonTax,
       };
     } catch (error) {
       return {
@@ -647,6 +678,7 @@ const InvoiceService = {
     balance_due,
     note,
     is_show_dpp,
+    is_tax,
     invoice_produk,
     delivery_order_group,
     transaction = null,
@@ -692,6 +724,7 @@ const InvoiceService = {
           balance_due: balance_due,
           note: note,
           is_show_dpp: is_show_dpp,
+          is_tax: is_tax,
         },
         { transaction: t },
       );
@@ -764,6 +797,7 @@ const InvoiceService = {
     balance_due,
     note,
     is_show_dpp,
+    is_tax,
     invoice_produk,
     transaction = null,
   }) => {
@@ -829,6 +863,7 @@ const InvoiceService = {
           balance_due: balance_due,
           note: note,
           is_show_dpp: is_show_dpp,
+          is_tax: is_tax,
         },
         { where: { id: id }, transaction: t },
       );
