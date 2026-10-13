@@ -45,12 +45,13 @@ const includePurchaseOrderBooking = () => [
   },
 ];
 
-// hitung qty_beli, total, ppn per item
+// total & ppn per item dihitung di front end (ada perhitungan khusus),
+// fallback ke perhitungan standar kalau tidak dikirim
 const buildItemPayload = (item) => {
   const qty_beli = item.qty_beli || item.qty || 0;
   const harga = item.harga || 0;
-  const totalItem = qty_beli * harga;
-  const ppnItem = item.is_ppn ? totalItem * 0.11 : 0;
+  const totalItem = item.total ?? qty_beli * harga;
+  const ppnItem = item.ppn ?? (item.is_ppn ? totalItem * 0.11 : 0);
 
   return {
     id_item: item.id_item || null,
@@ -309,6 +310,9 @@ const PurchaseOrderBookingService = {
     tgl_po,
     tgl_kirim,
     discount = 0,
+    sub_total,
+    ppn,
+    total,
     note_internal,
     note_supplier,
     purchase_name,
@@ -331,13 +335,13 @@ const PurchaseOrderBookingService = {
       const { next: no_purchase_order } =
         await PurchaseOrderService.generateNoPurchaseOrder(t);
 
-      let sub_total = 0;
-      let total_ppn = 0;
+      let sumSubTotal = 0;
+      let sumPpn = 0;
 
       const itemsPayload = items.map((item) => {
         const payload = buildItemPayload(item);
-        sub_total += payload.total;
-        total_ppn += payload.ppn;
+        sumSubTotal += payload.total;
+        sumPpn += payload.ppn;
         return {
           ...payload,
           qty_terkirim: 0,
@@ -345,7 +349,10 @@ const PurchaseOrderBookingService = {
         };
       });
 
-      const total = sub_total + total_ppn - (discount || 0);
+      // sub_total, ppn, total dihitung di front end, fallback ke penjumlahan item
+      const finalSubTotal = sub_total ?? sumSubTotal;
+      const finalPpn = ppn ?? sumPpn;
+      const finalTotal = total ?? finalSubTotal + finalPpn - (discount || 0);
 
       const newPo = await PurchaseOrderBooking.create(
         {
@@ -355,10 +362,10 @@ const PurchaseOrderBookingService = {
           nama_vendor: nama_vendor || null,
           tgl_po: tgl_po || new Date(),
           tgl_kirim: tgl_kirim || null,
-          sub_total,
+          sub_total: finalSubTotal,
           discount: discount || 0,
-          ppn: total_ppn,
-          total,
+          ppn: finalPpn,
+          total: finalTotal,
           note_internal: note_internal || null,
           note_supplier: note_supplier || null,
           purchase_name: purchase_name || null,
@@ -397,6 +404,9 @@ const PurchaseOrderBookingService = {
     tgl_po,
     tgl_kirim,
     discount,
+    sub_total,
+    ppn,
+    total,
     note_internal,
     note_supplier,
     purchase_name,
@@ -418,8 +428,8 @@ const PurchaseOrderBookingService = {
         };
       }
 
-      let sub_total = 0;
-      let total_ppn = 0;
+      let sumSubTotal = 0;
+      let sumPpn = 0;
       const itemIdsToKeep = [];
 
       for (const item of items) {
@@ -428,8 +438,8 @@ const PurchaseOrderBookingService = {
           id_purchase_order_booking: id,
         };
 
-        sub_total += itemPayload.total;
-        total_ppn += itemPayload.ppn;
+        sumSubTotal += itemPayload.total;
+        sumPpn += itemPayload.ppn;
 
         if (item.id) {
           // update item lama, qty_sisa dihitung ulang dari qty yang sudah terkirim
@@ -492,7 +502,11 @@ const PurchaseOrderBookingService = {
         },
       );
 
-      const total = sub_total + total_ppn - (discount ?? dataPo.discount ?? 0);
+      // sub_total, ppn, total dihitung di front end, fallback ke penjumlahan item
+      const finalSubTotal = sub_total ?? sumSubTotal;
+      const finalPpn = ppn ?? sumPpn;
+      const finalTotal =
+        total ?? finalSubTotal + finalPpn - (discount ?? dataPo.discount ?? 0);
 
       await PurchaseOrderBooking.update(
         {
@@ -500,10 +514,10 @@ const PurchaseOrderBookingService = {
           nama_vendor: nama_vendor ?? dataPo.nama_vendor,
           tgl_po: tgl_po ?? dataPo.tgl_po,
           tgl_kirim: tgl_kirim ?? dataPo.tgl_kirim,
-          sub_total,
+          sub_total: finalSubTotal,
           discount: discount ?? dataPo.discount,
-          ppn: total_ppn,
-          total,
+          ppn: finalPpn,
+          total: finalTotal,
           note_internal: note_internal ?? dataPo.note_internal,
           note_supplier: note_supplier ?? dataPo.note_supplier,
           purchase_name: purchase_name ?? dataPo.purchase_name,
