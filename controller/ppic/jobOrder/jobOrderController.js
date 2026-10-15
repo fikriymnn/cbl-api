@@ -1314,6 +1314,8 @@ const BomController = {
       tgl_kirim,
       standar_warna,
       tipe_jo,
+      next_jo,
+      frekuensi,
       jo_mounting,
     } = req.body;
 
@@ -1339,6 +1341,8 @@ const BomController = {
           tgl_kirim,
           standar_warna,
           tipe_jo,
+          next_jo,
+          frekuensi,
         },
         { where: { id: _id }, transaction: t },
       );
