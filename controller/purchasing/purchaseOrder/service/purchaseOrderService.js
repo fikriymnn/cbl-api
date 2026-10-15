@@ -452,8 +452,8 @@ const PurchaseOrderService = {
       let total_ppn = 0;
 
       const itemsPayload = items.map((item) => {
-        const qty_beli = item.qty_beli || item.qty || 0;
-        const harga = item.harga || 0;
+        const qty_beli = Number(item.qty_beli ?? item.qty) || 0;
+        const harga = Number(item.harga) || 0;
         const totalItem = qty_beli * harga;
         const ppnItem = item.is_ppn ? totalItem * 0.11 : 0;
 
@@ -575,8 +575,8 @@ const PurchaseOrderService = {
 
       // untuk item
       for (const item of items) {
-        const qty_beli = item.qty_beli || item.qty || 0;
-        const harga = item.harga || 0;
+        const qty_beli = Number(item.qty_beli ?? item.qty) || 0;
+        const harga = Number(item.harga) || 0;
         const totalItem = qty_beli * harga;
         const ppnItem = item.is_ppn ? totalItem * 0.11 : 0;
 
