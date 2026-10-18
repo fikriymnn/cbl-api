@@ -419,6 +419,11 @@ const StockOpnameRawMaterialItem = require("./model/gudangRM/stockOpnameRawMater
 //incoming raw material
 const IncomingRawMaterial = require("./model/qc/incomingRawMaterial/incomingRawMaterialModel");
 
+//good receipt & invoice ap
+const GoodReceipt = require("./model/akunting/goodReceipt/goodReceiptModel");
+const InvoiceAp = require("./model/akunting/invoiceAp/invoiceApModel");
+const InvoiceApItem = require("./model/akunting/invoiceAp/invoiceApItemModel");
+
 //estimasi kurang qty
 const EstimasiKurangQtyQc = require("./model/qc/estimasiKurangQty/estimasiKurangQtyModel");
 const EstimasiKurangQtyPpic = require("./model/ppic/estimasiKurangQty/estimasiKurangQtyModel");
@@ -445,7 +450,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await inspeksiPotong.sync({
+//   await InvoiceApItem.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

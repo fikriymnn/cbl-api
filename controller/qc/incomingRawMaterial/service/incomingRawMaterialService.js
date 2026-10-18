@@ -9,6 +9,7 @@ const Users = require("../../../../model/userModel");
 const MutasiBarangRawMaterialService = require("../../../gudangRM/mutasiBarangRawMaterial/service/mutasiBarangRawMaterialService");
 const GudangRawMaterialBookingService = require("../../../gudangRM/gudangRawMaterialBooking/service/gudangRawMaterialBookingService");
 const GudangRawMaterialStockService = require("../../../gudangRM/gudangRawMaterialStock/service/gudangRawMaterialStockService");
+const GoodReceiptService = require("../../../akunting/goodReceipt/service/goodReceiptService");
 // NOTE: sesuaikan path require di atas dengan lokasi file model/service kamu yang sebenarnya.
 
 const IncomingRawMaterialService = {
@@ -369,6 +370,7 @@ const IncomingRawMaterialService = {
     }
   },
   // approve -> status "approve", status_ticket "history", id_approve, tgl_action
+  // + buat data good receipt (list gr akunting) dengan vendor dari PO / PO booking
   // PO biasa: update PurchaseOrderItemJo: status_qc "approve qc", qty_terkirim += qty_incoming,
   // qty_sisa -= qty_incoming, dan jika qty_terkirim sudah >= qty_po maka status_po "done"
   // PO booking: lihat approveIncomingBooking
@@ -413,6 +415,12 @@ const IncomingRawMaterialService = {
         },
         { where: { id }, transaction: t },
       );
+
+      // masuk list gr akunting (sumber invoice ap)
+      await GoodReceiptService.createGoodReceiptFromIncomingService({
+        id_incoming: id,
+        transaction: t,
+      });
 
       if (dataIrm.id_purchase_order_booking_item) {
         await approveIncomingBooking({ dataIrm, id_approve, note, t });
