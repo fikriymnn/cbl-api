@@ -117,6 +117,7 @@ const IspeksiPotongService = {
     status_jo,
     qty_jo,
     bagian,
+    gramature,
     transaction = null,
   }) => {
     const t = transaction || (await db.transaction());
@@ -138,6 +139,7 @@ const IspeksiPotongService = {
           status_jo,
           qty_jo,
           bagian,
+          gramature,
         },
         { transaction: t },
       );

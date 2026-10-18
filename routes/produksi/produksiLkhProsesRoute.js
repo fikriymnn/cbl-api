@@ -14,6 +14,12 @@ router.get(
   ProduksiLkhProsesController.getKendalaByJO
 );
 
+router.get(
+  "/produksi/historyKendalaByJo/:id_jo",
+  auth,
+  ProduksiLkhProsesController.getHistoryKendalaByJo
+);
+
 router.put(
   "/produksi/lkhProses/update/:id",
   auth,

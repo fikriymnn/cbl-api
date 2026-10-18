@@ -61,6 +61,10 @@ const InspeksiPotong = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    gramature: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     qty_jo: {
       type: DataTypes.INTEGER,
       allowNull: true,

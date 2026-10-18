@@ -77,7 +77,7 @@ const ProduksiLkhProsesController = {
     if (id_operator) obj.id_operator = id_operator;
     if (is_approved_svp) obj.status = "request to spv";
     if (no_jo) {
-      (optionJo.where = { no_jo: no_jo }), (optionJo.required = true);
+      ((optionJo.where = { no_jo: no_jo }), (optionJo.required = true));
     }
 
     if (start_date && end_date) {
@@ -215,6 +215,47 @@ const ProduksiLkhProsesController = {
     }
   },
 
+  // history kendala (produksi_lkh_proses dengan proses "Kendala") berdasarkan id jo
+  getHistoryKendalaByJo: async (req, res) => {
+    const { id_jo } = req.params;
+    try {
+      const data = await ProduksiLkhProses.findAll({
+        order: [["createdAt", "DESC"]],
+        where: { id_jo, proses: "Kendala", is_active: true },
+        include: [
+          {
+            model: MasterTahapan,
+            as: "tahapan",
+            attributes: ["id", "nama_tahapan"],
+          },
+          {
+            model: MasterMesinTahapan,
+            as: "mesin",
+            attributes: ["id", "nama_mesin"],
+          },
+          {
+            model: Users,
+            as: "operator",
+            attributes: ["id", "nama"],
+          },
+          {
+            model: JobOrder,
+            as: "jo",
+            attributes: ["id", "no_jo"],
+          },
+        ],
+      });
+
+      return res.status(200).json({
+        status_code: 200,
+        success: true,
+        data,
+      });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   startProduksiLkhProses: async (req, res) => {
     const { id_jo, id_tahapan, id_mesin, id_operator, id_kode_produksi } =
       req.body;
@@ -233,7 +274,7 @@ const ProduksiLkhProsesController = {
       });
 
       const checkIoMounting = await ioMountingModel.findByPk(
-        checkJo.jo_mounting[0].id_io_mounting
+        checkJo.jo_mounting[0].id_io_mounting,
       );
       const checkProduksiLkh = await ProduksiLkh.findOne({
         where: {
@@ -276,7 +317,7 @@ const ProduksiLkhProsesController = {
       if (!checkDataTahapan.tgl_mulai || checkDataTahapan.tgl_mulai == null) {
         await ProduksiLkhTahapan.update(
           { tgl_mulai: new Date() },
-          { where: { id: checkDataTahapan.id }, transaction: t }
+          { where: { id: checkDataTahapan.id }, transaction: t },
         );
       }
 
@@ -316,7 +357,7 @@ const ProduksiLkhProsesController = {
                 as: "kriteria_frekuensi_mtc",
               },
             ],
-          }
+          },
         );
 
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
@@ -352,6 +393,7 @@ const ProduksiLkhProsesController = {
             ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
             bagian_1: checkIoMounting.ukuran_cetak_bagian_1 || null,
             bagian_2: checkIoMounting.ukuran_cetak_bagian_2 || null,
+            gramature: checkIoMounting.gramature_kertas,
             transaction: t,
           });
         }
@@ -376,7 +418,7 @@ const ProduksiLkhProsesController = {
             qty_jo: dataProduksiLkhTahapan.qty_jo,
             spesifikasi: dataProduksiLkhTahapan.spesifikasi,
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         //crete lkh prosess
@@ -395,7 +437,7 @@ const ProduksiLkhProsesController = {
             proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         if (
@@ -432,7 +474,7 @@ const ProduksiLkhProsesController = {
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
             dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
             dataKodeProduksi.target_department, //target department
-            t //transaction
+            t, //transaction
           );
         } else if (dataKodeProduksi.kategori_kendala != null) {
           const dataMesin = await MasterMesinTahapan.findByPk(id_mesin);
@@ -457,7 +499,7 @@ const ProduksiLkhProsesController = {
             "Month", //maksimal periode kedatangan tiket (default month)
             dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
             [], //department (belum ngambil)
-            t //transaction
+            t, //transaction
           );
           console.log("create all kendala tiket");
         }
@@ -491,7 +533,7 @@ const ProduksiLkhProsesController = {
                 as: "kriteria_frekuensi_mtc",
               },
             ],
-          }
+          },
         );
 
         const checkMasterMesin = await MasterMesinTahapan.findByPk(id_mesin);
@@ -527,6 +569,7 @@ const ProduksiLkhProsesController = {
             ukuran_jadi: `${checkIoMounting.ukuran_jadi_panjang} X ${checkIoMounting.ukuran_jadi_lebar} X ${checkIoMounting.ukuran_jadi_tinggi}`,
             bagian_1: checkIoMounting.ukuran_cetak_bagian_1 || null,
             bagian_2: checkIoMounting.ukuran_cetak_bagian_2 || null,
+            gramature: checkIoMounting.gramature_kertas,
             transaction: t,
           });
         }
@@ -545,7 +588,7 @@ const ProduksiLkhProsesController = {
             proses: dataKodeProduksi.proses_produksi,
             waktu_mulai: new Date(),
           },
-          { transaction: t }
+          { transaction: t },
         );
 
         if (
@@ -582,7 +625,7 @@ const ProduksiLkhProsesController = {
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
             dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
             dataKodeProduksi.target_department, //target department
-            t //transaction
+            t, //transaction
           );
           console.log("create mtc tiket");
         } else if (dataKodeProduksi.kategori_kendala != null) {
@@ -609,7 +652,7 @@ const ProduksiLkhProsesController = {
             "Month", //maksimal periode kedatangan tiket (default month)
             dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
             [], //department (belum ngambil)
-            t //transaction
+            t, //transaction
           );
           console.log("create all kendala tiket");
         }
@@ -650,7 +693,7 @@ const ProduksiLkhProsesController = {
       const totalDetik = Math.floor((end - start) / 1000);
       let obj = {};
 
-      await ProduksiLkhProses.update(
+      (await ProduksiLkhProses.update(
         {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
@@ -664,12 +707,12 @@ const ProduksiLkhProsesController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Stop Successful" });
+          .json({ succes: true, status_code: 200, msg: "Stop Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -691,7 +734,7 @@ const ProduksiLkhProsesController = {
           msg: "Data tidak ditemukan",
         });
 
-      await ProduksiLkhProses.update(
+      (await ProduksiLkhProses.update(
         {
           baik: baik,
           rusak_sebagian: rusak_sebagian,
@@ -702,12 +745,12 @@ const ProduksiLkhProsesController = {
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "update Successful" });
+          .json({ succes: true, status_code: 200, msg: "update Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -729,10 +772,10 @@ const ProduksiLkhProsesController = {
           msg: "Data tidak ditemukan",
         });
       const checkDataLkh = await ProduksiLkh.findByPk(
-        checkData.id_produksi_lkh
+        checkData.id_produksi_lkh,
       );
       const checkDataLkhtahapan = await ProduksiLkhTahapan.findByPk(
-        checkData.id_produksi_lkh_tahapan
+        checkData.id_produksi_lkh_tahapan,
       );
 
       if (!checkDataLkhtahapan)
@@ -754,7 +797,7 @@ const ProduksiLkhProsesController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
@@ -773,14 +816,14 @@ const ProduksiLkhProsesController = {
           {
             where: { id: e.id },
             transaction: t,
-          }
+          },
         );
       }
 
       //doone untuk tahapan yg di action
       await ProduksiLkhTahapan.update(
         { status: "done" },
-        { where: { id: checkDataLkhtahapan.id }, transaction: t }
+        { where: { id: checkDataLkhtahapan.id }, transaction: t },
       );
 
       //get data tahapan selnjutnya
@@ -795,20 +838,20 @@ const ProduksiLkhProsesController = {
       if (checkDataLkhtahapanNext) {
         await ProduksiLkhTahapan.update(
           { status: "active" },
-          { where: { id: checkDataLkhtahapanNext.id }, transaction: t }
+          { where: { id: checkDataLkhtahapanNext.id }, transaction: t },
         );
       }
-      await ProduksiLkhProses.update(
+      (await ProduksiLkhProses.update(
         { status: "done" },
         {
           where: { id: _id },
           transaction: t,
-        }
+        },
       ),
         await t.commit(),
         res
           .status(200)
-          .json({ succes: true, status_code: 200, msg: "Approve Successful" });
+          .json({ succes: true, status_code: 200, msg: "Approve Successful" }));
     } catch (error) {
       await t.rollback();
       res
@@ -867,11 +910,11 @@ function getCurrentShiftInfo(shiftData, now = new Date()) {
   return {
     shift: shiftNumber,
     periodDate: `${periodDate.getFullYear()}-${String(
-      periodDate.getMonth() + 1
+      periodDate.getMonth() + 1,
     ).padStart(2, "0")}-${String(periodDate.getDate()).padStart(2, "0")}`,
     periodDateFormatted: formatDate(periodDate),
     currentTime: `${String(currentHour).padStart(2, "0")}:${String(
-      currentMinute
+      currentMinute,
     ).padStart(2, "0")}`,
     dayName: dayNames[periodDate.getDay()], // ⚠️ pakai hari dari periodDate, bukan now
   };
@@ -944,6 +987,7 @@ async function handleTahapan({
   ukuran_jadi,
   bagian_1,
   bagian_2,
+  gramature,
   transaction,
 }) {
   try {
@@ -988,12 +1032,14 @@ async function handleTahapan({
               status_jo: status_jo,
               qty_jo: qty_jo,
               bagian: bagian_1,
+              gramature: gramature,
               transaction: transaction,
             });
 
           if (createInspeksiPotong.success === false) {
             throw new Error(
-              createInspeksiPotong.message || "Failed to create inspeksi potong"
+              createInspeksiPotong.message ||
+                "Failed to create inspeksi potong",
             );
           }
 
@@ -1022,7 +1068,7 @@ async function handleTahapan({
             if (createInspeksiPotong2.success === false) {
               throw new Error(
                 createInspeksiPotong2.message ||
-                  "Failed to create inspeksi potong"
+                  "Failed to create inspeksi potong",
               );
             }
           }
@@ -1043,7 +1089,7 @@ async function handleTahapan({
           no_jo: no_jo,
           operator: operator,
           mesin: mesin,
-        }
+        },
       );
 
       if (checkDataCetak.data.length == 0) {
@@ -1076,7 +1122,7 @@ async function handleTahapan({
 
         if (createInspeksiCetak.success === false) {
           throw new Error(
-            createInspeksiCetak.message || "Failed to create inspeksi cetak"
+            createInspeksiCetak.message || "Failed to create inspeksi cetak",
           );
         }
 
@@ -1111,7 +1157,7 @@ async function handleTahapan({
           if (createInspeksiCetak2.success === false) {
             throw new Error(
               createInspeksiCetak2.message ||
-                "Failed to create inspeksi cetak bagian 2"
+                "Failed to create inspeksi cetak bagian 2",
             );
           }
         }
@@ -1169,7 +1215,8 @@ async function handleTahapan({
 
         if (createInspeksiCoating.success === false) {
           throw new Error(
-            createInspeksiCoating.message || "Failed to create inspeksi coating"
+            createInspeksiCoating.message ||
+              "Failed to create inspeksi coating",
           );
         }
 
@@ -1205,7 +1252,7 @@ async function handleTahapan({
           if (createInspeksiCoating2.success === false) {
             throw new Error(
               createInspeksiCoating2.message ||
-                "Failed to create inspeksi coating bagian 2"
+                "Failed to create inspeksi coating bagian 2",
             );
           }
         }
@@ -1260,7 +1307,7 @@ async function handleTahapan({
 
         if (createInspeksiPond.success === false) {
           throw new Error(
-            createInspeksiPond.message || "Failed to create inspeksi pond"
+            createInspeksiPond.message || "Failed to create inspeksi pond",
           );
         }
 
@@ -1296,7 +1343,7 @@ async function handleTahapan({
           if (createInspeksiPond2.success === false) {
             throw new Error(
               createInspeksiPond2.message ||
-                "Failed to create inspeksi pond bagian 2"
+                "Failed to create inspeksi pond bagian 2",
             );
           }
         }
@@ -1347,7 +1394,7 @@ async function handleTahapan({
 
         if (createInspeksiLem.success === false) {
           throw new Error(
-            createInspeksiLem.message || "Failed to create inspeksi lem"
+            createInspeksiLem.message || "Failed to create inspeksi lem",
           );
         }
       }
@@ -1394,7 +1441,7 @@ async function handleTahapan({
         if (createInspeksiAmparLem.success === false) {
           throw new Error(
             createInspeksiAmparLem.message ||
-              "Failed to create inspeksi ampar lem"
+              "Failed to create inspeksi ampar lem",
           );
         }
       }
@@ -1413,7 +1460,7 @@ async function handleTahapan({
           no_jo: no_jo,
           operator: operator,
           mesin: mesin,
-        }
+        },
       );
 
       if (checkDataRabut.data.length == 0) {
@@ -1447,7 +1494,7 @@ async function handleTahapan({
 
         if (createInspeksiRabut.success === false) {
           throw new Error(
-            createInspeksiRabut.message || "Failed to create inspeksi rabut"
+            createInspeksiRabut.message || "Failed to create inspeksi rabut",
           );
         }
 
@@ -1483,7 +1530,7 @@ async function handleTahapan({
           if (createInspeksiRabut2.success === false) {
             throw new Error(
               createInspeksiRabut2.message ||
-                "Failed to create inspeksi rabut bagian 2"
+                "Failed to create inspeksi rabut bagian 2",
             );
           }
         }
@@ -1511,7 +1558,7 @@ async function handleTahapan({
 
         const totalQtyRusak = dataQtyRusak.reduce(
           (sum, item) => sum + (item.rusak_sebagian || 0),
-          0
+          0,
         );
         const createInspeksiBarangRusak =
           await InspeksiBarangRusakV2Service.creteInspeksiBarangRusakV2Service({
@@ -1544,7 +1591,7 @@ async function handleTahapan({
         if (createInspeksiBarangRusak.success === false) {
           throw new Error(
             createInspeksiBarangRusak.message ||
-              "Failed to create inspeksi cetak"
+              "Failed to create inspeksi cetak",
           );
         }
       }
@@ -1563,7 +1610,7 @@ async function handleTahapan({
           no_jo: no_jo,
           operator: operator,
           mesin: mesin,
-        }
+        },
       );
 
       if (checkDataLipat.data.length == 0) {
@@ -1596,7 +1643,7 @@ async function handleTahapan({
 
         if (createInspeksiLipat.success === false) {
           throw new Error(
-            createInspeksiLipat.message || "Failed to create inspeksi lipat"
+            createInspeksiLipat.message || "Failed to create inspeksi lipat",
           );
         }
       }
