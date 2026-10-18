@@ -21,6 +21,8 @@ const soModel = require("../../../model/marketing/so/soModel");
 const JadwalProduksiService = require("../jadwalProduksiTiket/service/jadwalProduksiService");
 const TiketJadwalProduksi = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const BomPpicService = require("../../../controller/ppic/bomPpic/service/bomPpicService");
+const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
+const TambahBahanPemakaianDefect = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
 
 const BomController = {
   getJobOrder: async (req, res) => {
@@ -474,9 +476,34 @@ const BomController = {
         "qty_tambah_bahan_lp",
         "qty_tambah_bahan_druk",
       ];
+      // detail tambah bahan pemakaian + waste (defect) per jo, seperti monitoring tambah bahan pemakaian
+      const listNoJo = data.map((item) => item.no_jo);
+      const dataTambahBahan =
+        listNoJo.length > 0
+          ? await TambahBahanPemakaian.findAll({
+              where: {
+                no_jo: listNoJo,
+                is_active: true,
+                status: { [Op.notIn]: ["reject qc", "reject gudang"] },
+              },
+              include: [
+                {
+                  model: TambahBahanPemakaianDefect,
+                  as: "tambah_bahan_pemakaian_defect",
+                  where: { is_active: true },
+                  required: false,
+                },
+              ],
+              order: [["createdAt", "DESC"]],
+            })
+          : [];
+
       const result = data.map((item) => {
         const row = { ...item };
         numberFields.forEach((key) => (row[key] = Number(row[key] || 0)));
+        row.tambah_bahan_pemakaian = dataTambahBahan.filter(
+          (tb) => tb.no_jo === item.no_jo,
+        );
         return row;
       });
 
