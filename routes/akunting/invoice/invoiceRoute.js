@@ -31,6 +31,8 @@ router.get(
 router.get("/invoice/:id?", auth, InvoiceController.getInvoice);
 router.get("/invoiceNomor", auth, InvoiceController.getNoInvoice);
 router.post("/invoice", auth, InvoiceController.createInvoice);
+router.put("/invoice/bulk/request", auth, InvoiceController.requestInvoiceBulk);
+router.put("/invoice/bulk/approve", auth, InvoiceController.approveInvoiceBulk);
 router.put("/invoice/:id", auth, InvoiceController.updateInvoice);
 router.put("/invoice/request/:id", auth, InvoiceController.requestInvoice);
 router.put("/invoice/approve/:id", auth, InvoiceController.approveInvoice);

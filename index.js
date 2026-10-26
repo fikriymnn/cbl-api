@@ -423,11 +423,18 @@ const IncomingRawMaterial = require("./model/qc/incomingRawMaterial/incomingRawM
 const GoodReceipt = require("./model/akunting/goodReceipt/goodReceiptModel");
 const InvoiceAp = require("./model/akunting/invoiceAp/invoiceApModel");
 const InvoiceApItem = require("./model/akunting/invoiceAp/invoiceApItemModel");
+const InvoiceApPayment = require("./model/akunting/invoiceAp/invoiceApPaymentModel");
+const InvoiceApPaymentDetail = require("./model/akunting/invoiceAp/invoiceApPaymentDetailModel");
+const InvoiceApPaymentAdditionalCost = require("./model/akunting/invoiceAp/invoiceApPaymentAdditionalCostModel");
+const DepositVendor = require("./model/akunting/depositVendor/depositVendorModel");
 
 //estimasi kurang qty
 const EstimasiKurangQtyQc = require("./model/qc/estimasiKurangQty/estimasiKurangQtyModel");
 const EstimasiKurangQtyPpic = require("./model/ppic/estimasiKurangQty/estimasiKurangQtyModel");
 const EstimasiKurangQtyProduksi = require("./model/produksi/estimasiKurangQtyModel");
+
+//informasi kurang qty
+const InformasiKurangQty = require("./model/informasiKurangQty/informasiKurangQtyModel");
 
 //menu
 const MasterMenu = require("./model/masterData/menu/masterMenuModel");
@@ -450,7 +457,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await InvoiceApItem.sync({
+//   await InformasiKurangQty.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

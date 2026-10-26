@@ -13,14 +13,14 @@ router.post(
   EstimasiKurangQtyController.createEstimasiKurangQty,
 );
 router.put(
-  "/qc/estimasiKurangQty:id",
+  "/qc/estimasiKurangQty/:id",
   auth,
   EstimasiKurangQtyController.updateEstimasiKurangQty,
 );
 router.delete(
   "/qc/estimasiKurangQty/:id",
   auth,
-  EstimasiKurangQtyController.approveEstimasiKurangQty,
+  EstimasiKurangQtyController.deleteEstimasiKurangQty,
 );
 
 router.put(

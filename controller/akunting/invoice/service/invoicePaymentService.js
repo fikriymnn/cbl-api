@@ -1,11 +1,16 @@
 const db = require("../../../../config/database");
-const { Op, literal } = require("sequelize");
+const { Op } = require("sequelize");
 const InvoiceModel = require("../../../../model/akunting/invoice/invoiceModel");
 const Users = require("../../../../model/userModel");
 const InvoicePayment = require("../../../../model/akunting/invoice/invoicePaymentModel");
 const InvoicePaymentDetail = require("../../../../model/akunting/invoice/invoicePaymentDetailModel");
 const InvoicePaymentAdditionalCost = require("../../../../model/akunting/invoice/invoicePaymentAdditionalCostModel");
 const DepositService = require("../../deposit/service/depositService");
+const {
+  getPaymentReceiptNumber,
+  validatePaymentReceiptNumber,
+  parseIsTax,
+} = require("./invoiceHelper");
 
 const InvoicePaymentService = {
   getInvoicePaymentService: async ({
@@ -17,6 +22,7 @@ const InvoicePaymentService = {
     search,
     customer_id,
     status,
+    is_tax,
   }) => {
     const where = { is_active: true };
 
@@ -30,6 +36,8 @@ const InvoicePaymentService = {
     }
     if (customer_id) where.customer_id = customer_id;
     if (status) where.status = status;
+    const isTaxFilter = parseIsTax(is_tax);
+    if (isTaxFilter !== null) where.is_tax = isTaxFilter;
 
     if (start_date || end_date) {
       const dateFilter = {};
@@ -149,15 +157,16 @@ const InvoicePaymentService = {
     }
   },
 
-  getNoInvoicePaymentService: async () => {
+  getNoInvoicePaymentService: async ({ payment_date } = {}) => {
     try {
-      const paymentNumber = await generateInvoicePaymentNumber();
-      return {
-        status: 200,
-        success: true,
-        receipt_number: paymentNumber.lastNumber,
-        new_receipt_number: paymentNumber.nextNumber,
-      };
+      const paymentNumber = await getPaymentReceiptNumber(
+        InvoicePayment,
+        payment_date,
+      );
+      if (paymentNumber.error) {
+        return { status: 400, success: false, message: paymentNumber.error };
+      }
+      return { status: 200, success: true, ...paymentNumber };
     } catch (error) {
       return {
         status: 500,
@@ -170,6 +179,8 @@ const InvoicePaymentService = {
   createInvoicePaymentService: async ({
     customer_id,
     created_by,
+    receipt_number,
+    is_tax,
     payment_amount,
     payment_proof,
     payment_date,
@@ -314,12 +325,18 @@ const InvoicePaymentService = {
 
       const isAutoApproved = totalPayment === totalAllocation;
 
-      const paymentNumber = await generateInvoicePaymentNumber(t);
+      const { receiptNumber, isTax } = await validatePaymentReceiptNumber(
+        InvoicePayment,
+        receipt_number,
+        is_tax,
+        t,
+      );
       const payment = await InvoicePayment.create(
         {
           customer_id,
           created_by,
-          receipt_number: paymentNumber.nextNumber,
+          receipt_number: receiptNumber,
+          is_tax: isTax,
           payment_amount: totalPayment.toString(),
           payment_amount_use: totalAllocation.toString(),
           payment_proof,
@@ -376,6 +393,7 @@ const InvoicePaymentService = {
         data: {
           id: payment.id,
           receipt_number: payment.receipt_number,
+          is_tax: payment.is_tax,
           payment_amount: payment.payment_amount,
           payment_amount_use: payment.payment_amount_use,
           status: payment.status,
@@ -591,47 +609,6 @@ function parsePaymentAmount(value, fieldName) {
 
 function throwPaymentError(statusCode, message) {
   throw { status_code: statusCode, success: false, message };
-}
-
-async function generateInvoicePaymentNumber(transaction = null) {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-
-  const options = {
-    attributes: ["receipt_number"],
-    where: {
-      createdAt: { [Op.between]: [startOfYear, endOfYear] },
-    },
-    order: [
-      [
-        literal(
-          "CAST(SUBSTRING_INDEX(SUBSTRING(receipt_number, 3), '/', 1) AS UNSIGNED)",
-        ),
-        "DESC",
-      ],
-      ["createdAt", "DESC"],
-    ],
-  };
-
-  if (transaction) {
-    options.transaction = transaction;
-    options.lock = transaction.LOCK.UPDATE;
-  }
-
-  const lastPayment = await InvoicePayment.findOne(options);
-  const lastNumber = lastPayment?.receipt_number || null;
-  const lastSequence = lastNumber
-    ? parseInt(lastNumber.slice(2, lastNumber.indexOf("/")), 10) || 0
-    : 0;
-  const nextSequence = String(lastSequence + 1).padStart(5, "0");
-  const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
-  const shortYear = String(now.getFullYear()).slice(2);
-
-  return {
-    lastNumber,
-    nextNumber: `BB${nextSequence}/CBL/${currentMonth}/${shortYear}`,
-  };
 }
 
 module.exports = InvoicePaymentService;

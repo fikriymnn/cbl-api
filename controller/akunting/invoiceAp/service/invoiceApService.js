@@ -4,13 +4,35 @@ const InvoiceApModel = require("../../../../model/akunting/invoiceAp/invoiceApMo
 const InvoiceApItemModel = require("../../../../model/akunting/invoiceAp/invoiceApItemModel");
 const GoodReceipt = require("../../../../model/akunting/goodReceipt/goodReceiptModel");
 const Users = require("../../../../model/userModel");
+const InvoiceApPayment = require("../../../../model/akunting/invoiceAp/invoiceApPaymentModel");
+const InvoiceApPaymentDetail = require("../../../../model/akunting/invoiceAp/invoiceApPaymentDetailModel");
+const InvoiceApPaymentAdditionalCost = require("../../../../model/akunting/invoiceAp/invoiceApPaymentAdditionalCostModel");
 const {
   toBigInt,
   buildDateRangeFilter,
   getDueTimeDatabaseFilter,
   DUE_TIME_BUCKETS,
   getInvoiceDueTime,
+  createInvoiceRecap,
+  addInvoiceToRecap,
+  serializeInvoiceRecap,
+  formatInvoiceRecapDetail,
+  parseRecapDateRange,
+  fillMissingSettlementDate,
+  normalizeIds,
+  getInvoicesForBulk,
+  validateBulkInvoices,
 } = require("../../invoice/service/invoiceHelper");
+
+// riwayat pembayaran invoice ap (bukti bayar + biaya tambahan)
+const paymentDetailsInclude = {
+  model: InvoiceApPaymentDetail,
+  as: "payment_details",
+  include: [
+    { model: InvoiceApPayment, as: "payment" },
+    { model: InvoiceApPaymentAdditionalCost, as: "additional_costs" },
+  ],
+};
 
 // alur sama dengan invoice ar (draft -> requested -> approved / rejected),
 // bedanya sumber item dari list good receipt dan wajib 1 vendor per invoice
@@ -200,6 +222,103 @@ const InvoiceApService = {
     }
   },
 
+  // rekap invoice ap approved per vendor berdasarkan range tgl faktur,
+  // jika id_vendor diisi ikut detail invoice per vendor
+  getInvoiceApRecapByVendorService: async ({
+    start_date,
+    end_date,
+    id_vendor,
+    search,
+  }) => {
+    const dateRange = parseRecapDateRange(start_date, end_date);
+    if (dateRange.error) {
+      return { status: 400, success: false, message: dateRange.error };
+    }
+
+    const where = {
+      is_active: true,
+      status: "approved",
+      status_proses: "done",
+      tgl_faktur: {
+        [Op.between]: [dateRange.startDate, dateRange.endDate],
+      },
+    };
+    if (id_vendor) where.id_vendor = id_vendor;
+    if (search) {
+      where.nama_vendor = { [Op.like]: `%${search}%` };
+    }
+
+    try {
+      const invoices = await InvoiceApModel.findAll({
+        attributes: [
+          "id",
+          "id_vendor",
+          "nama_vendor",
+          "no_invoice",
+          "no_invoice_vendor",
+          "tgl_faktur",
+          "tgl_jatuh_tempo",
+          "tgl_pelunasan",
+          "total",
+          "balance_due",
+          "paid_amount",
+          "status_payment",
+        ],
+        where,
+        order: [
+          ["nama_vendor", "ASC"],
+          ["tgl_faktur", "ASC"],
+        ],
+        raw: true,
+      });
+
+      await fillMissingSettlementDate({
+        invoices,
+        PaymentDetailModel: InvoiceApPaymentDetail,
+        PaymentModel: InvoiceApPayment,
+        invoiceIdField: "invoice_ap_id",
+      });
+
+      const recapByVendor = new Map();
+      const totalRecap = createInvoiceRecap();
+
+      invoices.forEach((invoice) => {
+        const vendorKey = getInvoiceVendorKey(invoice);
+        if (!recapByVendor.has(vendorKey)) {
+          recapByVendor.set(vendorKey, {
+            id_vendor: invoice.id_vendor,
+            nama_vendor: invoice.nama_vendor,
+            ...createInvoiceRecap(),
+            ...(id_vendor ? { invoice: [] } : {}),
+          });
+        }
+
+        const vendorRecap = recapByVendor.get(vendorKey);
+        addInvoiceToRecap(vendorRecap, invoice);
+        if (id_vendor) {
+          vendorRecap.invoice.push({
+            ...formatInvoiceRecapDetail(invoice),
+            no_invoice_vendor: invoice.no_invoice_vendor,
+          });
+        }
+        addInvoiceToRecap(totalRecap, invoice);
+      });
+
+      return {
+        status: 200,
+        success: true,
+        range_tgl_faktur: { start_date, end_date },
+        data_rekap: {
+          total_vendor: recapByVendor.size,
+          ...serializeInvoiceRecap(totalRecap),
+        },
+        data: [...recapByVendor.values()].map(serializeInvoiceRecap),
+      };
+    } catch (error) {
+      return { status: 500, success: false, message: error.message };
+    }
+  },
+
   getInvoiceApService: async ({
     id,
     page,
@@ -290,6 +409,7 @@ const InvoiceApService = {
             limit: parseInt(limit),
             offset,
             where: obj,
+            include: [paymentDetailsInclude],
           }),
           getInvoiceApDueRecap(recapWhere),
         ]);
@@ -314,6 +434,7 @@ const InvoiceApService = {
               required: false,
               include: [{ model: GoodReceipt, as: "good_receipt" }],
             },
+            paymentDetailsInclude,
           ],
         });
         return { status: 200, success: true, data };
@@ -702,6 +823,70 @@ const InvoiceApService = {
         success: false,
         status_code: error.status_code || 500,
         message: error.message,
+      };
+    }
+  },
+
+  // request banyak invoice ap sekaligus (hanya status draft), semua atau tidak sama sekali
+  requestInvoiceApBulkService: async ({ ids, transaction = null }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const listId = normalizeIds(ids);
+      const dataInvoices = await getInvoicesForBulk(InvoiceApModel, listId, t);
+      validateBulkInvoices(listId, dataInvoices, "draft", "request");
+
+      await InvoiceApModel.update(
+        { status: "requested", status_proses: "requested" },
+        { where: { id: listId }, transaction: t },
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: `request ${listId.length} invoice success`,
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw {
+        success: false,
+        status_code: error.status_code || 500,
+        message: error.message,
+        data: error.data,
+      };
+    }
+  },
+
+  // approve banyak invoice ap sekaligus (hanya status requested), semua atau tidak sama sekali
+  approveInvoiceApBulkService: async ({
+    ids,
+    id_approve,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const listId = normalizeIds(ids);
+      const dataInvoices = await getInvoicesForBulk(InvoiceApModel, listId, t);
+      validateBulkInvoices(listId, dataInvoices, "requested", "approve");
+
+      await InvoiceApModel.update(
+        { status: "approved", status_proses: "done", id_approve },
+        { where: { id: listId }, transaction: t },
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: `approve ${listId.length} invoice success`,
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw {
+        success: false,
+        status_code: error.status_code || 500,
+        message: error.message,
+        data: error.data,
       };
     }
   },

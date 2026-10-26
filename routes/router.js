@@ -344,6 +344,7 @@ router.use("/", require("./deliveryOrder/deliveryOrderGroupRoute"));
 
 //akunting
 router.use("/", require("./akunting/deposit/depositRoute"));
+router.use("/", require("./akunting/depositVendor/depositVendorRoute"));
 router.use("/", require("./akunting/invoice/invoiceRoute"));
 router.use("/", require("./akunting/retur/returRoute"));
 router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
@@ -392,6 +393,7 @@ router.use("/", require("./qc/incomingRawMaterial/incomingRawMaterialRoute"));
 router.use("/", require("./qc/estimasiKurangQty/estimasiKurangQtyRoute"));
 router.use("/", require("./ppic/estimasiKurangQty/estimasiKurangQtyRoute"));
 router.use("/", require("./produksi/estimasiKurangQtyRoute"));
+router.use("/", require("./informasiKurangQty/informasiKurangQtyRoute"));
 
 //menu
 router.use("/", require("./masterdata/menu/masterMenuRoute"));

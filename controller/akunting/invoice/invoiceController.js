@@ -5,8 +5,16 @@ const InvoicePaymentService = require("./service/invoicePaymentService");
 const InvoiceController = {
   getInvoicePayment: async (req, res) => {
     const _id = req.params.id;
-    const { page, limit, start_date, end_date, search, customer_id, status } =
-      req.query;
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      customer_id,
+      status,
+      is_tax,
+    } = req.query;
 
     try {
       const getData = await InvoicePaymentService.getInvoicePaymentService({
@@ -18,6 +26,7 @@ const InvoiceController = {
         search,
         customer_id,
         status,
+        is_tax,
       });
       return res.status(getData.status).json(getData);
     } catch (error) {
@@ -27,7 +36,9 @@ const InvoiceController = {
 
   getNoInvoicePayment: async (req, res) => {
     try {
-      const getData = await InvoicePaymentService.getNoInvoicePaymentService();
+      const getData = await InvoicePaymentService.getNoInvoicePaymentService({
+        payment_date: req.query.payment_date,
+      });
       return res.status(getData.status).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
@@ -37,6 +48,8 @@ const InvoiceController = {
   createInvoicePayment: async (req, res) => {
     const {
       customer_id,
+      receipt_number,
+      is_tax,
       payment_amount,
       payment_proof,
       payment_date,
@@ -51,6 +64,8 @@ const InvoiceController = {
       const getData = await InvoicePaymentService.createInvoicePaymentService({
         customer_id,
         created_by: req.user.id,
+        receipt_number,
+        is_tax,
         payment_amount,
         payment_proof,
         payment_date,
@@ -324,6 +339,39 @@ const InvoiceController = {
       res.status(500).json({ msg: error.message });
     }
   },
+  requestInvoiceBulk: async (req, res) => {
+    try {
+      const getData = await InvoiceService.requestInvoiceBulkService({
+        ids: req.body.ids,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      return res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+        data: error.data,
+      });
+    }
+  },
+
+  approveInvoiceBulk: async (req, res) => {
+    try {
+      const getData = await InvoiceService.approveInvoiceBulkService({
+        ids: req.body.ids,
+        id_approve: req.user.id,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      return res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+        data: error.data,
+      });
+    }
+  },
+
   rejectInvoice: async (req, res) => {
     const _id = req.params.id;
 

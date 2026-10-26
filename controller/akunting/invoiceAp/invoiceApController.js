@@ -1,13 +1,109 @@
 const InvoiceApService = require("./service/invoiceApService");
+const InvoiceApPaymentService = require("./service/invoiceApPaymentService");
 
 const sendError = (res, error) =>
   res.status(error.status_code || 500).json({
     success: false,
     status_code: error.status_code || 500,
     msg: error.message,
+    data: error.data,
   });
 
 const InvoiceApController = {
+  getInvoiceApPayment: async (req, res) => {
+    const {
+      page,
+      limit,
+      start_date,
+      end_date,
+      search,
+      vendor_id,
+      status,
+      is_tax,
+    } = req.query;
+
+    try {
+      const getData = await InvoiceApPaymentService.getInvoiceApPaymentService(
+        {
+          id: req.params.id,
+          page,
+          limit,
+          start_date,
+          end_date,
+          search,
+          vendor_id,
+          status,
+          is_tax,
+        },
+      );
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getNoInvoiceApPayment: async (req, res) => {
+    try {
+      const getData =
+        await InvoiceApPaymentService.getNoInvoiceApPaymentService({
+          payment_date: req.query.payment_date,
+        });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  createInvoiceApPayment: async (req, res) => {
+    const {
+      vendor_id,
+      receipt_number,
+      is_tax,
+      payment_amount,
+      payment_proof,
+      payment_date,
+      payment_method,
+      bank,
+      account_number,
+      note,
+      invoices,
+    } = req.body;
+
+    try {
+      const getData =
+        await InvoiceApPaymentService.createInvoiceApPaymentService({
+          vendor_id,
+          created_by: req.user.id,
+          receipt_number,
+          is_tax,
+          payment_amount,
+          payment_proof,
+          payment_date,
+          payment_method,
+          bank,
+          account_number,
+          note,
+          invoices,
+        });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
+
+  approveInvoiceApPayment: async (req, res) => {
+    try {
+      const getData =
+        await InvoiceApPaymentService.approveInvoiceApPaymentService({
+          id: req.params.id,
+          id_approve: req.user.id,
+        });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
+
   getAccountPayable: async (req, res) => {
     const { start_date, end_date, search, id_vendor, waktu } = req.query;
 
@@ -22,6 +118,26 @@ const InvoiceApController = {
       return res.status(getData.status).json(getData);
     } catch (error) {
       res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getInvoiceApRecapByVendor: async (req, res) => {
+    const { start_date, end_date, id_vendor, search } = req.query;
+
+    try {
+      const getData = await InvoiceApService.getInvoiceApRecapByVendorService({
+        start_date,
+        end_date,
+        id_vendor,
+        search,
+      });
+      return res.status(getData.status).json(getData);
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        status: 500,
+        message: error.message,
+      });
     }
   },
 
@@ -207,6 +323,29 @@ const InvoiceApController = {
     try {
       const getData = await InvoiceApService.approveInvoiceApService({
         id: req.params.id,
+        id_approve: req.user.id,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
+
+  requestInvoiceApBulk: async (req, res) => {
+    try {
+      const getData = await InvoiceApService.requestInvoiceApBulkService({
+        ids: req.body.ids,
+      });
+      return res.status(200).json(getData);
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
+
+  approveInvoiceApBulk: async (req, res) => {
+    try {
+      const getData = await InvoiceApService.approveInvoiceApBulkService({
+        ids: req.body.ids,
         id_approve: req.user.id,
       });
       return res.status(200).json(getData);
