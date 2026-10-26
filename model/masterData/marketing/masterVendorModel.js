@@ -49,6 +49,12 @@ const MasterVendor = db.define(
         this.setDataValue("tipe_vendor", value);
       },
     },
+    // saldo lebih bayar invoice ap (deposit ke vendor)
+    saldo: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

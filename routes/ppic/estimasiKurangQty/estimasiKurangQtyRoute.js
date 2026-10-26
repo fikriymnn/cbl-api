@@ -13,14 +13,14 @@ router.post(
   EstimasiKurangQtyController.createEstimasiKurangQty,
 );
 router.put(
-  "/ppic/estimasiKurangQty:id",
+  "/ppic/estimasiKurangQty/:id",
   auth,
   EstimasiKurangQtyController.updateEstimasiKurangQty,
 );
 router.delete(
   "/ppic/estimasiKurangQty/:id",
   auth,
-  EstimasiKurangQtyController.approveEstimasiKurangQty,
+  EstimasiKurangQtyController.deleteEstimasiKurangQty,
 );
 
 router.put(

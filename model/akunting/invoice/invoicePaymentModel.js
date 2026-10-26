@@ -37,6 +37,12 @@ const InvoicePayment = db.define(
       allowNull: false,
       unique: true,
     },
+    // true: nomor pajak KT00001/CBL/10/26, false: nomor non pajak KT50001-1026
+    is_tax: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     payment_amount: {
       type: DataTypes.DECIMAL(18, 0),
       allowNull: false,

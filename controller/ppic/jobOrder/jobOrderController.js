@@ -23,6 +23,7 @@ const TiketJadwalProduksi = require("../../../model/ppic/jadwalProduksiCalculate
 const BomPpicService = require("../../../controller/ppic/bomPpic/service/bomPpicService");
 const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPemakaianDefect = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
+const InformasiKurangQty = require("../../../model/informasiKurangQty/informasiKurangQtyModel");
 
 const BomController = {
   getJobOrder: async (req, res) => {
@@ -393,8 +394,16 @@ const BomController = {
 
   // monitoring jo kurang qty: qty jo (qty - total_insheet x isi) dibanding
   // total quantity_kirim_fg final inspection (bisa kirim & fg approved)
+  // + data cetak (mesin & tgl) dan informasi kurang qty untuk mengisi form informasi kurang qty
   getMonitoringJoKurangQty: async (req, res) => {
-    const { page = 1, limit = 10, search, start_date, end_date } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      start_date,
+      end_date,
+      status_informasi,
+    } = req.query;
     const pageInt = Math.max(parseInt(page) || 1, 1);
     const limitInt = Math.max(parseInt(limit) || 10, 1);
     const offset = (pageInt - 1) * limitInt;
@@ -416,14 +425,15 @@ const BomController = {
     const baseQuery = `
       SELECT
         j.id, j.no_jo, j.no_io, j.no_so, j.customer, j.produk, j.tgl_kirim,
-        j.qty, j.createdAt,
+        j.qty, j.createdAt, j.id_produk, j.po_qty,
         COALESCE(m.total_insheet, 0) AS total_insheet,
         COALESCE(m.isi, 0) AS isi,
         j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) AS qty_jo,
         f.quantity_kirim_fg,
         j.qty - (COALESCE(m.total_insheet, 0) * COALESCE(m.isi, 0)) - f.quantity_kirim_fg AS kurang_qty,
         COALESCE(tb.qty_tambah_bahan_lp, 0) AS qty_tambah_bahan_lp,
-        COALESCE(tb.qty_tambah_bahan_druk, 0) AS qty_tambah_bahan_druk
+        COALESCE(tb.qty_tambah_bahan_druk, 0) AS qty_tambah_bahan_druk,
+        COALESCE(ik.total_informasi_kurang_qty, 0) AS total_informasi_kurang_qty
       FROM jo_new j
       INNER JOIN (
         SELECT no_jo, SUM(COALESCE(quantity_kirim_fg, 0)) AS quantity_kirim_fg
@@ -446,18 +456,32 @@ const BomController = {
         WHERE is_active = true AND status NOT IN ('reject qc', 'reject gudang')
         GROUP BY no_jo
       ) tb ON tb.no_jo = j.no_jo
+      LEFT JOIN (
+        SELECT id_jo, COUNT(*) AS total_informasi_kurang_qty
+        FROM informasi_kurang_qty
+        WHERE is_active = true
+        GROUP BY id_jo
+      ) ik ON ik.id_jo = j.id
       WHERE j.is_active = true AND j.status = 'history' ${whereSearch}
     `;
 
+    // filter status_informasi: "sudah" = sudah ada informasi kurang qty, "belum" = belum diisi
+    let whereOuter = "x.kurang_qty > 0";
+    if (status_informasi === "sudah") {
+      whereOuter += " AND x.total_informasi_kurang_qty > 0";
+    } else if (status_informasi === "belum") {
+      whereOuter += " AND x.total_informasi_kurang_qty = 0";
+    }
+
     try {
       const [countResult] = await db.query(
-        `SELECT COUNT(*) AS total FROM (${baseQuery}) x WHERE x.kurang_qty > 0`,
+        `SELECT COUNT(*) AS total FROM (${baseQuery}) x WHERE ${whereOuter}`,
         { replacements, type: db.QueryTypes.SELECT },
       );
       const total = parseInt(countResult.total) || 0;
 
       const data = await db.query(
-        `SELECT * FROM (${baseQuery}) x WHERE x.kurang_qty > 0
+        `SELECT * FROM (${baseQuery}) x WHERE ${whereOuter}
          ORDER BY x.createdAt DESC LIMIT :limit OFFSET :offset`,
         {
           replacements: { ...replacements, limit: limitInt, offset },
@@ -475,6 +499,8 @@ const BomController = {
         "kurang_qty",
         "qty_tambah_bahan_lp",
         "qty_tambah_bahan_druk",
+        "po_qty",
+        "total_informasi_kurang_qty",
       ];
       // detail tambah bahan pemakaian + waste (defect) per jo, seperti monitoring tambah bahan pemakaian
       const listNoJo = data.map((item) => item.no_jo);
@@ -498,12 +524,90 @@ const BomController = {
             })
           : [];
 
+      // mesin & tgl cetak per jo dari lkh proses tahapan cetak (1 jo bisa > 1 mesin)
+      const listIdJo = data.map((item) => item.id);
+      const dataCetak =
+        listIdJo.length > 0
+          ? await db.query(
+              `SELECT p.id_jo, p.id_mesin AS id_mesin_cetak, mt.nama_mesin AS nama_mesin_cetak,
+                 MIN(p.waktu_mulai) AS tgl_cetak, MAX(p.waktu_selesai) AS tgl_selesai_cetak
+               FROM produksi_lkh_proses p
+               INNER JOIN ms_tahapan t ON t.id = p.id_tahapan
+               LEFT JOIN ms_mesin_tahapan mt ON mt.id = p.id_mesin
+               WHERE p.id_jo IN (:listIdJo)
+                 AND (p.is_active = true OR p.is_active IS NULL)
+                 AND p.id_mesin IS NOT NULL
+                 AND LOWER(t.nama_tahapan) LIKE '%cetak%'
+               GROUP BY p.id_jo, p.id_mesin, mt.nama_mesin
+               ORDER BY tgl_cetak ASC`,
+              {
+                replacements: { listIdJo },
+                type: db.QueryTypes.SELECT,
+              },
+            )
+          : [];
+
+      // defect = kendala lkh proses per jo, total rusak_total per deskripsi
+      const dataKendala =
+        listIdJo.length > 0
+          ? await db.query(
+              `SELECT p.id_jo, p.kode, p.deskripsi,
+                 SUM(COALESCE(p.rusak_total, 0)) AS rusak_total
+               FROM produksi_lkh_proses p
+               WHERE p.id_jo IN (:listIdJo)
+                 AND p.proses = 'Kendala'
+                 AND (p.is_active = true OR p.is_active IS NULL)
+               GROUP BY p.id_jo, p.kode, p.deskripsi
+               ORDER BY rusak_total DESC`,
+              {
+                replacements: { listIdJo },
+                type: db.QueryTypes.SELECT,
+              },
+            )
+          : [];
+
+      // informasi kurang qty yang sudah diisi per jo
+      const dataInformasi =
+        listIdJo.length > 0
+          ? await InformasiKurangQty.findAll({
+              where: { id_jo: listIdJo, is_active: true },
+              order: [["createdAt", "DESC"]],
+            })
+          : [];
+
       const result = data.map((item) => {
         const row = { ...item };
         numberFields.forEach((key) => (row[key] = Number(row[key] || 0)));
         row.tambah_bahan_pemakaian = dataTambahBahan.filter(
           (tb) => tb.no_jo === item.no_jo,
         );
+
+        row.data_cetak = dataCetak
+          .filter((cetak) => cetak.id_jo === item.id)
+          .map(({ id_jo, ...cetak }) => cetak);
+        // contoh: "Kertas sobek 15, Tinta blobor 5"
+        row.jenis_kerusakan = buildJenisKerusakan(
+          dataKendala.filter((kendala) => kendala.id_jo === item.id),
+        );
+        row.informasi_kurang_qty = dataInformasi.filter(
+          (info) => info.id_jo === item.id,
+        );
+        row.is_informasi_kurang_qty = row.informasi_kurang_qty.length > 0;
+
+        // nilai awal form informasi kurang qty, mesin cetak default = mesin cetak pertama
+        const cetakPertama = row.data_cetak[0];
+        row.form_informasi_kurang_qty = {
+          id_jo: item.id,
+          no_jo: item.no_jo,
+          id_produk: item.id_produk,
+          nama_produk: item.produk,
+          qty_po: row.po_qty || row.qty,
+          qty_kurang: row.kurang_qty,
+          id_mesin_cetak: cetakPertama?.id_mesin_cetak || null,
+          nama_mesin_cetak: cetakPertama?.nama_mesin_cetak || null,
+          tgl_cetak: cetakPertama?.tgl_cetak || null,
+          jenis_kerusakan: row.jenis_kerusakan,
+        };
         return row;
       });
 
@@ -1785,5 +1889,26 @@ const BomController = {
     }
   },
 };
+
+// teks jenis kerusakan form informasi kurang qty dari kendala lkh:
+// "deskripsi rusak_total" per deskripsi (dijumlah lintas tahapan), contoh: "Kertas sobek 12, Tinta blobor 5"
+function buildJenisKerusakan(dataKendala) {
+  const totalPerDeskripsi = new Map();
+  dataKendala.forEach((kendala) => {
+    const deskripsi = kendala.deskripsi || kendala.kode;
+    const rusakTotal = Number(kendala.rusak_total || 0);
+    if (!deskripsi || !rusakTotal) return;
+    totalPerDeskripsi.set(
+      deskripsi,
+      (totalPerDeskripsi.get(deskripsi) || 0) + rusakTotal,
+    );
+  });
+
+  return (
+    [...totalPerDeskripsi.entries()]
+      .map(([deskripsi, total]) => `${deskripsi} ${total}`)
+      .join(", ") || null
+  );
+}
 
 module.exports = BomController;

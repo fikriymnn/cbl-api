@@ -17,6 +17,15 @@ const {
   getDueTimeDatabaseFilter,
   DUE_TIME_BUCKETS,
   getInvoiceDueTime,
+  createInvoiceRecap,
+  addInvoiceToRecap,
+  serializeInvoiceRecap,
+  formatInvoiceRecapDetail,
+  parseRecapDateRange,
+  fillMissingSettlementDate,
+  normalizeIds,
+  getInvoicesForBulk,
+  validateBulkInvoices,
 } = require("./invoiceHelper");
 
 const InvoiceService = {
@@ -216,42 +225,18 @@ const InvoiceService = {
     id_customer,
     search,
   }) => {
-    if (!start_date || !end_date) {
-      return {
-        status: 400,
-        success: false,
-        message: "start_date dan end_date wajib diisi",
-      };
-    }
-
-    const startDate = new Date(start_date);
-    const endDate = new Date(end_date);
-    if (
-      Number.isNaN(startDate.getTime()) ||
-      Number.isNaN(endDate.getTime())
-    ) {
-      return {
-        status: 400,
-        success: false,
-        message: "range tanggal faktur tidak valid",
-      };
-    }
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
-    if (startDate > endDate) {
-      return {
-        status: 400,
-        success: false,
-        message: "start_date tidak boleh lebih besar dari end_date",
-      };
+    const dateRange = parseRecapDateRange(start_date, end_date);
+    if (dateRange.error) {
+      return { status: 400, success: false, message: dateRange.error };
     }
 
     const where = {
       is_active: true,
       status: "approved",
       status_proses: "done",
-      tgl_faktur: { [Op.between]: [startDate, endDate] },
+      tgl_faktur: {
+        [Op.between]: [dateRange.startDate, dateRange.endDate],
+      },
     };
     if (id_customer) where.id_customer = id_customer;
     if (search) {
@@ -281,54 +266,12 @@ const InvoiceService = {
         raw: true,
       });
 
-      const paidInvoiceWithoutSettlementDate = invoices.filter(
-        (invoice) =>
-          invoice.status_payment === "lunas" && !invoice.tgl_pelunasan,
-      );
-      if (paidInvoiceWithoutSettlementDate.length > 0) {
-        const paymentDetails = await InvoicePaymentDetail.findAll({
-          attributes: ["invoice_id"],
-          where: {
-            invoice_id: {
-              [Op.in]: paidInvoiceWithoutSettlementDate.map(
-                (invoice) => invoice.id,
-              ),
-            },
-          },
-          include: [
-            {
-              model: InvoicePayment,
-              as: "payment",
-              attributes: ["payment_date"],
-              where: { status: "approved", is_active: true },
-              required: true,
-            },
-          ],
-        });
-
-        const lastPaymentDateByInvoice = new Map();
-        paymentDetails.forEach((detail) => {
-          const paymentDate = detail.payment?.payment_date;
-          const currentDate = lastPaymentDateByInvoice.get(
-            String(detail.invoice_id),
-          );
-          if (
-            paymentDate &&
-            (!currentDate || new Date(paymentDate) > new Date(currentDate))
-          ) {
-            lastPaymentDateByInvoice.set(
-              String(detail.invoice_id),
-              paymentDate,
-            );
-          }
-        });
-
-        paidInvoiceWithoutSettlementDate.forEach((invoice) => {
-          invoice.tgl_pelunasan = lastPaymentDateByInvoice.get(
-            String(invoice.id),
-          );
-        });
-      }
+      await fillMissingSettlementDate({
+        invoices,
+        PaymentDetailModel: InvoicePaymentDetail,
+        PaymentModel: InvoicePayment,
+        invoiceIdField: "invoice_id",
+      });
 
       const recapByCustomer = new Map();
       const totalRecap = createInvoiceRecap();
@@ -969,6 +912,73 @@ const InvoiceService = {
     }
   },
 
+  // request banyak invoice sekaligus (hanya status draft), semua atau tidak sama sekali
+  requestInvoiceBulkService: async ({ ids, transaction = null }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const listId = normalizeIds(ids);
+      const dataInvoices = await getInvoicesForBulk(InvoiceModel, listId, t);
+      validateBulkInvoices(listId, dataInvoices, "draft", "request");
+
+      await InvoiceModel.update(
+        {
+          status: "requested",
+          status_proses: "requested",
+        },
+        { where: { id: listId }, transaction: t },
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: `request ${listId.length} invoice success`,
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw {
+        success: false,
+        status_code: error.status_code || 500,
+        message: error.message,
+        data: error.data,
+      };
+    }
+  },
+
+  // approve banyak invoice sekaligus (hanya status requested), semua atau tidak sama sekali
+  approveInvoiceBulkService: async ({ ids, id_approve, transaction = null }) => {
+    const t = transaction || (await db.transaction());
+
+    try {
+      const listId = normalizeIds(ids);
+      const dataInvoices = await getInvoicesForBulk(InvoiceModel, listId, t);
+      validateBulkInvoices(listId, dataInvoices, "requested", "approve");
+
+      await InvoiceModel.update(
+        {
+          status: "approved",
+          status_proses: "done",
+          id_approve: id_approve,
+        },
+        { where: { id: listId }, transaction: t },
+      );
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: `approve ${listId.length} invoice success`,
+      };
+    } catch (error) {
+      if (!transaction) await t.rollback();
+      throw {
+        success: false,
+        status_code: error.status_code || 500,
+        message: error.message,
+        data: error.data,
+      };
+    }
+  },
+
   rejectInvoiceService: async ({ id, id_reject, transaction = null }) => {
     const t = transaction || (await db.transaction());
 
@@ -1072,92 +1082,6 @@ async function adjustSaldoCustomer(id_customer, amount, transaction) {
   }
 
   await customer.update({ saldo: saldoBaru }, { transaction });
-}
-
-function createInvoiceRecap() {
-  return {
-    total_invoice: 0,
-    total_invoice_lunas: 0,
-    total_invoice_belum_lunas: 0,
-    total_rupiah: 0n,
-    total_rupiah_lunas: 0n,
-    total_rupiah_belum_lunas: 0n,
-    total_invoice_dibayar_tepat_waktu: 0,
-    total_invoice_dibayar_telat: 0,
-  };
-}
-
-function addInvoiceToRecap(recap, invoice) {
-  const invoiceAmount = toBigInt(invoice.total ?? invoice.balance_due);
-  const isPaid = invoice.status_payment === "lunas";
-
-  recap.total_invoice += 1;
-  recap.total_rupiah += invoiceAmount;
-
-  if (!isPaid) {
-    recap.total_invoice_belum_lunas += 1;
-    recap.total_rupiah_belum_lunas += invoiceAmount;
-    return;
-  }
-
-  recap.total_invoice_lunas += 1;
-  recap.total_rupiah_lunas += invoiceAmount;
-
-  const dueDate = normalizeDate(invoice.tgl_jatuh_tempo);
-  const paidDate = normalizeDate(invoice.tgl_pelunasan);
-  if (!dueDate || !paidDate) return;
-
-  if (paidDate <= dueDate) {
-    recap.total_invoice_dibayar_tepat_waktu += 1;
-  } else {
-    recap.total_invoice_dibayar_telat += 1;
-  }
-}
-
-function serializeInvoiceRecap(recap) {
-  return {
-    ...recap,
-    total_rupiah: recap.total_rupiah.toString(),
-    total_rupiah_lunas: recap.total_rupiah_lunas.toString(),
-    total_rupiah_belum_lunas: recap.total_rupiah_belum_lunas.toString(),
-  };
-}
-
-function normalizeDate(value) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function formatInvoiceRecapDetail(invoice) {
-  const balanceDue = toBigInt(invoice.balance_due);
-  const paidAmount = toBigInt(invoice.paid_amount);
-  const outstandingAmount = balanceDue - paidAmount;
-  const dueDate = normalizeDate(invoice.tgl_jatuh_tempo);
-  const paidDate = normalizeDate(invoice.tgl_pelunasan);
-  let paymentTimeliness = null;
-
-  if (invoice.status_payment === "lunas" && dueDate && paidDate) {
-    paymentTimeliness = paidDate <= dueDate ? "tepat waktu" : "terlambat";
-  }
-
-  return {
-    id: invoice.id,
-    no_invoice: invoice.no_invoice,
-    tgl_faktur: invoice.tgl_faktur,
-    tgl_jatuh_tempo: invoice.tgl_jatuh_tempo,
-    tgl_pelunasan: invoice.tgl_pelunasan || null,
-    total: invoice.total,
-    balance_due: invoice.balance_due,
-    paid_amount: invoice.paid_amount,
-    outstanding_amount: (
-      outstandingAmount > 0n ? outstandingAmount : 0n
-    ).toString(),
-    status_payment: invoice.status_payment,
-    payment_timeliness: paymentTimeliness,
-  };
 }
 
 async function getInvoiceDueRecap(where) {
