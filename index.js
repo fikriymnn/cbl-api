@@ -427,6 +427,7 @@ const InvoiceApPayment = require("./model/akunting/invoiceAp/invoiceApPaymentMod
 const InvoiceApPaymentDetail = require("./model/akunting/invoiceAp/invoiceApPaymentDetailModel");
 const InvoiceApPaymentAdditionalCost = require("./model/akunting/invoiceAp/invoiceApPaymentAdditionalCostModel");
 const DepositVendor = require("./model/akunting/depositVendor/depositVendorModel");
+const MasterCoa = require("./model/akunting/masterCoa/masterCoaModel");
 
 //estimasi kurang qty
 const EstimasiKurangQtyQc = require("./model/qc/estimasiKurangQty/estimasiKurangQtyModel");
@@ -457,7 +458,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await InformasiKurangQty.sync({
+//   await MasterCoa.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
