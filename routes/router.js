@@ -350,6 +350,7 @@ router.use("/", require("./akunting/retur/returRoute"));
 router.use("/", require("./akunting/perubahanInvoice/perubahanInvoiceRoute"));
 router.use("/", require("./akunting/goodReceipt/goodReceiptRoute"));
 router.use("/", require("./akunting/invoiceAp/invoiceApRoute"));
+router.use("/", require("./akunting/masterCoa/masterCoaRoute"));
 
 //FG
 router.use("/", require("./finishGood/incomingBarangJadiRoute"));
