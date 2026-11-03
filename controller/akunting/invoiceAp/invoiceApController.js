@@ -58,6 +58,7 @@ const InvoiceApController = {
     const {
       vendor_id,
       receipt_number,
+      no_document,
       is_tax,
       payment_amount,
       payment_proof,
@@ -65,6 +66,10 @@ const InvoiceApController = {
       payment_method,
       bank,
       account_number,
+      giro_number,
+      due_date,
+      recipient_bank,
+      recipient_account_number,
       note,
       invoices,
     } = req.body;
@@ -75,6 +80,7 @@ const InvoiceApController = {
           vendor_id,
           created_by: req.user.id,
           receipt_number,
+          no_document,
           is_tax,
           payment_amount,
           payment_proof,
@@ -82,6 +88,10 @@ const InvoiceApController = {
           payment_method,
           bank,
           account_number,
+          giro_number,
+          due_date,
+          recipient_bank,
+          recipient_account_number,
           note,
           invoices,
         });

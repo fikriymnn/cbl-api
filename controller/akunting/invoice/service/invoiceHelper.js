@@ -363,6 +363,93 @@ async function getPaymentReceiptNumber(PaymentModel, payment_date) {
   };
 }
 
+// nomor dokumen pembayaran per cara bayar, nomor urut per prefix reset per tahun (patokan tanggal bayar)
+// transfer: GT00001/CBL/10/26, cash: KB00001/CBL/10/26, giro: GK00001/CBL/10/26
+const DOCUMENT_NUMBER_PREFIX = {
+  transfer: "GT",
+  cash: "KB",
+  giro: "GK",
+};
+
+async function getPaymentDocumentNumber(PaymentModel, payment_date) {
+  const patokan = payment_date ? new Date(payment_date) : new Date();
+  if (Number.isNaN(patokan.getTime())) {
+    return { error: "payment_date tidak valid" };
+  }
+
+  const currentMonth = String(patokan.getMonth() + 1).padStart(2, "0");
+  const shortYear = String(patokan.getFullYear()).slice(2);
+
+  const result = {};
+  for (const [paymentMethod, prefix] of Object.entries(
+    DOCUMENT_NUMBER_PREFIX,
+  )) {
+    const lastPayment = await PaymentModel.findOne({
+      attributes: ["no_document"],
+      where: { no_document: { [Op.like]: `${prefix}%/${shortYear}` } },
+      order: [
+        [
+          literal(
+            "CAST(SUBSTRING_INDEX(SUBSTRING(no_document, 3), '/', 1) AS UNSIGNED)",
+          ),
+          "DESC",
+        ],
+        ["createdAt", "DESC"],
+      ],
+    });
+    const last = lastPayment?.no_document || null;
+    const next = last
+      ? (parseInt(last.substring(2, last.indexOf("/")), 10) || 0) + 1
+      : 1;
+
+    result[`no_document_${paymentMethod}`] = last;
+    result[`no_document_${paymentMethod}_new`] =
+      `${prefix}${String(next).padStart(5, "0")}/CBL/${currentMonth}/${shortYear}`;
+  }
+  return result;
+}
+
+// no_document dari client wajib sesuai prefix cara bayar (transfer / cash / giro) dan belum dipakai
+async function validatePaymentDocumentNumber(
+  PaymentModel,
+  no_document,
+  payment_method,
+  transaction,
+) {
+  const paymentMethod = String(payment_method ?? "").trim().toLowerCase();
+  const prefix = DOCUMENT_NUMBER_PREFIX[paymentMethod];
+  if (!prefix) {
+    throw {
+      status_code: 400,
+      message: `cara bayar tidak valid, pilihan: ${Object.keys(DOCUMENT_NUMBER_PREFIX).join(", ")}`,
+    };
+  }
+
+  const noDocument = String(no_document ?? "").trim();
+  if (!noDocument) {
+    throw { status_code: 400, message: "nomor dokumen wajib diisi" };
+  }
+  if (!new RegExp(`^${prefix}\\d{5}\\/CBL\\/\\d{2}\\/\\d{2}$`).test(noDocument)) {
+    throw {
+      status_code: 400,
+      message: `format nomor dokumen ${paymentMethod} tidak valid, contoh: ${prefix}00001/CBL/10/26`,
+    };
+  }
+
+  const existing = await PaymentModel.findOne({
+    attributes: ["id"],
+    where: { no_document: noDocument },
+    transaction,
+  });
+  if (existing) {
+    throw {
+      status_code: 400,
+      message: `nomor dokumen ${noDocument} sudah digunakan`,
+    };
+  }
+  return noDocument;
+}
+
 function parseIsTax(value) {
   if (value === true || value === 1 || value === "true" || value === "1") {
     return true;
@@ -484,6 +571,8 @@ module.exports = {
   fillMissingSettlementDate,
   getPaymentReceiptNumber,
   validatePaymentReceiptNumber,
+  getPaymentDocumentNumber,
+  validatePaymentDocumentNumber,
   parseIsTax,
   normalizeIds,
   getInvoicesForBulk,

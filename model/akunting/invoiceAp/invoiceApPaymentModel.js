@@ -44,6 +44,12 @@ const InvoiceApPayment = db.define(
       allowNull: false,
       defaultValue: true,
     },
+    // nomor dokumen sesuai cara bayar: transfer GT00001/CBL/10/26, cash KB00001/CBL/10/26, giro GK00001/CBL/10/26
+    no_document: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
     payment_amount: {
       type: DataTypes.DECIMAL(18, 0),
       allowNull: false,
@@ -70,6 +76,23 @@ const InvoiceApPayment = db.define(
       allowNull: true,
     },
     account_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    // opsional: no giro, tgl jatuh tempo, bank & no rekening penerima
+    giro_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    due_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    recipient_bank: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    recipient_account_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
