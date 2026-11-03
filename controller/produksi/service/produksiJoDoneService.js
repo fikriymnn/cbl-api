@@ -70,10 +70,25 @@ const ProduksiJoDoneService = {
             },
           ],
         });
+
+        //ambil data inspeksi final sekaligus untuk semua jo di halaman ini
+        const idJoList = [...new Set(data.map((e) => e.id_jo))];
+        const dataFinal = idJoList.length
+          ? await InspeksiFinal.findAll({
+              where: { id_jo: { [Op.in]: idJoList } },
+            })
+          : [];
+        const result = data.map((e) => ({
+          ...e.toJSON(),
+          data_final_inspeksi: dataFinal.filter(
+            (final) => final.id_jo === e.id_jo
+          ),
+        }));
+
         return {
           status: 200,
           success: true,
-          data: data,
+          data: result,
           total_page: Math.ceil(length / parseInt(limit)),
         };
       } else if (id) {

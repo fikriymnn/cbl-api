@@ -6,6 +6,7 @@ const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanMo
 const MasterWasteKendala = require("../../../model/masterData/kodeProduksi/masterWasteKendalaModel");
 const MasterDepartment = require("../../../model/masterData/hr/masterDeprtmentModel");
 const db = require("../../../config/database");
+const MasterWasteKendalaService = require("./service/masterWasteKendalaService");
 
 const MasterWasteKendalaController = {
   getMasterWasteKendala: async (req, res) => {
@@ -164,85 +165,18 @@ const MasterWasteKendalaController = {
 
   getMasterWasteKendalaFormating: async (req, res) => {
     try {
-      let obj = {
-        //untuk awalan huruf
-        kode: {
-          [Op.regexp]: "^[A-Za-z]",
-        },
-        is_active: true,
-
-        //untuk awalan angka
-        // kode: {
-        //   [Op.regexp]: "^\\d",
-        // },
-      };
-
-      const data = await MasterKodeProduksi.findAll({
-        where: obj,
-        attributes: [
-          "id",
-          "id_tahapan_produksi",
-          "proses_produksi",
-          "kode",
-          "deskripsi",
-        ],
-        include: [
-          {
-            model: MasterWasteKendala,
-            as: "waste",
-            include: [
-              {
-                model: MasterKodeProduksi,
-                as: "kode_kendala",
-                attributes: [
-                  "id",
-                  "id_tahapan_produksi",
-                  "proses_produksi",
-                  "kode",
-                  "deskripsi",
-                ],
-                include: [
-                  {
-                    model: MasterKategoriKendala,
-                    as: "kategori_kendala",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      // olah dengan destructuring:
-      const result = data
-        .filter((item) => item.waste && item.waste.length > 0)
-        .map((item) => {
-          const { id, kode, deskripsi, waste } = item.toJSON();
-          return {
-            i_waste: id,
-            kode_waste: kode,
-            waste_desc: deskripsi,
-            waste: waste.map((w) => ({
-              i_kendala: w.kode_kendala.id,
-              kode_kendala: w.kode_kendala.kode,
-              kendala_desc: w.kode_kendala.deskripsi,
-              kategori_kendala:
-                w.kode_kendala.kategori_kendala?.kategori ?? null,
-              bobot: 0,
-            })),
-          };
-        });
-
-      result.sort((a, b) =>
-        a.kode_waste.localeCompare(b.kode_waste, undefined, {
-          numeric: true,
-        })
-      );
+      const result =
+        await MasterWasteKendalaService.getMasterWasteKendalaFormatingService();
+      if (!result.success) {
+        return res
+          .status(400)
+          .json({ succes: false, status_code: 400, msg: result.message });
+      }
 
       return res.status(200).json({
         succes: true,
         status_code: 200,
-        waste: result,
+        waste: result.data,
       });
     } catch (error) {
       res

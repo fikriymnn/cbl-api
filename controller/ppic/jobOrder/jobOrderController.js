@@ -24,6 +24,8 @@ const BomPpicService = require("../../../controller/ppic/bomPpic/service/bomPpic
 const TambahBahanPemakaian = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianModel");
 const TambahBahanPemakaianDefect = require("../../../model/gudangRM/tambahBahanPemakaian/tambahBahanPemakaianDefectModel");
 const InformasiKurangQty = require("../../../model/informasiKurangQty/informasiKurangQtyModel");
+const ReportWasteService = require("../../qc/report/service/reportWasteService");
+const MasterWasteKendalaService = require("../../masterData/kodeProduksi/service/masterWasteKendalaService");
 
 const BomController = {
   getJobOrder: async (req, res) => {
@@ -547,16 +549,18 @@ const BomController = {
             )
           : [];
 
-      // defect = kendala lkh proses per jo, total rusak_total per deskripsi
+      // defect = kendala lkh proses tahapan lem per jo, total rusak_total per deskripsi
       const dataKendala =
         listIdJo.length > 0
           ? await db.query(
               `SELECT p.id_jo, p.kode, p.deskripsi,
                  SUM(COALESCE(p.rusak_total, 0)) AS rusak_total
                FROM produksi_lkh_proses p
+               INNER JOIN ms_tahapan t ON t.id = p.id_tahapan
                WHERE p.id_jo IN (:listIdJo)
                  AND p.proses = 'Kendala'
                  AND (p.is_active = true OR p.is_active IS NULL)
+                 AND LOWER(t.nama_tahapan) LIKE '%lem%'
                GROUP BY p.id_jo, p.kode, p.deskripsi
                ORDER BY rusak_total DESC`,
               {
@@ -565,6 +569,29 @@ const BomController = {
               },
             )
           : [];
+
+      // defect dari data waste (dataWasteAll report waste by jo), master waste diambil sekali untuk semua jo
+      let dataWastePerJo = [];
+      if (data.length > 0) {
+        const masterWaste =
+          await MasterWasteKendalaService.getMasterWasteKendalaFormatingService();
+        if (!masterWaste.success) throw new Error(masterWaste.message);
+
+        dataWastePerJo = await Promise.all(
+          data.map(async (item) => {
+            const reportWaste = await ReportWasteService.reportWasteByJo({
+              no_jo: item.no_jo,
+              id_jo: item.id,
+              dataMasterWaste: masterWaste.data,
+            });
+            if (!reportWaste.success) throw new Error(reportWaste.message);
+            return {
+              id_jo: item.id,
+              data_waste: reportWaste.data.dataWasteAll,
+            };
+          }),
+        );
+      }
 
       // informasi kurang qty yang sudah diisi per jo
       const dataInformasi =
@@ -585,10 +612,14 @@ const BomController = {
         row.data_cetak = dataCetak
           .filter((cetak) => cetak.id_jo === item.id)
           .map(({ id_jo, ...cetak }) => cetak);
-        // contoh: "Kertas sobek 15, Tinta blobor 5"
-        row.jenis_kerusakan = buildJenisKerusakan(
+        // list jenis kerusakan dari kendala lkh tahapan lem + data waste
+        const jenisKerusakanArray = buildJenisKerusakanArray(
           dataKendala.filter((kendala) => kendala.id_jo === item.id),
+          dataWastePerJo.find((waste) => waste.id_jo === item.id)?.data_waste ||
+            [],
         );
+        // contoh: "Kertas sobek 15, Tinta blobor 5"
+        row.jenis_kerusakan = buildJenisKerusakan(jenisKerusakanArray);
         row.informasi_kurang_qty = dataInformasi.filter(
           (info) => info.id_jo === item.id,
         );
@@ -607,6 +638,7 @@ const BomController = {
           nama_mesin_cetak: cetakPertama?.nama_mesin_cetak || null,
           tgl_cetak: cetakPertama?.tgl_cetak || null,
           jenis_kerusakan: row.jenis_kerusakan,
+          jenis_kerusakan_array: jenisKerusakanArray,
         };
         return row;
       });
@@ -1890,23 +1922,39 @@ const BomController = {
   },
 };
 
-// teks jenis kerusakan form informasi kurang qty dari kendala lkh:
-// "deskripsi rusak_total" per deskripsi (dijumlah lintas tahapan), contoh: "Kertas sobek 12, Tinta blobor 5"
-function buildJenisKerusakan(dataKendala) {
+// list jenis kerusakan form informasi kurang qty, dijumlah per sumber + deskripsi:
+// - sumber "kendala lkh": kendala lkh proses tahapan lem (rusak_total)
+// - sumber "waste": dataWasteAll dari report waste by jo (total_defect)
+function buildJenisKerusakanArray(dataKendala, dataWaste) {
   const totalPerDeskripsi = new Map();
-  dataKendala.forEach((kendala) => {
-    const deskripsi = kendala.deskripsi || kendala.kode;
-    const rusakTotal = Number(kendala.rusak_total || 0);
-    if (!deskripsi || !rusakTotal) return;
-    totalPerDeskripsi.set(
-      deskripsi,
-      (totalPerDeskripsi.get(deskripsi) || 0) + rusakTotal,
-    );
-  });
+  const tambah = (sumber, kode, deskripsi, total) => {
+    deskripsi = deskripsi || kode;
+    total = Number(total || 0);
+    if (!deskripsi || !total) return;
+    const key = `${sumber}|${deskripsi}`;
+    const existing = totalPerDeskripsi.get(key);
+    if (existing) {
+      existing.total += total;
+    } else {
+      totalPerDeskripsi.set(key, { sumber, kode, deskripsi, total });
+    }
+  };
 
+  dataKendala.forEach((kendala) =>
+    tambah("kendala lkh", kendala.kode, kendala.deskripsi, kendala.rusak_total),
+  );
+  dataWaste.forEach((waste) =>
+    tambah("waste", waste.kode_waste, waste.waste_desc, waste.total_defect),
+  );
+
+  return [...totalPerDeskripsi.values()];
+}
+
+// teks jenis kerusakan dari list jenis kerusakan, contoh: "Kertas sobek 12, Tinta blobor 5"
+function buildJenisKerusakan(jenisKerusakanArray) {
   return (
-    [...totalPerDeskripsi.entries()]
-      .map(([deskripsi, total]) => `${deskripsi} ${total}`)
+    jenisKerusakanArray
+      .map((item) => `${item.deskripsi} ${item.total}`)
       .join(", ") || null
   );
 }

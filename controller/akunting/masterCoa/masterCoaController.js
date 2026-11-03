@@ -18,8 +18,17 @@ const MasterCoaController = {
   },
 
   getMasterCoa: async (req, res) => {
-    const { page, limit, search, tipe_akun, tipe, branch, show_inactive } =
-      req.query;
+    const {
+      page,
+      limit,
+      search,
+      tipe_akun,
+      tipe,
+      tipe_saldo,
+      tipe_report,
+      branch,
+      show_inactive,
+    } = req.query;
 
     try {
       const getData = await MasterCoaService.getMasterCoaService({
@@ -29,6 +38,8 @@ const MasterCoaController = {
         search,
         tipe_akun,
         tipe,
+        tipe_saldo,
+        tipe_report,
         branch,
         show_inactive,
       });
@@ -55,10 +66,11 @@ const MasterCoaController = {
   },
 
   getParentCoa: async (req, res) => {
-    const { tipe_akun, exclude_id } = req.query;
+    const { tipe, tipe_akun, exclude_id } = req.query;
 
     try {
       const getData = await MasterCoaService.getParentCoaService({
+        tipe,
         tipe_akun,
         exclude_id,
       });
@@ -75,6 +87,8 @@ const MasterCoaController = {
       kode_akun,
       nama_akun,
       tipe,
+      tipe_saldo,
+      tipe_report,
       branch,
       currency,
       no_rekening,
@@ -91,6 +105,8 @@ const MasterCoaController = {
         kode_akun,
         nama_akun,
         tipe,
+        tipe_saldo,
+        tipe_report,
         branch,
         currency,
         no_rekening,
@@ -111,6 +127,8 @@ const MasterCoaController = {
       kode_akun,
       nama_akun,
       tipe,
+      tipe_saldo,
+      tipe_report,
       branch,
       currency,
       no_rekening,
@@ -127,6 +145,8 @@ const MasterCoaController = {
         kode_akun,
         nama_akun,
         tipe,
+        tipe_saldo,
+        tipe_report,
         branch,
         currency,
         no_rekening,

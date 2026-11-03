@@ -11,6 +11,8 @@ const {
   toBigInt,
   getPaymentReceiptNumber,
   validatePaymentReceiptNumber,
+  getPaymentDocumentNumber,
+  validatePaymentDocumentNumber,
   parseIsTax,
 } = require("../../invoice/service/invoiceHelper");
 
@@ -34,9 +36,11 @@ const InvoiceApPaymentService = {
     if (search) {
       where[Op.or] = [
         { receipt_number: { [Op.like]: `%${search}%` } },
+        { no_document: { [Op.like]: `%${search}%` } },
         { payment_method: { [Op.like]: `%${search}%` } },
         { bank: { [Op.like]: `%${search}%` } },
         { account_number: { [Op.like]: `%${search}%` } },
+        { giro_number: { [Op.like]: `%${search}%` } },
       ];
     }
     if (vendor_id) where.vendor_id = vendor_id;
@@ -160,7 +164,17 @@ const InvoiceApPaymentService = {
       if (paymentNumber.error) {
         return { status: 400, success: false, message: paymentNumber.error };
       }
-      return { status: 200, success: true, ...paymentNumber };
+      // nomor dokumen transfer / cash / giro, frontend yang memilih sesuai cara bayar
+      const documentNumber = await getPaymentDocumentNumber(
+        InvoiceApPayment,
+        payment_date,
+      );
+      return {
+        status: 200,
+        success: true,
+        ...paymentNumber,
+        ...documentNumber,
+      };
     } catch (error) {
       return { status: 500, success: false, message: error.message };
     }
@@ -170,6 +184,7 @@ const InvoiceApPaymentService = {
     vendor_id,
     created_by,
     receipt_number,
+    no_document,
     is_tax,
     payment_amount,
     payment_proof,
@@ -177,6 +192,10 @@ const InvoiceApPaymentService = {
     payment_method,
     bank,
     account_number,
+    giro_number,
+    due_date,
+    recipient_bank,
+    recipient_account_number,
     note,
     invoices,
     transaction = null,
@@ -186,6 +205,9 @@ const InvoiceApPaymentService = {
     try {
       if (!vendor_id) {
         throwPaymentError(400, "vendor wajib diisi");
+      }
+      if (due_date && Number.isNaN(new Date(due_date).getTime())) {
+        throwPaymentError(400, "tanggal jatuh tempo tidak valid");
       }
       if (!payment_date) {
         throwPaymentError(400, "tanggal bayar wajib diisi");
@@ -289,11 +311,18 @@ const InvoiceApPaymentService = {
         is_tax,
         t,
       );
+      const noDocument = await validatePaymentDocumentNumber(
+        InvoiceApPayment,
+        no_document,
+        payment_method,
+        t,
+      );
       const payment = await InvoiceApPayment.create(
         {
           vendor_id,
           created_by,
           receipt_number: receiptNumber,
+          no_document: noDocument,
           is_tax: isTax,
           payment_amount: totalPayment.toString(),
           payment_amount_use: totalAllocation.toString(),
@@ -302,6 +331,10 @@ const InvoiceApPaymentService = {
           payment_method,
           bank,
           account_number,
+          giro_number: giro_number || null,
+          due_date: due_date || null,
+          recipient_bank: recipient_bank || null,
+          recipient_account_number: recipient_account_number || null,
           note,
           status: isAutoApproved ? "approved" : "requested",
           id_approve: isAutoApproved ? created_by : null,
@@ -351,6 +384,7 @@ const InvoiceApPaymentService = {
         data: {
           id: payment.id,
           receipt_number: payment.receipt_number,
+          no_document: payment.no_document,
           is_tax: payment.is_tax,
           payment_amount: payment.payment_amount,
           payment_amount_use: payment.payment_amount_use,

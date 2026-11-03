@@ -4,8 +4,8 @@ const Users = require("../../userModel");
 
 const { DataTypes } = Sequelize;
 
-// chart of account: tipe header (akun induk / grup) dan detail (akun transaksi),
-// akun detail/header bisa jadi sub account dari header lewat id_parent
+// chart of account 3 tingkat lewat id_parent:
+// header (level 1, grup utama) -> sub (level 2, sub grup) -> detail (level 3, akun transaksi)
 const MasterCoa = db.define(
   "master_coa",
   {
@@ -35,9 +35,19 @@ const MasterCoa = db.define(
       allowNull: false,
     },
     tipe: {
-      type: DataTypes.ENUM("header", "detail"),
+      type: DataTypes.ENUM("header", "sub", "detail"),
       allowNull: false,
       defaultValue: "detail",
+    },
+    // saldo normal akun: debit / kredit
+    tipe_saldo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    // laporan tempat akun tampil: neraca / laba rugi
+    tipe_report: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     level: {
       type: DataTypes.INTEGER,
