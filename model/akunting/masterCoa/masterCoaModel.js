@@ -5,7 +5,7 @@ const Users = require("../../userModel");
 const { DataTypes } = Sequelize;
 
 // chart of account 3 tingkat lewat id_parent:
-// header (level 1, grup utama) -> sub (level 2, sub grup) -> detail (level 3, akun transaksi)
+// header (level 1, grup utama) -> detail (level 2, sub grup) -> sub (level 3, akun transaksi)
 const MasterCoa = db.define(
   "master_coa",
   {
@@ -35,9 +35,9 @@ const MasterCoa = db.define(
       allowNull: false,
     },
     tipe: {
-      type: DataTypes.ENUM("header", "sub", "detail"),
+      type: DataTypes.ENUM("header", "detail", "sub"),
       allowNull: false,
-      defaultValue: "detail",
+      defaultValue: "sub",
     },
     // saldo normal akun: debit / kredit
     tipe_saldo: {
