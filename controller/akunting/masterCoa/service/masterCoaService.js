@@ -24,7 +24,7 @@ const TIPE_AKUN_DEFAULT = {
 };
 const TIPE_AKUN = Object.keys(TIPE_AKUN_DEFAULT);
 const TIPE_SALDO = ["debit", "kredit"];
-const TIPE_REPORT = ["neraca", "laba rugi"];
+const TIPE_REPORT = ["neraca", "laba rugi", "perubahan modal"];
 
 // 3 tingkat: header (level 1) -> sub (level 2) -> detail (level 3)
 const TIPE = ["header", "sub", "detail"];
@@ -121,7 +121,12 @@ const MasterCoaService = {
   },
 
   // list bertingkat (header -> sub account) beserta saldo, seperti tampilan daftar akun
-  getMasterCoaTreeService: async ({ search, tipe_akun, branch, show_inactive }) => {
+  getMasterCoaTreeService: async ({
+    search,
+    tipe_akun,
+    branch,
+    show_inactive,
+  }) => {
     try {
       const accounts = await MasterCoaModel.findAll({
         attributes: [
@@ -304,9 +309,12 @@ const MasterCoaService = {
           nama_akun: nama_akun || coa.nama_akun,
           tipe: tipe || coa.tipe,
           tipe_saldo: tipe_saldo === undefined ? coa.tipe_saldo : tipe_saldo,
-          tipe_report: tipe_report === undefined ? coa.tipe_report : tipe_report,
+          tipe_report:
+            tipe_report === undefined ? coa.tipe_report : tipe_report,
           opening_balance:
-            opening_balance === undefined ? coa.opening_balance : opening_balance,
+            opening_balance === undefined
+              ? coa.opening_balance
+              : opening_balance,
         },
         t,
       );
@@ -343,7 +351,8 @@ const MasterCoaService = {
           level: payload.level,
           branch: branch === undefined ? coa.branch : branch,
           currency: currency === undefined ? coa.currency : currency,
-          no_rekening: no_rekening === undefined ? coa.no_rekening : no_rekening,
+          no_rekening:
+            no_rekening === undefined ? coa.no_rekening : no_rekening,
           note: note === undefined ? coa.note : note,
           opening_balance: payload.opening_balance,
           opening_balance_date:
@@ -421,7 +430,10 @@ const MasterCoaService = {
         transaction: t,
       });
       if (childCount) {
-        throwCoaError(400, "akun masih memiliki sub account, tidak dapat dihapus");
+        throwCoaError(
+          400,
+          "akun masih memiliki sub account, tidak dapat dihapus",
+        );
       }
 
       await coa.destroy({ transaction: t });
@@ -448,7 +460,8 @@ async function validatePayload(
   },
   transaction,
 ) {
-  if (!TIPE_AKUN.includes(tipe_akun)) throwCoaError(400, "tipe akun tidak valid");
+  if (!TIPE_AKUN.includes(tipe_akun))
+    throwCoaError(400, "tipe akun tidak valid");
   if (!TIPE.includes(tipe)) {
     throwCoaError(400, "tipe harus header, sub atau detail");
   }
@@ -478,11 +491,15 @@ async function validatePayload(
   // header tanpa parent, sub wajib di bawah header, detail wajib di bawah sub
   let parent = null;
   if (tipe === "header") {
-    if (id_parent) throwCoaError(400, "akun header tidak boleh memiliki parent");
+    if (id_parent)
+      throwCoaError(400, "akun header tidak boleh memiliki parent");
   } else {
     const parentTipe = PARENT_TIPE[tipe];
     if (!id_parent) {
-      throwCoaError(400, `akun ${tipe} wajib memiliki parent akun ${parentTipe}`);
+      throwCoaError(
+        400,
+        `akun ${tipe} wajib memiliki parent akun ${parentTipe}`,
+      );
     }
     parent = await MasterCoaModel.findByPk(id_parent, { transaction });
     if (!parent) throwCoaError(404, "akun parent tidak di temukan");
@@ -502,7 +519,8 @@ async function validatePayload(
 
   // header & sub hanya grup, saldo awalnya selalu 0
   const balance = tipe === "detail" ? Number(opening_balance || 0) : 0;
-  if (!Number.isFinite(balance)) throwCoaError(400, "opening balance tidak valid");
+  if (!Number.isFinite(balance))
+    throwCoaError(400, "opening balance tidak valid");
 
   return {
     parent,
@@ -539,7 +557,10 @@ function buildTree(accounts) {
     node.balance =
       node.tipe === "detail"
         ? node.opening_balance
-        : node.sub_account.reduce((total, child) => total + sumBalance(child), 0);
+        : node.sub_account.reduce(
+            (total, child) => total + sumBalance(child),
+            0,
+          );
     node.balance = Math.round(node.balance * 10000) / 10000;
     return node.balance;
   };
