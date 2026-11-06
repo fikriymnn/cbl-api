@@ -115,7 +115,7 @@ const StockOpnameService = {
       const dataGudangFinishGood = await GudangFinishGood.findAll({
         where: {
           is_active: true,
-          status: "keep",
+          status: { [Op.in]: ["keep", "booking"] },
         },
         transaction: t,
       });
