@@ -5,11 +5,8 @@ const InspeksiAmparLem = require("../../../../model/qc/inspeksi/amparLem/inspeks
 const InspeksiAmparLemDefect = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemDefectModel");
 
 const InspeksiAmparLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
-const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
-const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
-const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
-const User = require("../../../../model/userModel");
+const { createNcrQtyInspeksi } = require("../../ncr/service/ncrTicketService");
 
 const inspeksiAmparLemController = {
   getInspeksiAmparLem: async (req, res) => {
@@ -274,84 +271,16 @@ const inspeksiAmparLemController = {
         { where: { id: _id } }
       );
 
-      const pointDefect = await InspeksiAmparLemDefect.findAll({
-        attributes: [
-          [Sequelize.fn("SUM", Sequelize.col("hasil")), "hasil"],
-          "id",
-          "kode",
-          "sumber_masalah",
-          "persen_kriteria",
-          "kriteria",
-          "masalah",
-        ],
-        group: ["kode"],
-        where: {
-          id_inspeksi_ampar_lem: _id,
-        },
+      await createNcrQtyInspeksi({
+        proses: "amparLem",
+        DefectModel: InspeksiAmparLemDefect,
+        DepartmentModel: InspeksiAmparLemPeriodeDefectDepartment,
+        kolomDepartment: "id_inspeksi_ampar_lem_periode_point_defect",
+        kolomDefect: "hasil",
+        whereInspeksi: { id_inspeksi_ampar_lem: _id },
+        inspeksi: inspeksiAmparLem,
+        idPelapor: req.user.id,
       });
-
-      let pointDefectDepartment = [];
-
-      for (let index = 0; index < pointDefect.length; index++) {
-        const dataaa = await InspeksiAmparLemPeriodeDefectDepartment.findAll({
-          where: {
-            id_inspeksi_ampar_lem_periode_point_defect: pointDefect[index].id,
-          },
-        });
-        pointDefectDepartment.push(dataaa);
-      }
-
-      for (let index = 0; index < pointDefect.length; index++) {
-        let defect = pointDefect[index].hasil;
-        let pcs = inspeksiAmparLem.jumlah_pcs;
-        let persen = (defect / pcs) * 100;
-        let persen_kriteria = pointDefect[index].persen_kriteria;
-        let department = pointDefect[index].sumber_masalah;
-        let department_tujuan = "";
-        if (department == "man") {
-          department_tujuan = "hrd";
-        } else if (department == "material") {
-          department_tujuan = "purchasing";
-        } else if (department == "persiapan") {
-          department_tujuan = "persiapan";
-        }
-
-        if (
-          persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah != "Mesin"
-        ) {
-          const userQc = await User.findByPk(req.user.id);
-          console.log("masuk ncr");
-          const data = await NcrTicket.create({
-            id_pelapor: req.user.id,
-            tanggal: new Date(),
-            kategori_laporan: pointDefect[index].sumber_masalah,
-            no_jo: inspeksiAmparLem.no_jo,
-            no_io: inspeksiAmparLem.no_io,
-            qty_defect: pointDefect.jumlah_defect,
-            nama_produk: inspeksiAmparLem.nama_produk,
-            department_pelapor: "QUALITY CONTROL",
-            nama_pelapor: userQc.nama,
-          });
-
-          for (let ii = 0; ii < pointDefectDepartment[index].length; ii++) {
-            const department = await NcrDepartment.create({
-              id_ncr_tiket: data.id,
-              id_department: pointDefectDepartment[index][ii].id_department,
-              department: pointDefectDepartment[index][ii].nama_department,
-            });
-            await NcrKetidaksesuain.create({
-              id_department: department.id,
-              ketidaksesuaian: `masalah pada proses cetak dengan kode ${pointDefect[index].kode} - ${pointDefect[index].masalah} dengan kriteria ${pointDefect[index].kriteria} di Ampar Lem`,
-            });
-          }
-        } else if (
-          persen >= persen_kriteria &&
-          pointDefect[index].sumber_masalah == "Mesin"
-        ) {
-          console.log("masuk os");
-        }
-      }
 
       res.status(200).json({ msg: "Done Successful" });
     } catch (error) {

@@ -1,12 +1,22 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const Users = require("../../userModel");
+const NcrTicket = require("../ncr/ncrTicketModel");
+const { generateNomorTiket } = require("../../../helper/nomorTiketFunction");
 
 const { DataTypes } = Sequelize;
 
 const capa = db.define(
   "capa_tiket",
   {
+    id_ncr: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: NcrTicket,
+        key: "id",
+      },
+    },
     no_capa: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -75,6 +85,14 @@ const capa = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_io: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     no_jo: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -116,6 +134,16 @@ const capa = db.define(
   },
   {
     freezeTableName: true,
+    hooks: {
+      beforeCreate: async (tiket, options) => {
+        tiket.no_capa = await generateNomorTiket(
+          capa,
+          "no_capa",
+          "CAPA",
+          options.transaction
+        );
+      },
+    },
   }
 );
 

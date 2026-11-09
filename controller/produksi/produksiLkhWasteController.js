@@ -189,15 +189,15 @@ const ProduksiLkhWasteController = {
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_qty_mtc",
+            as: "kriteria_qty_produksi",
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_waktu_mtc",
+            as: "kriteria_waktu_produksi",
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_frekuensi_mtc",
+            as: "kriteria_frekuensi_produksi",
           },
         ],
       });
@@ -218,15 +218,15 @@ const ProduksiLkhWasteController = {
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_qty_mtc",
+            as: "kriteria_qty_produksi",
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_waktu_mtc",
+            as: "kriteria_waktu_produksi",
           },
           {
             model: MasterKriteriaKendala,
-            as: "kriteria_frekuensi_mtc",
+            as: "kriteria_frekuensi_produksi",
           },
         ],
       });

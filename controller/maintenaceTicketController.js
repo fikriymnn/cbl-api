@@ -8,9 +8,7 @@ const MasalahSparepart = require("../model/mtc/sparepartProblem");
 const StokSparepart = require("../model/mtc/stokSparepart");
 const MasterSparepart = require("../model/masterData/masterSparepart");
 const ProsesMtc = require("../model/mtc/prosesMtc");
-const NcrTicket = require("../model/qc/ncr/ncrTicketModel");
-const NcrDepartment = require("../model/qc/ncr/ncrDepartmentModel");
-const NcrKetidaksesuain = require("../model/qc/ncr/ncrKetidaksesuaianModel");
+const { createNcrFrekuensi } = require("./qc/ncr/service/ncrTicketService");
 const Sequelize = require("sequelize");
 const { createNotification } = require("./notificationController");
 const db = require("../config/database");
@@ -535,45 +533,15 @@ const ticketController = {
         },
       });
 
-      if (jumlahTicketMtc.length + 1 > tiketMtc.maksimal_kedatangan_tiket) {
-        console.log("masuk ncr");
-
-        const userQc = await Users.findByPk(req.user.id);
-        const dataNcr = await NcrTicket.create(
-          {
-            id_pelapor: req.user.id,
-            tanggal: new Date(),
-            kategori_laporan: tiketMtc.jenis_kendala,
-            nama_pelapor: userQc.nama,
-            department_pelapor: "QUALITY CONTROL",
-            no_jo: tiketMtc.no_jo,
-            no_io: tiketMtc.no_io,
-            nama_produk: tiketMtc.nama_produk,
-          },
-          { transaction: t }
-        );
-
-        for (let index = 0; index < tiketMtc.data_department.length; index++) {
-          const department = await NcrDepartment.create(
-            {
-              id_ncr_tiket: dataNcr.id,
-              id_department: tiketMtc.data_department[index].id_department,
-              department: tiketMtc.data_department[index].department,
-            },
-            { transaction: t }
-          );
-
-          await NcrKetidaksesuain.create(
-            {
-              id_department: department.id,
-              ketidaksesuaian: `Kendala ${tiketMtc.kode_lkh} ${tiketMtc.nama_kendala} telah melebihi batas maksimal`,
-            },
-            { transaction: t }
-          );
-        }
-      } else {
-        console.log("tidak masuk ncr");
-      }
+      const userQc = await Users.findByPk(req.user.id);
+      await createNcrFrekuensi({
+        tiket: tiketMtc,
+        kodeKendala: tiketMtc.kode_lkh,
+        idPelapor: req.user.id,
+        namaPelapor: userQc.nama,
+        jumlahTiket: jumlahTicketMtc.length,
+        transaction: t,
+      });
 
       t.commit();
       res.status(201).json({ msg: "Ticket update Successfuly" });
