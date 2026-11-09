@@ -458,7 +458,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await CapaTiket.sync({
+//   await NcrTiket.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

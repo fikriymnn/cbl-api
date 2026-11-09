@@ -194,7 +194,7 @@ const Ticket = db.define(
       defaultValue: "Month",
     },
     maksimal_waktu_pengerjaan: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DOUBLE,
       allowNull: true,
       defaultValue: 99999,
     },
