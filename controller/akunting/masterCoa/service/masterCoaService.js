@@ -3,26 +3,6 @@ const { Op } = require("sequelize");
 const MasterCoaModel = require("../../../../model/akunting/masterCoa/masterCoaModel");
 const Users = require("../../../../model/userModel");
 
-// tipe akun beserta default tipe_saldo & tipe_report jika tidak diisi
-const TIPE_AKUN_DEFAULT = {
-  "Cash/Bank": { tipe_saldo: "debit", tipe_report: "neraca" },
-  "Account Receivable": { tipe_saldo: "debit", tipe_report: "neraca" },
-  Inventory: { tipe_saldo: "debit", tipe_report: "neraca" },
-  "Other Current Asset": { tipe_saldo: "debit", tipe_report: "neraca" },
-  "Fixed Asset": { tipe_saldo: "debit", tipe_report: "neraca" },
-  "Accumulated Depreciation": { tipe_saldo: "kredit", tipe_report: "neraca" },
-  "Other Asset": { tipe_saldo: "debit", tipe_report: "neraca" },
-  "Account Payable": { tipe_saldo: "kredit", tipe_report: "neraca" },
-  "Other Current Liability": { tipe_saldo: "kredit", tipe_report: "neraca" },
-  "Long Term Liability": { tipe_saldo: "kredit", tipe_report: "neraca" },
-  Equity: { tipe_saldo: "kredit", tipe_report: "neraca" },
-  Revenue: { tipe_saldo: "kredit", tipe_report: "laba rugi" },
-  "Cost of Goods Sold": { tipe_saldo: "debit", tipe_report: "laba rugi" },
-  Expense: { tipe_saldo: "debit", tipe_report: "laba rugi" },
-  "Other Income": { tipe_saldo: "kredit", tipe_report: "laba rugi" },
-  "Other Expense": { tipe_saldo: "debit", tipe_report: "laba rugi" },
-};
-const TIPE_AKUN = Object.keys(TIPE_AKUN_DEFAULT);
 const TIPE_SALDO = ["debit", "kredit"];
 const TIPE_REPORT = ["neraca", "laba rugi", "perubahan modal"];
 
@@ -38,11 +18,9 @@ const MasterCoaService = {
     return {
       status: 200,
       success: true,
-      data: TIPE_AKUN,
       tipe: TIPE,
       tipe_saldo: TIPE_SALDO,
       tipe_report: TIPE_REPORT,
-      default_by_tipe_akun: TIPE_AKUN_DEFAULT,
     };
   },
 
@@ -51,7 +29,6 @@ const MasterCoaService = {
     page,
     limit,
     search,
-    tipe_akun,
     tipe,
     tipe_saldo,
     tipe_report,
@@ -66,7 +43,6 @@ const MasterCoaService = {
         { nama_akun: { [Op.like]: `%${search}%` } },
       ];
     }
-    if (tipe_akun) where.tipe_akun = tipe_akun;
     if (tipe) where.tipe = tipe;
     if (tipe_saldo) where.tipe_saldo = tipe_saldo;
     if (tipe_report) where.tipe_report = tipe_report;
@@ -123,7 +99,6 @@ const MasterCoaService = {
   // list bertingkat (header -> sub account) beserta saldo, seperti tampilan daftar akun
   getMasterCoaTreeService: async ({
     search,
-    tipe_akun,
     branch,
     show_inactive,
   }) => {
@@ -132,7 +107,6 @@ const MasterCoaService = {
         attributes: [
           "id",
           "id_parent",
-          "tipe_akun",
           "kode_akun",
           "nama_akun",
           "tipe",
@@ -154,7 +128,6 @@ const MasterCoaService = {
       const keyword = search ? search.toLowerCase() : null;
       const data = filterTree(tree, (node) => {
         if (!isTrue(show_inactive) && !node.is_active) return false;
-        if (tipe_akun && node.tipe_akun !== tipe_akun) return false;
         if (branch && node.branch !== branch) return false;
         if (
           keyword &&
@@ -172,9 +145,9 @@ const MasterCoaService = {
     }
   },
 
-  // pilihan "Sub Account of" sesuai tipe akun yang dibuat: detail -> header, sub -> detail,
+  // pilihan "Sub Account of" sesuai tipe yang dibuat: detail -> header, sub -> detail,
   // tanpa tipe -> semua akun grup aktif (header & detail)
-  getParentCoaService: async ({ tipe, tipe_akun, exclude_id }) => {
+  getParentCoaService: async ({ tipe, exclude_id }) => {
     if (tipe && !TIPE.includes(tipe)) {
       return { status: 400, success: false, message: "tipe tidak valid" };
     }
@@ -186,7 +159,6 @@ const MasterCoaService = {
       tipe: tipe ? PARENT_TIPE[tipe] : { [Op.in]: ["header", "detail"] },
       is_active: true,
     };
-    if (tipe_akun) where.tipe_akun = tipe_akun;
     if (exclude_id) where.id = { [Op.ne]: exclude_id };
 
     try {
@@ -194,7 +166,6 @@ const MasterCoaService = {
         attributes: [
           "id",
           "id_parent",
-          "tipe_akun",
           "kode_akun",
           "nama_akun",
           "tipe",
@@ -212,7 +183,6 @@ const MasterCoaService = {
   createMasterCoaService: async ({
     id_create,
     id_parent,
-    tipe_akun,
     kode_akun,
     nama_akun,
     tipe,
@@ -231,7 +201,6 @@ const MasterCoaService = {
       const payload = await validatePayload(
         {
           id_parent,
-          tipe_akun,
           kode_akun,
           nama_akun,
           tipe,
@@ -246,7 +215,6 @@ const MasterCoaService = {
         {
           id_create,
           id_parent: payload.parent ? payload.parent.id : null,
-          tipe_akun,
           kode_akun: payload.kode_akun,
           nama_akun: payload.nama_akun,
           tipe: payload.tipe,
@@ -278,7 +246,6 @@ const MasterCoaService = {
   updateMasterCoaService: async ({
     id,
     id_parent,
-    tipe_akun,
     kode_akun,
     nama_akun,
     tipe,
@@ -304,7 +271,6 @@ const MasterCoaService = {
         {
           id,
           id_parent: id_parent === undefined ? coa.id_parent : id_parent,
-          tipe_akun: tipe_akun || coa.tipe_akun,
           kode_akun: kode_akun || coa.kode_akun,
           nama_akun: nama_akun || coa.nama_akun,
           tipe: tipe || coa.tipe,
@@ -320,7 +286,7 @@ const MasterCoaService = {
       );
 
       const children = await MasterCoaModel.findAll({
-        attributes: ["id", "tipe_akun"],
+        attributes: ["id"],
         where: { id_parent: id },
         transaction: t,
       });
@@ -331,18 +297,10 @@ const MasterCoaService = {
           "akun masih memiliki sub account, tipe tidak dapat diubah",
         );
       }
-      const newTipeAkun = tipe_akun || coa.tipe_akun;
-      if (children.some((child) => child.tipe_akun !== newTipeAkun)) {
-        throwCoaError(
-          400,
-          "tipe akun tidak dapat diubah karena berbeda dengan sub account",
-        );
-      }
 
       await coa.update(
         {
           id_parent: payload.parent ? payload.parent.id : null,
-          tipe_akun: newTipeAkun,
           kode_akun: payload.kode_akun,
           nama_akun: payload.nama_akun,
           tipe: payload.tipe,
@@ -391,6 +349,14 @@ const MasterCoaService = {
           throwCoaError(
             400,
             "nonaktifkan semua sub account terlebih dahulu sebelum menonaktifkan akun ini",
+          );
+        }
+
+        const saldo = await getSaldoAkun(id, t);
+        if (saldo !== 0) {
+          throwCoaError(
+            400,
+            `saldo akun harus 0 sebelum dinonaktifkan, saldo saat ini ${saldo}`,
           );
         }
       } else if (coa.id_parent) {
@@ -450,7 +416,6 @@ async function validatePayload(
   {
     id,
     id_parent,
-    tipe_akun,
     kode_akun,
     nama_akun,
     tipe,
@@ -460,19 +425,17 @@ async function validatePayload(
   },
   transaction,
 ) {
-  if (!TIPE_AKUN.includes(tipe_akun))
-    throwCoaError(400, "tipe akun tidak valid");
   if (!TIPE.includes(tipe)) {
     throwCoaError(400, "tipe harus header, detail atau sub");
   }
 
-  // kosong -> pakai default sesuai tipe akun
-  const saldo = tipe_saldo || TIPE_AKUN_DEFAULT[tipe_akun].tipe_saldo;
-  const report = tipe_report || TIPE_AKUN_DEFAULT[tipe_akun].tipe_report;
-  if (!TIPE_SALDO.includes(saldo)) {
+  // boleh kosong, jika diisi harus sesuai pilihan
+  const saldo = tipe_saldo || null;
+  const report = tipe_report || null;
+  if (saldo && !TIPE_SALDO.includes(saldo)) {
     throwCoaError(400, `tipe saldo harus ${TIPE_SALDO.join(" atau ")}`);
   }
-  if (!TIPE_REPORT.includes(report)) {
+  if (report && !TIPE_REPORT.includes(report)) {
     throwCoaError(400, `tipe report harus ${TIPE_REPORT.join(" atau ")}`);
   }
 
@@ -511,9 +474,6 @@ async function validatePayload(
         400,
         `akun ${tipe} hanya dapat dibuat di bawah akun ${parentTipe}`,
       );
-    }
-    if (parent.tipe_akun !== tipe_akun) {
-      throwCoaError(400, "tipe akun harus sama dengan akun parent");
     }
   }
 
@@ -567,6 +527,26 @@ function buildTree(accounts) {
   roots.forEach(sumBalance);
 
   return roots;
+}
+
+// saldo sama dengan yang tampil di daftar akun: grup = total saldo sub account-nya
+async function getSaldoAkun(id, transaction) {
+  const accounts = await MasterCoaModel.findAll({
+    attributes: ["id", "id_parent", "tipe", "opening_balance", "is_active"],
+    raw: true,
+    transaction,
+  });
+
+  const findNode = (nodes) => {
+    for (const node of nodes) {
+      if (Number(node.id) === Number(id)) return node;
+      const found = findNode(node.sub_account);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  return findNode(buildTree(accounts))?.balance ?? 0;
 }
 
 // predicate: true = tampil, false = buang beserta sub account-nya,

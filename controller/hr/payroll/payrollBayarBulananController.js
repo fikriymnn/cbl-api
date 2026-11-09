@@ -311,7 +311,6 @@ const PayrollBayarController = {
       } else if (tipe === "bayaran") {
         await PayrollBulanan.update(
           {
-            total_upah: Sequelize.literal(`total_upah + ${total}`),
             sub_total_upah: Sequelize.literal(`sub_total_upah + ${total}`),
           },
           {
@@ -382,9 +381,6 @@ const PayrollBayarController = {
       } else if (checkDataPayrollBulananDetail.tipe === "bayaran") {
         await PayrollBulanan.update(
           {
-            total_upah: Sequelize.literal(
-              `total_upah - ${checkDataPayrollBulananDetail.total}`,
-            ),
             sub_total_upah: Sequelize.literal(
               `sub_total_upah - ${checkDataPayrollBulananDetail.total}`,
             ),
