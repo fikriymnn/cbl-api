@@ -11,11 +11,10 @@ const authMiddlewares = {
         process.env.JWT_ACC_SECRET,
         (err, payload) => {
           if (err) {
-            res.status(403).json({
+            return res.status(403).json({
               status_code: 403,
               message: "Access token invalid.",
             });
-            res.end();
           }
           req.user = payload;
           next();
@@ -25,7 +24,7 @@ const authMiddlewares = {
       res.status(500).json({
         success: false,
         status_code: 500,
-        message: err.message,
+        message: error.message,
       });
     }
   },

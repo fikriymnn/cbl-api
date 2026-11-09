@@ -10,9 +10,7 @@ const ProsesMtc = require("../../model/mtc/prosesMtc");
 const waktuMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const MasterMonitoring = require("../../model/masterData/mtc/timeMonitoringModel");
 const SpbService = require("../../model/mtc/spbServiceSparepart");
-const NcrTicket = require("../../model/qc/ncr/ncrTicketModel");
-const NcrDepartment = require("../../model/qc/ncr/ncrDepartmentModel");
-const NcrKetidaksesuain = require("../../model/qc/ncr/ncrKetidaksesuaianModel");
+const { createNcrWaktu } = require("../qc/ncr/service/ncrTicketService");
 const moment = require("moment");
 const db = require("../../config/database");
 
@@ -495,44 +493,19 @@ const ProsessMtc = {
         const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); //dalam menit
         //const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60)); // Dalam jam
 
-        if (diffInMinutes > tiketData.maksimal_waktu_pengerjaan) {
-          console.log("masuk ncr");
-          const userAnalisis = await Users.findByPk(req.user.id);
-          const data = await NcrTicket.create(
-            {
-              id_pelapor: req.user.id,
-              tanggal: new Date(),
-              kategori_laporan: tiketData.jenis_kendala,
-              nama_pelapor: userAnalisis.nama,
-              department_pelapor: userAnalisis.bagian,
-              no_jo: tiketData.no_jo,
-              no_io: tiketData.no_io,
-              nama_produk: tiketData.nama_produk,
-            },
-            { transaction: t }
-          );
-
-          for (let i = 0; i < tiketData.data_department.length; i++) {
-            const elementdata = tiketData.data_department[i];
-
-            const department = await NcrDepartment.create(
-              {
-                id_ncr_tiket: data.id,
-                id_department: elementdata.id_department,
-                department: elementdata.department,
-              },
-              { transaction: t }
-            );
-
-            await NcrKetidaksesuain.create(
-              {
-                id_department: department.id,
-                ketidaksesuaian: `Melebihi batas waktu penanganan masalah ${tiketData.kode_lkh} ${tiketData.nama_kendala} pada jo ${tiketData.no_jo}`,
-              },
-              { transaction: t }
-            );
-          }
-        }
+        const userAnalisis = await Users.findByPk(req.user.id);
+        await createNcrWaktu({
+          tiket: tiketData,
+          kodeKendala: tiketData.kode_lkh,
+          durasiMenit: diffInMinutes,
+          pelapor: {
+            id_pelapor: req.user.id,
+            nama_pelapor: userAnalisis.nama,
+            department_pelapor: userAnalisis.bagian,
+          },
+          departments: tiketData.data_department,
+          transaction: t,
+        });
       }
       if (
         !masalah_sparepart ||

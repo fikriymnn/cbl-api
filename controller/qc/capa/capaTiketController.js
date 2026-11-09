@@ -3,6 +3,30 @@ const capaKetidaksesuain = require("../../../model/qc/capa/capaKetidakSesuaianMo
 const Users = require("../../../model/userModel");
 const { Op } = require("sequelize");
 
+const userAttributes = { exclude: ["password"] };
+
+const capaInclude = [
+  {
+    model: Users,
+    as: "pelapor",
+    attributes: userAttributes,
+  },
+  {
+    model: Users,
+    as: "qa",
+    attributes: userAttributes,
+  },
+  {
+    model: Users,
+    as: "mr",
+    attributes: userAttributes,
+  },
+  {
+    model: capaKetidaksesuain,
+    as: "data_ketidaksesuaian",
+  },
+];
+
 const capaTicketController = {
   getCapaTicket: async (req, res) => {
     try {
@@ -19,42 +43,28 @@ const capaTicketController = {
       const id = req.params.id;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (
-        page &&
-        limit &&
-        (status || tanggal || department || statusNotEqual || id_department)
-      ) {
-        if (status) obj.status = status;
-        if (tanggal) obj.tanggal = tanggal;
-        if (department) obj.department = department;
-        if (id_department) obj.id_department = parseInt(id_department);
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-        if (statusNotEqual)
-          obj.status = {
-            [Op.ne]: statusNotEqual,
-          };
+      if (status) obj.status = status;
+      if (tanggal)
+        obj.tanggal = {
+          [Op.between]: [
+            new Date(tanggal).setHours(0, 0, 0, 0),
+            new Date(tanggal).setHours(23, 59, 59, 999),
+          ],
+        };
+      if (department) obj.department = department;
+      if (id_department) obj.id_department = parseInt(id_department);
+      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+      if (statusNotEqual)
+        obj.status = {
+          [Op.ne]: statusNotEqual,
+        };
+      const hasFilter = Object.keys(obj).length > 0;
 
+      if (page && limit) {
         const length = await CapaTicket.count({ where: obj });
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: capaKetidaksesuain,
-              as: "data_ketidaksesuaian",
-            },
-          ],
+          include: capaInclude,
           limit: parseInt(limit),
           offset,
           where: obj,
@@ -64,73 +74,10 @@ const capaTicketController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (page && limit) {
+      } else if (hasFilter) {
         const data = await CapaTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: capaKetidaksesuain,
-              as: "data_ketidaksesuaian",
-            },
-          ],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await CapaTicket.count();
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (
-        status ||
-        bagian_tiket ||
-        tanggal ||
-        department ||
-        id_department ||
-        statusNotEqual
-      ) {
-        if (status) obj.status = status;
-        if (tanggal) obj.tanggal = tanggal;
-        if (department) obj.department = department;
-        if (id_department) obj.id_department = parseInt(id_department);
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-        if (statusNotEqual)
-          obj.status = {
-            [Op.ne]: statusNotEqual,
-          };
-
-        const data = await CapaTicket.findAll({
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: capaKetidaksesuain,
-              as: "data_ketidaksesuaian",
-            },
-          ],
+          include: capaInclude,
           where: obj,
         });
         const length = await CapaTicket.count({ where: obj });
@@ -140,24 +87,7 @@ const capaTicketController = {
         });
       } else if (id) {
         const data = await CapaTicket.findByPk(id, {
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: capaKetidaksesuain,
-              as: "data_ketidaksesuaian",
-            },
-          ],
+          include: capaInclude,
         });
 
         return res.status(200).json({ data });
@@ -167,6 +97,7 @@ const capaTicketController = {
           include: {
             model: Users,
             as: "pelapor",
+            attributes: userAttributes,
           },
         });
         return res.status(200).json({ data });

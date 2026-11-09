@@ -23,6 +23,7 @@ const {
   creteTicketMtcOs2Service,
 } = require("../mtc/ticketMaintenance/ticketMaintenanceService");
 const { createTiketLkh } = require("../kendalaLkh/service/kendalaLkhService");
+const { resolveTargetDepartment } = require("../../helper/targetDepartmentFunction");
 const InspeksiPotongService = require("../qc/inspeksi/potong/service/inspeksiPotongService");
 const InspeksiCetakService = require("../qc/inspeksi/cetak/service/inspeksiCetakService");
 const InspeksiCoatingService = require("../qc/inspeksi/coating/service/inspeksiCoatingService");
@@ -346,15 +347,15 @@ const ProduksiLkhProsesController = {
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_qty_mtc",
+                as: "kriteria_qty_produksi",
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_waktu_mtc",
+                as: "kriteria_waktu_produksi",
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_frekuensi_mtc",
+                as: "kriteria_frekuensi_produksi",
               },
             ],
           },
@@ -470,10 +471,10 @@ const ProduksiLkhProsesController = {
             dataKodeProduksi.deskripsi, // nama kendala
             "unit", // unit => belum tau dimana ngambilnya
             "0", //bagian => belum tau dimana ngambilnya
-            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            dataKodeProduksi.kriteria_frekuensi_produksi?.value || 999, //maksimal kedatangan tiket
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
-            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
-            dataKodeProduksi.target_department, //target department
+            dataKodeProduksi.kriteria_waktu_produksi?.value || 999, //maksimal waktu pengerjaan
+            await resolveTargetDepartment(dataKodeProduksi.target_department), //target department
             t, //transaction
           );
         } else if (dataKodeProduksi.kategori_kendala != null) {
@@ -495,10 +496,10 @@ const ProduksiLkhProsesController = {
             dataKodeProduksi.deskripsi, // nama kendala
             null, //waktu mulai (belum tau ngambil dari mana)
             null, //waktu selesai (belum tau ngambil dari mana)
-            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            dataKodeProduksi.kriteria_frekuensi_produksi?.value || 999, //maksimal kedatangan tiket
             "Month", //maksimal periode kedatangan tiket (default month)
-            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
-            [], //department (belum ngambil)
+            dataKodeProduksi.kriteria_waktu_produksi?.value || 999, //maksimal waktu pengerjaan
+            await resolveTargetDepartment(dataKodeProduksi.target_department), //department
             t, //transaction
           );
           console.log("create all kendala tiket");
@@ -522,15 +523,15 @@ const ProduksiLkhProsesController = {
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_qty_mtc",
+                as: "kriteria_qty_produksi",
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_waktu_mtc",
+                as: "kriteria_waktu_produksi",
               },
               {
                 model: MasterKriteriaKendala,
-                as: "kriteria_frekuensi_mtc",
+                as: "kriteria_frekuensi_produksi",
               },
             ],
           },
@@ -621,10 +622,10 @@ const ProduksiLkhProsesController = {
             dataKodeProduksi.deskripsi, // nama kendala
             "unit", // unit => belum tau dimana ngambilnya
             "0", //bagian => belum tau dimana ngambilnya
-            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            dataKodeProduksi.kriteria_frekuensi_produksi?.value || 999, //maksimal kedatangan tiket
             "Month", //periode kedatangan tiket => belum tau ngambil dari mana, dengan default perbulan
-            dataKodeProduksi.kriteria_waktu_mtc?.value | 999, //maksimal waktu pengerjaan
-            dataKodeProduksi.target_department, //target department
+            dataKodeProduksi.kriteria_waktu_produksi?.value || 999, //maksimal waktu pengerjaan
+            await resolveTargetDepartment(dataKodeProduksi.target_department), //target department
             t, //transaction
           );
           console.log("create mtc tiket");
@@ -648,10 +649,10 @@ const ProduksiLkhProsesController = {
             dataKodeProduksi.deskripsi, // nama kendala
             null, //waktu mulai (belum tau ngambil dari mana)
             null, //waktu selesai (belum tau ngambil dari mana)
-            dataKodeProduksi.kriteria_frekuensi_mtc?.value || 999, //maksimal kedatangan tiket
+            dataKodeProduksi.kriteria_frekuensi_produksi?.value || 999, //maksimal kedatangan tiket
             "Month", //maksimal periode kedatangan tiket (default month)
-            dataKodeProduksi.kriteria_waktu_mtc?.value || 999, //maksimal waktu pengerjaan
-            [], //department (belum ngambil)
+            dataKodeProduksi.kriteria_waktu_produksi?.value || 999, //maksimal waktu pengerjaan
+            await resolveTargetDepartment(dataKodeProduksi.target_department), //department
             t, //transaction
           );
           console.log("create all kendala tiket");

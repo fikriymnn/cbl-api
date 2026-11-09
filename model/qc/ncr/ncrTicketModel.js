@@ -1,6 +1,8 @@
 const { Sequelize } = require("sequelize");
 const db = require("../../../config/database");
 const Users = require("../../userModel");
+const { generateNomorTiket } = require("../../../helper/nomorTiketFunction");
+const { isiIdJoIo } = require("../../../helper/idJoIoFunction");
 
 const { DataTypes } = Sequelize;
 
@@ -8,6 +10,10 @@ const NcrTicket = db.define(
   "ncr_tiket",
   {
     no_ncr: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tipe_ncr: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -45,6 +51,14 @@ const NcrTicket = db.define(
     },
     tanggal: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    id_jo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_io: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     no_jo: {
@@ -93,6 +107,17 @@ const NcrTicket = db.define(
   },
   {
     freezeTableName: true,
+    hooks: {
+      beforeCreate: async (tiket, options) => {
+        await isiIdJoIo(tiket, options.transaction);
+        tiket.no_ncr = await generateNomorTiket(
+          NcrTicket,
+          "no_ncr",
+          "NCR",
+          options.transaction
+        );
+      },
+    },
   }
 );
 

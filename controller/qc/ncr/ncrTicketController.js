@@ -1,9 +1,41 @@
+const { Op } = require("sequelize");
+const db = require("../../../config/database");
 const NcrTicket = require("../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../model/qc/ncr/ncrKetidaksesuaianModel");
-const CapaTicket = require("../../../model/qc/capa/capaTiketmodel");
-const capaKetidaksesuain = require("../../../model/qc/capa/capaKetidakSesuaianModel");
 const Users = require("../../../model/userModel");
+const { createCapaFromNcr } = require("../capa/service/capaTiketService");
+const { createNcr } = require("./service/ncrTicketService");
+
+const userAttributes = { exclude: ["password"] };
+
+const ncrInclude = [
+  {
+    model: Users,
+    as: "pelapor",
+    attributes: userAttributes,
+  },
+  {
+    model: Users,
+    as: "qa",
+    attributes: userAttributes,
+  },
+  {
+    model: Users,
+    as: "mr",
+    attributes: userAttributes,
+  },
+  {
+    model: NcrDepartment,
+    as: "data_department",
+    include: [
+      {
+        model: NcrKetidaksesuain,
+        as: "data_ketidaksesuaian",
+      },
+    ],
+  },
+];
 
 const NcrTicketController = {
   getNcrTicket: async (req, res) => {
@@ -15,46 +47,33 @@ const NcrTicketController = {
         tanggal,
         department,
         bagian_tiket,
+        tipe_ncr,
         page,
         limit,
       } = req.query;
       const id = req.params.id;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       let obj = {};
-      if (page && limit && (status || tanggal || department)) {
-        if (status) obj.status = status;
-        if (tanggal) obj.tanggal = tanggal;
-        if (department) obj.department = department;
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-        if (id_user) obj.id_pelapor = id_user;
-        if (id_pelapor_p1) obj.id_pelapor_p1 = id_pelapor_p1;
+      if (status) obj.status = status;
+      if (tanggal)
+        obj.tanggal = {
+          [Op.between]: [
+            new Date(tanggal).setHours(0, 0, 0, 0),
+            new Date(tanggal).setHours(23, 59, 59, 999),
+          ],
+        };
+      if (department) obj.department = department;
+      if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
+      if (id_user) obj.id_pelapor = id_user;
+      if (id_pelapor_p1) obj.id_pelapor_p1 = id_pelapor_p1;
+      if (tipe_ncr) obj.tipe_ncr = tipe_ncr;
+      const hasFilter = Object.keys(obj).length > 0;
+
+      if (page && limit) {
         const length = await NcrTicket.count({ where: obj });
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: NcrDepartment,
-              as: "data_department",
-              include: [
-                {
-                  model: NcrKetidaksesuain,
-                  as: "data_ketidaksesuaian",
-                },
-              ],
-            },
-          ],
+          include: ncrInclude,
           limit: parseInt(limit),
           offset,
           where: obj,
@@ -64,75 +83,10 @@ const NcrTicketController = {
           data: data,
           total_page: Math.ceil(length / parseInt(limit)),
         });
-      } else if (page && limit) {
+      } else if (hasFilter) {
         const data = await NcrTicket.findAll({
           order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: NcrDepartment,
-              as: "data_department",
-              include: [
-                {
-                  model: NcrKetidaksesuain,
-                  as: "data_ketidaksesuaian",
-                },
-              ],
-            },
-          ],
-          offset,
-          limit: parseInt(limit),
-        });
-        const length = await NcrTicket.count();
-        return res.status(200).json({
-          data: data,
-          total_page: Math.ceil(length / parseInt(limit)),
-        });
-      } else if (status || tanggal || department || bagian_tiket || id_user) {
-        if (status) obj.status = status;
-        if (tanggal) obj.tanggal = tanggal;
-        if (department) obj.department = department;
-        if (bagian_tiket) obj.bagian_tiket = bagian_tiket;
-        if (id_user) obj.id_pelapor = id_user;
-        if (id_pelapor_p1) obj.id_pelapor_p1 = id_pelapor_p1;
-
-        const data = await NcrTicket.findAll({
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: NcrDepartment,
-              as: "data_department",
-              include: [
-                {
-                  model: NcrKetidaksesuain,
-                  as: "data_ketidaksesuaian",
-                },
-              ],
-            },
-          ],
+          include: ncrInclude,
           where: obj,
         });
         const length = await NcrTicket.count({ where: obj });
@@ -143,30 +97,7 @@ const NcrTicketController = {
       } else if (id) {
         // console.log(id);
         const data = await NcrTicket.findByPk(id, {
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: Users,
-              as: "qa",
-            },
-            {
-              model: Users,
-              as: "mr",
-            },
-            {
-              model: NcrDepartment,
-              as: "data_department",
-              include: [
-                {
-                  model: NcrKetidaksesuain,
-                  as: "data_ketidaksesuaian",
-                },
-              ],
-            },
-          ],
+          include: ncrInclude,
         });
 
         return res.status(200).json({ data });
@@ -194,37 +125,26 @@ const NcrTicketController = {
         department_pelapor,
         data_department,
       } = req.body;
-      const data = await NcrTicket.create({
-        id_pelapor: id_pelapor,
-        id_pelapor_p1: id_pelapor_p1,
-        tanggal: new Date(),
-        kategori_laporan,
-        nama_pelapor,
-        department_pelapor,
-        no_jo,
-        no_io,
-        nama_produk,
+      await createNcr({
+        data: {
+          id_pelapor,
+          id_pelapor_p1,
+          tipe_ncr: "manual",
+          kategori_laporan,
+          nama_pelapor,
+          department_pelapor,
+          no_jo,
+          no_io,
+          nama_produk,
+        },
+        departments: data_department.map((item) => ({
+          id_department: item.id_department,
+          department: item.department,
+          ketidaksesuaian: item.ketidaksesuaian.map(
+            (poin) => poin.ketidaksesuaian
+          ),
+        })),
       });
-      //console.log(data_department);
-
-      for (let index = 0; index < data_department.length; index++) {
-        const department = await NcrDepartment.create({
-          id_ncr_tiket: data.id,
-          id_department: data_department[index].id_department,
-          department: data_department[index].department,
-        });
-        for (
-          let i = 0;
-          i < data_department[index].ketidaksesuaian.length;
-          i++
-        ) {
-          await NcrKetidaksesuain.create({
-            id_department: department.id,
-            ketidaksesuaian:
-              data_department[index].ketidaksesuaian[i].ketidaksesuaian,
-          });
-        }
-      }
 
       return res.status(201).json({ msg: "create success" });
     } catch (err) {
@@ -308,7 +228,13 @@ const NcrTicketController = {
         bagian_tiket: bagianTiket,
       };
       if (catatan_qa) obj.catatan_qa = catatan_qa;
-      await NcrTicket.update(obj, { where: { id: _id } });
+      const [updated] = await NcrTicket.update(obj, {
+        where: { id: _id, status: "menunggu validasi qa" },
+      });
+      if (updated === 0)
+        return res
+          .status(400)
+          .json({ msg: "tiket tidak dalam status menunggu validasi qa" });
       return res.status(201).json({ msg: "update success" });
     } catch (err) {
       res.status(500).json({ msg: err.message });
@@ -316,6 +242,7 @@ const NcrTicketController = {
   },
 
   validasiNcrMr: async (req, res) => {
+    const t = await db.transaction();
     try {
       const _id = req.params.id;
       const { status, catatan_mr } = req.body;
@@ -334,62 +261,22 @@ const NcrTicketController = {
         bagian_tiket: bagianTiket,
       };
       if (catatan_mr) obj.catatan_mr = catatan_mr;
-      await NcrTicket.update(obj, { where: { id: _id } });
-      if (status == "sesuai") {
-        const ncrTiket = await NcrTicket.findByPk(_id, {
-          include: [
-            {
-              model: Users,
-              as: "pelapor",
-            },
-            {
-              model: NcrDepartment,
-              as: "data_department",
-              include: [
-                {
-                  model: NcrKetidaksesuain,
-                  as: "data_ketidaksesuaian",
-                },
-              ],
-            },
-          ],
-        });
-
-        for (let index = 0; index < ncrTiket.data_department.length; index++) {
-          const capaTiket = await CapaTicket.create({
-            id_pelapor: ncrTiket.id_pelapor,
-            nama_pelapor: ncrTiket.nama_pelapor,
-            department_pelapor: ncrTiket.department_pelapor,
-            id_department: ncrTiket.data_department[index].id_department,
-            department: ncrTiket.data_department[index].department,
-            tanggal_lapor: ncrTiket.tanggal,
-            tanggal: new Date(),
-            kategori_laporan: ncrTiket.kategori_laporan,
-            no_jo: ncrTiket.no_jo,
-            no_io: ncrTiket.no_io,
-            nama_produk: ncrTiket.nama_produk,
-            catatan_qa: ncrTiket.catatan_qa,
-            catatan_mr: ncrTiket.catatan_mr,
-          });
-
-          for (
-            let i = 0;
-            i < ncrTiket.data_department[index].data_ketidaksesuaian.length;
-            i++
-          ) {
-            await capaKetidaksesuain.create({
-              id_capa: capaTiket.id,
-              ketidaksesuaian:
-                ncrTiket.data_department[index].data_ketidaksesuaian[i]
-                  .ketidaksesuaian,
-              file: ncrTiket.data_department[index].data_ketidaksesuaian[i]
-                .file,
-            });
-          }
-        }
+      // Syarat status di WHERE mencegah CAPA ganda saat request dikirim berulang
+      const [updated] = await NcrTicket.update(obj, {
+        where: { id: _id, status: "menunggu validasi mr" },
+        transaction: t,
+      });
+      if (updated === 0) {
+        await t.rollback();
+        return res
+          .status(400)
+          .json({ msg: "tiket tidak dalam status menunggu validasi mr" });
       }
+      if (status == "sesuai") await createCapaFromNcr(_id, t);
+      await t.commit();
       return res.status(201).json({ msg: "update success" });
     } catch (err) {
+      await t.rollback();
       res.status(500).json({ msg: err.message });
     }
   },

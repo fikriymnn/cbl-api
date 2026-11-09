@@ -225,6 +225,10 @@ const MasterWasteKendalaController = {
             model: MasterKategoriKendala,
             as: "kategori_kendala",
           },
+          {
+            model: MasterKriteriaKendala,
+            as: "kriteria_qty_produksi",
+          },
         ],
       });
 
@@ -252,7 +256,7 @@ const MasterWasteKendalaController = {
           e_kode_produksi: item.kode,
           nama_kendala: item.deskripsi,
           criteria: "Major",
-          criteria_percent: 1,
+          criteria_percent: item.kriteria_qty_produksi?.value ?? null,
           id_proses: item.id_tahapan_produksi,
           nama_proses: item.tahapan?.nama_tahapan || null,
           kategori_kendala: item.kategori_kendala?.kategori || null,
