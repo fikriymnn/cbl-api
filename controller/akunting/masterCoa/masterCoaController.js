@@ -22,7 +22,6 @@ const MasterCoaController = {
       page,
       limit,
       search,
-      tipe_akun,
       tipe,
       tipe_saldo,
       tipe_report,
@@ -36,7 +35,6 @@ const MasterCoaController = {
         page,
         limit,
         search,
-        tipe_akun,
         tipe,
         tipe_saldo,
         tipe_report,
@@ -50,12 +48,11 @@ const MasterCoaController = {
   },
 
   getMasterCoaTree: async (req, res) => {
-    const { search, tipe_akun, branch, show_inactive } = req.query;
+    const { search, branch, show_inactive } = req.query;
 
     try {
       const getData = await MasterCoaService.getMasterCoaTreeService({
         search,
-        tipe_akun,
         branch,
         show_inactive,
       });
@@ -66,12 +63,11 @@ const MasterCoaController = {
   },
 
   getParentCoa: async (req, res) => {
-    const { tipe, tipe_akun, exclude_id } = req.query;
+    const { tipe, exclude_id } = req.query;
 
     try {
       const getData = await MasterCoaService.getParentCoaService({
         tipe,
-        tipe_akun,
         exclude_id,
       });
       return res.status(getData.status).json(getData);
@@ -83,7 +79,6 @@ const MasterCoaController = {
   createMasterCoa: async (req, res) => {
     const {
       id_parent,
-      tipe_akun,
       kode_akun,
       nama_akun,
       tipe,
@@ -101,7 +96,6 @@ const MasterCoaController = {
       const getData = await MasterCoaService.createMasterCoaService({
         id_create: req.user.id,
         id_parent,
-        tipe_akun,
         kode_akun,
         nama_akun,
         tipe,
@@ -123,7 +117,6 @@ const MasterCoaController = {
   updateMasterCoa: async (req, res) => {
     const {
       id_parent,
-      tipe_akun,
       kode_akun,
       nama_akun,
       tipe,
@@ -141,7 +134,6 @@ const MasterCoaController = {
       const getData = await MasterCoaService.updateMasterCoaService({
         id: req.params.id,
         id_parent,
-        tipe_akun,
         kode_akun,
         nama_akun,
         tipe,

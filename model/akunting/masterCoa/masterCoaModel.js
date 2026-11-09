@@ -21,10 +21,6 @@ const MasterCoa = db.define(
         key: "id",
       },
     },
-    tipe_akun: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     kode_akun: {
       type: DataTypes.STRING,
       allowNull: false,

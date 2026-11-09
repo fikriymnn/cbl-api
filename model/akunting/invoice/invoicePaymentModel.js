@@ -54,7 +54,7 @@ const InvoicePayment = db.define(
     },
     payment_proof: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     payment_date: {
       type: DataTypes.DATE,

@@ -212,9 +212,6 @@ const InvoiceApPaymentService = {
       if (!payment_date) {
         throwPaymentError(400, "tanggal bayar wajib diisi");
       }
-      if (!payment_proof || !String(payment_proof).trim()) {
-        throwPaymentError(400, "bukti pembayaran wajib diisi");
-      }
       if (Number.isNaN(new Date(payment_date).getTime())) {
         throwPaymentError(400, "tanggal bayar tidak valid");
       }
@@ -326,7 +323,7 @@ const InvoiceApPaymentService = {
           is_tax: isTax,
           payment_amount: totalPayment.toString(),
           payment_amount_use: totalAllocation.toString(),
-          payment_proof,
+          payment_proof: payment_proof || null,
           payment_date,
           payment_method,
           bank,

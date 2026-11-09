@@ -458,7 +458,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await NcrTiket.sync({
+//   await MasterCoa.sync({
 //     alter: true,
 //     logging: console.log,
 //   });
