@@ -248,8 +248,16 @@ const NcrTicketController = {
       const { status, catatan_mr } = req.body;
       let statusValidasi = "";
       let bagianTiket = "incoming";
+      // NCR frekuensi hanya menghasilkan CAPA jika batasnya sudah terlewati
+      const ncr = await NcrTicket.findByPk(_id, {
+        attributes: ["tipe_ncr", "melebihi_batas"],
+        transaction: t,
+      });
+      const buatCapa =
+        status == "sesuai" &&
+        (ncr?.tipe_ncr != "frekuensi" || ncr.melebihi_batas == true);
       if (status == "sesuai") {
-        statusValidasi = "di teruskan ke capa";
+        statusValidasi = buatCapa ? "di teruskan ke capa" : "selesai";
         bagianTiket = "history";
       } else {
         statusValidasi = "di tolak mr";
@@ -272,7 +280,7 @@ const NcrTicketController = {
           .status(400)
           .json({ msg: "tiket tidak dalam status menunggu validasi mr" });
       }
-      if (status == "sesuai") await createCapaFromNcr(_id, t);
+      if (buatCapa) await createCapaFromNcr(_id, t);
       await t.commit();
       return res.status(201).json({ msg: "update success" });
     } catch (err) {

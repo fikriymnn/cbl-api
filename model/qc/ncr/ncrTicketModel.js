@@ -13,6 +13,11 @@ const NcrTicket = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    melebihi_batas: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
     tipe_ncr: {
       type: DataTypes.STRING,
       allowNull: true,

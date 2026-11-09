@@ -11,7 +11,7 @@ Dokumen ini untuk tim frontend. Isinya alur tiket, aturan terbentuknya NCR dan C
 | Tujuan | Mencatat ketidaksesuaian | Mencatat penyebab, perbaikan, dan pencegahannya |
 | Dibuat oleh | Otomatis dari modul lain, atau manual | Otomatis dari NCR, tidak ada input manual |
 | Isi | Header + department + poin ketidaksesuaian | Header per department + poin ketidaksesuaian |
-| Pemeriksa | QA lalu MR (kecuali tipe `frekuensi`) | Department mengisi, lalu QA dan MR memverifikasi |
+| Pemeriksa | QA lalu MR | Department mengisi, lalu QA dan MR memverifikasi |
 | Nomor | `NCR-0001/CBL/1126` | `CAPA-0001/CBL/1126` |
 
 Alur besarnya:
@@ -21,16 +21,15 @@ Alur besarnya:
                      │
                      ▼
                 [NCR terbentuk]
-          │                         │
-   tipe frekuensi            qty / waktu / manual
-          │                         │
-          ▼                         ▼
-   [Melewati batas?]         [Validasi QA] ──tidak sesuai──► di tolak qa (history)
-     │ belum  │ ya                  │ sesuai
-     ▼        │                     ▼
-  tercatat    │              [Validasi MR] ──tidak sesuai──► di tolak mr (history)
- (tanpa CAPA) │                     │ sesuai
-              ▼                     ▼
+                     │
+                     ▼
+              [Validasi QA] ──tidak sesuai──► di tolak qa (history)
+                     │ sesuai
+                     ▼
+              [Validasi MR] ──tidak sesuai──► di tolak mr (history)
+                     │ sesuai
+                     ├── tipe frekuensi, belum melewati batas ──► selesai (history, tanpa CAPA)
+                     ▼
      [CAPA dibuat, satu tiket per department]
                      │
                      ▼
@@ -62,7 +61,7 @@ Tipe tersimpan di `tipe_ncr` dan bisa dipakai sebagai filter.
 Catatan:
 
 - `kategori_laporan` berbeda dari tipe. Untuk `qty` isinya sumber masalah, untuk `frekuensi` dan `waktu` isinya jenis kendala, dan untuk `manual` isinya dari input user.
-- NCR `frekuensi` tidak melewati validasi QA dan MR.
+- NCR `frekuensi` selalu divalidasi QA dan MR. Kolom `melebihi_batas` menandai apakah batas sudah terlewati saat NCR dibuat.
 - Defect bersumber `Mesin` pada inspeksi belum menghasilkan tiket apa pun.
 - Pada tiket Kendala LKH dan Maintenance, batas disalin saat tiket dibuat. Perubahan master hanya berlaku untuk tiket baru.
 
@@ -72,8 +71,8 @@ Catatan:
 
 | Tipe NCR | Syarat |
 |---|---|
-| `frekuensi`, batas terlewati | Langsung dibuat saat NCR terbentuk, tanpa validasi QA dan MR. Status NCR `di teruskan ke capa`. Batas terlewati jika jumlah tiket tervalidasi dengan kode yang sama pada bulan berjalan, ditambah tiket ini, lebih besar dari batas. |
-| `frekuensi`, batas belum terlewati | **Tidak dibuat.** NCR hanya tercatat dengan status `tercatat`. |
+| `frekuensi`, batas terlewati | QA memvalidasi `sesuai`, lalu MR memvalidasi `sesuai`. Batas terlewati jika jumlah tiket tervalidasi dengan kode yang sama pada bulan berjalan, ditambah tiket ini, lebih besar dari batas. |
+| `frekuensi`, batas belum terlewati | **Tidak dibuat.** NCR tetap divalidasi QA dan MR. Jika MR memvalidasi `sesuai`, status NCR menjadi `selesai`. |
 | `qty`, `waktu`, `manual` | QA memvalidasi `sesuai`, lalu MR memvalidasi `sesuai`. |
 
 Berlaku untuk semua tipe:
@@ -81,7 +80,7 @@ Berlaku untuk semua tipe:
 - NCR harus punya minimal satu department. Tiap department menjadi **satu tiket CAPA**, dengan poin ketidaksesuaiannya masing-masing.
 - CAPA menyimpan `id_ncr`, jadi NCR asalnya bisa diambil lewat `GET /ncr/:id`.
 
-> Pada NCR `frekuensi`, relasi `qa` dan `mr` bernilai `null`. Pastikan tampilan tidak error.
+> Relasi `qa` dan `mr` bernilai `null` sampai tiket divalidasi. Pastikan tampilan tidak error.
 
 ---
 
@@ -109,9 +108,8 @@ Semua endpoint NCR dan CAPA wajib login, memakai cookie `access_token`. Pastikan
 | QA sesuai | `PUT /ncr/validasiQa/:id` | `menunggu validasi mr` | `incoming` |
 | QA tidak sesuai | `PUT /ncr/validasiQa/:id` | `di tolak qa` | `history` |
 | MR sesuai | `PUT /ncr/validasiMr/:id` | `di teruskan ke capa` | `history` |
+| MR sesuai, tipe `frekuensi` belum melewati batas | `PUT /ncr/validasiMr/:id` | `selesai` (tanpa CAPA) | `history` |
 | MR tidak sesuai | `PUT /ncr/validasiMr/:id` | `di tolak mr` | `history` |
-| Otomatis tipe `frekuensi`, batas terlewati | – | `di teruskan ke capa` | `history` |
-| Otomatis tipe `frekuensi`, batas belum terlewati | – | `tercatat` | `history` |
 
 Tombol yang ditampilkan:
 
@@ -156,6 +154,7 @@ Relasi lengkap: `pelapor`, `qa`, `mr`, dan `data_department[].data_ketidaksesuai
     "id": 12,
     "no_ncr": "NCR-0001/CBL/1126",
     "tipe_ncr": "qty",
+    "melebihi_batas": false,
     "kategori_laporan": "man",
     "status": "menunggu validasi qa",
     "bagian_tiket": "incoming",
@@ -440,6 +439,7 @@ Kolom baru berikut harus ada sebelum versi ini berjalan:
 ```sql
 ALTER TABLE ncr_tiket
   ADD COLUMN tipe_ncr VARCHAR(255) NULL,
+  ADD COLUMN melebihi_batas TINYINT(1) NULL DEFAULT 0,
   ADD COLUMN id_jo INT NULL,
   ADD COLUMN id_io INT NULL;
 
@@ -451,6 +451,13 @@ ALTER TABLE capa_tiket
   ADD COLUMN id_ncr INT NULL,
   ADD CONSTRAINT fk_capa_tiket_ncr FOREIGN KEY (id_ncr)
     REFERENCES ncr_tiket(id) ON DELETE SET NULL ON UPDATE CASCADE;
+```
+
+Batas waktu perlu bisa menyimpan desimal:
+
+```sql
+ALTER TABLE ticket MODIFY maksimal_waktu_pengerjaan DOUBLE NULL DEFAULT 99999;
+ALTER TABLE kendala_lkh MODIFY maksimal_waktu_pengerjaan DOUBLE NULL;
 ```
 
 Data master lama yang hanya terisi kriteria `_mtc` perlu disalin ke `_produksi`:
@@ -479,9 +486,11 @@ SET id_kriteria_frekuensi_produksi = COALESCE(id_kriteria_frekuensi_produksi, id
 
 1. Kode kendala punya batas 3 tiket per bulan.
 2. Tiket ke-1 sampai ke-3 divalidasi QC.
-   - Masing-masing membuat NCR `tipe_ncr: frekuensi` dengan status `tercatat`, tanpa CAPA.
+   - Masing-masing membuat NCR `tipe_ncr: frekuensi` dengan status `menunggu validasi qa`.
+   - Setelah QA dan MR memvalidasi `sesuai`, status menjadi `selesai`, tanpa CAPA.
 3. Tiket ke-4 divalidasi QC.
-   - NCR terbentuk dengan status `di teruskan ke capa`.
-   - CAPA langsung terbentuk untuk tiap department dan muncul di antrean department.
-4. Tiket ke-5 divalidasi QC → NCR dan CAPA baru terbentuk lagi.
+   - NCR terbentuk dengan status `menunggu validasi qa` dan `melebihi_batas: true`.
+   - Setelah QA dan MR memvalidasi `sesuai`, status menjadi `di teruskan ke capa` dan CAPA terbentuk untuk tiap department.
+   - Jika ditolak QA atau MR, CAPA tidak terbentuk.
+4. Tiket ke-5 divalidasi QC → NCR baru terbentuk dan melewati alur yang sama.
 5. Bulan berikutnya hitungan mulai lagi dari awal.

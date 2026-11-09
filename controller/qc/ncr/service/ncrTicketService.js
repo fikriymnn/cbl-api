@@ -4,7 +4,6 @@ const NcrTicket = require("../../../../model/qc/ncr/ncrTicketModel");
 const NcrDepartment = require("../../../../model/qc/ncr/ncrDepartmentModel");
 const NcrKetidaksesuain = require("../../../../model/qc/ncr/ncrKetidaksesuaianModel");
 const Users = require("../../../../model/userModel");
-const { createCapaFromNcr } = require("../../capa/service/capaTiketService");
 const { terapkanBatasQty } = require("../../../../helper/batasQtyFunction");
 
 const NAMA_PROSES = {
@@ -126,7 +125,8 @@ const createNcrQtyInspeksi = async ({
   return pointDefectDepartment;
 };
 
-// Tipe frekuensi: NCR selalu tercatat, CAPA hanya dibuat setelah batas terlewati.
+// Tipe frekuensi: NCR selalu masuk antrean validasi QA dan MR.
+// melebihi_batas menentukan apakah persetujuan MR membuat CAPA.
 const createNcrFrekuensi = async ({
   tiket,
   kodeKendala,
@@ -140,12 +140,11 @@ const createNcrFrekuensi = async ({
     melebihiBatas ? "telah melebihi" : "belum melebihi"
   } batas maksimal`;
 
-  const ncr = await createNcr({
+  return createNcr({
     data: {
       id_pelapor: idPelapor,
       tipe_ncr: "frekuensi",
-      status: melebihiBatas ? "di teruskan ke capa" : "tercatat",
-      bagian_tiket: "history",
+      melebihi_batas: melebihiBatas,
       kategori_laporan: tiket.jenis_kendala,
       nama_pelapor: namaPelapor,
       department_pelapor: "QUALITY CONTROL",
@@ -160,9 +159,6 @@ const createNcrFrekuensi = async ({
     })),
     transaction,
   });
-
-  if (melebihiBatas) await createCapaFromNcr(ncr.id, transaction);
-  return ncr;
 };
 
 // Tipe waktu: NCR dibuat jika durasi pengerjaan melebihi batas.
