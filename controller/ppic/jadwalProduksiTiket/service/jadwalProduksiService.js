@@ -8,6 +8,52 @@ const TiketPerubahanTanggalKirim = require("../../../../model/ppic/jadwalProduks
 const JadwalProduksi = require("../../../../model/ppic/jadwalProduksi/jadwalProduksiModel");
 const masterShift = require("../../../../model/masterData/hr/masterShift/masterShiftModel");
 const masterIstirahat = require("../../../../model/masterData/hr/masterShift/masterIstirahatModel");
+const MasterMesin = require("../../../../model/masterData/tahapan/masterMesinTahapanModel");
+
+// Tentukan "from" tiap tahapan dari master mesin (type_kapasitas: pcs / druk).
+// Tahapan plate dan mesin yang tidak ada di master mesin -> "tgl".
+const buildFromDataResolver = async (tahap = [], transaction = null) => {
+  const idMesinList = [
+    ...new Set(tahap.map((e) => e.id_mesin).filter(Boolean)),
+  ];
+  const namaMesinList = [
+    ...new Set(tahap.filter((e) => !e.id_mesin && e.mesin).map((e) => e.mesin)),
+  ];
+
+  const orWhere = [];
+  if (idMesinList.length > 0) orWhere.push({ id: idMesinList });
+  if (namaMesinList.length > 0) orWhere.push({ nama_mesin: namaMesinList });
+
+  const dataMesin =
+    orWhere.length > 0
+      ? await MasterMesin.findAll({
+          attributes: ["id", "nama_mesin", "type_kapasitas"],
+          where: { [Op.or]: orWhere },
+          transaction,
+        })
+      : [];
+
+  const mesinById = new Map(dataMesin.map((m) => [Number(m.id), m]));
+  const mesinByNama = new Map(
+    dataMesin.map((m) => [String(m.nama_mesin).trim().toLowerCase(), m]),
+  );
+
+  return (data) => {
+    const tahapanString = (data.tahapan || "").toLowerCase();
+    if (tahapanString.includes("plate")) return "tgl";
+
+    const mesin = data.id_mesin
+      ? mesinById.get(Number(data.id_mesin))
+      : data.mesin
+        ? mesinByNama.get(String(data.mesin).trim().toLowerCase())
+        : null;
+
+    const typeKapasitas = (mesin?.type_kapasitas || "").toLowerCase();
+    return typeKapasitas === "pcs" || typeKapasitas === "druk"
+      ? typeKapasitas
+      : "tgl";
+  };
+};
 
 const JadwalProduksiService = {
   creteJadwalProduksiService: async (
@@ -94,29 +140,10 @@ const JadwalProduksiService = {
           { transaction: t },
         );
         let dataTahapan = [];
+        const getFromData = await buildFromDataResolver(tahap, t);
         for (let i = 0; i < tahap.length; i++) {
           const data = tahap[i];
-          let fromData = "";
-          const tahapanString = data.tahapan.toLowerCase();
-
-          if (
-            tahapanString.includes("potong") ||
-            tahapanString.includes("plate") ||
-            tahapanString.includes("sampling") ||
-            tahapanString.includes("packing") ||
-            tahapanString.includes("final inspection") ||
-            tahapanString.includes("kirim")
-          ) {
-            fromData = "tgl";
-          } else if (
-            tahapanString.includes("lem") ||
-            tahapanString.includes("lipat") ||
-            tahapanString.includes("finishing")
-          ) {
-            fromData = "pcs";
-          } else {
-            fromData = "druk";
-          }
+          const fromData = getFromData(data);
 
           dataTahapan.push({
             id_tiket_jadwal_produksi: dataTiket.id,
@@ -127,6 +154,8 @@ const JadwalProduksiService = {
             nama_kategori: data.nama_kategori,
             kategori: data.kategori,
             kategori_drying_time: data.kategori_drying_time,
+            id_tahapan: data.id_tahapan || null,
+            id_mesin: data.id_mesin || null,
             mesin: data.mesin,
             kapasitas_per_jam: data.kapasitas_per_jam,
             drying_time: data.drying_time,
@@ -201,29 +230,10 @@ const JadwalProduksiService = {
           { transaction: t },
         );
         let dataTahapan = [];
+        const getFromData = await buildFromDataResolver(tahap, t);
         for (let i = 0; i < tahap.length; i++) {
           const data = tahap[i];
-          let fromData = "";
-          const tahapanString = data.tahapan.toLowerCase();
-
-          if (
-            tahapanString.includes("potong") ||
-            tahapanString.includes("plate") ||
-            tahapanString.includes("sampling") ||
-            tahapanString.includes("packing") ||
-            tahapanString.includes("final inspection") ||
-            tahapanString.includes("kirim")
-          ) {
-            fromData = "tgl";
-          } else if (
-            tahapanString.includes("lem") ||
-            tahapanString.includes("lipat") ||
-            tahapanString.includes("finishing")
-          ) {
-            fromData = "pcs";
-          } else {
-            fromData = "druk";
-          }
+          const fromData = getFromData(data);
 
           dataTahapan.push({
             id_tiket_jadwal_produksi: dataTiket.id,
@@ -234,6 +244,8 @@ const JadwalProduksiService = {
             nama_kategori: data.nama_kategori,
             kategori: data.kategori,
             kategori_drying_time: data.kategori_drying_time,
+            id_tahapan: data.id_tahapan || null,
+            id_mesin: data.id_mesin || null,
             mesin: data.mesin,
             kapasitas_per_jam: data.kapasitas_per_jam,
             drying_time: data.drying_time,

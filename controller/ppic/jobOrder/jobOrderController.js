@@ -921,6 +921,7 @@ const BomController = {
             {
               model: IoTahapan,
               as: "tahapan",
+              include: [{ model: MasterTahapanMesin, as: "tahapan_mesin" }],
             },
           ],
         },
@@ -937,6 +938,8 @@ const BomController = {
           nama_kategori: e.nama_setting_kapasitas,
           kategori: e.nama_kapasitas, //ini belum ngambil dari mana mana
           kategori_drying_time: e.nama_drying_time,
+          id_tahapan: e.tahapan_mesin?.id_tahapan || null,
+          id_mesin: e.tahapan_mesin?.id_mesin_tahapan || null,
           mesin: e.nama_mesin,
           kapasitas_per_jam: e.value_kapasitas,
           drying_time: e.value_drying_time,
@@ -1226,7 +1229,15 @@ const BomController = {
           );
           const dataIoMountingSelected = await ioMountingModel.findByPk(
             dataMountingSelected.id_io_mounting,
-            { include: [{ model: IoTahapan, as: "tahapan" }] },
+            {
+              include: [
+                {
+                  model: IoTahapan,
+                  as: "tahapan",
+                  include: [{ model: MasterTahapanMesin, as: "tahapan_mesin" }],
+                },
+              ],
+            },
           );
 
           const dataTahapanMounting = dataIoMountingSelected.tahapan.map(
@@ -1236,6 +1247,8 @@ const BomController = {
               nama_kategori: e.nama_setting_kapasitas,
               kategori: e.nama_kapasitas,
               kategori_drying_time: e.nama_drying_time,
+              id_tahapan: e.tahapan_mesin?.id_tahapan || null,
+              id_mesin: e.tahapan_mesin?.id_mesin_tahapan || null,
               mesin: e.nama_mesin,
               kapasitas_per_jam: e.value_kapasitas,
               drying_time: e.value_drying_time,
@@ -1358,6 +1371,7 @@ const BomController = {
             {
               model: IoTahapan,
               as: "tahapan",
+              include: [{ model: MasterTahapanMesin, as: "tahapan_mesin" }],
             },
           ],
         },
@@ -1386,6 +1400,8 @@ const BomController = {
           nama_kategori: e.nama_setting_kapasitas,
           kategori: e.nama_kapasitas, //ini belum ngambil dari mana mana
           kategori_drying_time: e.nama_drying_time,
+          id_tahapan: e.tahapan_mesin?.id_tahapan || null,
+          id_mesin: e.tahapan_mesin?.id_mesin_tahapan || null,
           mesin: e.nama_mesin,
           kapasitas_per_jam: e.value_kapasitas,
           drying_time: e.value_drying_time,

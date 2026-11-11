@@ -458,7 +458,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MasterCoa.sync({
+//   await TiketJadwalProduksiTahapan.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

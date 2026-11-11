@@ -43,6 +43,14 @@ const TiketJadwalProduksitahap = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    id_tahapan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_mesin: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     mesin: {
       type: DataTypes.STRING,
       allowNull: true,
