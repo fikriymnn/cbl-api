@@ -460,7 +460,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await MasterMesinTahapan.sync({
+//   await EstimasiKurangQtyProduksi.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

@@ -111,6 +111,15 @@ const EstimasiKurangQty = db.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    // dari SO (tgl_pengiriman & po_qty), diisi otomatis saat tiket dibuat
+    tgl_kirim: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    qty_po: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     qty_kurang_qty: {
       type: DataTypes.FLOAT,
       allowNull: true,

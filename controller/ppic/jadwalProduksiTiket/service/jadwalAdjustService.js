@@ -1015,7 +1015,10 @@ const resolveConflictsApply = async (idTiket, body, user, { transaction } = {}) 
 const getAdjustLog = async (idTiket, { transaction } = {}) => {
   const rows = await TiketJadwalProduksiAdjustLog.findAll({
     where: { id_tiket_jadwal_produksi: idTiket },
-    order: [["createdAt", "DESC"]],
+    order: [
+      ["createdAt", "DESC"],
+      ["id", "DESC"],
+    ],
     transaction,
   });
   const parse = (v) => {

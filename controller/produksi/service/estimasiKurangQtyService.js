@@ -2,6 +2,7 @@ const db = require("../../../config/database");
 const { Op, Sequelize } = require("sequelize");
 const EstimasiKurangQty = require("../../../model/produksi/estimasiKurangQtyModel");
 const ProduksiLkhTahapan = require("../../../model/produksi/produksiLkhTahapanModel");
+const SoModel = require("../../../model/marketing/so/soModel");
 const MasterTahapan = require("../../../model/masterData/tahapan/masterTahapanModel");
 const User = require("../../../model/userModel");
 const EstimasiKurangQtyPpicService = require("../../ppic/estimasiKurangQty/service/estimasiKurangQtyService");
@@ -163,6 +164,14 @@ const EstimasiKurangQtyService = {
         };
       }
 
+      // tgl kirim & qty po diambil dari SO
+      const dataSo = dataLkhTahapan.id_so
+        ? await SoModel.findByPk(dataLkhTahapan.id_so, {
+            attributes: ["tgl_pengiriman", "po_qty"],
+            transaction: t,
+          })
+        : null;
+
       await EstimasiKurangQty.create(
         {
           id_produksi_lkh_tahapan: dataLkhTahapan.id,
@@ -180,6 +189,8 @@ const EstimasiKurangQtyService = {
           customer: dataLkhTahapan.customer || null,
           produk: dataLkhTahapan.produk || null,
           qty_jo: dataLkhTahapan.qty_jo || null,
+          tgl_kirim: dataSo?.tgl_pengiriman || null,
+          qty_po: dataSo?.po_qty ?? null,
           qty_kurang_qty: qty_kurang_qty,
           qty_baik: qty_baik || null,
           qty_rusak_sebagian: qty_rusak_sebagian || null,
@@ -287,13 +298,26 @@ const EstimasiKurangQtyService = {
     const t = transaction || (await db.transaction());
 
     try {
-      const checkData = await EstimasiKurangQty.findByPk(id);
+      const checkData = await EstimasiKurangQty.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       if (!checkData) {
         if (!transaction) await t.rollback();
         return {
           status_code: 404,
           success: false,
           message: "Data Estimasi Kurang Qty Tidak Ditemukan",
+        };
+      }
+      // tiket produksi dibuat langsung berstatus "approved" (dari approve QC),
+      // jadi di sini hanya dicek masih aktif agar alur yang ada tidak berubah
+      if (!checkData.is_active) {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: "Data Estimasi Kurang Qty sudah dihapus",
         };
       }
 
@@ -314,12 +338,11 @@ const EstimasiKurangQtyService = {
           transaction: t,
         });
 
+      // rollback dilakukan sekali di catch
       if (createTiketPpic.success === false) {
-        await t.rollback();
-
         throw {
-          succes: false,
-          status_code: 400,
+          success: false,
+          status_code: createTiketPpic.status_code || 400,
           message: createTiketPpic.message,
         };
       }
@@ -332,7 +355,11 @@ const EstimasiKurangQtyService = {
       };
     } catch (error) {
       if (!transaction) await t.rollback();
-      throw { status_code: 500, success: false, message: error.message };
+      throw {
+        status_code: error.status_code || 500,
+        success: false,
+        message: error.message,
+      };
     }
   },
 };
