@@ -1,6 +1,5 @@
 const { Op, Sequelize, where } = require("sequelize");
 const JadwalKaryawan = require("../../../model/hr/jadwalKaryawan/jadwalKaryawanModel");
-const JadwalLemburProduksi = require("../../../model/ppic/jadwalProduksi/jadwalLemburModel");
 const TiketJadwalProduksi = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("../../../model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
@@ -10,8 +9,18 @@ const masterShift = require("../../../model/masterData/hr/masterShift/masterShif
 const masterIstirahat = require("../../../model/masterData/hr/masterShift/masterIstirahatModel");
 
 const db = require("../../../config/database");
+const JadwalCalculateService = require("./service/jadwalCalculateService");
+const JadwalAdjustService = require("./service/jadwalAdjustService");
 
 const moment = require("moment");
+
+// error dari service membawa status + payload; selain itu 500
+const sendServiceError = (res, err) => {
+  if (err && err.status) {
+    return res.status(err.status).json(err.payload || { msg: err.message });
+  }
+  return res.status(500).json({ msg: err.message });
+};
 
 const jadwalProduksiController = {
   getTiketJadwalProduksi: async (req, res) => {
@@ -444,589 +453,112 @@ const jadwalProduksiController = {
   calculateTiketJadwalProduksi: async (req, res) => {
     const { id } = req.params;
     const { is_lembur } = req.query;
-    const t = await db.transaction();
     try {
-      const dataTiket = await TiketJadwalProduksi.findByPk(id, {
-        include: [
-          {
-            model: TiketJadwalProduksiTahapan,
-            as: "tahap",
-            include: [
-              {
-                model: TiketJadwalProduksiPerJam,
-                as: "jadwal_per_jam",
-              },
-            ],
-          },
-          {
-            model: TiketJadwalProduksiPerJam,
-            as: "jadwal_per_jam",
-          },
-        ],
+      // logika calculate ada di service/jadwalCalculateService.js
+      const result = await JadwalCalculateService.calculateTiket(id, {
+        isLembur: is_lembur,
       });
-
-      if (!dataTiket)
-        return res.status(404).json({ msg: "data tidak ditemukan" });
-
-      const dataById = {
-        id: dataTiket.id,
-        item: dataTiket.item,
-        no_jo: dataTiket.no_jo,
-        no_booking: dataTiket.no_booking,
-        tgl_kirim: dataTiket.tgl_kirim,
-        tgl_cetak: dataTiket.tgl_cetak,
-        qty_pcs: dataTiket.qty_pcs,
-        qty_druk: dataTiket.qty_druk,
-        status: dataTiket.status,
-        tahap: [],
-      };
-
-      dataTiket.tahap.map((data) => {
-        dataById.tahap.push({
-          id: data.id,
-          id_tiket_jadwal_produksi: data.id_tiket_jadwal_produksi,
-          tahapan: data.tahapan,
-          tahapan_ke: data.tahapan_ke,
-          from: data.from,
-          nama_kategori: data.nama_kategori,
-          kategori: data.kategori,
-          kategori_drying_time: data.kategori_drying_time,
-          mesin: data.mesin,
-          kapasitas_per_jam: data.kapasitas_per_jam,
-          drying_time: data.drying_time,
-          setting: data.setting,
-          kapasitas: data.kapasitas,
-          toleransi: data.toleransi,
-          total_waktu: data.total_waktu,
-          total_waktu_produksi: 0,
-          tgl_from: data.tgl_from,
-          tgl_to: data.tgl_to,
-          jadwal_per_jam: data.jadwal_per_jam,
-          listJadwalPerJam: [],
-        });
-      });
-
-      const result = !dataById.tahap.some(
-        (item) =>
-          item.kapasitas_per_jam === 1 ||
-          item.drying_time === 1 ||
-          item.setting === 1,
-      );
-
-      if (result == false) {
-        return res.status(400).json({ msg: "data belum lengkap" });
-      }
-
-      const dataJadwal = await JadwalKaryawan.findAll({
-        order: [["createdAt", "DESC"]],
-        where: {
-          tanggal: {
-            [Op.between]: [
-              new Date().setHours(0, 0, 0, 0),
-              new Date(dataById.tgl_kirim).setHours(23, 59, 59, 999),
-            ],
-          },
-          jenis_karyawan: "produksi",
-        },
-      });
-
-      const dataShift = await masterShift.findAll({
-        include: [
-          {
-            model: masterIstirahat,
-            as: "istirahat",
-          },
-        ],
-      });
-
-      if (!dataShift || dataShift.length === 0) {
-        await t.rollback();
-        return res.status(400).json({ msg: "Data shift tidak ditemukan" });
-      }
-
-      // Helper: tanggal-only konsisten pakai zona Asia/Jakarta (hindari geser
-      // akibat toISOString() yang selalu UTC)
-      const toDateOnlyJakarta = (date) => {
-        const options = {
-          timeZone: "Asia/Jakarta",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        };
-        const formatter = new Intl.DateTimeFormat("en-CA", options); // en-CA -> YYYY-MM-DD
-        return formatter.format(date);
-      };
-
-      // Helper: jam:menit sebagai angka HHMM, konsisten pakai zona Asia/Jakarta.
-      // Pakai ini kalau server TIDAK jalan dengan TZ=Asia/Jakarta - ganti semua
-      // pemakaian date.getHours()*100+date.getMinutes() di bawah dengan
-      // toHourMinuteJakarta(date) supaya jam selalu benar apapun timezone server.
-      const toHourMinuteJakarta = (date) => {
-        const options = {
-          timeZone: "Asia/Jakarta",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        };
-        const formatter = new Intl.DateTimeFormat("en-GB", options);
-        const parts = formatter.formatToParts(date);
-        const hour = parts.find((p) => p.type === "hour").value;
-        const minute = parts.find((p) => p.type === "minute").value;
-        return parseInt(hour) * 100 + parseInt(minute);
-      };
-
-      // override global lewat query ?is_lembur=true (behavior lama: semua tanggal jadi lembur)
-      const isLemburGlobal = is_lembur === true || is_lembur === "true";
-
-      if (isLemburGlobal) {
-        dataShift.forEach((shift) => {
-          shift.shift_1_masuk = "08:00:00";
-          shift.shift_1_keluar = "20:00:00";
-          shift.shift_2_masuk = "20:00:00";
-          shift.shift_2_keluar = "08:00:00";
-        });
-      }
-
-      // kumpulkan mesin unik dari semua tahap untuk dicek data lemburnya
-      const uniqueMesinList = [
-        ...new Set(
-          dataById.tahap
-            .map((tahapItem) => tahapItem.mesin)
-            .filter((m) => m && m.trim() !== ""),
-        ),
-      ];
-
-      let dataLembur = [];
-      if (!isLemburGlobal && uniqueMesinList.length > 0) {
-        //ambil dari 1 bulan ke belakan sampai tgl kirim
-        const tanggalMulai = new Date();
-        tanggalMulai.setMonth(tanggalMulai.getMonth() - 1);
-        tanggalMulai.setHours(0, 0, 0, 0);
-
-        const tanggalSelesai = new Date(dataById.tgl_kirim);
-        tanggalSelesai.setHours(23, 59, 59, 999);
-
-        dataLembur = await JadwalLemburProduksi.findAll({
-          where: {
-            tanggal_lembur: {
-              [Op.gte]: tanggalMulai,
-              [Op.lte]: tanggalSelesai,
-            },
-            [Op.or]: uniqueMesinList.map((m) => ({
-              mesin: { [Op.like]: `%${m}%` },
-            })),
-          },
-        });
-      }
-
-      // map: "mesin(lowercase)|YYYY-MM-DD" -> { shift_1, shift_2 }
-      const lemburMap = {};
-      dataLembur.forEach((row) => {
-        const dateStr = toDateOnlyJakarta(new Date(row.tanggal_lembur));
-        uniqueMesinList.forEach((m) => {
-          if (row.mesin && row.mesin.toLowerCase().includes(m.toLowerCase())) {
-            lemburMap[`${m.toLowerCase()}|${dateStr}`] = {
-              shift_1: !!row.shift_1,
-              shift_2: !!row.shift_2,
-            };
-          }
-        });
-      });
-
-      // dipanggil per-mesin per-jam untuk cek apakah tanggal itu lembur
-      const getLemburInfo = (mesin, date) => {
-        if (isLemburGlobal) return { shift_1: true, shift_2: true };
-        if (!mesin) return { shift_1: false, shift_2: false };
-        const dateStr = toDateOnlyJakarta(date);
-        const key = `${mesin.toLowerCase()}|${dateStr}`;
-        const found = lemburMap[key];
-        return found || { shift_1: false, shift_2: false };
-      };
-
-      // jadwalLibur selalu di-set; override lembur ditangani per-tanggal
-      // di dalam isWithinShiftHours lewat getLemburInfo
-      let jadwalLibur = [];
-      dataJadwal.map((jadwal) => {
-        const date = new Date(jadwal.tanggal);
-        const formattedDate = toDateOnlyJakarta(date);
-        jadwalLibur.push(formattedDate);
-      });
-
-      const jadwalLiburSet = new Set(jadwalLibur);
-
-      const decrementDate = (date, days) => {
-        while (days > 0) {
-          date.setDate(date.getDate() - 1);
-          const formattedDate = toDateOnlyJakarta(date);
-          if (!jadwalLiburSet.has(formattedDate)) {
-            days--;
-          }
-        }
-        return date;
-      };
-
-      const addHoursWithoutShiftRestriction = (date, hours) => {
-        const newDate = new Date(date);
-        newDate.setHours(newDate.getHours() + hours);
-        return newDate;
-      };
-
-      // Cek apakah jam saat ini masuk waktu istirahat (dibandingkan sebagai HHMM)
-      // NOTE: field dari masterIstirahat itu `dari` / `sampai`, bukan
-      // `jam_mulai` / `jam_selesai` - sebelumnya salah nama field jadi
-      // fungsi ini selalu return false (istirahat lembur tidak pernah
-      // kepakai).
-      const isInIstirahat = (currentTime, istirahat) => {
-        if (!istirahat || istirahat.length === 0) return false;
-        for (const ist of istirahat) {
-          if (!ist.dari || !ist.sampai) continue;
-          const start = parseInt(ist.dari.replace(":", ""));
-          const end = parseInt(ist.sampai.replace(":", ""));
-          if (currentTime >= start && currentTime < end) return true;
-        }
-        return false;
-      };
-
-      // Senin(1) - Jumat(5) = hari yang normalnya punya shift 2.
-      // Sabtu(6) & Minggu(0) TIDAK punya shift 2 sendiri, kecuali lembur.
-      const dayNormallyHasShift2 = (dayOfWeek) =>
-        dayOfWeek >= 1 && dayOfWeek <= 5;
-
-      // Cek apakah sebuah tanggal adalah hari libur "penuh": Minggu, atau
-      // hari yang eksplisit ditandai libur di jadwal karyawan. Dipakai untuk
-      // memaksa shift 1 / shift 2 di hari itu HANYA buka kalau shift yang
-      // bersangkutan memang di-lemburkan (bukan otomatis buka gara-gara
-      // hari itu weekday / gara-gara shift lain di-lemburkan).
-      const isDayOff = (dateToCheck, formattedDateToCheck) => {
-        const dow = dateToCheck.getDay();
-        return dow === 0 || jadwalLiburSet.has(formattedDateToCheck);
-      };
-
-      // Aturan lengkap:
-      // - Senin-Jumat  : shift 1 + shift 2 (shift 2 normal s/d 04:00, lembur s/d 07:00)
-      // - Sabtu        : shift 1 saja s/d jam 13:00. Kalau ada lembur di hari itu:
-      //                  shift 1 jadi 08:00-19:00, shift 2 jadi 20:00-07:00 (seperti weekday lembur)
-      // - Minggu / hari libur eksplisit : libur total, kecuali ada lembur di
-      //   hari itu - dan kalau lembur, shift 1 & shift 2 masing-masing HANYA
-      //   buka kalau memang shift itu sendiri yang di-flag lembur (tidak lagi
-      //   otomatis ikut buka gara-gara shift lainnya lembur / gara-gara hari
-      //   itu weekday).
-      // - Shift 2 yang lintas tengah malam SELALU dicek carry-over ke hari
-      //   berikutnya terlebih dahulu, dengan aturan "hanya buka kalau memang
-      //   di-lemburkan" yang sama kalau hari sebelumnya adalah hari libur.
-      const isWithinShiftHours = (
-        date,
-        jadwalLiburSet,
-        dataShift,
-        getLembur,
-      ) => {
-        const formattedDate = toDateOnlyJakarta(date);
-        const dayOfWeek = date.getDay(); // 0 = Minggu, 6 = Sabtu
-        const isSaturday = dayOfWeek === 6;
-
-        const lembur = getLembur
-          ? getLembur(date)
-          : { shift_1: false, shift_2: false };
-        const isLemburDay = lembur.shift_1 || lembur.shift_2;
-        const todayOff = isDayOff(date, formattedDate);
-
-        const currentTime = date.getHours() * 100 + date.getMinutes();
-
-        // ---- Carryover shift 2 dari hari sebelumnya (lintas tengah malam) ----
-        const prevDate = new Date(date);
-        prevDate.setDate(prevDate.getDate() - 1);
-        const prevFormattedDate = toDateOnlyJakarta(prevDate);
-        const prevDayOfWeek = prevDate.getDay();
-        const prevLembur = getLembur
-          ? getLembur(prevDate)
-          : { shift_1: false, shift_2: false };
-        const prevDayOff = isDayOff(prevDate, prevFormattedDate);
-        const prevDayHasShift2 = prevDayOff
-          ? prevLembur.shift_2
-          : dayNormallyHasShift2(prevDayOfWeek) || prevLembur.shift_2;
-
-        if (prevDayHasShift2) {
-          for (const shift of dataShift) {
-            const shift2MasukStr = prevLembur.shift_2
-              ? "20:00"
-              : shift.shift_2_masuk;
-            const shift2KeluarStr = prevLembur.shift_2
-              ? "08:00"
-              : shift.shift_2_keluar;
-
-            if (shift2MasukStr && shift2KeluarStr) {
-              const shift2Start = parseInt(shift2MasukStr.replace(":", ""));
-              const shift2End = parseInt(shift2KeluarStr.replace(":", ""));
-
-              if (shift2Start > shift2End && currentTime < shift2End) {
-                if (isInIstirahat(currentTime, shift.istirahat)) return false;
-                return true;
-              }
-            }
-          }
-        }
-
-        // ---- Hari libur (Minggu atau jadwal karyawan eksplisit) - kecuali lembur ----
-        if (todayOff && !isLemburDay) return false;
-
-        // ---- Shift 1 hari ini ----
-        // Diblok kalau: hari ini libur DAN shift_1 tidak dilemburkan,
-        // atau Sabtu lewat jam 13:00 tanpa lembur shift_1.
-        const shift1Blocked =
-          (todayOff && !lembur.shift_1) ||
-          (isSaturday && currentTime >= 1300 && !lembur.shift_1);
-
-        if (!shift1Blocked) {
-          for (const shift of dataShift) {
-            const shift1MasukStr = lembur.shift_1
-              ? "08:00"
-              : shift.shift_1_masuk;
-            const shift1KeluarStr = lembur.shift_1
-              ? "20:00"
-              : shift.shift_1_keluar;
-
-            if (shift1MasukStr && shift1KeluarStr) {
-              const shift1Start = parseInt(shift1MasukStr.replace(":", ""));
-              const shift1End = parseInt(shift1KeluarStr.replace(":", ""));
-
-              if (
-                shift1Start <= shift1End &&
-                currentTime >= shift1Start &&
-                currentTime < shift1End
-              ) {
-                if (isInIstirahat(currentTime, shift.istirahat)) return false;
-                return true;
-              }
-            }
-          }
-        }
-
-        // ---- Shift 2 hari ini ----
-        // Kalau hari ini libur, shift 2 HANYA buka kalau memang dilemburkan.
-        // Kalau bukan hari libur, pakai aturan normal (Senin-Jumat selalu ada,
-        // atau lembur di hari lain seperti Sabtu).
-        const todayHasShift2 = todayOff
-          ? lembur.shift_2
-          : dayNormallyHasShift2(dayOfWeek) || lembur.shift_2;
-
-        if (todayHasShift2) {
-          for (const shift of dataShift) {
-            const shift2MasukStr = lembur.shift_2
-              ? "20:00"
-              : shift.shift_2_masuk;
-            const shift2KeluarStr = lembur.shift_2
-              ? "08:00"
-              : shift.shift_2_keluar;
-
-            if (shift2MasukStr && shift2KeluarStr) {
-              const shift2Start = parseInt(shift2MasukStr.replace(":", ""));
-              const shift2End = parseInt(shift2KeluarStr.replace(":", ""));
-
-              if (shift2Start > shift2End) {
-                if (currentTime >= shift2Start) {
-                  if (isInIstirahat(currentTime, shift.istirahat)) return false;
-                  return true;
-                }
-              } else {
-                if (currentTime >= shift2Start && currentTime < shift2End) {
-                  if (isInIstirahat(currentTime, shift.istirahat)) return false;
-                  return true;
-                }
-              }
-            }
-          }
-        }
-
-        return false;
-      };
-
-      // isValidShiftTime cukup jadi alias - semua logika per-hari sudah
-      // ditangani di dalam isWithinShiftHours
-      const isValidShiftTime = (date, jadwalLiburSet, dataShift, getLembur) =>
-        isWithinShiftHours(date, jadwalLiburSet, dataShift, getLembur);
-
-      const findNextAvailableShiftTime = (
-        date,
-        jadwalLiburSet,
-        dataShift,
-        getLembur,
-      ) => {
-        let currentDate = new Date(date);
-
-        while (
-          !isValidShiftTime(currentDate, jadwalLiburSet, dataShift, getLembur)
-        ) {
-          currentDate.setHours(currentDate.getHours() + 1);
-        }
-
-        return currentDate;
-      };
-
-      // Kalkulasi kapasitas dan total_waktu_produksi untuk setiap tahap
-      dataById.tahap.forEach((tahap) => {
-        if (tahap.from === "druk" && tahap.kapasitas_per_jam != 0) {
-          tahap.kapasitas = dataById.qty_druk / tahap.kapasitas_per_jam;
-        } else if (tahap.from === "pcs" && tahap.kapasitas_per_jam != 0) {
-          tahap.kapasitas = dataById.qty_pcs / tahap.kapasitas_per_jam;
-        } else {
-          tahap.kapasitas = 0;
-        }
-
-        let hoursSettingUp = 0;
-        if (tahap.setting != 0) {
-          let hoursSetting = tahap.setting / 60;
-          hoursSettingUp = Number.isInteger(hoursSetting)
-            ? hoursSetting
-            : Math.ceil(hoursSetting);
-        }
-
-        tahap.total_waktu_produksi = hoursSettingUp + tahap.kapasitas;
-        tahap.total_waktu =
-          tahap.drying_time + hoursSettingUp + tahap.kapasitas;
-      });
-
-      const tgl_kirim = dataById.tgl_kirim;
-      const tahap = dataById.tahap;
-
-      const tglKirim = new Date(tgl_kirim);
-      let firstTglInSequence = null;
-      let listJadwalPerJam = [];
-      let currentDate = new Date(tgl_kirim);
-
-      for (let i = tahap.length - 1; i >= 0; i--) {
-        const stage = tahap[i];
-
-        if (i === tahap.length - 1) {
-          stage.tgl_from = formatDateNow(tglKirim);
-          stage.tgl_to = formatDateNow(tglKirim);
-          continue;
-        }
-
-        stage.tgl_to = formatDateNow(currentDate);
-
-        if (stage.from === "tgl") {
-          if (firstTglInSequence) {
-            stage.tgl_from = firstTglInSequence.tgl_from;
-            stage.tgl_to = firstTglInSequence.tgl_to;
-          } else {
-            firstTglInSequence = stage;
-            currentDate = decrementDate(currentDate, 2);
-            stage.tgl_from = formatDateNow(currentDate);
-          }
-        } else {
-          firstTglInSequence = null;
-
-          if (stage.from === "druk" || stage.from === "pcs") {
-            let remainingHours = stage.total_waktu_produksi;
-            const getLemburForStage = (d) => getLemburInfo(stage.mesin, d);
-
-            while (remainingHours > 0) {
-              if (
-                !isValidShiftTime(
-                  currentDate,
-                  jadwalLiburSet,
-                  dataShift,
-                  getLemburForStage,
-                )
-              ) {
-                currentDate.setHours(currentDate.getHours() - 1);
-                continue;
-              }
-
-              listJadwalPerJam.push({
-                item: dataById.item,
-                no_jo: dataById.no_jo,
-                no_booking: dataById.no_booking,
-                qty_pcs: dataById.qty_pcs,
-                qty_druk: dataById.qty_druk,
-                tahapan: stage.tahapan,
-                tahapan_ke: stage.tahapan_ke,
-                from: stage.from,
-                nama_kategori: stage.nama_kategori,
-                kategori: stage.kategori,
-                kategori_drying_time: stage.kategori_drying_time,
-                mesin: stage.mesin,
-                kapasitas_per_jam: stage.kapasitas_per_jam,
-                drying_time: stage.drying_time,
-                setting: stage.setting,
-                kapasitas: stage.kapasitas,
-                toleransi: stage.toleransi,
-                total_waktu: stage.total_waktu,
-                total_waktu_produksi: stage.total_waktu_produksi,
-                tgl: formatNowDateOnly(currentDate),
-                jam: formatNowTimeOnly(currentDate),
-                is_lembur: is_lembur,
-              });
-
-              currentDate.setHours(currentDate.getHours() - 1);
-              remainingHours--;
-            }
-
-            if (i > 0) {
-              const prevStage = tahap[i - 1];
-              const dryingTimeToApply = prevStage.drying_time ?? 0;
-
-              if (dryingTimeToApply > 0) {
-                currentDate = addHoursWithoutShiftRestriction(
-                  currentDate,
-                  -dryingTimeToApply,
-                );
-                currentDate = findNextAvailableShiftTime(
-                  currentDate,
-                  jadwalLiburSet,
-                  dataShift,
-                  getLemburForStage,
-                );
-              }
-            }
-          }
-
-          stage.tgl_from = formatDateNow(currentDate);
-        }
-      }
-
-      dataById.tahap.map((stage) => {
-        stage.listJadwalPerJam = listJadwalPerJam.filter(
-          (jadwal) => jadwal.tahapan === stage.tahapan,
-        );
-      });
-
-      const tglMulaiProduksi = dataById.tahap[0].tgl_from;
-      const dateMulaiProduksi = tglMulaiProduksi.split(" ")[0];
-
-      await TiketJadwalProduksi.update(
-        { status: "calculated", tgl_mulai_produksi: dateMulaiProduksi },
-        { where: { id: dataById.id }, transaction: t },
-      );
-
-      for (let i = 0; i < dataById.tahap.length; i++) {
-        const data = dataById.tahap[i];
-        await TiketJadwalProduksiTahapan.update(data, {
-          where: { id: data.id },
-          transaction: t,
-        });
-
-        for (let ii = 0; ii < data.listJadwalPerJam.length; ii++) {
-          const data2 = data.listJadwalPerJam[ii];
-          await TiketJadwalProduksiPerJam.create(
-            {
-              ...data2,
-              item: dataById.item,
-              tanggal: data2.tgl,
-              id_tiket_jadwal_produksi: dataById.id,
-              id_tiket_jadwal_produksi_tahapan: data.id,
-            },
-            { transaction: t },
-          );
-        }
-      }
-
-      await t.commit();
-
-      res.status(200).json({ data: dataById, jadwalPerJam: listJadwalPerJam });
+      res.status(200).json(result);
     } catch (err) {
-      await t.rollback();
-      res.status(500).json({ msg: err.message });
+      sendServiceError(res, err);
+    }
+  },
+
+  // ---- ubah hasil calculate (geser / ubah kapasitas / ubah drying) ----
+  // lihat docs/frontend-edit-jadwal-produksi.md
+
+  availabilityJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.availability(
+        req.params.id_tahapan,
+        req.query,
+      );
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  simulateJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.simulate(
+        req.params.id_tahapan,
+        req.body || {},
+      );
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  suggestSlotJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.suggestSlot(
+        req.params.id_tahapan,
+        req.body || {},
+      );
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  applyJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.apply(
+        req.params.id_tahapan,
+        req.body || {},
+        req.user,
+      );
+      res.status(200).json({ msg: "Perubahan jadwal disimpan", data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  // bentrok mesin (R1) jadwal tiket sekarang. :id = id tiket
+  getConflictsJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.getConflicts(req.params.id);
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  // preview "selesaikan semua bentrok otomatis" (tidak menyimpan). :id = id tiket
+  resolveConflictsPreviewJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.resolveConflictsPreview(
+        req.params.id,
+        req.body || {},
+      );
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  // simpan "selesaikan semua bentrok otomatis". :id = id tiket
+  resolveConflictsApplyJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.resolveConflictsApply(
+        req.params.id,
+        req.body || {},
+        req.user,
+      );
+      res.status(200).json({ msg: "Bentrok jadwal diselesaikan", data });
+    } catch (err) {
+      sendServiceError(res, err);
+    }
+  },
+
+  getAdjustLogJadwalProduksi: async (req, res) => {
+    try {
+      const data = await JadwalAdjustService.getAdjustLog(req.params.id);
+      res.status(200).json({ data });
+    } catch (err) {
+      sendServiceError(res, err);
     }
   },
 
@@ -1567,7 +1099,32 @@ const jadwalProduksiController = {
         ],
       });
 
-      if (!data) return res.status(404).json({ msg: "data tidak ditemukana" });
+      if (!data) {
+        await t.rollback();
+        return res.status(404).json({ msg: "data tidak ditemukana" });
+      }
+
+      // cek ulang bentrok mesin dengan jadwal_produksi (slot bisa sudah
+      // diambil tiket lain sejak calculate)
+      const conflicts = await JadwalAdjustService.checkSubmitConflicts(
+        data,
+        data.tahap.map((e) => ({
+          id_mesin: e.id_mesin,
+          mesin: e.mesin,
+          tahapan: e.tahapan,
+          slots: e.jadwal_per_jam,
+        })),
+        { transaction: t },
+      );
+      if (conflicts.length > 0) {
+        await t.rollback();
+        return res.status(409).json({
+          msg: "Jadwal bentrok dengan jadwal produksi yang sudah ada. Ubah jadwal tiket terlebih dahulu.",
+          conflicts,
+        });
+      }
+
+      const tahapById = new Map(data.tahap.map((e) => [e.id, e]));
 
       let dataJadwalUpdate = [];
       for (let index = 0; index < data.tahap.length; index++) {
@@ -1600,7 +1157,12 @@ const jadwalProduksiController = {
 
       for (let i = 0; i < dataJadwalUpdate.length; i++) {
         const dataJadwalJam = dataJadwalUpdate[i];
+        const tahapJam = tahapById.get(
+          dataJadwalJam.id_tiket_jadwal_produksi_tahapan,
+        );
         dataJadwal.push({
+          id_tiket_jadwal_produksi: data.id,
+          id_mesin: tahapJam ? tahapJam.id_mesin : null,
           item: data.item,
           no_jo: data.no_jo,
           no_booking: data.no_booking,

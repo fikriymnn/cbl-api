@@ -18,6 +18,12 @@ const MasterMesin = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    // true = mesin boleh dipakai beberapa JO di jam yang sama (tidak dicek bentrok)
+    allow_concurrent: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

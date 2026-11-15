@@ -98,6 +98,28 @@ const TiketJadwalProduksitahap = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    produksi_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    produksi_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    // drying hanya data: tidak memakai jam mesin & tidak masuk jadwal_produksi
+    drying_mulai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    drying_selesai: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    is_diubah_manual: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
     freezeTableName: true,
