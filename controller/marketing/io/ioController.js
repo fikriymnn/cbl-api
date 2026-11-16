@@ -14,6 +14,7 @@ const MasterBarang = require("../../../model/masterData/barang/masterBarangModel
 const MasterMarketing = require("../../../model/masterData/marketing/masterMarketingModel");
 const MasterKaryawan = require("../../../model/hr/karyawanModel");
 const BomModel = require("../../../model/ppic/bom/bomModel");
+const PembuatanStandarWarna = require("../../../model/ppic/standarWarna/pembuatanStandarWarnaModel");
 const Users = require("../../../model/userModel");
 const db = require("../../../config/database");
 
@@ -150,6 +151,34 @@ const IoController = {
               as: "io_action_user",
               include: { model: Users, as: "user" },
             },
+            {
+              // hanya tiket aktif (tiket yang di-reject lalu dibuat ulang tidak aktif)
+              model: PembuatanStandarWarna,
+              as: "pembuatan_standar_warna",
+              required: false,
+              where: { is_active: true },
+              attributes: [
+                "id",
+                "no_standar_warna",
+                "revisi",
+                "id_jo",
+                "no_jo",
+                "id_so",
+                "no_so",
+                "status",
+                "status_proses",
+                "note",
+                "is_active",
+                "createdAt",
+              ],
+            },
+          ],
+          order: [
+            [
+              { model: PembuatanStandarWarna, as: "pembuatan_standar_warna" },
+              "id",
+              "DESC",
+            ],
           ],
         });
         res

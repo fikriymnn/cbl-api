@@ -16,6 +16,7 @@ const PembuatanStandarWarnaController = {
       id_so,
       id_customer,
       id_produk,
+      is_active,
     } = req.query;
 
     try {
@@ -33,6 +34,7 @@ const PembuatanStandarWarnaController = {
           id_so: id_so,
           id_customer: id_customer,
           id_produk: id_produk,
+          is_active: is_active,
         });
       return res.status(200).json(getData);
     } catch (error) {
@@ -87,11 +89,13 @@ const PembuatanStandarWarnaController = {
           id_user: req.user.id,
           is_create_again: is_create_again,
         });
-      return res.status(200).json(kirimData);
+      return res.status(kirimData.status_code || 200).json(kirimData);
     } catch (error) {
-      res
-        .status(500)
-        .json({ success: false, status_code: 500, msg: error.message });
+      res.status(error.status_code || 500).json({
+        success: false,
+        status_code: error.status_code || 500,
+        msg: error.message,
+      });
     }
   },
 };

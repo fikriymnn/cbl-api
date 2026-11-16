@@ -53,7 +53,8 @@ const MasterMesinTahapanController = {
   },
 
   createMasterMesinTahapan: async (req, res) => {
-    const { kode_mesin, nama_mesin, type_kapasitas } = req.body;
+    const { kode_mesin, nama_mesin, type_kapasitas, allow_concurrent } =
+      req.body;
     const t = await db.transaction();
     if (!nama_mesin)
       return res.status(404).json({
@@ -68,6 +69,8 @@ const MasterMesinTahapanController = {
           kode_mesin: kode_mesin,
           nama_mesin: nama_mesin,
           type_kapasitas: type_kapasitas,
+          allow_concurrent:
+            allow_concurrent === true || allow_concurrent === "true",
         },
         { transaction: t }
       );
@@ -88,7 +91,8 @@ const MasterMesinTahapanController = {
 
   updateMasterMesinTahapan: async (req, res) => {
     const _id = req.params.id;
-    const { kode_mesin, nama_mesin, type_kapasitas, is_active } = req.body;
+    const { kode_mesin, nama_mesin, type_kapasitas, is_active, allow_concurrent } =
+      req.body;
     const t = await db.transaction();
 
     try {
@@ -97,6 +101,10 @@ const MasterMesinTahapanController = {
       if (nama_mesin) obj.nama_mesin = nama_mesin;
       if (type_kapasitas) obj.type_kapasitas = type_kapasitas;
       if (is_active) obj.is_active = is_active;
+      // boolean: false juga harus bisa disimpan
+      if (allow_concurrent !== undefined && allow_concurrent !== null)
+        obj.allow_concurrent =
+          allow_concurrent === true || allow_concurrent === "true";
       const checkData = await MasterMesinTahapan.findByPk(_id);
       if (!checkData)
         return res.status(404).json({

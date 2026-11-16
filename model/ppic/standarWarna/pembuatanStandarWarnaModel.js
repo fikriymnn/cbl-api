@@ -15,6 +15,23 @@ const { DataTypes } = Sequelize;
 const StandarWarna = db.define(
   "pembuatan_standar_warna",
   {
+    // format CT-00001/CBL/0926, revisi setelah reject: CT-00001-1/CBL/0926
+    no_standar_warna: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    // 0 = nomor asli, n = reject ke-n
+    revisi: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    // tiket yang di-reject sebelum tiket revisi ini
+    id_standar_warna_sebelumnya: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     id_jo: {
       type: DataTypes.INTEGER,
       allowNull: true,

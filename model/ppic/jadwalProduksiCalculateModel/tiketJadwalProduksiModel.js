@@ -66,6 +66,11 @@ const TiketJadwalProduksi = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    // target FG = H-2 hari kerja sebelum tanggal kirim
+    tgl_target_fg: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
     tgl_so: {
       type: DataTypes.STRING,
       allowNull: true,

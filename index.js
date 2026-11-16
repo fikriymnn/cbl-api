@@ -252,6 +252,7 @@ const JadwalProduksiLembur = require("./model/ppic/jadwalProduksi/jadwalLemburMo
 const TiketJadwalProduksi = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiModel");
 const TiketJadwalProduksiTahapan = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiTahapanModel");
 const TiketJadwalProduksiPerJam = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiPerJamModel");
+const TiketJadwalProduksiAdjustLog = require("./model/ppic/jadwalProduksiCalculateModel/tiketJadwalProduksiAdjustLogModel");
 const TiketPerubahanJadwalKirim = require("./model/ppic/jadwalProduksiCalculateModel/tiketPerubahanTanggalKirimModel");
 const BookingJadwal = require("./model/ppic/bookingJadwal/bookingJadwalModel");
 const KapasitasMesin = require("./model/ppic/kapasitasMesin/kapsitasMesinModel");
@@ -449,6 +450,7 @@ const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 const path = require("path");
+
 const app = express();
 
 // database sync to table
@@ -458,7 +460,7 @@ const app = express();
 
 // model sync to table (pancingan)
 // (async () => {
-//   await TiketJadwalProduksiTahapan.sync({
+//   await EstimasiKurangQtyProduksi.sync({
 //     alter: true,
 //     logging: console.log,
 //   });

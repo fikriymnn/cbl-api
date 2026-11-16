@@ -2,6 +2,7 @@ const db = require("../../../../config/database");
 const { Op, Sequelize } = require("sequelize");
 const EstimasiKurangQty = require("../../../../model/ppic/estimasiKurangQty/estimasiKurangQtyModel");
 const ProduksiLkhTahapan = require("../../../../model/produksi/produksiLkhTahapanModel");
+const SoModel = require("../../../../model/marketing/so/soModel");
 const MasterTahapan = require("../../../../model/masterData/tahapan/masterTahapanModel");
 const User = require("../../../../model/userModel");
 
@@ -140,6 +141,14 @@ const EstimasiKurangQtyService = {
         };
       }
 
+      // tgl kirim & qty po diambil dari SO
+      const dataSo = dataLkhTahapan.id_so
+        ? await SoModel.findByPk(dataLkhTahapan.id_so, {
+            attributes: ["tgl_pengiriman", "po_qty"],
+            transaction: t,
+          })
+        : null;
+
       await EstimasiKurangQty.create(
         {
           id_produksi_lkh_tahapan: dataLkhTahapan.id,
@@ -156,6 +165,8 @@ const EstimasiKurangQtyService = {
           customer: dataLkhTahapan.customer || null,
           produk: dataLkhTahapan.produk || null,
           qty_jo: dataLkhTahapan.qty_jo || null,
+          tgl_kirim: dataSo?.tgl_pengiriman || null,
+          qty_po: dataSo?.po_qty ?? null,
           qty_kurang_qty: qty_kurang_qty,
           qty_baik: qty_baik || null,
           qty_rusak_sebagian: qty_rusak_sebagian || null,
@@ -263,13 +274,28 @@ const EstimasiKurangQtyService = {
     const t = transaction || (await db.transaction());
 
     try {
-      const checkData = await EstimasiKurangQty.findByPk(id);
+      // lock: klik approve 2x bersamaan tidak lolos keduanya
+      const checkData = await EstimasiKurangQty.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       if (!checkData) {
         if (!transaction) await t.rollback();
         return {
           status_code: 404,
           success: false,
           message: "Data Estimasi Kurang Qty Tidak Ditemukan",
+        };
+      }
+      // hanya tiket aktif berstatus requested yang bisa di-approve
+      if (!checkData.is_active || checkData.status !== "requested") {
+        if (!transaction) await t.rollback();
+        return {
+          status_code: 400,
+          success: false,
+          message: !checkData.is_active
+            ? "Data Estimasi Kurang Qty sudah dihapus"
+            : `Data Estimasi Kurang Qty sudah ${checkData.status}, tidak bisa di-approve lagi`,
         };
       }
 

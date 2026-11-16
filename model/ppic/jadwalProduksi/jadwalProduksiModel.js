@@ -6,6 +6,14 @@ const { DataTypes } = Sequelize;
 const JadwalProduksi = db.define(
   "jadwal_produksi",
   {
+    id_tiket_jadwal_produksi: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    id_mesin: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     item: {
       type: DataTypes.STRING,
       allowNull: true,
