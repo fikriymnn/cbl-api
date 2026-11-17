@@ -27,10 +27,14 @@ const MasterWasteKendalaService = {
           {
             model: MasterWasteKendala,
             as: "waste",
+            where: { is_active: true },
+            required: false,
             include: [
               {
                 model: MasterKodeProduksi,
                 as: "kode_kendala",
+                where: { is_active: true },
+                required: true,
                 attributes: [
                   "id",
                   "id_tahapan_produksi",
