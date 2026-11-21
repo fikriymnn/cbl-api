@@ -7,6 +7,7 @@ const MasterKodeMasalahRabut = require("../../../../model/masterData/qc/inspeksi
 const InspeksiRabutPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/rabut/inspeksiRabutPeriodeDefectDepartmentModel");
 const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { createNcrQtyInspeksi } = require("../../ncr/service/ncrTicketService");
+const User = require("../../../../model/userModel");
 
 const inspeksiRabutController = {
   getInspeksiRabut: async (req, res) => {
