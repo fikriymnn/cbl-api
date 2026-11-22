@@ -15,6 +15,7 @@ const {
   fmtTime,
   fmtDateTime,
   fmtTglFromTo,
+  fmtWaktuIndo,
   layForward,
   layBackward,
 } = require("./jadwalLayoutHelper");
@@ -237,10 +238,11 @@ const findMesinConflicts = (env, stages) => {
           tahapan: s.tahapan,
           mesin: s.mesin,
           waktu: fmtDateTime(slot),
+          waktu_label: fmtWaktuIndo(slot),
           no_jo: o.no_jo,
           no_booking: o.no_booking,
           tahapan_lain: o.tahapan,
-          msg: `Mesin ${s.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtDateTime(slot)}`,
+          msg: `Mesin ${s.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtWaktuIndo(slot)}`,
         });
       }
     }

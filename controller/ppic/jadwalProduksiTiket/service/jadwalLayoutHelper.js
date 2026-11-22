@@ -42,6 +42,37 @@ const fmtDate = (date) =>
     ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
     : null;
 
+/* ---- format tampilan (HANYA untuk teks pesan / label) ----
+ * Jangan dipakai untuk field data, kunci occupancy, query, atau kolom DB:
+ * semua itu tetap memakai fmtDate / fmtDateTime (YYYY-MM-DD [HH:mm]).
+ */
+const NAMA_BULAN = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+// "06 Desember 2026"
+const fmtTanggalIndo = (date) =>
+  date
+    ? `${pad(date.getDate())} ${NAMA_BULAN[date.getMonth()]} ${date.getFullYear()}`
+    : null;
+
+// "06 Desember 2026 08:00"
+const fmtWaktuIndo = (date) =>
+  date
+    ? `${fmtTanggalIndo(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+    : null;
+
 // "HH:mm:ss"
 const fmtTime = (date) =>
   `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -118,6 +149,8 @@ module.exports = {
   fmtDate,
   fmtTime,
   fmtTglFromTo,
+  fmtTanggalIndo,
+  fmtWaktuIndo,
   parseLocalDateTime,
   layForward,
   layBackward,

@@ -237,6 +237,37 @@ const PurchaseOrderController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  deleteItemJoPurchaseOrder: async (req, res) => {
+    const _id = req.params.idItemJo;
+
+    try {
+      const getData =
+        await PurchaseOrderService.deleteItemJoPurchaseOrderService({
+          id_item_jo: _id,
+          id_user: req.user.id,
+        });
+      return res.status(getData.status_code || 200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  deleteItemPurchaseOrder: async (req, res) => {
+    const _id = req.params.idItem;
+
+    try {
+      const getData = await PurchaseOrderService.deleteItemPurchaseOrderService(
+        {
+          id_item_po: _id,
+          id_user: req.user.id,
+        },
+      );
+      return res.status(getData.status_code || 200).json(getData);
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = PurchaseOrderController;

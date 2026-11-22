@@ -67,4 +67,16 @@ router.put(
   PurchaseOrder.sendBackToRequest,
 );
 
+router.delete(
+  "/purchasing/purchaseOrder/itemJo/:idItemJo",
+  auth,
+  PurchaseOrder.deleteItemJoPurchaseOrder,
+);
+
+router.delete(
+  "/purchasing/purchaseOrder/item/:idItem",
+  auth,
+  PurchaseOrder.deleteItemPurchaseOrder,
+);
+
 module.exports = router;

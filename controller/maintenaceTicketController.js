@@ -517,36 +517,64 @@ const ticketController = {
             as: "data_department",
           },
         ],
+        transaction: t,
       });
+      if (!tiketMtc) {
+        await t.rollback();
+        return res.status(404).json({ msg: "Tiket tidak ditemukan" });
+      }
+      // cegah validasi dobel (NCR frekuensi ikut terbuat dobel)
+      if (tiketMtc.status_qc === "di validasi") {
+        await t.rollback();
+        return res.status(400).json({ msg: "Tiket sudah di validasi" });
+      }
+
+      // tidak boleh ada tiket lain dengan mesin + kendala yang sama yang masih berjalan
+      const tiketBerjalan = await findTiketMtcBerjalan(tiketMtc, t);
+      if (tiketBerjalan) {
+        await t.rollback();
+        return res.status(400).json({
+          msg: `Masih ada tiket berjalan untuk mesin ${tiketMtc.mesin} dengan kendala ${
+            tiketMtc.kode_lkh || tiketMtc.nama_kendala
+          } (${tiketBerjalan.kode_ticket || `id ${tiketBerjalan.id}`}, status ${
+            tiketBerjalan.status_tiket
+          }), selesaikan tiket tersebut terlebih dahulu`,
+        });
+      }
+
       await Ticket.update(obj, { where: { id: _id }, transaction: t });
 
+      // periode kosong -> default bulan berjalan
       const dateRange = getDateRange(
-        tiketMtc.maksimal_periode_kedatangan_tiket
+        tiketMtc.maksimal_periode_kedatangan_tiket || "Month"
       );
 
-      //cek jumlah tiket
-      const jumlahTicketMtc = await Ticket.findAll({
+      //cek jumlah tiket tervalidasi sebelumnya (tiket ini tidak dihitung,
+      //ditambahkan +1 di createNcrFrekuensi)
+      const jumlahTicketMtc = await Ticket.count({
         where: {
+          id: { [Op.ne]: tiketMtc.id },
           createdAt: dateRange,
           status_qc: "di validasi",
           kode_lkh: tiketMtc.kode_lkh,
         },
+        transaction: t,
       });
 
-      const userQc = await Users.findByPk(req.user.id);
+      const userQc = await Users.findByPk(req.user.id, { transaction: t });
       await createNcrFrekuensi({
         tiket: tiketMtc,
         kodeKendala: tiketMtc.kode_lkh,
         idPelapor: req.user.id,
-        namaPelapor: userQc.nama,
-        jumlahTiket: jumlahTicketMtc.length,
+        namaPelapor: userQc?.nama || null,
+        jumlahTiket: jumlahTicketMtc,
         transaction: t,
       });
 
-      t.commit();
+      await t.commit();
       res.status(201).json({ msg: "Ticket update Successfuly" });
     } catch (error) {
-      t.rollback();
+      await t.rollback();
       res.status(400).json({ msg: error.message });
     }
   },
@@ -760,6 +788,33 @@ const ticketController = {
 // });
 
 // Fungsi untuk menentukan range tanggal berdasarkan periode
+/* Tiket maintenance dianggap MASIH BERJALAN jika:
+ * - bagian_tiket "incoming" : sudah divalidasi QC, menunggu direspon MTC, atau
+ * - status_tiket "open"     : sedang ditangani MTC
+ */
+
+// cari tiket lain dengan mesin + kendala yang sama yang masih berjalan
+const findTiketMtcBerjalan = async (tiket, transaction) => {
+  // tanpa mesin / kendala tidak bisa dibandingkan
+  if (!tiket.mesin || (!tiket.kode_lkh && !tiket.nama_kendala)) return null;
+
+  const kendala = tiket.kode_lkh
+    ? { kode_lkh: tiket.kode_lkh }
+    : { nama_kendala: tiket.nama_kendala };
+
+  return Ticket.findOne({
+    attributes: ["id", "kode_ticket", "bagian_tiket", "status_tiket"],
+    where: {
+      id: { [Op.ne]: tiket.id },
+      mesin: tiket.mesin,
+      ...kendala,
+      [Op.or]: [{ bagian_tiket: "incoming" }, { status_tiket: "open" }],
+    },
+    order: [["id", "DESC"]],
+    transaction,
+  });
+};
+
 const getDateRange = (periode) => {
   const now = new Date();
   if (periode === "Month") {

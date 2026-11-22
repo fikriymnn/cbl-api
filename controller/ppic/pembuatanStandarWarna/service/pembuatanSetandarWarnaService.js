@@ -8,21 +8,25 @@ const MasterCustomer = require("../../../../model/masterData/marketing/masterCus
 const MasterProduk = require("../../../../model/masterData/marketing/masterProdukModel");
 
 /* ---- nomor standar warna ----
- * Format      : CT-00001/CBL/0926  (urut 5 digit / CBL / bulan + 2 digit tahun)
- * Revisi      : CT-00001-1/CBL/0926, CT-00001-2/CBL/0926, ... (setiap reject)
+ * Format      : CT-00001/09/26  (urut 5 digit / bulan / 2 digit tahun)
+ * Revisi      : CT-00001-1/09/26, CT-00001-2/09/26, ... (setiap reject + buat ulang)
  * Nomor urut  : reset per tahun, sama seperti nomor invoice
+ * Format lama : CT-00001/CBL/0926 -> data lama tidak dikonversi, tapi tetap dibaca
+ *               supaya nomor urut tahun yang sama tetap melanjutkan (tidak bentrok)
  */
 const NO_PREFIX = "CT";
-const NO_REGEX = /^CT-(\d+)(?:-(\d+))?\/CBL\/(\d{2})(\d{2})$/;
+const NO_REGEX = /^CT-(\d+)(?:-(\d+))?\/(\d{2})\/(\d{2})$/;
+const NO_REGEX_LAMA = /^CT-(\d+)(?:-(\d+))?\/CBL\/(\d{2})(\d{2})$/;
 
 const formatNoStandarWarna = ({ urut, bulan, tahun, revisi = 0 }) =>
   `${NO_PREFIX}-${String(urut).padStart(5, "0")}${
     revisi > 0 ? `-${revisi}` : ""
-  }/CBL/${bulan}${tahun}`;
+  }/${bulan}/${tahun}`;
 
-// "CT-00012-3/CBL/0926" -> { urut: 12, revisi: 3, bulan: "09", tahun: "26" }
+// "CT-00012-3/09/26" atau format lama "CT-00012-3/CBL/0926"
+// -> { urut: 12, revisi: 3, bulan: "09", tahun: "26" }
 const parseNoStandarWarna = (no) => {
-  const m = NO_REGEX.exec(no || "");
+  const m = NO_REGEX.exec(no || "") || NO_REGEX_LAMA.exec(no || "");
   if (!m) return null;
   return {
     urut: parseInt(m[1], 10),
@@ -33,16 +37,22 @@ const parseNoStandarWarna = (no) => {
 };
 
 // nomor baru (revisi 0) berdasarkan tanggal, urut melanjutkan nomor terakhir di tahun yang sama
+// (format baru maupun format lama)
 const generateNoStandarWarna = async ({ tanggal = new Date(), transaction } = {}) => {
   const bulan = String(tanggal.getMonth() + 1).padStart(2, "0");
   const tahun = String(tanggal.getFullYear()).slice(2);
 
   const last = await PembuatanStandarWarna.findOne({
     attributes: ["no_standar_warna"],
-    where: { no_standar_warna: { [Op.like]: `${NO_PREFIX}-%/CBL/__${tahun}` } },
+    where: {
+      [Op.or]: [
+        { no_standar_warna: { [Op.like]: `${NO_PREFIX}-%/__/${tahun}` } },
+        { no_standar_warna: { [Op.like]: `${NO_PREFIX}-%/CBL/__${tahun}` } },
+      ],
+    },
     order: [
       [
-        // "CT-00012-3/CBL/0926" -> 12 (abaikan bagian revisi)
+        // "CT-00012-3/09/26" / "CT-00012-3/CBL/0926" -> 12 (abaikan bagian revisi)
         literal(
           "CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(no_standar_warna, 4), '/', 1), '-', 1) AS UNSIGNED)"
         ),
@@ -223,26 +233,27 @@ const PembuatanStandarWarnaService = {
       //     };
       //   }
 
-      // tiket sebelumnya untuk IO/SO yang sama: kalau di-reject untuk dibuat
-      // ulang (rejected + tidak aktif), tiket ini adalah revisinya -> nomor sama
-      // dengan revisi + 1. Selain itu nomor baru.
+      // tiket sebelumnya dicari berdasarkan no_io (bukan id_io), karena IO minus
+      // punya no_io yang sama dengan id berbeda. Kalau no_io kosong, pakai id_io.
       const sebelumnya = await PembuatanStandarWarna.findOne({
-        where: { id_io: id_io, id_so: id_so || null },
+        where: dataIo.no_io ? { no_io: dataIo.no_io } : { id_io: id_io },
         order: [["id", "DESC"]],
         transaction: t,
       });
 
-      // tiket revisi yang dibuat saat reject (masih berjalan) dan JO baru selesai
-      // produksi -> tiket revisi itu diperbarui dengan data JO baru, tidak dobel
+      // tiket untuk no_io yang sama masih berjalan (belum approved / rejected)
+      // -> tiket itu diperbarui dengan data JO/IO terbaru, tidak dobel
       if (
         sebelumnya &&
         sebelumnya.is_active &&
-        sebelumnya.id_standar_warna_sebelumnya &&
         !["approved", "rejected"].includes(sebelumnya.status)
       ) {
         await PembuatanStandarWarna.update(
           {
             id_jo: id_jo,
+            // id_io ikut diperbarui (bisa IO minus) supaya approve / reject
+            // meng-update status proof IO yang terbaru
+            id_io: id_io,
             id_so: id_so,
             id_customer: id_customer,
             id_produk: id_produk,
@@ -271,6 +282,9 @@ const PembuatanStandarWarnaService = {
       let revisi = 0;
       let idSebelumnya = null;
       let noteAwal = null;
+      // tiket sebelumnya (no_io sama) di-reject untuk dibuat ulang (rejected + tidak aktif)
+      // -> tiket ini revisinya: nomor sama, revisi + 1. Selain itu nomor baru
+      // (termasuk kalau tiket sebelumnya sudah approved: IO minus wajib proof dari awal).
       if (
         sebelumnya &&
         sebelumnya.status === "rejected" &&

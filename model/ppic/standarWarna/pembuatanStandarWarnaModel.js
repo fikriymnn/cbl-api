@@ -15,7 +15,8 @@ const { DataTypes } = Sequelize;
 const StandarWarna = db.define(
   "pembuatan_standar_warna",
   {
-    // format CT-00001/CBL/0926, revisi setelah reject: CT-00001-1/CBL/0926
+    // format CT-00001/09/26, revisi setelah reject: CT-00001-1/09/26
+    // (data lama masih format CT-00001/CBL/0926)
     no_standar_warna: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -143,6 +144,11 @@ const StandarWarna = db.define(
   },
   {
     freezeTableName: true,
+    indexes: [
+      // pengecekan tiket sebelumnya / revisi berdasarkan no_io
+      // (dibuat lewat migration 20261122100000-add-index-no-io-pembuatan-standar-warna)
+      { name: "idx_pembuatan_standar_warna_no_io", fields: ["no_io"] },
+    ],
   },
 );
 

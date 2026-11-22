@@ -1088,7 +1088,7 @@ const PurchaseOrderService = {
           no_so: dataPoItemJo.job_order.no_so,
           no_io: dataPoItemJo.job_order.no_io,
           customer: dataPoItemJo.job_order.customer,
-          product: dataPoItemJo.job_order.product,
+          produk: dataPoItemJo.job_order.produk,
           nama_item: nama_item,
           nama_brand: nama_brand,
           qty: qty_sendback,
@@ -1112,6 +1112,333 @@ const PurchaseOrderService = {
       throw { success: false, message: error.message };
     }
   },
+
+  // hapus 1 item jo dari PO:
+  // item jo nonaktif -> qty booking dilepas -> item PO dikurangi -> total PO dihitung ulang
+  // -> kebutuhan dikembalikan ke request purchase
+  deleteItemJoPurchaseOrderService: async ({
+    id_item_jo,
+    id_user,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+    try {
+      const itemJo = await PurchaseOrderItemJo.findOne({
+        where: { id: id_item_jo, is_active: true },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+      if (!itemJo) {
+        throw {
+          status_code: 404,
+          message: "Data Purchase Order Item JO Tidak Ditemukan",
+        };
+      }
+
+      const dataPo = await getDeletablePo(itemJo.id_purchase_order, t);
+
+      const requestResult = await removeItemJo(itemJo, id_user, t);
+      await reducePoItemByItemJo(itemJo, t);
+      await ensurePoNotEmpty(dataPo.id, true, t);
+      await recalculatePoTotal(dataPo, t);
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "delete item jo success",
+        data: requestResult,
+      };
+    } catch (error) {
+      if (!transaction) {
+        await t.rollback();
+        if (error.status_code) {
+          return {
+            status_code: error.status_code,
+            success: false,
+            message: error.message,
+          };
+        }
+      }
+      throw { success: false, message: error.message };
+    }
+  },
+
+  // hapus 1 item PO beserta semua item jo dengan id_item yang sama di PO tersebut
+  deleteItemPurchaseOrderService: async ({
+    id_item_po,
+    id_user,
+    transaction = null,
+  }) => {
+    const t = transaction || (await db.transaction());
+    try {
+      const poItem = await PurchaseOrderItem.findOne({
+        where: { id: id_item_po, is_active: true },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+      if (!poItem) {
+        throw {
+          status_code: 404,
+          message: "Data Purchase Order Item Tidak Ditemukan",
+        };
+      }
+
+      const dataPo = await getDeletablePo(poItem.id_purchase_order, t);
+
+      const hadItemJo =
+        (await PurchaseOrderItemJo.count({
+          where: { id_purchase_order: dataPo.id, is_active: true },
+          transaction: t,
+        })) > 0;
+
+      const itemsJo = await PurchaseOrderItemJo.findAll({
+        where: {
+          id_purchase_order: dataPo.id,
+          id_item: poItem.id_item,
+          is_active: true,
+        },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      // nonaktifkan semua item jo dulu, baru kembalikan request purchase
+      // 1x per kombinasi jo + item (supaya request tidak dobel)
+      const groups = new Map();
+      for (const itemJo of itemsJo) {
+        await removeItemJo(itemJo, id_user, t, { skipRestore: true });
+        const key = `${itemJo.id_jo}-${itemJo.id_item}`;
+        if (!groups.has(key)) groups.set(key, itemJo);
+      }
+
+      const requestResult = { restored_request: 0, created_request: 0 };
+      for (const itemJo of groups.values()) {
+        const result = await restoreRequestPurchase(itemJo, id_user, t);
+        requestResult.restored_request += result.restored_request;
+        requestResult.created_request += result.created_request;
+      }
+
+      await PurchaseOrderItem.update(
+        { is_active: false },
+        { where: { id: poItem.id }, transaction: t },
+      );
+
+      await ensurePoNotEmpty(dataPo.id, hadItemJo, t);
+      await recalculatePoTotal(dataPo, t);
+
+      if (!transaction) await t.commit();
+      return {
+        status_code: 200,
+        success: true,
+        message: "delete item success",
+        data: { deleted_item_jo: itemsJo.length, ...requestResult },
+      };
+    } catch (error) {
+      if (!transaction) {
+        await t.rollback();
+        if (error.status_code) {
+          return {
+            status_code: error.status_code,
+            success: false,
+            message: error.message,
+          };
+        }
+      }
+      throw { success: false, message: error.message };
+    }
+  },
+};
+
+// status PO yang item-nya masih boleh dihapus
+const DELETABLE_ITEM_PO_STATUS = ["draft", "reject kabag", "reject finance"];
+
+// ambil PO (di-lock) dan pastikan statusnya masih boleh hapus item
+const getDeletablePo = async (id_purchase_order, t) => {
+  const dataPo = await PurchaseOrder.findOne({
+    where: { id: id_purchase_order, is_active: true },
+    transaction: t,
+    lock: t.LOCK.UPDATE,
+  });
+  if (!dataPo) {
+    throw { status_code: 404, message: "Data Purchase Order Tidak Ditemukan" };
+  }
+  if (!DELETABLE_ITEM_PO_STATUS.includes(dataPo.status)) {
+    throw {
+      status_code: 400,
+      message: `item PO hanya bisa dihapus saat status draft / reject kabag / reject finance (status sekarang: ${dataPo.status})`,
+    };
+  }
+  return dataPo;
+};
+
+// nonaktifkan item jo, lepas qty booking, dan kembalikan kebutuhannya ke request purchase
+const removeItemJo = async (
+  itemJo,
+  id_user,
+  t,
+  { skipRestore = false } = {},
+) => {
+  if (itemJo.is_booking_moved) {
+    throw {
+      status_code: 400,
+      message: `item jo ${itemJo.no_jo} - ${itemJo.nama_item} sudah ambil qty dari PO booking dan sudah masuk gudang, tidak bisa dihapus`,
+    };
+  }
+
+  await releaseBookingQty(itemJo, t);
+  await PurchaseOrderItemJo.update(
+    { is_active: false },
+    { where: { id: itemJo.id }, transaction: t },
+  );
+
+  if (skipRestore) return null;
+  return restoreRequestPurchase(itemJo, id_user, t);
+};
+
+// request purchase asal (status "history" di PO ini) dikembalikan ke "incoming".
+// kalau tidak ada request asal, atau masih ada item jo lain dengan jo + item yang sama di PO ini
+// (request asal masih dipakai item jo tsb), buat request purchase baru.
+const restoreRequestPurchase = async (itemJo, id_user, t) => {
+  const sameItemJoRemaining = await PurchaseOrderItemJo.count({
+    where: {
+      id_purchase_order: itemJo.id_purchase_order,
+      id_jo: itemJo.id_jo,
+      id_item: itemJo.id_item,
+      is_active: true,
+    },
+    transaction: t,
+  });
+
+  if (sameItemJoRemaining === 0) {
+    const [restored] = await RequestPurchase.update(
+      { status: "incoming", id_purchase_order: null },
+      {
+        where: {
+          id_purchase_order: itemJo.id_purchase_order,
+          id_jo: itemJo.id_jo,
+          id_item: itemJo.id_item,
+          is_active: true,
+        },
+        transaction: t,
+      },
+    );
+    if (restored > 0) return { restored_request: restored, created_request: 0 };
+  }
+
+  const jo = itemJo.id_jo
+    ? await JobOrder.findByPk(itemJo.id_jo, {
+        include: [{ model: BomPpicModel, as: "bom_ppic" }],
+        transaction: t,
+      })
+    : null;
+
+  const qtyBom = Number(itemJo.qty_bom) || 0;
+  const qtyRequest =
+    qtyBom > 0
+      ? qtyBom
+      : (Number(itemJo.qty_po) || 0) + (Number(itemJo.qty_booking) || 0);
+
+  await RequestPurchase.create(
+    {
+      id_jo: itemJo.id_jo,
+      id_io: jo?.id_io || null,
+      id_so: jo?.id_so || null,
+      id_bom_ppic: jo?.bom_ppic?.id || null,
+      id_item: itemJo.id_item,
+      id_brand: itemJo.id_brand,
+      id_request: id_user,
+      no_bom_ppic: jo?.bom_ppic?.no_bom_ppic || null,
+      no_jo: itemJo.no_jo,
+      no_so: jo?.no_so || null,
+      no_io: jo?.no_io || null,
+      customer: jo?.customer || null,
+      produk: jo?.produk || null,
+      nama_item: itemJo.nama_item,
+      nama_brand: itemJo.nama_brand,
+      qty: qtyRequest,
+      tipe_barang: itemJo.tipe_barang,
+      satuan: itemJo.satuan,
+      tgl_kirim: jo?.tgl_kirim || itemJo.tgl_kirim || null,
+      rencana_cetak: itemJo.rencana_cetak,
+      tgl_request: new Date(),
+    },
+    { transaction: t },
+  );
+
+  return { restored_request: 0, created_request: 1 };
+};
+
+// kurangi qty & qty_beli item PO (id_item sama) sebesar qty_po item jo yang dihapus.
+// qty_booking tidak ikut dikurangi karena bukan qty yang dipesan ke vendor.
+// item PO yang qty-nya jadi 0 ikut dinonaktifkan.
+const reducePoItemByItemJo = async (itemJo, t) => {
+  const qtyPo = Number(itemJo.qty_po) || 0;
+  if (qtyPo <= 0) return;
+
+  const poItem = await PurchaseOrderItem.findOne({
+    where: {
+      id_purchase_order: itemJo.id_purchase_order,
+      id_item: itemJo.id_item,
+      is_active: true,
+    },
+    order: [["id", "ASC"]],
+    transaction: t,
+    lock: t.LOCK.UPDATE,
+  });
+  if (!poItem) return;
+
+  const qty = Math.max((Number(poItem.qty) || 0) - qtyPo, 0);
+  const qty_beli = Math.max((Number(poItem.qty_beli) || 0) - qtyPo, 0);
+  const total = qty_beli * (Number(poItem.harga) || 0);
+  const ppn = poItem.is_ppn ? total * 0.11 : 0;
+
+  await PurchaseOrderItem.update(
+    { qty, qty_beli, total, ppn, is_active: qty > 0 },
+    { where: { id: poItem.id }, transaction: t },
+  );
+};
+
+// PO tidak boleh kosong: minimal 1 item PO aktif,
+// dan kalau sebelumnya punya item jo, minimal 1 item jo aktif
+const ensurePoNotEmpty = async (id_purchase_order, hadItemJo, t) => {
+  const activeItem = await PurchaseOrderItem.count({
+    where: { id_purchase_order, is_active: true },
+    transaction: t,
+  });
+  const activeItemJo = await PurchaseOrderItemJo.count({
+    where: { id_purchase_order, is_active: true },
+    transaction: t,
+  });
+  if (activeItem === 0 || (hadItemJo && activeItemJo === 0)) {
+    throw {
+      status_code: 400,
+      message: "item terakhir tidak bisa dihapus, Purchase Order tidak boleh kosong",
+    };
+  }
+};
+
+// hitung ulang sub_total, ppn, total PO dari item PO yang masih aktif
+const recalculatePoTotal = async (dataPo, t) => {
+  const activeItems = await PurchaseOrderItem.findAll({
+    where: { id_purchase_order: dataPo.id, is_active: true },
+    transaction: t,
+  });
+
+  let sub_total = 0;
+  let total_ppn = 0;
+  for (const item of activeItems) {
+    sub_total += Number(item.total) || 0;
+    total_ppn += Number(item.ppn) || 0;
+  }
+
+  await PurchaseOrder.update(
+    {
+      sub_total,
+      ppn: total_ppn,
+      total: sub_total + total_ppn - (Number(dataPo.discount) || 0),
+    },
+    { where: { id: dataPo.id }, transaction: t },
+  );
 };
 
 // payload item jo, qty_lebih dihitung dari total qty_po + qty_booking dibanding qty_bom
