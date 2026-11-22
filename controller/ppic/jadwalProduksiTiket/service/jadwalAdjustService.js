@@ -15,6 +15,8 @@ const {
   maxDate,
   fmtDate,
   fmtDateTime,
+  fmtTanggalIndo,
+  fmtWaktuIndo,
   parseLocalDateTime,
 } = require("./jadwalLayoutHelper");
 const {
@@ -54,6 +56,23 @@ const posisi = (s) => ({
   selesai: fmtDateTime(s.selesai),
   drying_mulai: fmtDateTime(s.drying_mulai),
   drying_selesai: fmtDateTime(s.drying_selesai),
+});
+
+// pendamping label tampilan ("06 Desember 2026 08:00") untuk response.
+// tidak dipakai di adjust log / DB (nilaiLog tetap pakai posisi saja)
+const posisiLabel = (s) => ({
+  mulai_label: fmtWaktuIndo(s.mulai),
+  selesai_label: fmtWaktuIndo(s.selesai),
+  drying_mulai_label: fmtWaktuIndo(s.drying_mulai),
+  drying_selesai_label: fmtWaktuIndo(s.drying_selesai),
+});
+
+// tgl_kirim & tgl_target_fg + label
+const tglInfo = (tglKirim, targetFG) => ({
+  tgl_kirim: fmtDate(tglKirim),
+  tgl_kirim_label: fmtTanggalIndo(tglKirim),
+  tgl_target_fg: fmtDate(targetFG),
+  tgl_target_fg_label: fmtTanggalIndo(targetFG),
 });
 
 const samePosition = (a, b) =>
@@ -260,12 +279,12 @@ const evaluatePlan = (C, orig, stages, units, info) => {
         rule: "R4",
         id_tahapan: lastStage.id,
         tahapan: lastStage.tahapan,
-        msg: `${unitLabelOf(stages, lastUnit)} selesai ${fmtDateTime(akhir)}, melewati tanggal kirim ${fmtDate(tglKirim)}`,
+        msg: `${unitLabelOf(stages, lastUnit)} selesai ${fmtWaktuIndo(akhir)}, melewati tanggal kirim ${fmtTanggalIndo(tglKirim)}`,
       });
     } else if (akhir.getTime() > targetFG.getTime()) {
       warnings.push({
         rule: "R6",
-        msg: `Memakai spare: selesai ${fmtDateTime(akhir)}, melewati target FG ${fmtDate(targetFG)}`,
+        msg: `Memakai spare: selesai ${fmtWaktuIndo(akhir)}, melewati target FG ${fmtTanggalIndo(targetFG)}`,
         spare_terpakai_jam: Math.round((akhir - targetFG) / 3600000),
       });
     }
@@ -279,7 +298,7 @@ const evaluatePlan = (C, orig, stages, units, info) => {
         rule: "R5",
         id_tahapan: s.id,
         tahapan: s.tahapan,
-        msg: `${s.tahapan} mulai ${fmtDateTime(s.mulai)}, sebelum waktu sekarang`,
+        msg: `${s.tahapan} mulai ${fmtWaktuIndo(s.mulai)}, sebelum waktu sekarang`,
       });
     }
     const lembur = s.slots.filter((t) => ctx.isLemburHour(t, s.mesin));
@@ -289,13 +308,20 @@ const evaluatePlan = (C, orig, stages, units, info) => {
         id_tahapan: s.id,
         tahapan: s.tahapan,
         waktu: lembur.map(fmtDateTime),
+        waktu_label: lembur.map(fmtWaktuIndo),
         msg: `${s.tahapan}: ${lembur.length} jam jatuh di jam lembur`,
       });
     }
     const draft = [];
     for (const t of s.slots) {
       const o = occ.getDraft(t, s);
-      if (o) draft.push({ waktu: fmtDateTime(t), no_jo: o.no_jo, no_booking: o.no_booking });
+      if (o)
+        draft.push({
+          waktu: fmtDateTime(t),
+          waktu_label: fmtWaktuIndo(t),
+          no_jo: o.no_jo,
+          no_booking: o.no_booking,
+        });
     }
     if (draft.length) {
       warnings.push({
@@ -330,10 +356,12 @@ const buildTahapanRows = (orig, stages, units, info) => {
       // tahapan tgl berurutan berbagi jendela & bergeser bersama
       grup_tgl: u && u.idx.length > 1 ? unitOf.get(i) : null,
       ...info[i],
-      lama: posisi(orig[i]),
-      baru: posisi(s),
+      lama: { ...posisi(orig[i]), ...posisiLabel(orig[i]) },
+      baru: { ...posisi(s), ...posisiLabel(s) },
       geser_jam: Math.round((s.mulai - orig[i].mulai) / 3600000),
       slots_baru: changed && i !== last ? s.slots.map(fmtDateTime) : undefined,
+      slots_baru_label:
+        changed && i !== last ? s.slots.map(fmtWaktuIndo) : undefined,
     };
   });
 };
@@ -403,10 +431,11 @@ const simulateInternal = (C, idTahapan, body) => {
             tahapan: target.tahapan,
             mesin: target.mesin,
             waktu: fmtDateTime(slot),
+            waktu_label: fmtWaktuIndo(slot),
             no_jo: o.no_jo,
             no_booking: o.no_booking,
             tahapan_lain: o.tahapan,
-            msg: `Mesin ${target.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtDateTime(slot)}`,
+            msg: `Mesin ${target.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtWaktuIndo(slot)}`,
           });
         }
       }
@@ -537,8 +566,7 @@ const simulateInternal = (C, idTahapan, body) => {
     valid: conflicts.length === 0,
     jenis: body.jenis,
     id_tahapan: target.id,
-    tgl_kirim: fmtDate(tglKirim),
-    tgl_target_fg: fmtDate(targetFG),
+    ...tglInfo(tglKirim, targetFG),
     parameter,
     tahapan: buildTahapanRows(orig, stages, units, info),
     conflicts,
@@ -614,7 +642,12 @@ const availabilityFromContext = (C, idTahapan, query = {}) => {
       zona = !r.result.valid ? "merah" : otherStagesChanged(r) ? "kuning" : "hijau";
     }
 
-    const item = { waktu: fmtDateTime(t), status, zona };
+    const item = {
+      waktu: fmtDateTime(t),
+      waktu_label: fmtWaktuIndo(t),
+      status,
+      zona,
+    };
     if (o) {
       item.no_jo = o.no_jo;
       item.no_booking = o.no_booking;
@@ -639,11 +672,13 @@ const availabilityFromContext = (C, idTahapan, query = {}) => {
       durasi_jam: orig.durasi,
       drying_time: orig.drying_time,
       ...posisi(orig),
+      ...posisiLabel(orig),
     },
-    tgl_kirim: fmtDate(C.tglKirim),
-    tgl_target_fg: fmtDate(C.targetFG),
+    ...tglInfo(C.tglKirim, C.targetFG),
     from: fmtDateTime(from),
+    from_label: fmtWaktuIndo(from),
     to: fmtDateTime(to),
+    to_label: fmtWaktuIndo(to),
     slots,
   };
 };
@@ -699,7 +734,11 @@ const suggestFromContext = (C, idTahapan, body = {}) => {
   if (!found) {
     throw httpError(404, "Tidak ditemukan jam mulai yang valid sampai tanggal kirim");
   }
-  return { new_start: found.new_start, ...found.sim.result };
+  return {
+    new_start: found.new_start,
+    new_start_label: fmtWaktuIndo(parseLocalDateTime(found.new_start)),
+    ...found.sim.result,
+  };
 };
 
 /* ------------------------------------------------------------------ */
@@ -797,7 +836,9 @@ const resolveFromContext = (C) => {
       tahapan: s.tahapan,
       mesin: s.mesin,
       dari: fmtDateTime(orig[i].mulai),
+      dari_label: fmtWaktuIndo(orig[i].mulai),
       ke: fmtDateTime(s.mulai),
+      ke_label: fmtWaktuIndo(s.mulai),
       geser_jam: Math.round((s.mulai - orig[i].mulai) / 3600000),
     });
   });
@@ -807,8 +848,7 @@ const resolveFromContext = (C) => {
     valid: sisa.length === 0 && evaluated.conflicts.length === 0,
     // boleh disimpan walau sebagian bentrok belum selesai
     bisa_disimpan: diselesaikan.length > 0 && evaluated.conflicts.length === 0,
-    tgl_kirim: fmtDate(C.tglKirim),
-    tgl_target_fg: fmtDate(C.targetFG),
+    ...tglInfo(C.tglKirim, C.targetFG),
     bentrok_awal: conflictSummary(awal),
     diselesaikan,
     belum_terselesaikan: conflictSummary(sisa),
@@ -1080,10 +1120,11 @@ const checkSubmitConflicts = async (tiket, stagesWithSlots, { transaction } = {}
         tahapan: s.tahapan,
         mesin: s.mesin,
         waktu: fmtDateTime(d),
+        waktu_label: fmtWaktuIndo(d),
         no_jo: o.no_jo,
         no_booking: o.no_booking,
         tahapan_lain: o.tahapan,
-        msg: `Mesin ${s.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtDateTime(d)}`,
+        msg: `Mesin ${s.mesin} sudah dipakai ${o.no_jo || o.no_booking} (${o.tahapan}) pada ${fmtWaktuIndo(d)}`,
       });
     }
   }

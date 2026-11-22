@@ -617,8 +617,10 @@ const PengajuanLemburController = {
 
     try {
       const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
-      if (!dataPengajuanLembur)
+      if (!dataPengajuanLembur) {
+        await t.rollback();
         return res.status(404).json({ msg: "data tidak di temukan" });
+      }
 
       let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
       let statusPenanganan = "Sesuai SPL";
@@ -661,8 +663,10 @@ const PengajuanLemburController = {
 
     try {
       const dataPengajuanLembur = await PengajuanLembur.findByPk(_id);
-      if (!dataPengajuanLembur)
+      if (!dataPengajuanLembur) {
+        await t.rollback();
         return res.status(404).json({ msg: "data tidak di temukan" });
+      }
 
       let lamaLemburAktual = dataPengajuanLembur.lama_lembur_aktual;
       let statusPenanganan = "Sesuai SPL";

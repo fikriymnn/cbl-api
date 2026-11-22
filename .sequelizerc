@@ -1,0 +1,9 @@
+const path = require("path");
+
+// konfigurasi sequelize-cli (migration)
+module.exports = {
+  config: path.resolve("config", "sequelizeCli.js"),
+  "migrations-path": path.resolve("migrations"),
+  "seeders-path": path.resolve("migrations", "seeders"),
+  "models-path": path.resolve("model"),
+};
