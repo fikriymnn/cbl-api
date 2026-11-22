@@ -7,6 +7,7 @@ const InspeksiAmparLemDefect = require("../../../../model/qc/inspeksi/amparLem/i
 const InspeksiAmparLemPeriodeDefectDepartment = require("../../../../model/qc/inspeksi/amparLem/inspeksiAmparLemPeriodeDefectDepartmentModel");
 const MasterKodeDoc = require("../../../../model/masterData/qc/inspeksi/masterKodeDocModel");
 const { createNcrQtyInspeksi } = require("../../ncr/service/ncrTicketService");
+const User = require("../../../../model/userModel");
 
 const inspeksiAmparLemController = {
   getInspeksiAmparLem: async (req, res) => {
