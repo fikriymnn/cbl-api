@@ -1147,6 +1147,48 @@ const absenFunction = {
           statusLembur = "Lembur Libur";
         }
 
+        // [INFO] jam lembur murni dari absen, TANPA syarat SPL, sudah
+        // dipotong istirahat. Hanya untuk informasi — tidak dipakai di
+        // perhitungan jam_lembur / jam_lembur_spl / rekap mana pun.
+        let jamLemburAbsen = 0;
+        const batasTerhitungLemburMs =
+          masterAbsensi.terhitung_lembur_menit * 60 * 1000;
+        const istirahatLemburAbsen = shiftHariIni.istirahat;
+        if (jenisHariMasuk == "Libur") {
+          // hari libur (termasuk Sabtu Shift 2): seluruh jam masuk–keluar
+          const jamMentah =
+            (waktuKeluarUTC.getTime() - waktuMasukUTC.getTime()) / 3600000;
+          jamLemburAbsen =
+            Math.floor(jamMentah * 2) / 2 -
+            hitungOverlapIstirahat(jamMasuk, jamKeluar, istirahatLemburAbsen);
+        } else if (shiftMasukTime && shiftKeluarTime) {
+          // hari biasa: pulang lewat jam keluar shift
+          if (waktuKeluarUTC.getTime() > shiftKeluarTime + batasTerhitungLemburMs) {
+            const jamMentah =
+              (waktuKeluarUTC.getTime() - shiftKeluarTime) / 3600000;
+            jamLemburAbsen +=
+              Math.floor(jamMentah * 2) / 2 -
+              hitungOverlapIstirahat(
+                jamKeluarShift,
+                jamKeluar,
+                istirahatLemburAbsen,
+              );
+          }
+          // hari biasa: datang sebelum jam masuk shift
+          if (waktuMasukUTC.getTime() < shiftMasukTime - batasTerhitungLemburMs) {
+            const jamMentah =
+              (shiftMasukTime - waktuMasukUTC.getTime()) / 3600000;
+            jamLemburAbsen +=
+              Math.floor(jamMentah * 2) / 2 -
+              hitungOverlapIstirahat(
+                jamMasuk,
+                jamMasukShift,
+                istirahatLemburAbsen,
+              );
+          }
+        }
+        if (jamLemburAbsen < 0) jamLemburAbsen = 0;
+
         //pencocokan pengajuan terlambat dengan absen
         let statusTerlambat = "";
         const terlambatFind = terlambatEntries.find(
@@ -1250,6 +1292,7 @@ const absenFunction = {
               : jamLemburSPL,
           jam_istirahat_lembur:
             jamLembur == jamLemburSPL ? 0 : jamIstirahatLembur,
+          jam_lembur_absen: jamLemburAbsen,
           status_lembur: statusLembur,
           status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
@@ -1415,6 +1458,7 @@ const absenFunction = {
           menit_terlambat: menitTerlambat,
           jam_lembur: 0,
           jam_lembur_spl: jamLemburSPL,
+          jam_lembur_absen: 0,
           status_lembur: "Belum Pulang",
           status_lembur_spl: statusLemburSPL,
           status_masuk: `${statusMasuk} ${statusTerlambat}`,
@@ -1489,6 +1533,7 @@ const absenFunction = {
             (karyawanDitemukan.jam_lembur_spl = absen.jam_lembur_spl),
             (karyawanDitemukan.jam_istirahat_lembur =
               absen.jam_istirahat_lembur),
+            (karyawanDitemukan.jam_lembur_absen = absen.jam_lembur_absen),
             (karyawanDitemukan.status_lembur = absen.status_lembur),
             (karyawanDitemukan.status_lembur_spl = absen.status_lembur_spl),
             (karyawanDitemukan.status_masuk = absen.status_masuk),
@@ -1523,6 +1568,7 @@ const absenFunction = {
             jam_lembur: absen.jam_lembur,
             jam_lembur_spl: absen.jam_lembur_spl,
             jam_istirahat_lembur: absen.jam_istirahat_lembur,
+            jam_lembur_absen: absen.jam_lembur_absen,
             status_lembur: absen.status_lembur,
             status_lembur_spl: absen.status_lembur_spl,
             status_masuk: absen.status_masuk,
@@ -2560,6 +2606,7 @@ const generatekaryawanList = (
         jam_lembur: null,
         jam_lembur_spl: null,
         jam_istirahat_lembur: null,
+        jam_lembur_absen: null,
         status_lembur: null,
         status_lembur_spl: null,
         status_masuk: null,
